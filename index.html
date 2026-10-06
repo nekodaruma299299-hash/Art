@@ -1,7 +1,8 @@
 <!doctype html>
-<!-- Artopia 0.0.8: single-file export for GitHub Pages.
-CSS and all application scripts are embedded. Online use still requires external signaling/STUN/TURN services.
-Known issue: cross-network WebRTC connection failure is unresolved; changing hosting does not verify or fix it.
+<!-- Artopia 0.0.8 STUN-only test: single-file export for GitHub Pages.
+CSS and application code are embedded; PeerJS 1.5.5 is loaded from jsDelivr at runtime.
+Networking test: PeerJS DataConnection with Google STUN only. TURN is explicitly disabled by ICE configuration.
+Purpose: compare against Dream Crafter-style PeerJS negotiation for cross-network P2P.
 Profiles/gallery use origin-local browser storage and do not automatically migrate between hosting domains.
 -->
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#60cccc"><title>アートピア — みんなで描くキャンバス</title><meta name="description" content="部屋を作って、一緒に絵を描こう。アートピア Ver.0 β。"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2357c8c9'/%3E%3Cpath d='M8 24L16 7l8 17M12 18h8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"><style>
@@ -14,7 +15,7 @@ dialog{border:1px solid #d8e5e6;border-radius:20px;padding:0;width:min(560px,94v
 @media(max-height:550px) and (orientation:landscape){.studio-header{height:50px;padding:6px 12px}.studio-header>.brand{font-size:23px}.workspace{height:calc(100% - 50px);grid-template-columns:190px minmax(0,1fr)}.tool-grid{grid-template-columns:repeat(3,1fr)}.tool-grid button{flex-direction:column;font-size:10px;padding:5px;gap:0}.toolbox{padding:7px}.tool-grid .icon{width:20px;height:20px}.undo-row{margin:3px 0;padding:0}.undo-row button{min-height:30px}.tool-settings label,.layer-controls label{margin-bottom:4px;font-size:11px}.palette{padding:3px 0}.view-controls{margin-top:5px}.layer-btn{min-height:30px;margin-bottom:4px}.member-panel{top:55px}}
 
 </style></head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">アートピア<i></i></div><button class="primary" id="createTop">＋ 部屋作成</button></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.0.0.8 β</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section></main><footer class="home-footer"><button id="homeDiagnostics" class="quiet">接続診断</button><span>みんなで、ふくらむ、ひとつの絵。</span><span>プロフィールと作品はこの端末に保存されます</span></footer></div>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">アートピア<i></i></div><button class="primary" id="createTop">＋ 部屋作成</button></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.0.0.8 β · STUN TEST</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section></main><footer class="home-footer"><button id="homeDiagnostics" class="quiet">接続診断</button><span>みんなで、ふくらむ、ひとつの絵。</span><span>プロフィールと作品はこの端末に保存されます</span></footer></div>
 <div id="studio" class="screen studio" hidden><header class="studio-header"><button class="brand small" id="leaveBtn" title="ホームに戻る">アートピア<i></i></button><div class="room-heading"><b id="roomTitle"></b><small id="connectionState">接続中</small></div><button id="inviteBtn" class="quiet">合言葉</button><button id="snapshotBtn" title="スナップショット" data-icon="camera"></button><button id="membersBtn" class="quiet" title="参加者" data-icon="people"></button><button id="roomSettingsBtn" title="部屋設定" data-icon="gear"></button></header><div class="workspace"><aside class="toolbox"><div id="toolButtons" class="tool-grid"></div><div class="undo-row"><button id="undoBtn" title="戻る（Ctrl+Z）" data-icon="undo"></button><button id="redoBtn" title="進む（Ctrl+Shift+Z）" data-icon="redo"></button></div><div class="tool-settings"><label>サイズ <output id="sizeValue">12 px</output><input id="sizeRange" type="range" min="1" max="160" value="12"></label><label id="strengthLabel"><span id="strengthText">不透明度</span><output id="strengthValue">100%</output><input id="strengthRange" type="range" min="1" max="100" value="100"></label><details><summary>描き心地</summary><label>手ぶれ補正<input id="smoothRange" type="range" min="0" max="80" value="20"></label><label class="check"><input id="pressureCheck" type="checkbox" checked>筆圧を使う</label><label class="check"><input id="penOnlyCheck" type="checkbox">ペンのみで描画</label><label>塗りの許容差<input id="toleranceRange" type="range" min="0" max="100" value="20"></label></details></div><div class="palette"><div class="color-line"><label class="color-input" title="色を選ぶ"><input type="color" id="colorInput" value="#30485b"></label><input id="hexInput" value="#30485b" maxlength="7" aria-label="カラーコード"><button id="eyedropBtn" title="スポイト" data-icon="eyedrop"></button></div><div class="swatches" id="swatches"></div><div class="palette-actions"><button id="addColorBtn" class="quiet">＋ 色を保存</button><button id="sharedPaletteBtn" class="quiet">共有</button></div></div><div class="layer-controls"><button id="layerBtn" class="layer-btn"><span data-icon="layers"></span><b id="layerLabel">レイヤー 1</b><span>›</span></button><label>レイヤー透明度 <output id="layerOpacityValue">100%</output><input id="layerOpacityRange" type="range" min="0" max="100" value="100"></label><small>自分の表示のみ</small></div><div class="view-controls"><button id="panBtn"><span data-icon="hand"></span><span id="panText">画面移動 OFF</span></button><button id="fitBtn" class="quiet" title="全体表示" data-icon="fit"></button></div></aside><main id="viewport" class="viewport"><div id="canvasSurface"><canvas id="display"></canvas><canvas id="overlay"></canvas><div id="cursors"></div></div><div id="emptyHint" class="canvas-hint">ここから、あなたの一筆を。</div><div id="flyLayer"></div><div id="transformBar" hidden><b>選択範囲</b><button id="flipX">左右反転</button><button id="flipY">上下反転</button><label>回転<input id="rotateSelection" type="range" min="-180" max="180" value="0"></label><label>大きさ<input id="scaleSelection" type="range" min="10" max="300" value="100"></label><button id="cancelTransform">取消</button><button id="applyTransform" class="primary">確定</button></div><div class="canvas-status"><span id="undoHint">次に戻る：—</span><span id="zoomValue">100%</span><span id="canvasSize"></span></div></main><aside class="member-panel" id="memberPanel"><div class="section-head"><h2>参加メンバー</h2><span id="memberCount" class="badge">1</span></div><div id="memberList"></div><div class="member-bottom"><p>名前をタップして<br>プロフィール・絵画展へ</p><button id="chatBtn" class="chat-button"><span data-icon="chat"></span>コメント <span id="unreadBadge"></span></button><label class="check"><input id="flyCheck" type="checkbox" checked>コメントを流す</label><label class="check"><input id="cursorCheck" type="checkbox" checked>カーソルを表示</label></div></aside></div><button id="mobileChat" class="mobile-chat" title="コメント" data-icon="chat"></button></div>
 <dialog id="modal"><div id="modalContent"></div></dialog><div id="toast" role="status"></div><input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden><script>
 /* Artopia raster engine. Ordered operations + compacted layer bases. */
@@ -35,233 +36,86 @@ return{Engine,make,clone,image,apply,selection};})();
 
 </script><script>
 'use strict';
-// Artopia room transport v1. Native WebRTC; no PeerJS client or patched handlers.
-// The existing public PeerServer is used ONLY to forward negotiation messages.
+// Artopia room transport TEST. PeerJS DataConnection + STUN only (NO TURN).
+// Based on the Dream Crafter connection style: PeerJS handles offer/answer/ICE.
+// This test explicitly overrides PeerJS's default ICE config so TURN cannot be used.
 const ArtopiaNetwork = (() => {
   const PROTOCOL='artopia-rtc-1';
-  const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},
-    {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'],username:'peerjs',credential:'peerjsp'}]};
+  const PEERJS_URL='https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
+  const PEER_OPTIONS={
+    debug:1,
+    config:{
+      iceServers:[{urls:'stun:stun.l.google.com:19302'}],
+      sdpSemantics:'unified-plan'
+    }
+  };
+  let libraryPromise=null;
   const fault=(type,message)=>Object.assign(new Error(message),{type});
-  class Events {
-    constructor(){this.listeners=new Map()}
-    on(name,fn){if(!this.listeners.has(name))this.listeners.set(name,new Set());this.listeners.get(name).add(fn);return this}
-    off(name,fn){this.listeners.get(name)?.delete(fn);return this}
-    emit(name,...args){for(const fn of [...(this.listeners.get(name)||[])])fn(...args);return this}
-  }
+
   function roomId(code){
     let a=0x811c9dc5,b=0x9e3779b9;
     for(const ch of code){const n=ch.codePointAt(0);a=Math.imul(a^n,0x01000193);b=Math.imul(b^(n+a),0x85ebca6b)}
     return 'artopia7-'+(a>>>0).toString(36)+'-'+(b>>>0).toString(36);
   }
-  class Link extends Events {
-    constructor(owner,remote,id){
-      super();this.owner=owner;this.peer=remote;this.connectionId=id;this.open=false;this.closed=false;
-      this.metrics={localCandidates:0,sentCandidates:0,receivedCandidates:0,appliedCandidates:0,embeddedLocal:0,embeddedRemote:0,candidateErrors:0};
-      this.localCandidates=[];this.remoteCandidates=[];this.seenCandidates=new Set();this.descriptionSent=false;this.remoteSet=false;this.localDescriptionType=null;this.serial=Promise.resolve();
-      const pc=this.peerConnection=new RTCPeerConnection(ICE);
-      pc.onicecandidate=event=>{
-        const c=event.candidate;if(!c?.candidate||this.closed)return;
-        this.metrics.localCandidates++;
-        const plain={candidate:c.candidate,sdpMid:c.sdpMid,sdpMLineIndex:c.sdpMLineIndex};
-        if(c.usernameFragment)plain.usernameFragment=c.usernameFragment;
-        if(this.descriptionSent)this.sendCandidate(plain);else this.localCandidates.push(plain);
-      };
-      pc.oniceconnectionstatechange=()=>{
-        this.emit('iceStateChanged',pc.iceConnectionState);
-        if(pc.iceConnectionState==='failed')this.fail(fault('negotiation-failed','端末間の通信経路を確立できませんでした。'));
-      };
-      pc.ondatachannel=e=>this.bindChannel(e.channel);
-      this.timer=setTimeout(()=>this.fail(fault('join-timeout','端末間の接続が時間切れになりました。')),30000);
-    }
-    signal(type,payload){
-      if(this.closed)return;
-      this.owner.send({type,dst:this.peer,payload:{connectionId:this.connectionId,type:'data',...payload}});
-    }
-    sendCandidate(candidate){this.signal('CANDIDATE',{candidate});this.metrics.sentCandidates++}
-    async gather(){
-      const pc=this.peerConnection;
-      if(pc.iceGatheringState==='complete'||this.closed)return;
-      await new Promise(resolve=>{
-        let timer;
-        const finish=()=>{clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',check);this.off('close',finish);resolve()};
-        const check=()=>{if(pc.iceGatheringState==='complete')finish()};
-        pc.addEventListener('icegatheringstatechange',check);this.on('close',finish);
-        timer=setTimeout(finish,2500);check();
-      });
-    }
-    async publishDescription(type){
-      await this.gather();if(this.closed)return;
-      const d=this.peerConnection.localDescription;
-      if(!d?.sdp)throw fault('webrtc','接続情報を作成できませんでした。');
-      const sdp={type:d.type,sdp:d.sdp};
-      this.metrics.embeddedLocal=(d.sdp.match(/^a=candidate:/gm)||[]).length;
-      this.localDescriptionType=type;this.descriptionPacket={sdp,...(type==='OFFER'?{label:'artopia',serialization:'json',reliable:true,metadata:{protocol:PROTOCOL}}:{})};this.signal(type,this.descriptionPacket);
-      this.descriptionSent=true;
-      for(const candidate of this.localCandidates.splice(0))if(!d.sdp.includes('a='+candidate.candidate))this.sendCandidate(candidate);
-      clearInterval(this.retryTimer);this.retryTimer=setInterval(()=>this.resumeSignaling(),4000);
-    }
-    resumeSignaling(){
-      if(this.closed||this.open||!this.owner.open||!this.descriptionPacket)return;
-      if(this.localDescriptionType==='OFFER'&&this.remoteSet)return;
-      this.signal(this.localDescriptionType,this.descriptionPacket);
-    }
-    async start(){
-      try{
-        this.bindChannel(this.peerConnection.createDataChannel('artopia',{ordered:true}));
-        await this.peerConnection.setLocalDescription(await this.peerConnection.createOffer());
-        await this.publishDescription('OFFER');
-      }catch(e){if(!this.closed)this.fail(e)}
-    }
-    receive(type,payload){
-      // Serialize remote description and candidate application. Candidates may
-      // arrive before an answer finishes applying, including during reconnect.
-      this.serial=this.serial.then(async()=>{
-        if(this.closed)return;
-        if(type==='CANDIDATE'){
-          const c=payload.candidate;
-          if(!c||typeof c.candidate!=='string'||c.candidate.length>4096)return;
-          this.metrics.receivedCandidates++;
-          if(this.remoteCandidates.length<128)this.remoteCandidates.push(c);
-          await this.flushCandidates();return;
-        }
-        if(type==='OFFER'||type==='ANSWER'){
-          if(this.remoteSet){if(type==='OFFER'&&this.localDescriptionType==='ANSWER')this.resumeSignaling();return;}
-          const d=payload.sdp;
-          if(d?.type!==(type==='OFFER'?'offer':'answer')||typeof d.sdp!=='string'||d.sdp.length>100000)throw fault('webrtc','接続情報が正しくありません。');
-          await this.peerConnection.setRemoteDescription({type:d.type,sdp:d.sdp});
-          this.remoteSet=true;this.remoteSdp=d.sdp;
-          this.metrics.embeddedRemote=(d.sdp.match(/^a=candidate:/gm)||[]).length;
-          await this.flushCandidates();
-          if(type==='OFFER'){
-            await this.peerConnection.setLocalDescription(await this.peerConnection.createAnswer());
-            await this.publishDescription('ANSWER');
-          }
-        }
-      }).catch(e=>{if(!this.closed)this.fail(e)});
-    }
-    async flushCandidates(){
-      if(!this.remoteSet)return;
-      for(const c of this.remoteCandidates.splice(0)){
-        const key=c.candidate+'|'+c.sdpMid+'|'+c.sdpMLineIndex;
-        if(this.seenCandidates.has(key))continue;
-        this.seenCandidates.add(key);
-        if(this.remoteSdp.includes('a='+c.candidate))continue;
-        try{await this.peerConnection.addIceCandidate(c);this.metrics.appliedCandidates++}
-        catch{this.metrics.candidateErrors++;this.emit('candidateError')}
-      }
-    }
-    bindChannel(channel){
-      if(this.closed){channel.close();return}
-      if(this.dataChannel){channel.close();return}
-      this.dataChannel=channel;
-      channel.onopen=()=>{if(this.closed||this.open)return;this.open=true;clearTimeout(this.timer);clearInterval(this.retryTimer);this.emit('open')};
-      channel.onmessage=e=>{
-        if(this.closed||typeof e.data!=='string'||e.data.length>200000)return;
-        let value;try{value=JSON.parse(e.data)}catch{return}
-        this.emit('data',value);
-      };
-      channel.onclose=()=>this.close();
-      channel.onerror=()=>this.fail(fault('connection-closed','データ通信でエラーが発生しました。'));
-    }
-    send(value){if(!this.open||this.closed)throw fault('connection-closed','接続が開いていません。');this.dataChannel.send(JSON.stringify(value))}
-    fail(error){if(this.closed)return;this.emit('error',error);this.close()}
-    close(){
-      if(this.closed)return;this.closed=true;this.open=false;clearTimeout(this.timer);clearInterval(this.retryTimer);
-      this.localCandidates=[];this.remoteCandidates=[];
-      if(this.owner.links.get(this.connectionId)===this)this.owner.links.delete(this.connectionId);
-      if(this.dataChannel){this.dataChannel.onopen=this.dataChannel.onmessage=this.dataChannel.onclose=this.dataChannel.onerror=null;this.dataChannel.close()}
-      this.peerConnection.onicecandidate=this.peerConnection.oniceconnectionstatechange=this.peerConnection.ondatachannel=null;
-      this.peerConnection.close();this.emit('close');
-    }
+
+  function ensurePeerLibrary(){
+    if(typeof Peer==='function')return Promise.resolve();
+    if(libraryPromise)return libraryPromise;
+    libraryPromise=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src=PEERJS_URL;script.async=true;script.crossOrigin='anonymous';
+      const timer=setTimeout(()=>{script.remove();libraryPromise=null;reject(fault('network','PeerJSの読み込みが時間切れになりました。'))},12000);
+      script.onload=()=>{clearTimeout(timer);if(typeof Peer==='function')resolve();else{libraryPromise=null;reject(fault('network','PeerJSを開始できませんでした。'))}};
+      script.onerror=()=>{clearTimeout(timer);script.remove();libraryPromise=null;reject(fault('network','PeerJSを読み込めませんでした。'))};
+      document.head.appendChild(script);
+    });
+    return libraryPromise;
   }
-  class RoomPeer extends Events {
-    constructor(id){
-      super();this.id=id||'artopia-guest-'+crypto.randomUUID();this.isHost=!!id;
-      this.token=crypto.randomUUID();this.open=false;this.destroyed=false;this.disconnected=true;
-      this.links=new Map();this.socket=new Events();this.waiting=new Map();this.pending=[];this.retry=0;
-    }
-    start(){
-      if(this.destroyed)return;
-      const url='wss://0.peerjs.com/peerjs?'+new URLSearchParams({key:'peerjs',id:this.id,token:this.token,version:'1.5.5'});
-      const ws=this.ws=new WebSocket(url);
-      ws.onmessage=e=>{
-        if(this.ws!==ws||this.destroyed)return;
-        let m;try{m=JSON.parse(e.data)}catch{return}
-        this.socket.emit('message',m);this.receive(m);
-      };
-      ws.onerror=()=>{if(!this.everOpened)this.emit('error',fault('network','仲介サービスへ接続できませんでした。'))};
-      ws.onclose=event=>{
-        if(this.ws!==ws||this.destroyed)return;
-        this.open=false;this.disconnected=true;clearInterval(this.heartbeat);this.socket.emit('closed',{code:event.code,clean:event.wasClean});this.emit('disconnected');
-        if(this.everOpened&&this.retry<5){clearTimeout(this.reconnectTimer);this.reconnectTimer=setTimeout(()=>this.reconnect(),Math.min(8000,1000*2**this.retry++))}
-      };
-    }
-    receive(m){
-      if(m.type==='OPEN'){
-        this.open=true;this.disconnected=false;this.everOpened=true;this.retry=0;
-        clearInterval(this.heartbeat);this.heartbeat=setInterval(()=>this.send({type:'HEARTBEAT'}),5000);
-        for(const message of this.pending.splice(0))if(!message.payload?.connectionId||this.links.has(message.payload.connectionId))this.send(message);
-        this.emit('open',this.id);for(const link of this.links.values())link.resumeSignaling();return;
-      }
-      if(['ID-TAKEN','ERROR','INVALID-KEY'].includes(m.type)){
-        this.emit('error',fault(m.type==='ID-TAKEN'?'unavailable-id':'server-error',m.type==='ID-TAKEN'?'その合言葉の部屋は既にあります。':'仲介サービスへの登録に失敗しました。'));return;
-      }
-      if(m.type==='EXPIRE'){
-        const link=this.links.get(m.payload?.connectionId);
-        if(link)link.fail(fault('peer-unavailable','その合言葉の部屋が見つかりません。'));
-        else for(const c of this.links.values())if(c.peer===m.src)c.fail(fault('peer-unavailable','部屋が見つかりません。'));
-        return;
-      }
-      const data=m.payload,id=data?.connectionId,remote=m.src;
-      if(typeof id!=='string'||id.length>100||typeof remote!=='string'||remote.length>100)return;
-      let link=this.links.get(id);
-      if(link&&link.peer!==remote)return;
-      if(m.type==='OFFER'&&!link){
-        if(data.metadata?.protocol!==PROTOCOL||!this.isHost||this.links.size>=16)return;
-        link=new Link(this,remote,id);this.links.set(id,link);this.emit('connection',link);
-        link.receive('OFFER',data);
-        const early=this.waiting.get(remote+'|'+id);this.waiting.delete(remote+'|'+id);
-        for(const packet of early?.packets||[])link.receive('CANDIDATE',packet);
-        return;
-      }
-      if(link){if(m.type==='LEAVE')link.close();else link.receive(m.type,data);return}
-      if(m.type==='CANDIDATE'&&this.isHost){
-        for(const [key,item]of this.waiting)if(Date.now()-item.at>15000)this.waiting.delete(key);
-        const key=remote+'|'+id;if(!this.waiting.has(key)&&this.waiting.size<16)this.waiting.set(key,{at:Date.now(),packets:[]});
-        const item=this.waiting.get(key);if(item&&item.packets.length<64)item.packets.push(data);
-      }
-    }
-    send(message){
-      if(this.destroyed)return;
-      if(!this.open||this.ws?.readyState!==1){if(message.type!=='HEARTBEAT'&&this.pending.length<256)this.pending.push(message);return}
-      this.ws.send(JSON.stringify(message));this.socket.emit('sent',{type:message.type});
-    }
-    connect(remote){
-      if(!this.open||this.destroyed)throw fault('network','部屋への接続準備ができていません。');
-      const link=new Link(this,remote,crypto.randomUUID());this.links.set(link.connectionId,link);
-      queueMicrotask(()=>{if(!link.closed)link.start()});return link;
-    }
-    reconnect(){if(this.destroyed||this.open)return;clearTimeout(this.reconnectTimer);if(this.ws){this.ws.onclose=null;this.ws.close()}this.start()}
-    destroy(){
-      if(this.destroyed)return;this.destroyed=true;this.open=false;this.disconnected=true;
-      clearInterval(this.heartbeat);clearTimeout(this.reconnectTimer);
-      for(const link of [...this.links.values()])link.close();this.waiting.clear();this.pending=[];
-      if(this.ws){this.ws.onclose=null;this.ws.close()}
-      this.emit('close');
-    }
+
+  // Keep Artopia's diagnostics useful while letting PeerJS own negotiation.
+  function decorateConnection(c){
+    if(!c||c.__artopiaDecorated)return c;
+    c.__artopiaDecorated=true;
+    c.metrics={mode:'peerjs-stun-only'};
+    // PeerJS exposes peerConnection/dataChannel; no custom candidate injection is done here.
+    return c;
   }
-  function createPeer(id,onCreate=()=>{}){
+
+  async function createPeer(id,onCreate=()=>{}){
+    if(typeof RTCPeerConnection!=='function')throw fault('webrtc','このブラウザではオンライン接続を利用できません。');
+    await ensurePeerLibrary();
     return new Promise((resolve,reject)=>{
-      if(typeof RTCPeerConnection!=='function'||typeof WebSocket!=='function'){reject(fault('webrtc','このブラウザではオンライン接続を利用できません。'));return}
-      const p=new RoomPeer(id);
-      const fail=e=>{clearTimeout(timer);p.off('open',ready);p.off('error',fail);p.destroy();reject(e)};
-      const ready=()=>{clearTimeout(timer);p.off('open',ready);p.off('error',fail);resolve(p)};
-      const timer=setTimeout(()=>fail(fault('network','部屋の登録が時間切れになりました。')),12000);
-      p.on('open',ready);p.on('error',fail);onCreate(p);try{p.start()}catch(e){fail(e)}
+      let settled=false,p;
+      const options={...PEER_OPTIONS,config:{...PEER_OPTIONS.config,iceServers:PEER_OPTIONS.config.iceServers.map(x=>({...x}))}};
+      try{p=id?new Peer(id,options):new Peer(options)}catch(e){reject(e);return}
+      try{onCreate(p)}catch{}
+      const timer=setTimeout(()=>{
+        if(settled)return;settled=true;
+        try{p.destroy()}catch{}
+        reject(fault('network','部屋の登録が時間切れになりました。'));
+      },12000);
+      const ready=()=>{if(settled)return;settled=true;clearTimeout(timer);resolve(p)};
+      const fail=e=>{if(settled)return;settled=true;clearTimeout(timer);try{p.destroy()}catch{};reject(e)};
+      p.once('open',ready);p.once('error',fail);
+      // Decorate every incoming connection before application handlers receive it.
+      p.on('connection',decorateConnection);
     });
   }
-  function attach(c,handlers={}){for(const key of ['open','data','close','error'])if(handlers[key])c.on(key,handlers[key]);return c}
-  return {roomId,createPeer,attach,connect:(p,id)=>p.connect(id)};
+
+  function attach(c,handlers={}){
+    decorateConnection(c);
+    for(const key of ['open','data','close','error'])if(handlers[key])c.on(key,handlers[key]);
+    return c;
+  }
+
+  function connect(p,id){
+    if(!p||p.destroyed||p.disconnected)throw fault('network','部屋への接続準備ができていません。');
+    const c=p.connect(id,{reliable:true,serialization:'json',metadata:{protocol:PROTOCOL}});
+    if(!c)throw fault('network','部屋への接続を開始できませんでした。');
+    return decorateConnection(c);
+  }
+
+  return {roomId,createPeer,attach,connect};
 })();
 
 </script><script>
@@ -358,7 +212,7 @@ let palette=load('artopia-palette',['#30485b','#f38da0','#f6d666','#9bd39f','#74
 let engine=null,room=null,peer=null,hostConn=null,localId='',isHost=false,connected=false,members=new Map(),connections=new Map(),sharedPalette=[],locks=new Map(),redoIds=[],pendingOps=new Set(),gallery=[],activeArt='',selection=null,stroke=null,pan=false,chat=[],unread=0,lastChat=0,lastCursor=0,remoteDrafts=new Map(),remoteCursors=new Map(),outboundQueue=[],wireBusy=false,peerLoading=null,sessionToken=0,mutationBusy=false,syncing=false,deferredMessages=[],lastRecovery=0,moveUndo=null;
 const prefs={layer:0,opacities:[100,100,100],tool:'pen',color:'#30485b',smooth:20,pressure:true,penOnly:false,tolerance:20,tools:{pen:{size:12,strength:100},eraser:{size:30,strength:100},warp:{size:60,strength:65},blur:{size:50,strength:70},lasso:{size:12,strength:100},fill:{size:12,strength:100}},view:{x:0,y:0,z:1,angle:0}};
 const labels={pen:'ペン',eraser:'消しゴム',warp:'歪み',blur:'ぼかし',lasso:'投げ縄',fill:'塗りつぶし',transform:'範囲変形',color:'色',layer:'レイヤー',opacities:'レイヤー透明度',tool:'ツール',smooth:'手ぶれ補正',pressure:'筆圧',penOnly:'ペン操作',tolerance:'塗りの許容差',view:'画面位置',pan:'画面移動'};
-const connectionDiagnostics={version:'0.0.8',started:Date.now(),events:[],last:null};
+const connectionDiagnostics={version:'0.0.8-STUN-TEST',started:Date.now(),events:[],last:null};
 function recordConnection(event,details={}){
   // Only deliberately selected connection state, never SDP, IP, names or passphrases.
   connectionDiagnostics.events.push({ms:Date.now()-connectionDiagnostics.started,event,...details});
@@ -386,7 +240,7 @@ function observeDataConnection(c,role){
   return state;
 }
 function diagnosticText(){
-  return JSON.stringify({version:connectionDiagnostics.version,transport:'native-webrtc-v1',role:room?(isHost?'部屋主':'参加者'):'入室前',online:navigator.onLine,secureContext:window.isSecureContext,embedded:window.self!==window.top,webRTC:typeof RTCPeerConnection!=='undefined',peerRegistered:!!peer?.open,signalingDisconnected:peer?.disconnected??null,canvasOpen:!$('#studio').hidden,lastConnection:connectionDiagnostics.last,events:connectionDiagnostics.events},null,2);
+  return JSON.stringify({version:connectionDiagnostics.version,transport:'peerjs-stun-only-test',role:room?(isHost?'部屋主':'参加者'):'入室前',online:navigator.onLine,secureContext:window.isSecureContext,embedded:window.self!==window.top,webRTC:typeof RTCPeerConnection!=='undefined',peerRegistered:!!peer?.open,signalingDisconnected:peer?.disconnected??null,canvasOpen:!$('#studio').hidden,lastConnection:connectionDiagnostics.last,events:connectionDiagnostics.events},null,2);
 }
 function showConnectionDiagnostics(){
   joinController?.abort();
