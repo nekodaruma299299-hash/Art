@@ -1,0 +1,613 @@
+<!doctype html>
+<!-- Artopia 0.0.8: single-file export for GitHub Pages.
+CSS and all application scripts are embedded. Online use still requires external signaling/STUN/TURN services.
+Known issue: cross-network WebRTC connection failure is unresolved; changing hosting does not verify or fix it.
+Profiles/gallery use origin-local browser storage and do not automatically migrate between hosting domains.
+-->
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#60cccc"><title>アートピア — みんなで描くキャンバス</title><meta name="description" content="部屋を作って、一緒に絵を描こう。アートピア Ver.0 β。"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2357c8c9'/%3E%3Cpath d='M8 24L16 7l8 17M12 18h8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
+:root{font-family:'Noto Sans JP',sans-serif;color:#223343;background:#f7fafb;font-size:16px;--teal:#57c8c9;--pale:#e8f7f6;--line:#dce5e8;--muted:#7b8c97;--shadow:0 12px 45px #253c4910}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{border:1px solid var(--line);border-radius:12px;background:white;color:inherit;padding:10px 14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;min-height:44px}button:hover{background:#f0f8f8;border-color:#9bcfce}button:disabled{opacity:.4;cursor:default}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #319fae;outline-offset:3px}button.primary{background:var(--teal);border-color:var(--teal);color:#153e49}button.active{background:#dcf4f3;border-color:#70c9c8;color:#126e76}.quiet{background:transparent;border-color:transparent}.icon{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}input[type=text],input[type=number],input:not([type]),textarea,select{border:1px solid #d1dfe4;border-radius:10px;padding:11px;background:#fff;color:inherit;min-width:0}input[type=range]{width:100%;accent-color:#20a5ad;cursor:pointer;display:block;height:24px;margin:8px 0 0}input[type=checkbox]{accent-color:#1ba5ae;width:17px;height:17px}.screen[hidden],[hidden]{display:none!important}.brand{font-size:42px;font-weight:900;letter-spacing:-3px;position:relative;display:inline-block;line-height:1.4;isolation:isolate;white-space:nowrap}.brand i{position:absolute;bottom:0;left:6%;height:8px;width:90%;z-index:-1;transform:rotate(-3deg);background:linear-gradient(90deg,#55c5cb 20%,#97d9bf 45%,#f3d267 70%,#f895a2);border-radius:100%}.brand.small{font-size:28px;letter-spacing:-2px;border:0;background:none;padding:0}.home{min-height:100dvh;background:radial-gradient(ellipse at 80% 12%,#def5f24d,transparent 50%),#f9fbfc}.home-header{height:106px;display:flex;align-items:center;justify-content:space-between;padding:24px 5%;border-bottom:1px solid var(--line);background:#ffffffa0}.profile-pill{border:none;background:none;padding:0;text-align:left}.profile-pill small{display:block;color:var(--muted);font-size:12px;margin-top:4px}.avatar{width:48px;height:48px;border-radius:50%;background:#d9f0ed;display:inline-flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex-shrink:0}.avatar img{width:100%;height:100%;object-fit:cover}.edit-mark{color:var(--muted);margin-left:8px}.home-main{max-width:1080px;margin:auto;padding:55px 36px 35px}.eyebrow{color:#509b9f;letter-spacing:3px;font-size:12px;font-weight:800}h1{font-size:clamp(32px,4vw,50px);line-height:1.55;letter-spacing:1px;margin:15px 0 14px}.intro{color:#738591;line-height:1.9;font-size:15px}.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:32px}.action-card{padding:26px;display:grid;text-align:left;grid-template-columns:52px 1fr 24px;column-gap:18px;row-gap:6px;border-radius:18px;box-shadow:var(--shadow)}.action-card .action-icon{grid-row:1/3;width:50px;height:50px;background:var(--pale);color:#24858b;display:grid;place-items:center;border-radius:14px}.action-card b{font-size:20px}.action-card>span:not(.action-icon){font-size:13px;color:var(--muted);font-weight:400}.action-card strong{grid-column:3;grid-row:1/3;font-size:23px;color:#72b4b8}.exhibition{margin-top:48px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.section-head h2{font-size:18px;margin:0}.section-head .quiet{font-size:14px}.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.empty-gallery{grid-column:1/-1;min-height:150px;border:1px dashed #cddce0;border-radius:15px;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;font-size:14px;line-height:1.9}.art-card{padding:0;display:block;overflow:hidden;text-align:left;border-radius:13px}.art-card img{width:100%;aspect-ratio:1.5;object-fit:contain;background:#ecf0f2;display:block}.art-card span{display:block;padding:11px 14px;font-size:14px}.home-footer{display:flex;justify-content:space-between;gap:20px;padding:25px 5%;font-size:12px;color:var(--muted)}
+.studio{height:100dvh;overflow:hidden;background:#edf1f3}.studio-header{height:72px;background:#fff;display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid var(--line)}.room-heading{flex:1;min-width:0;margin-left:18px}.room-heading b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}.room-heading small{color:var(--muted);font-size:12px}.workspace{height:calc(100% - 72px);display:grid;grid-template-columns:204px minmax(0,1fr) 200px}.toolbox{background:#fff;padding:12px 14px;overflow-y:auto;border-right:1px solid var(--line);z-index:4;scrollbar-width:thin}.tool-grid{display:grid;gap:3px}.tool-grid button{justify-content:flex-start;border-color:transparent;padding:8px 12px;min-height:39px;font-size:14px}.tool-grid button.active{background:var(--pale);color:#147d85}.undo-row{display:flex;border-block:1px solid var(--line);margin:12px 0;padding:8px 0}.undo-row button{flex:1;border:0}.tool-settings label,.layer-controls label{display:block;font-size:13px;margin-bottom:12px}.tool-settings output,.layer-controls output{float:right;font-weight:700}details{font-size:13px;margin-bottom:10px}summary{cursor:pointer;color:var(--muted);padding:4px 0}.check{display:flex!important;align-items:center;gap:6px;font-size:13px!important;font-weight:400}.palette{padding:8px 0 12px}.color-line{display:flex;align-items:center;gap:4px}.color-input{width:42px;height:42px;border-radius:50%;padding:4px;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);display:block;overflow:hidden;flex-shrink:0}.color-input input{width:100%;height:100%;padding:0;border:3px solid white;border-radius:50%;cursor:pointer;background:transparent}.color-input input::-webkit-color-swatch-wrapper{padding:0}.color-input input::-webkit-color-swatch{border:none;border-radius:50%}#hexInput{width:79px;font-size:12px;padding:7px}#eyedropBtn{padding:7px;min-height:38px;border:none}.swatches{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 5px}.swatch{width:22px;height:22px;min-height:22px;padding:0;border:1px solid #0002;border-radius:50%}.swatch.selected{outline:2px solid #213747;outline-offset:2px}.palette-actions{display:flex;justify-content:space-between}.palette-actions button{font-size:12px;min-height:28px;padding:4px}.layer-btn{width:100%;justify-content:space-between;background:var(--pale);font-size:14px;margin-bottom:10px}.layer-btn>span:first-child{display:flex}.layer-controls small{font-size:12px;color:var(--muted)}.view-controls{display:flex;gap:3px;margin-top:14px}.view-controls button{font-size:12px;padding:8px 5px}#panBtn{flex:1}#fitBtn{width:34px}.viewport{position:relative;overflow:hidden;touch-action:none;background:#e9edef;background-image:radial-gradient(#bac6cd70 1px,transparent 1px);background-size:16px 16px;min-width:0;min-height:0}#canvasSurface{position:absolute;transform-origin:0 0;box-shadow:0 8px 30px #263b491c;background:white}#display,#overlay{position:absolute;inset:0;width:100%;height:100%}#overlay{pointer-events:none}#cursors{position:absolute;inset:0;pointer-events:none}.remote-cursor{position:absolute;white-space:nowrap;font-size:12px;transform-origin:0 0}.remote-cursor span{padding:3px 7px;border-radius:8px;color:white;margin-left:7px;box-shadow:0 1px 4px #0003}.canvas-hint{position:absolute;top:45%;left:0;right:0;text-align:center;pointer-events:none;font-size:15px;color:#b1bdc4}.canvas-status{position:absolute;bottom:0;left:0;right:0;display:flex;gap:20px;padding:8px 16px;background:#eef2f4e8;font-size:12px;color:#7d8c98;pointer-events:none}.canvas-status span:first-child{flex:1}.member-panel{background:#fafcfd;border-left:1px solid var(--line);padding:22px 15px;display:flex;flex-direction:column;overflow:auto}.member-panel h2{font-size:14px}.badge{font-size:12px;background:#e9eff2;padding:3px 8px;border-radius:6px}.member{width:100%;border:0;background:transparent;justify-content:flex-start;padding:12px 0;text-align:left}.member .avatar{width:34px;height:34px;font-size:19px}.member b{font-size:14px;overflow-wrap:anywhere}.member small{display:block;font-size:11px;color:var(--muted)}.member-bottom{margin-top:auto;padding-top:24px}.member-bottom p{font-size:12px;line-height:1.8;color:var(--muted)}.chat-button{width:100%;font-size:14px;margin-bottom:12px}.mobile-chat{display:none}#unreadBadge{background:#e35c79;color:white;border-radius:50%;padding:0 5px;font-size:12px}#unreadBadge:empty{display:none}#flyLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden}.flying{position:absolute;left:100%;white-space:nowrap;padding:7px 14px;border-radius:20px;background:#ffffffdc;box-shadow:0 3px 12px #0001;animation:fly 9s linear forwards;font-size:14px}.flying b{margin-right:9px}@keyframes fly{to{transform:translateX(calc(-100vw - 100%))}}#transformBar{position:absolute;bottom:40px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px;background:#fffc;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);backdrop-filter:blur(8px)}#transformBar b{font-size:12px}#transformBar button{font-size:12px;padding:5px 8px;min-height:34px}#transformBar label{font-size:12px;width:100px}#transformBar input{margin:0;height:18px}
+dialog{border:1px solid #d8e5e6;border-radius:20px;padding:0;width:min(560px,94vw);max-height:90dvh;box-shadow:0 25px 100px #142d4340;color:inherit;background:#fff}dialog::backdrop{background:#233b4b55;backdrop-filter:blur(4px)}.modal-inner{padding:28px}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:24px}.modal-head h2{font-size:23px;margin:0}.modal-head button{border:0;padding:4px;font-size:25px;min-height:30px}.form-field{display:block;margin-bottom:18px;font-size:14px;font-weight:600}.form-field>input:not([type=checkbox]):not([type=range]):not([type=color]),.form-field>textarea,.form-field>select{display:block;width:100%;margin-top:8px;font-weight:400}.form-field small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:6px}.form-row{display:flex;gap:16px}.form-row>*{flex:1;min-width:0}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}.required{font-size:11px;background:#ffe2e7;color:#c8415a;padding:2px 5px;border-radius:5px;margin-left:6px}.error{color:#be4256;font-size:13px;white-space:pre-wrap}.muted{font-size:13px;color:var(--muted);line-height:1.8}.profile-preview{display:flex;align-items:center;gap:20px;margin-bottom:20px}.profile-preview .avatar{width:78px;height:78px;font-size:36px}.profile-bio{white-space:pre-wrap;font-size:14px;line-height:1.9}.art-view{width:100%;max-height:55dvh;object-fit:contain;background:#eef1f3}.chat-list{height:42dvh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:3px 3px 10px}.chat-entry{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:#f7fafb;font-size:14px;overflow-wrap:anywhere}.chat-entry.self{background:var(--pale)}.chat-entry header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}.chat-entry time{color:var(--muted);font-size:11px}.chat-compose{display:flex;gap:8px;margin-top:12px}.chat-compose input{flex:1;min-width:0}.code-box{font-size:24px;text-align:center;letter-spacing:3px;border:1px dashed #95c6c8;border-radius:12px;padding:20px;background:var(--pale);user-select:all}#toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);background:#243d4e;color:white;padding:12px 22px;border-radius:12px;box-shadow:var(--shadow);z-index:100;opacity:0;pointer-events:none;transition:.2s;font-size:14px;max-width:90vw;width:max-content}#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1100px){.workspace{grid-template-columns:180px minmax(0,1fr)}.member-panel{display:none;position:absolute;right:10px;top:76px;width:240px;max-height:70dvh;z-index:8;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.member-panel.open{display:flex}.mobile-chat{display:flex;position:fixed;right:14px;bottom:45px;z-index:6;box-shadow:var(--shadow)}.toolbox{padding:9px}.tool-grid button{min-height:35px}.studio-header{padding-inline:12px}#hexInput{width:67px}}
+@media(max-width:650px) and (orientation:portrait){.home-header{padding:16px 20px;height:85px}.home-header>.brand{display:none}.profile-pill small{display:none}.profile-pill b{font-size:14px}.home-main{padding:35px 22px}.home-actions{grid-template-columns:1fr;gap:14px;margin-top:26px}.action-card{padding:21px}.home-footer{flex-direction:column;padding:24px}.gallery{grid-template-columns:1fr 1fr}.home-header>.primary{font-size:14px}.studio-header{height:60px;gap:5px;padding:8px}.studio-header>.brand{font-size:21px}.room-heading{margin-left:6px}.room-heading b{font-size:12px}.room-heading small{font-size:10px}.studio-header button{padding:7px;min-height:36px}#inviteBtn{font-size:11px}.studio-header .icon{width:20px}.workspace{height:calc(100% - 60px);display:flex;flex-direction:column}.viewport{flex:1;order:0;min-height:160px}.toolbox{order:1;flex:0 0 auto;max-height:43dvh;overflow:auto;border:0;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}.tool-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}.tool-grid button{flex-direction:column;gap:1px;padding:5px 1px;font-size:10px;min-height:48px}.tool-grid .icon{width:23px;height:23px}.undo-row{grid-column:1;grid-row:2;margin:0;padding:0;border:0}.undo-row button{min-height:32px;padding:3px}.view-controls{grid-column:2;grid-row:2;margin:0}.view-controls button{min-height:32px;padding:3px;font-size:11px}.palette{grid-column:1;grid-row:3;padding:0}.palette-actions button{font-size:11px}.color-line{gap:3px}.color-input{width:32px;height:32px}.swatches{margin-top:8px;gap:6px}.swatch{width:19px;height:19px;min-height:19px}.layer-controls{grid-column:2;grid-row:3}.layer-btn{font-size:12px;min-height:33px;padding:5px 9px;margin-bottom:5px}.layer-controls label{font-size:11px;margin-bottom:1px}.layer-controls small{font-size:10px}.tool-settings{grid-column:1/-1;display:flex;gap:14px;align-items:flex-start}.tool-settings>label{flex:1;margin:0;font-size:11px}.tool-settings details{width:70px;font-size:11px;position:relative}.tool-settings details[open]{position:absolute;right:12px;bottom:20px;width:210px;background:#fff;padding:15px;border:1px solid var(--line);z-index:8;border-radius:12px;box-shadow:var(--shadow)}input[type=range]{margin-top:2px;height:20px}.mobile-chat{bottom:auto;top:70px;right:10px;min-height:35px;padding:7px}.member-panel{top:65px}.canvas-status{font-size:10px;gap:9px;padding:6px 9px}.canvas-hint{font-size:13px}#transformBar{bottom:30px}#transformBar button{font-size:11px}.modal-inner{padding:22px}}
+@media(max-height:550px) and (orientation:landscape){.studio-header{height:50px;padding:6px 12px}.studio-header>.brand{font-size:23px}.workspace{height:calc(100% - 50px);grid-template-columns:190px minmax(0,1fr)}.tool-grid{grid-template-columns:repeat(3,1fr)}.tool-grid button{flex-direction:column;font-size:10px;padding:5px;gap:0}.toolbox{padding:7px}.tool-grid .icon{width:20px;height:20px}.undo-row{margin:3px 0;padding:0}.undo-row button{min-height:30px}.tool-settings label,.layer-controls label{margin-bottom:4px;font-size:11px}.palette{padding:3px 0}.view-controls{margin-top:5px}.layer-btn{min-height:30px;margin-bottom:4px}.member-panel{top:55px}}
+
+</style></head><body>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">アートピア<i></i></div><button class="primary" id="createTop">＋ 部屋作成</button></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.0.0.8 β</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section></main><footer class="home-footer"><button id="homeDiagnostics" class="quiet">接続診断</button><span>みんなで、ふくらむ、ひとつの絵。</span><span>プロフィールと作品はこの端末に保存されます</span></footer></div>
+<div id="studio" class="screen studio" hidden><header class="studio-header"><button class="brand small" id="leaveBtn" title="ホームに戻る">アートピア<i></i></button><div class="room-heading"><b id="roomTitle"></b><small id="connectionState">接続中</small></div><button id="inviteBtn" class="quiet">合言葉</button><button id="snapshotBtn" title="スナップショット" data-icon="camera"></button><button id="membersBtn" class="quiet" title="参加者" data-icon="people"></button><button id="roomSettingsBtn" title="部屋設定" data-icon="gear"></button></header><div class="workspace"><aside class="toolbox"><div id="toolButtons" class="tool-grid"></div><div class="undo-row"><button id="undoBtn" title="戻る（Ctrl+Z）" data-icon="undo"></button><button id="redoBtn" title="進む（Ctrl+Shift+Z）" data-icon="redo"></button></div><div class="tool-settings"><label>サイズ <output id="sizeValue">12 px</output><input id="sizeRange" type="range" min="1" max="160" value="12"></label><label id="strengthLabel"><span id="strengthText">不透明度</span><output id="strengthValue">100%</output><input id="strengthRange" type="range" min="1" max="100" value="100"></label><details><summary>描き心地</summary><label>手ぶれ補正<input id="smoothRange" type="range" min="0" max="80" value="20"></label><label class="check"><input id="pressureCheck" type="checkbox" checked>筆圧を使う</label><label class="check"><input id="penOnlyCheck" type="checkbox">ペンのみで描画</label><label>塗りの許容差<input id="toleranceRange" type="range" min="0" max="100" value="20"></label></details></div><div class="palette"><div class="color-line"><label class="color-input" title="色を選ぶ"><input type="color" id="colorInput" value="#30485b"></label><input id="hexInput" value="#30485b" maxlength="7" aria-label="カラーコード"><button id="eyedropBtn" title="スポイト" data-icon="eyedrop"></button></div><div class="swatches" id="swatches"></div><div class="palette-actions"><button id="addColorBtn" class="quiet">＋ 色を保存</button><button id="sharedPaletteBtn" class="quiet">共有</button></div></div><div class="layer-controls"><button id="layerBtn" class="layer-btn"><span data-icon="layers"></span><b id="layerLabel">レイヤー 1</b><span>›</span></button><label>レイヤー透明度 <output id="layerOpacityValue">100%</output><input id="layerOpacityRange" type="range" min="0" max="100" value="100"></label><small>自分の表示のみ</small></div><div class="view-controls"><button id="panBtn"><span data-icon="hand"></span><span id="panText">画面移動 OFF</span></button><button id="fitBtn" class="quiet" title="全体表示" data-icon="fit"></button></div></aside><main id="viewport" class="viewport"><div id="canvasSurface"><canvas id="display"></canvas><canvas id="overlay"></canvas><div id="cursors"></div></div><div id="emptyHint" class="canvas-hint">ここから、あなたの一筆を。</div><div id="flyLayer"></div><div id="transformBar" hidden><b>選択範囲</b><button id="flipX">左右反転</button><button id="flipY">上下反転</button><label>回転<input id="rotateSelection" type="range" min="-180" max="180" value="0"></label><label>大きさ<input id="scaleSelection" type="range" min="10" max="300" value="100"></label><button id="cancelTransform">取消</button><button id="applyTransform" class="primary">確定</button></div><div class="canvas-status"><span id="undoHint">次に戻る：—</span><span id="zoomValue">100%</span><span id="canvasSize"></span></div></main><aside class="member-panel" id="memberPanel"><div class="section-head"><h2>参加メンバー</h2><span id="memberCount" class="badge">1</span></div><div id="memberList"></div><div class="member-bottom"><p>名前をタップして<br>プロフィール・絵画展へ</p><button id="chatBtn" class="chat-button"><span data-icon="chat"></span>コメント <span id="unreadBadge"></span></button><label class="check"><input id="flyCheck" type="checkbox" checked>コメントを流す</label><label class="check"><input id="cursorCheck" type="checkbox" checked>カーソルを表示</label></div></aside></div><button id="mobileChat" class="mobile-chat" title="コメント" data-icon="chat"></button></div>
+<dialog id="modal"><div id="modalContent"></div></dialog><div id="toast" role="status"></div><input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden><script>
+/* Artopia raster engine. Ordered operations + compacted layer bases. */
+'use strict';
+window.ArtEngine=(()=>{
+const make=(w,h)=>{let c=document.createElement('canvas');c.width=w;c.height=h;return c};
+const clone=c=>{let n=make(c.width,c.height);n.getContext('2d').drawImage(c,0,0);return n};
+const image=url=>new Promise((res,rej)=>{let i=new Image;i.onload=()=>res(i);i.onerror=rej;i.src=url});
+function stroke(c,a){if(!a.points?.length)return;let t=make(c.width,c.height),x=t.getContext('2d');x.fillStyle=a.color;x.strokeStyle=a.color;x.lineCap='round';x.lineJoin='round';let prev=a.points[0];for(let i=0;i<a.points.length;i++){let p=a.points[i],r=Math.max(.3,a.size*(a.pressure?(p[2]||.5)*1.6:1)/2);if(i){x.lineWidth=r*2;x.beginPath();x.moveTo(prev[0],prev[1]);x.lineTo(p[0],p[1]);x.stroke()}x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.fill();prev=p}let ctx=c.getContext('2d');ctx.save();ctx.globalAlpha=a.strength/100;ctx.globalCompositeOperation=a.tool==='eraser'?'destination-out':'source-over';ctx.drawImage(t,0,0);ctx.restore()}
+function fill(c,a){const ctx=c.getContext('2d'),im=ctx.getImageData(0,0,c.width,c.height),d=im.data,w=c.width,h=c.height,sx=Math.floor(a.points[0][0]),sy=Math.floor(a.points[0][1]);if(sx<0||sy<0||sx>=w||sy>=h)return;let ix=(sy*w+sx)*4,target=[...d.slice(ix,ix+4)],rgb=a.color.match(/[a-f0-9]{2}/gi).map(x=>parseInt(x,16)),alpha=Math.round(a.strength*2.55),tol=a.tolerance||0;const seen=new Uint8Array(w*h),stack=new Int32Array(w*h);let top=0;const enqueue=n=>{if(!seen[n]){seen[n]=1;stack[top++]=n}};enqueue(sy*w+sx);while(top){let n=stack[--top];let i=n*4;if(Math.max(Math.abs(d[i]-target[0]),Math.abs(d[i+1]-target[1]),Math.abs(d[i+2]-target[2]),Math.abs(d[i+3]-target[3]))>tol)continue;const sa=alpha/255,da=d[i+3]/255,oa=sa+da*(1-sa);for(let k=0;k<3;k++)d[i+k]=oa?(rgb[k]*sa+d[i+k]*da*(1-sa))/oa:0;d[i+3]=oa*255;let x=n%w,y=Math.floor(n/w);if(x>0)enqueue(n-1);if(x<w-1)enqueue(n+1);if(y>0)enqueue(n-w);if(y<h-1)enqueue(n+w)}ctx.putImageData(im,0,0)}
+function effect(c,a){const ctx=c.getContext('2d',{willReadFrequently:true}),r=Math.max(2,a.size/2),strength=a.strength/100;for(let n=0;n<a.points.length;n++){const p=a.points[n],last=a.points[Math.max(0,n-1)];if(a.tool==='warp'&&n===0)continue;let x0=Math.max(0,Math.floor(p[0]-r-4)),y0=Math.max(0,Math.floor(p[1]-r-4)),w=Math.min(c.width-x0,Math.ceil(r*2+8)),h=Math.min(c.height-y0,Math.ceil(r*2+8));if(w<1||h<1)continue;let im=ctx.getImageData(x0,y0,w,h),src=new Uint8ClampedArray(im.data),dst=im.data,dx=(p[0]-last[0])*strength,dy=(p[1]-last[1])*strength;let radius=Math.max(1,Math.round(1+strength*4)),sums;if(a.tool==='blur'){sums=Array.from({length:4},()=>new Float64Array((w+1)*(h+1)));for(let y=0;y<h;y++){let row=[0,0,0,0];for(let x=0;x<w;x++){let i=(y*w+x)*4,alpha=src[i+3]/255;for(let k=0;k<4;k++){row[k]+=k===3?src[i+3]:src[i+k]*alpha;sums[k][(y+1)*(w+1)+x+1]=sums[k][y*(w+1)+x+1]+row[k]}}}}
+for(let y=0;y<h;y++)for(let x=0;x<w;x++){let dist=Math.hypot(x+x0-p[0],y+y0-p[1]);if(dist>=r)continue;let fall=Math.pow(1-dist/r,2),i=(y*w+x)*4;if(a.tool==='warp'){let sx=Math.max(0,Math.min(w-1,x-dx*fall)),sy=Math.max(0,Math.min(h-1,y-dy*fall)),xx=Math.floor(sx),yy=Math.floor(sy),fx=sx-xx,fy=sy-yy;for(let k=0;k<4;k++){const get=(u,v)=>src[(Math.min(h-1,v)*w+Math.min(w-1,u))*4+k];dst[i+k]=get(xx,yy)*(1-fx)*(1-fy)+get(xx+1,yy)*fx*(1-fy)+get(xx,yy+1)*(1-fx)*fy+get(xx+1,yy+1)*fx*fy}}else{let l=Math.max(0,x-radius),t=Math.max(0,y-radius),rr=Math.min(w,x+radius+1),b=Math.min(h,y+radius+1),count=(rr-l)*(b-t),avg=[];for(let k=0;k<4;k++){let s=sums[k];avg[k]=(s[b*(w+1)+rr]-s[t*(w+1)+rr]-s[b*(w+1)+l]+s[t*(w+1)+l])/count}for(let k=0;k<4;k++){let val=k===3?avg[3]:(avg[3]?avg[k]*255/avg[3]:0);dst[i+k]=src[i+k]*(1-fall*strength)+val*fall*strength}}}ctx.putImageData(im,x0,y0)}}
+function selection(c,points){let t=make(c.width,c.height),ctx=t.getContext('2d');ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.clip();ctx.drawImage(c,0,0);return t}
+function transform(c,a){let ctx=c.getContext('2d'),part=selection(c,a.points);ctx.save();ctx.beginPath();a.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.clip();ctx.clearRect(0,0,c.width,c.height);ctx.restore();ctx.save();ctx.translate(a.cx+a.dx,a.cy+a.dy);ctx.rotate(a.angle*Math.PI/180);ctx.scale(a.scale*a.flipX,a.scale*a.flipY);ctx.drawImage(part,-a.cx,-a.cy);ctx.restore()}
+function apply(c,a){if(a.disabled||a.kind==='setting')return;if(a.tool==='pen'||a.tool==='eraser')stroke(c,a);else if(a.tool==='fill')fill(c,a);else if(a.tool==='blur'||a.tool==='warp')effect(c,a);else if(a.tool==='transform')transform(c,a)}
+class Engine{constructor(w,h){this.w=w;this.h=h;this.base=Array.from({length:3},()=>make(w,h));this.layers=this.base.map(clone);this.ops=[]}rebuild(){this.layers=this.base.map(clone);for(const a of this.ops)if(a.kind!=='setting')apply(this.layers[a.layer],a)}add(a){this.ops.push(a);if(a.kind!=='setting')apply(this.layers[a.layer],a)}compact(cutoff){let n=0;while(n<this.ops.length&&this.ops[n].at<cutoff){let a=this.ops[n];if(a.kind!=='setting')apply(this.base[a.layer],a);n++}if(n)this.ops.splice(0,n);return n}compose(opacity=[100,100,100],white=true){let c=make(this.w,this.h),x=c.getContext('2d');if(white){x.fillStyle='white';x.fillRect(0,0,this.w,this.h)}this.layers.forEach((l,i)=>{x.globalAlpha=opacity[i]/100;x.drawImage(l,0,0)});return c}async restore(s){this.w=s.w;this.h=s.h;this.base=await Promise.all(s.base.map(async url=>{let c=make(s.w,s.h);c.getContext('2d').drawImage(await image(url),0,0);return c}));this.ops=s.ops;this.rebuild()}snapshot(){return{w:this.w,h:this.h,base:this.base.map(c=>c.toDataURL()),ops:this.ops}}}
+return{Engine,make,clone,image,apply,selection};})();
+
+</script><script>
+'use strict';
+// Artopia room transport v1. Native WebRTC; no PeerJS client or patched handlers.
+// The existing public PeerServer is used ONLY to forward negotiation messages.
+const ArtopiaNetwork = (() => {
+  const PROTOCOL='artopia-rtc-1';
+  const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},
+    {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'],username:'peerjs',credential:'peerjsp'}]};
+  const fault=(type,message)=>Object.assign(new Error(message),{type});
+  class Events {
+    constructor(){this.listeners=new Map()}
+    on(name,fn){if(!this.listeners.has(name))this.listeners.set(name,new Set());this.listeners.get(name).add(fn);return this}
+    off(name,fn){this.listeners.get(name)?.delete(fn);return this}
+    emit(name,...args){for(const fn of [...(this.listeners.get(name)||[])])fn(...args);return this}
+  }
+  function roomId(code){
+    let a=0x811c9dc5,b=0x9e3779b9;
+    for(const ch of code){const n=ch.codePointAt(0);a=Math.imul(a^n,0x01000193);b=Math.imul(b^(n+a),0x85ebca6b)}
+    return 'artopia7-'+(a>>>0).toString(36)+'-'+(b>>>0).toString(36);
+  }
+  class Link extends Events {
+    constructor(owner,remote,id){
+      super();this.owner=owner;this.peer=remote;this.connectionId=id;this.open=false;this.closed=false;
+      this.metrics={localCandidates:0,sentCandidates:0,receivedCandidates:0,appliedCandidates:0,embeddedLocal:0,embeddedRemote:0,candidateErrors:0};
+      this.localCandidates=[];this.remoteCandidates=[];this.seenCandidates=new Set();this.descriptionSent=false;this.remoteSet=false;this.localDescriptionType=null;this.serial=Promise.resolve();
+      const pc=this.peerConnection=new RTCPeerConnection(ICE);
+      pc.onicecandidate=event=>{
+        const c=event.candidate;if(!c?.candidate||this.closed)return;
+        this.metrics.localCandidates++;
+        const plain={candidate:c.candidate,sdpMid:c.sdpMid,sdpMLineIndex:c.sdpMLineIndex};
+        if(c.usernameFragment)plain.usernameFragment=c.usernameFragment;
+        if(this.descriptionSent)this.sendCandidate(plain);else this.localCandidates.push(plain);
+      };
+      pc.oniceconnectionstatechange=()=>{
+        this.emit('iceStateChanged',pc.iceConnectionState);
+        if(pc.iceConnectionState==='failed')this.fail(fault('negotiation-failed','端末間の通信経路を確立できませんでした。'));
+      };
+      pc.ondatachannel=e=>this.bindChannel(e.channel);
+      this.timer=setTimeout(()=>this.fail(fault('join-timeout','端末間の接続が時間切れになりました。')),30000);
+    }
+    signal(type,payload){
+      if(this.closed)return;
+      this.owner.send({type,dst:this.peer,payload:{connectionId:this.connectionId,type:'data',...payload}});
+    }
+    sendCandidate(candidate){this.signal('CANDIDATE',{candidate});this.metrics.sentCandidates++}
+    async gather(){
+      const pc=this.peerConnection;
+      if(pc.iceGatheringState==='complete'||this.closed)return;
+      await new Promise(resolve=>{
+        let timer;
+        const finish=()=>{clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',check);this.off('close',finish);resolve()};
+        const check=()=>{if(pc.iceGatheringState==='complete')finish()};
+        pc.addEventListener('icegatheringstatechange',check);this.on('close',finish);
+        timer=setTimeout(finish,2500);check();
+      });
+    }
+    async publishDescription(type){
+      await this.gather();if(this.closed)return;
+      const d=this.peerConnection.localDescription;
+      if(!d?.sdp)throw fault('webrtc','接続情報を作成できませんでした。');
+      const sdp={type:d.type,sdp:d.sdp};
+      this.metrics.embeddedLocal=(d.sdp.match(/^a=candidate:/gm)||[]).length;
+      this.localDescriptionType=type;this.descriptionPacket={sdp,...(type==='OFFER'?{label:'artopia',serialization:'json',reliable:true,metadata:{protocol:PROTOCOL}}:{})};this.signal(type,this.descriptionPacket);
+      this.descriptionSent=true;
+      for(const candidate of this.localCandidates.splice(0))if(!d.sdp.includes('a='+candidate.candidate))this.sendCandidate(candidate);
+      clearInterval(this.retryTimer);this.retryTimer=setInterval(()=>this.resumeSignaling(),4000);
+    }
+    resumeSignaling(){
+      if(this.closed||this.open||!this.owner.open||!this.descriptionPacket)return;
+      if(this.localDescriptionType==='OFFER'&&this.remoteSet)return;
+      this.signal(this.localDescriptionType,this.descriptionPacket);
+    }
+    async start(){
+      try{
+        this.bindChannel(this.peerConnection.createDataChannel('artopia',{ordered:true}));
+        await this.peerConnection.setLocalDescription(await this.peerConnection.createOffer());
+        await this.publishDescription('OFFER');
+      }catch(e){if(!this.closed)this.fail(e)}
+    }
+    receive(type,payload){
+      // Serialize remote description and candidate application. Candidates may
+      // arrive before an answer finishes applying, including during reconnect.
+      this.serial=this.serial.then(async()=>{
+        if(this.closed)return;
+        if(type==='CANDIDATE'){
+          const c=payload.candidate;
+          if(!c||typeof c.candidate!=='string'||c.candidate.length>4096)return;
+          this.metrics.receivedCandidates++;
+          if(this.remoteCandidates.length<128)this.remoteCandidates.push(c);
+          await this.flushCandidates();return;
+        }
+        if(type==='OFFER'||type==='ANSWER'){
+          if(this.remoteSet){if(type==='OFFER'&&this.localDescriptionType==='ANSWER')this.resumeSignaling();return;}
+          const d=payload.sdp;
+          if(d?.type!==(type==='OFFER'?'offer':'answer')||typeof d.sdp!=='string'||d.sdp.length>100000)throw fault('webrtc','接続情報が正しくありません。');
+          await this.peerConnection.setRemoteDescription({type:d.type,sdp:d.sdp});
+          this.remoteSet=true;this.remoteSdp=d.sdp;
+          this.metrics.embeddedRemote=(d.sdp.match(/^a=candidate:/gm)||[]).length;
+          await this.flushCandidates();
+          if(type==='OFFER'){
+            await this.peerConnection.setLocalDescription(await this.peerConnection.createAnswer());
+            await this.publishDescription('ANSWER');
+          }
+        }
+      }).catch(e=>{if(!this.closed)this.fail(e)});
+    }
+    async flushCandidates(){
+      if(!this.remoteSet)return;
+      for(const c of this.remoteCandidates.splice(0)){
+        const key=c.candidate+'|'+c.sdpMid+'|'+c.sdpMLineIndex;
+        if(this.seenCandidates.has(key))continue;
+        this.seenCandidates.add(key);
+        if(this.remoteSdp.includes('a='+c.candidate))continue;
+        try{await this.peerConnection.addIceCandidate(c);this.metrics.appliedCandidates++}
+        catch{this.metrics.candidateErrors++;this.emit('candidateError')}
+      }
+    }
+    bindChannel(channel){
+      if(this.closed){channel.close();return}
+      if(this.dataChannel){channel.close();return}
+      this.dataChannel=channel;
+      channel.onopen=()=>{if(this.closed||this.open)return;this.open=true;clearTimeout(this.timer);clearInterval(this.retryTimer);this.emit('open')};
+      channel.onmessage=e=>{
+        if(this.closed||typeof e.data!=='string'||e.data.length>200000)return;
+        let value;try{value=JSON.parse(e.data)}catch{return}
+        this.emit('data',value);
+      };
+      channel.onclose=()=>this.close();
+      channel.onerror=()=>this.fail(fault('connection-closed','データ通信でエラーが発生しました。'));
+    }
+    send(value){if(!this.open||this.closed)throw fault('connection-closed','接続が開いていません。');this.dataChannel.send(JSON.stringify(value))}
+    fail(error){if(this.closed)return;this.emit('error',error);this.close()}
+    close(){
+      if(this.closed)return;this.closed=true;this.open=false;clearTimeout(this.timer);clearInterval(this.retryTimer);
+      this.localCandidates=[];this.remoteCandidates=[];
+      if(this.owner.links.get(this.connectionId)===this)this.owner.links.delete(this.connectionId);
+      if(this.dataChannel){this.dataChannel.onopen=this.dataChannel.onmessage=this.dataChannel.onclose=this.dataChannel.onerror=null;this.dataChannel.close()}
+      this.peerConnection.onicecandidate=this.peerConnection.oniceconnectionstatechange=this.peerConnection.ondatachannel=null;
+      this.peerConnection.close();this.emit('close');
+    }
+  }
+  class RoomPeer extends Events {
+    constructor(id){
+      super();this.id=id||'artopia-guest-'+crypto.randomUUID();this.isHost=!!id;
+      this.token=crypto.randomUUID();this.open=false;this.destroyed=false;this.disconnected=true;
+      this.links=new Map();this.socket=new Events();this.waiting=new Map();this.pending=[];this.retry=0;
+    }
+    start(){
+      if(this.destroyed)return;
+      const url='wss://0.peerjs.com/peerjs?'+new URLSearchParams({key:'peerjs',id:this.id,token:this.token,version:'1.5.5'});
+      const ws=this.ws=new WebSocket(url);
+      ws.onmessage=e=>{
+        if(this.ws!==ws||this.destroyed)return;
+        let m;try{m=JSON.parse(e.data)}catch{return}
+        this.socket.emit('message',m);this.receive(m);
+      };
+      ws.onerror=()=>{if(!this.everOpened)this.emit('error',fault('network','仲介サービスへ接続できませんでした。'))};
+      ws.onclose=event=>{
+        if(this.ws!==ws||this.destroyed)return;
+        this.open=false;this.disconnected=true;clearInterval(this.heartbeat);this.socket.emit('closed',{code:event.code,clean:event.wasClean});this.emit('disconnected');
+        if(this.everOpened&&this.retry<5){clearTimeout(this.reconnectTimer);this.reconnectTimer=setTimeout(()=>this.reconnect(),Math.min(8000,1000*2**this.retry++))}
+      };
+    }
+    receive(m){
+      if(m.type==='OPEN'){
+        this.open=true;this.disconnected=false;this.everOpened=true;this.retry=0;
+        clearInterval(this.heartbeat);this.heartbeat=setInterval(()=>this.send({type:'HEARTBEAT'}),5000);
+        for(const message of this.pending.splice(0))if(!message.payload?.connectionId||this.links.has(message.payload.connectionId))this.send(message);
+        this.emit('open',this.id);for(const link of this.links.values())link.resumeSignaling();return;
+      }
+      if(['ID-TAKEN','ERROR','INVALID-KEY'].includes(m.type)){
+        this.emit('error',fault(m.type==='ID-TAKEN'?'unavailable-id':'server-error',m.type==='ID-TAKEN'?'その合言葉の部屋は既にあります。':'仲介サービスへの登録に失敗しました。'));return;
+      }
+      if(m.type==='EXPIRE'){
+        const link=this.links.get(m.payload?.connectionId);
+        if(link)link.fail(fault('peer-unavailable','その合言葉の部屋が見つかりません。'));
+        else for(const c of this.links.values())if(c.peer===m.src)c.fail(fault('peer-unavailable','部屋が見つかりません。'));
+        return;
+      }
+      const data=m.payload,id=data?.connectionId,remote=m.src;
+      if(typeof id!=='string'||id.length>100||typeof remote!=='string'||remote.length>100)return;
+      let link=this.links.get(id);
+      if(link&&link.peer!==remote)return;
+      if(m.type==='OFFER'&&!link){
+        if(data.metadata?.protocol!==PROTOCOL||!this.isHost||this.links.size>=16)return;
+        link=new Link(this,remote,id);this.links.set(id,link);this.emit('connection',link);
+        link.receive('OFFER',data);
+        const early=this.waiting.get(remote+'|'+id);this.waiting.delete(remote+'|'+id);
+        for(const packet of early?.packets||[])link.receive('CANDIDATE',packet);
+        return;
+      }
+      if(link){if(m.type==='LEAVE')link.close();else link.receive(m.type,data);return}
+      if(m.type==='CANDIDATE'&&this.isHost){
+        for(const [key,item]of this.waiting)if(Date.now()-item.at>15000)this.waiting.delete(key);
+        const key=remote+'|'+id;if(!this.waiting.has(key)&&this.waiting.size<16)this.waiting.set(key,{at:Date.now(),packets:[]});
+        const item=this.waiting.get(key);if(item&&item.packets.length<64)item.packets.push(data);
+      }
+    }
+    send(message){
+      if(this.destroyed)return;
+      if(!this.open||this.ws?.readyState!==1){if(message.type!=='HEARTBEAT'&&this.pending.length<256)this.pending.push(message);return}
+      this.ws.send(JSON.stringify(message));this.socket.emit('sent',{type:message.type});
+    }
+    connect(remote){
+      if(!this.open||this.destroyed)throw fault('network','部屋への接続準備ができていません。');
+      const link=new Link(this,remote,crypto.randomUUID());this.links.set(link.connectionId,link);
+      queueMicrotask(()=>{if(!link.closed)link.start()});return link;
+    }
+    reconnect(){if(this.destroyed||this.open)return;clearTimeout(this.reconnectTimer);if(this.ws){this.ws.onclose=null;this.ws.close()}this.start()}
+    destroy(){
+      if(this.destroyed)return;this.destroyed=true;this.open=false;this.disconnected=true;
+      clearInterval(this.heartbeat);clearTimeout(this.reconnectTimer);
+      for(const link of [...this.links.values()])link.close();this.waiting.clear();this.pending=[];
+      if(this.ws){this.ws.onclose=null;this.ws.close()}
+      this.emit('close');
+    }
+  }
+  function createPeer(id,onCreate=()=>{}){
+    return new Promise((resolve,reject)=>{
+      if(typeof RTCPeerConnection!=='function'||typeof WebSocket!=='function'){reject(fault('webrtc','このブラウザではオンライン接続を利用できません。'));return}
+      const p=new RoomPeer(id);
+      const fail=e=>{clearTimeout(timer);p.off('open',ready);p.off('error',fail);p.destroy();reject(e)};
+      const ready=()=>{clearTimeout(timer);p.off('open',ready);p.off('error',fail);resolve(p)};
+      const timer=setTimeout(()=>fail(fault('network','部屋の登録が時間切れになりました。')),12000);
+      p.on('open',ready);p.on('error',fail);onCreate(p);try{p.start()}catch(e){fail(e)}
+    });
+  }
+  function attach(c,handlers={}){for(const key of ['open','data','close','error'])if(handlers[key])c.on(key,handlers[key]);return c}
+  return {roomId,createPeer,attach,connect:(p,id)=>p.connect(id)};
+})();
+
+</script><script>
+'use strict';
+// One admission state machine for typed passphrases and invitation URLs.
+const ArtopiaAdmission={
+  normalize(value){return String(value??'').normalize('NFKC').replace(/[\u200B-\u200D\u2060\uFEFF]/g,'').trim().replace(/\s+/g,' ')},
+  parse(value){
+    let code=String(value??'').trim();
+    if(/^https?:\/\//i.test(code)){
+      let url;try{url=new URL(code)}catch{throw Error('招待URLを確認してください。')}
+      code=new URLSearchParams(url.hash.slice(1)).get('room');
+      if(code===null)throw Error('合言葉が含まれた招待URLを入力してください。');
+    }
+    return this.normalize(code);
+  },
+  invitation(code,base){const url=new URL(base);url.hash=new URLSearchParams({room:this.normalize(code)}).toString();return url.href},
+  join(options){
+    return new Promise((resolve,reject)=>{
+      const o=options;let connection,alive=true,ready=false,loading=false,timer,helloTimer;
+      const pending=[],deadline=Date.now()+120000;
+      const current=()=>alive&&!o.signal.aborted&&o.isCurrent();
+      const cleanup=()=>{clearTimeout(timer);clearInterval(helloTimer);o.signal.removeEventListener('abort',abort);o.peer.off('error',fail)};
+      const fail=error=>{if(!alive||ready)return;alive=false;cleanup();connection?.close();reject(error)};
+      const abort=()=>fail(new DOMException('接続を中止しました。','AbortError'));
+      let phase='部屋主との接続';
+      const stage=(name,text,ms=30000)=>{
+        phase=name;clearTimeout(timer);o.onProgress(text);
+        timer=setTimeout(()=>{
+          o.onTimeout(phase,connection);
+          fail(Object.assign(Error(`${phase}で時間切れになりました。「接続診断」で通信状況を確認できます。`),{type:'join-timeout'}));
+        },Math.max(0,Math.min(ms,deadline-Date.now())));
+      };
+      const hello=()=>{if(current()&&!ready&&connection.open)o.send(connection,{type:'hello',profile:o.profile,spectator:o.spectator})};
+      const receive=async message=>{
+        if(!current())return;
+        if(message.type==='reject'){fail(Error(message.message));return}
+        if(message.type==='hostReady'){hello();return}
+        if(message.type==='helloAck'){clearInterval(helloTimer);return}
+        if(ready){o.onMessage(message);return}
+        if(message.type==='welcomeStart'){
+          clearInterval(helloTimer);stage('キャンバスの受信','④ キャンバスを受信しています…');return;
+        }
+        if(message.type==='welcomeProgress'){
+          clearInterval(helloTimer);stage('キャンバスの受信',`④ キャンバスを受信しています… ${Math.floor(message.received/message.total*100)}%`);return;
+        }
+        if(message.type==='welcome'){
+          if(loading)return;loading=true;clearInterval(helloTimer);
+          stage('キャンバスの復元','⑤ キャンバスを開いています…');
+          try{
+            const prepared=await o.prepare(message);
+            if(!current())return;
+            o.commit(prepared,message);ready=true;cleanup();
+            for(const item of pending)o.onMessage(item);pending.length=0;
+            resolve(connection);
+          }catch(error){fail(error)}
+          return;
+        }
+        if(pending.length>=2000){fail(Error('入室中の更新が多すぎるため、もう一度入室してください。'));return}
+        pending.push(message);
+      };
+      if(o.signal.aborted){abort();return}
+      o.signal.addEventListener('abort',abort,{once:true});o.peer.on('error',fail);
+      stage('部屋主との接続','② 部屋主との通信経路を確立しています…');
+      try{connection=o.connect();o.onConnection(connection)}catch(error){fail(error);return}
+      connection.on('open',()=>{
+        if(!current())return;
+        stage('参加受付','③ 部屋主に参加情報を送っています…',15000);
+        hello();helloTimer=setInterval(hello,1000);
+      });
+      connection.on('data',packet=>{if(current())o.decode(connection,packet,receive)});
+      connection.on('error',fail);
+      connection.on('close',()=>{
+        if(!current())return;
+        if(!ready){fail(Object.assign(Error('部屋主との接続が閉じられました。'),{type:'connection-closed'}));return}
+        alive=false;cleanup();o.onDisconnected();
+      });
+    });
+  }
+};
+
+</script><script>
+'use strict';
+const $=s=>document.querySelector(s),E=ArtEngine;
+const paths={brush:'M4 20l4-1L21 6l-3-3L5 16z M14 7l3 3 M4 20l-1 2',eraser:'M3 14L14 3l7 7-11 11H8z M8 9l7 7 M10 21h11',warp:'M3 6c5-7 20-3 16 4-3 5-12-2-11 4 1 4 8 0 7 6 M4 19l3 2',lasso:'M17 18C30 6 6-3 3 9c-3 11 18 11 14 4-3-4-11 2-9 7l2 2',fill:'M4 10l7-7 9 9-9 9-9-9z M3 11h16 M9 2l5 5 M21 17c-3 4-1 5 0 5s3-1 0-5',blur:'M12 2C9 7 4 11 4 16a8 8 0 0016 0c0-5-5-9-8-14 M8 16c0 3 2 4 4 4',undo:'M9 4L3 10l6 6 M3 10h11a6 6 0 010 12',redo:'M15 4l6 6-6 6 M21 10H10a6 6 0 000 12',layers:'M12 2L2 8l10 6 10-6z M2 12l10 6 10-6 M2 16l10 6 10-6',hand:'M8 12V5a2 2 0 014 0v6-8a2 2 0 014 0v8-6a2 2 0 014 0v10c0 6-3 8-7 8-3 0-5-2-7-5l-3-4a2 2 0 013-2l2 2',camera:'M3 6h5l2-3h4l2 3h5v15H3z M16 13a4 4 0 11-8 0 4 4 0 018 0',gear:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M16 12a4 4 0 11-8 0 4 4 0 018 0',people:'M9 8a4 4 0 11-8 0 4 4 0 018 0 M1 22v-4a5 5 0 0110 0v4 M16 5a4 4 0 010 8 M15 16a5 5 0 016 5',eyedrop:'M14 3l7 7 M17 3l4 4-5 5-4-4z M12 8L3 17v4h4l9-9',fit:'M3 9V3h6 M15 3h6v6 M21 15v6h-6 M9 21H3v-6 M8 8h8v8H8z',chat:'M3 3h18v14H9l-6 5z M7 7h10 M7 12h7'};
+const icon=n=>`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.brush}"/></svg>`;
+function icons(root=document){root.querySelectorAll('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon))}icons();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>crypto.randomUUID();
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
+function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch{toast('保存容量が不足しています。作品を書き出してください。');return false}}
+let profile=load('artopia-profile',{id:uid(),name:'',bio:'',color:'#238995',avatar:''});
+let palette=load('artopia-palette',['#30485b','#f38da0','#f6d666','#9bd39f','#74cdd1','#a99fe0','#ffffff','#242630']);
+let engine=null,room=null,peer=null,hostConn=null,localId='',isHost=false,connected=false,members=new Map(),connections=new Map(),sharedPalette=[],locks=new Map(),redoIds=[],pendingOps=new Set(),gallery=[],activeArt='',selection=null,stroke=null,pan=false,chat=[],unread=0,lastChat=0,lastCursor=0,remoteDrafts=new Map(),remoteCursors=new Map(),outboundQueue=[],wireBusy=false,peerLoading=null,sessionToken=0,mutationBusy=false,syncing=false,deferredMessages=[],lastRecovery=0,moveUndo=null;
+const prefs={layer:0,opacities:[100,100,100],tool:'pen',color:'#30485b',smooth:20,pressure:true,penOnly:false,tolerance:20,tools:{pen:{size:12,strength:100},eraser:{size:30,strength:100},warp:{size:60,strength:65},blur:{size:50,strength:70},lasso:{size:12,strength:100},fill:{size:12,strength:100}},view:{x:0,y:0,z:1,angle:0}};
+const labels={pen:'ペン',eraser:'消しゴム',warp:'歪み',blur:'ぼかし',lasso:'投げ縄',fill:'塗りつぶし',transform:'範囲変形',color:'色',layer:'レイヤー',opacities:'レイヤー透明度',tool:'ツール',smooth:'手ぶれ補正',pressure:'筆圧',penOnly:'ペン操作',tolerance:'塗りの許容差',view:'画面位置',pan:'画面移動'};
+const connectionDiagnostics={version:'0.0.8',started:Date.now(),events:[],last:null};
+function recordConnection(event,details={}){
+  // Only deliberately selected connection state, never SDP, IP, names or passphrases.
+  connectionDiagnostics.events.push({ms:Date.now()-connectionDiagnostics.started,event,...details});
+  connectionDiagnostics.events=connectionDiagnostics.events.slice(-100);
+}
+function observePeer(p){
+  p.on('open',()=>recordConnection('仲介サーバー登録完了'));
+  p.on('disconnected',()=>recordConnection('仲介サーバー切断'));
+  p.socket?.on?.('closed',info=>recordConnection('仲介サーバー切断理由',info));
+  p.socket?.on?.('sent',m=>{if(m.type!=='HEARTBEAT')recordConnection('仲介メッセージ送信',{type:m.type})});
+  p.on('error',e=>recordConnection('Peerエラー',{type:String(e?.type||'unknown')}));
+  p.socket?.on?.('message',m=>{if(['OFFER','ANSWER','CANDIDATE','EXPIRE','LEAVE'].includes(m?.type))recordConnection('仲介メッセージ受信',{type:m.type,...(['OFFER','ANSWER'].includes(m.type)?{candidates:(m.payload?.sdp?.sdp?.match(/^a=candidate:/gm)||[]).length}:{})})});
+}
+function observeDataConnection(c,role){
+  const state={role,open:!!c.open,ice:'未取得',gathering:'未取得',signaling:'未取得',connection:'未取得',localDescription:false,remoteDescription:false,candidates:{},transport:c.metrics||null};
+  connectionDiagnostics.last=state;recordConnection('接続開始',{role});
+  const pc=c.peerConnection;
+  const read=()=>{if(!pc)return;state.ice=pc.iceConnectionState;state.gathering=pc.iceGatheringState;state.signaling=pc.signalingState;state.connection=pc.connectionState||'未対応';state.localDescription=!!pc.localDescription;state.remoteDescription=!!pc.remoteDescription};
+  read();
+  for(const event of ['iceconnectionstatechange','icegatheringstatechange','signalingstatechange','connectionstatechange'])pc?.addEventListener?.(event,()=>{read();recordConnection(event,{ice:state.ice,gathering:state.gathering,signaling:state.signaling,connection:state.connection,localDescription:state.localDescription,remoteDescription:state.remoteDescription})});
+  pc?.addEventListener?.('icecandidate',e=>{if(e.candidate){let type=e.candidate.type||'unknown';state.candidates[type]=(state.candidates[type]||0)+1}else recordConnection('候補収集完了',{types:{...state.candidates}})});
+  c.on('open',()=>{state.open=true;read();recordConnection('データ通信開通',{role})});
+  c.on('close',()=>{state.open=false;read();recordConnection('データ通信終了',{role})});
+  c.on('error',e=>recordConnection('データ通信エラー',{role,type:String(e?.type||'unknown')}));
+  return state;
+}
+function diagnosticText(){
+  return JSON.stringify({version:connectionDiagnostics.version,transport:'native-webrtc-v1',role:room?(isHost?'部屋主':'参加者'):'入室前',online:navigator.onLine,secureContext:window.isSecureContext,embedded:window.self!==window.top,webRTC:typeof RTCPeerConnection!=='undefined',peerRegistered:!!peer?.open,signalingDisconnected:peer?.disconnected??null,canvasOpen:!$('#studio').hidden,lastConnection:connectionDiagnostics.last,events:connectionDiagnostics.events},null,2);
+}
+function showConnectionDiagnostics(){
+  joinController?.abort();
+  modal('接続診断',`<p class="muted">部屋主・参加者の両方で結果をコピーできます。合言葉、作品、IPアドレスは含みません。</p><textarea id="connectionReport" readonly rows="14" style="width:100%;font:12px monospace" aria-label="接続診断結果"></textarea><div class="modal-actions"><button id="refreshConnectionReport">更新</button><button id="copyConnectionReport" class="primary">診断結果をコピー</button></div>`);
+  $('#connectionReport').value=diagnosticText();$('#refreshConnectionReport').onclick=()=>$('#connectionReport').value=diagnosticText();$('#copyConnectionReport').onclick=()=>copyText($('#connectionReport').value);
+}
+function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('show'),3800)}
+function modal(title,body){$('#modalContent').innerHTML=`<div class="modal-inner"><div class="modal-head"><h2>${esc(title)}</h2><button id="closeModal" aria-label="閉じる">×</button></div>${body}</div>`;$('#closeModal').onclick=()=>$('#modal').close();if(!$('#modal').open)$('#modal').showModal();icons($('#modal'))}
+function avatar(p){return p.avatar?`<img alt="" src="${esc(p.avatar)}">`:'✦'}
+function validProfile(p){return{id:String(p?.id||'').slice(0,64),name:String(p?.name||'プレイヤー').trim().slice(0,20),bio:String(p?.bio||'').slice(0,300),color:/^#[a-f0-9]{6}$/i.test(p?.color)?p.color:'#238995',avatar:/^data:image\/(png|jpeg|webp);base64,/.test(p?.avatar)&&p.avatar.length<100000?p.avatar:''}}
+function updateHome(){$('#homeName').textContent=profile.name||'名前を設定';$('#homeName').style.color=profile.color;$('#homeAvatar').innerHTML=avatar(profile);renderGallery($('#homeGallery'),gallery,true)}
+const dbReady=new Promise((resolve,reject)=>{let q=indexedDB.open('artopia',1);q.onupgradeneeded=()=>{q.result.createObjectStore('art',{keyPath:'id'});q.result.createObjectStore('recovery',{keyPath:'id'})};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
+async function db(store,mode,fn){let d=await dbReady;return new Promise((res,rej)=>{let tx=d.transaction(store,mode),q=fn(tx.objectStore(store));tx.oncomplete=()=>res(q?.result);tx.onerror=()=>rej(tx.error)})}
+async function refreshGallery(){try{gallery=(await db('art','readonly',s=>s.getAll())).sort((a,b)=>b.at-a.at);updateHome()}catch{toast('このブラウザで作品の保存が利用できません')}}
+function renderGallery(el,arts,own=false){el.innerHTML=arts.length?'':'<div class="empty-gallery">まだ作品がありません。<br>キャンバスの「保存」から、一枚目を飾りましょう。</div>';for(const a of arts){let b=document.createElement('button');b.className='art-card';b.innerHTML=`<img alt="${esc(a.name)}" src="${esc(a.thumb||a.image)}"><span>${esc(a.name)}</span>`;b.onclick=()=>own?showArt(a):requestArt(a);el.append(b)}}
+function download(url,name){let a=document.createElement('a');a.href=url;a.download=name;a.click()}
+function showArt(a,own=true){modal(a.name,`<img class="art-view" src="${esc(a.image)}" alt="${esc(a.name)}"><p class="muted">${new Date(a.at).toLocaleString('ja-JP')}</p><div class="modal-actions"><button id="downloadArt">画像を書き出す</button>${own?'<button id="deleteArt">削除</button><button id="useArt" class="primary">この絵で部屋作成</button>':''}</div>`);$('#downloadArt').onclick=()=>download(a.image,`${a.name}.png`);if(own){$('#deleteArt').onclick=async()=>{if(!confirm('この作品を絵画展から削除しますか？'))return;await db('art','readwrite',s=>s.delete(a.id));$('#modal').close();refreshGallery()};$('#useArt').onclick=()=>{activeArt=a.id;showCreate()}}}
+async function saveArt(name,canvas,id){let preview=E.make(320,Math.max(1,Math.round(canvas.height*320/canvas.width)));preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);let a={id:id||uid(),name,at:Date.now(),image:canvas.toDataURL('image/png'),thumb:preview.toDataURL('image/webp',.7),w:canvas.width,h:canvas.height};await db('art','readwrite',s=>s.put(a));await refreshGallery();return a}
+async function resizeUpload(file,max=2048){if(file.size>20*1024*1024)throw Error('20MB以下の画像を選んでください');let url=URL.createObjectURL(file);try{let im=await E.image(url),s=Math.min(1,max/Math.max(im.width,im.height)),c=E.make(Math.round(im.width*s),Math.round(im.height*s));c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c}finally{URL.revokeObjectURL(url)}}
+function filePick(callback){let f=$('#imageFile');f.value='';f.onchange=async()=>{if(!f.files[0])return;try{await callback(f.files[0])}catch(e){toast(e.message||'画像を読み込めませんでした')}};f.click()}
+$('#homeDiagnostics').onclick=showConnectionDiagnostics;
+$('#importArt').onclick=()=>filePick(async f=>{let c=await resizeUpload(f);await saveArt(f.name.replace(/\.[^.]+$/,''),c);toast('絵画展に保存しました')});
+function showProfile(first=false){modal(first?'アートピアへようこそ':'プロフィール設定',`<div class="profile-preview"><span class="avatar" id="editAvatar">${avatar(profile)}</span><button id="changeAvatar">画像を変更</button></div><form id="profileForm"><label class="form-field">プレイヤーネーム<span class="required">必須</span><input id="editName" maxlength="20" required value="${esc(profile.name)}" placeholder="あなたの名前"></label><label class="form-field">名前の色 <input id="editNameColor" type="color" value="${profile.color}"></label><label class="form-field">自己紹介<textarea id="editBio" rows="3" maxlength="300" placeholder="好きな絵や、ひとことをどうぞ">${esc(profile.bio)}</textarea></label><div class="modal-actions"><button class="primary">保存</button></div></form>`);let av=profile.avatar;$('#changeAvatar').onclick=()=>filePick(async f=>{let c=await resizeUpload(f,128);av=c.toDataURL('image/webp',.8);$('#editAvatar').innerHTML=`<img src="${av}" alt="">`});$('#profileForm').onsubmit=e=>{e.preventDefault();let name=$('#editName').value.trim();if(!name)return;profile={...profile,name,bio:$('#editBio').value,color:$('#editNameColor').value,avatar:av};persist('artopia-profile',profile);updateHome();if(room){sendHost({type:'profile',profile:validProfile(profile)});renderMembers()}$('#modal').close()}}
+$('#myProfile').onclick=()=>showProfile();
+function showCreate(){if(room){toast('現在の部屋を退出してから、新しい部屋を作成してください。');return}if(!profile.name){showProfile(true);return}modal('部屋作成',`<form id="createForm"><label class="form-field">部屋名<span class="required">必須</span><input id="newRoomName" maxlength="40" placeholder="のんびりお絵描き" required></label><label class="form-field">合言葉<input id="newCode" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" maxlength="32" value="${Math.random().toString(36).slice(2,8).toUpperCase()}" required><small>この合言葉を友だちに伝えてください。</small></label><div class="form-row"><label class="form-field">幅（px）<input id="newWidth" type="number" min="128" max="2048" step="1" value="1024" required></label><label class="form-field">高さ（px）<input id="newHeight" type="number" min="128" max="2048" step="1" value="1024" required></label></div><div class="form-row"><label class="form-field">履歴の保持時間<select id="newHistory">${[1,2,3,4,5].map(n=>`<option ${n===3?'selected':''} value="${n}">${n}分</option>`).join('')}</select></label><label class="form-field">人数上限<select id="newLimit">${[2,4,6,8].map(n=>`<option ${n===8?'selected':''}>${n}</option>`).join('')}</select></label></div><label class="form-field">最初のキャンバス<select id="newArt"><option value="">白紙から</option>${gallery.map(a=>`<option value="${a.id}" ${a.id===activeArt?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label><label class="check"><input id="newSpectate" type="checkbox" checked>観戦を許可</label><label class="check"><input id="newProtect" type="checkbox" checked>変形中の作業範囲を保護</label><p class="muted">部屋主が退出すると部屋は終了します。最後の絵は部屋主の絵画展に保存されます。</p><p id="createError" class="error"></p><div class="modal-actions"><button type="button" id="localDraw">ひとりで試す</button><button id="createSubmit" class="primary">完了</button></div></form>`);const run=async offline=>{let f=$('#createForm');if(!f.reportValidity())return;let name=$('#newRoomName').value.trim(),code=$('#newCode').value.trim();if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';return}let r={name,code,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,protect:$('#newProtect').checked,id:uid()};const art=gallery.find(a=>a.id===$('#newArt').value);$('#createSubmit').disabled=true;$('#localDraw').disabled=true;$('#createError').textContent=offline?'準備中…':'部屋を作成しています…';try{await startRoom(r,art,offline);$('#modal').close()}catch(e){$('#createError').textContent=errorText(e);$('#createSubmit').disabled=false;$('#localDraw').disabled=false}};$('#createForm').onsubmit=e=>{e.preventDefault();run(false)};$('#localDraw').onclick=()=>run(true)}
+$('#createTop').onclick=$('#createMain').onclick=()=>{activeArt='';showCreate()};
+let joinController=null;
+function normalizeRoomCode(value){return ArtopiaAdmission.normalize(value)}
+function joinCodeFromInput(value){return ArtopiaAdmission.parse(value)}
+function showJoin(code=''){
+  if(room){toast('現在の部屋を退出してから入室してください。');return}
+  if(!profile.name){showProfile(true);return}
+  modal('部屋に入る',`<form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="512" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="部屋主から教えてもらった合言葉" required><small>合言葉、または招待URLを貼り付けて入室できます。</small></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error" role="status"></p><div class="modal-actions"><button type="button" id="joinDiagnostics">接続診断</button><button id="joinSubmit" class="primary">入室する</button></div></form>`);
+  $('#joinDiagnostics').onclick=showConnectionDiagnostics;const form=$('#joinForm'),input=$('#joinCode'),button=$('#joinSubmit'),status=$('#joinError'),spectator=$('#joinSpectator');let composing=false,busy=false;
+  input.addEventListener('compositionstart',()=>composing=true);
+  input.addEventListener('compositionend',()=>composing=false);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&(composing||e.isComposing||e.keyCode===229))e.preventDefault()});
+  form.onsubmit=async e=>{
+    e.preventDefault();if(composing||busy)return;
+    busy=true;button.disabled=true;input.readOnly=true;spectator.disabled=true;
+    try{const code=joinCodeFromInput(input.value);input.value=code;await joinRoom(code,spectator.checked,text=>{status.textContent=text});if(form.isConnected)$('#modal').close()}
+    catch(e){if(form.isConnected&&e.name!=='AbortError')status.textContent=errorText(e)}
+    finally{busy=false;button.disabled=false;input.readOnly=false;spectator.disabled=false}
+  };
+}
+$('#modal').addEventListener('close',()=>{if(joinController){joinController.abort();joinController=null}});
+$('#joinMain').onclick=()=>showJoin();
+function errorText(e){if(e?.type==='negotiation-failed'||/Negotiation of connection/.test(e?.message||''))return '部屋主との通信接続を確立できませんでした。部屋主がキャンバスを開いているか確認して、再度お試しください。';return({ 'unavailable-id':'その合言葉の部屋は既にあります。別の合言葉をお試しください。','peer-unavailable':'部屋が見つかりません。合言葉と部屋主の接続を確認してください。',network:'接続できません。通信環境を確認してください。'})[e?.type]||e?.message||'接続に失敗しました。'}
+async function roomPeerId(code){return ArtopiaNetwork.roomId(normalizeRoomCode(code))}
+async function newPeer(id){const p=await ArtopiaNetwork.createPeer(id,observePeer);p.on('error',e=>{if(room)toast(errorText(e))});p.on('disconnected',()=>{if(room)$('#connectionState').textContent='接続仲介が切断されました'});return p}
+function resetSession(){reconnectController?.abort();reconnectController=null;clearTimeout(reconnectTimer);reconnectAttempts=0;sessionToken++;peer?.destroy();peer=null;hostConn=null;room=null;connected=false;connections.clear();members.clear();locks.clear();redoIds=[];pendingOps.clear();chat=[];unread=0;remoteDrafts.clear();remoteCursors.clear();outboundQueue=[];syncing=false;deferredMessages=[];selection=null;stroke=null;$('#transformBar').hidden=true;prefs.opacities=[100,100,100];prefs.layer=0}
+async function startRoom(r,art,offline){
+  r={...r,code:normalizeRoomCode(r.code)};
+  if(r.code.length<2||r.code.length>32)throw Error('合言葉は2〜32文字で入力してください。');
+  resetSession();const token=sessionToken,nextEngine=new E.Engine(r.w,r.h);
+  if(art){const im=await E.image(art.image),x=nextEngine.base[0].getContext('2d'),scale=Math.min(r.w/im.width,r.h/im.height);x.drawImage(im,(r.w-im.width*scale)/2,(r.h-im.height*scale)/2,im.width*scale,im.height*scale);nextEngine.rebuild()}
+  if(token!==sessionToken)throw new DOMException('部屋の作成を中止しました。','AbortError');
+  const p=offline?null:await newPeer(await roomPeerId(r.code));
+  if(token!==sessionToken){p?.destroy();throw new DOMException('部屋の作成を中止しました。','AbortError')}
+  peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,offline,hasArt:!!art};engine=nextEngine;sharedPalette=[];
+  members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:false});
+  if(p)p.on('connection',attachGuest);
+  recordConnection('部屋作成完了',{fingerprint:localId.slice(-8),offline});enterStudio();
+}
+const incomingTransfers=new WeakMap();
+const wireQueues=new WeakMap();
+function sendWire(conn,msg){
+  if(!conn)return;
+  let q=wireQueues.get(conn);
+  if(!q){
+    q={frames:[],index:0,timer:null,closed:false};wireQueues.set(conn,q);
+    q.pump=()=>{
+      clearTimeout(q.timer);q.timer=null;
+      if(q.closed||!conn.open)return;
+      let sent=0;
+      try{
+        while(q.index<q.frames.length&&sent<4){
+          if((conn.dataChannel?.bufferedAmount||0)>131072)break;
+          conn.send(q.frames[q.index++]);sent++;
+        }
+      }catch(e){q.closed=true;q.frames=[];conn.emit?.('error',e);return}
+      if(q.index===q.frames.length){q.frames=[];q.index=0}
+      else q.timer=setTimeout(q.pump,10);
+    };
+    conn.on('open',q.pump);
+    conn.on('close',()=>{q.closed=true;clearTimeout(q.timer);q.frames=[]});
+  }
+  if(q.closed)return;
+  const text=JSON.stringify(msg);
+  if(text.length<4000)q.frames.push({...msg,protocol:'artopia-0'});
+  else{const id=uid(),total=Math.ceil(text.length/4000);for(let i=0;i<total;i++)q.frames.push({protocol:'artopia-0',chunk:id,index:i,total,messageType:msg.type,text:text.slice(i*4000,(i+1)*4000)})}
+  if(!q.timer)q.pump();
+}
+function decodeWire(conn,m,cb){if(m?.protocol!=='artopia-0')return;if(m.payload){cb(m.payload);return}if(typeof m.type==='string'&&!m.chunk){cb(m);return}if(typeof m.text!=='string'||m.text.length>10000||!Number.isInteger(m.total)||m.total<1||m.total>20000||!Number.isInteger(m.index)||m.index<0||m.index>=m.total)return;let map=incomingTransfers.get(conn);if(!map){map=new Map;incomingTransfers.set(conn,map)}for(const [id,v]of map)if(Date.now()-v.at>120000)map.delete(id);let t=map.get(m.chunk);if(!t){if(map.size>=3)return;t={parts:[],n:0,total:m.total,at:Date.now()};map.set(m.chunk,t)}if(t.total!==m.total)return;if(t.parts[m.index]===undefined){t.parts[m.index]=m.text;t.n++;t.at=Date.now();if(m.messageType==='welcome')cb({type:'welcomeProgress',received:t.n,total:t.total})}if(t.n===t.total){map.delete(m.chunk);try{cb(JSON.parse(t.parts.join('')))}catch{}}}
+function broadcast(msg,except){for(const [id,c]of connections)if(id!==except&&members.has(id))sendWire(c,msg)}
+function sendHost(msg){if(!room||!connected){toast('現在は接続されていません');return}if(isHost)handleHost(localId,msg);else sendWire(hostConn,msg)}
+function attachGuest(c){recordConnection('部屋主が入室要求を受信');observeDataConnection(c,'部屋主');connections.set(c.peer,c);let accepted=false;ArtopiaNetwork.attach(c,{open:()=>sendWire(c,{type:'hostReady',version:'0.0.8'}),data:m=>decodeWire(c,m,x=>{if(x.type==='hello'&&accepted){sendWire(c,{type:'helloAck'});return}if(x.type==='hello'&&!accepted){if(members.size>=room.limit){sendWire(c,{type:'reject',message:'この部屋は満員です。'});return}if(x.spectator&&!room.spectate){sendWire(c,{type:'reject',message:'この部屋では観戦を受け付けていません。'});return}accepted=true;members.set(c.peer,{peerId:c.peer,profile:validProfile(x.profile),spectator:!!x.spectator});sendWire(c,{type:'welcomeStart'});sendWire(c,{type:'welcome',room,engine:engine.snapshot(),members:[...members.values()],sharedPalette,chat,locks:[...locks.values()]});broadcast({type:'roster',members:[...members.values()]});renderMembers();return}if(accepted)handleHost(c.peer,x)}),close:()=>{if(connections.get(c.peer)!==c)return;connections.delete(c.peer);members.delete(c.peer);for(const [id,l]of locks)if(l.owner===c.peer)locks.delete(id);broadcast({type:'roster',members:[...members.values()]});broadcastLocks();remoteDrafts.delete(c.peer);remoteCursors.delete(c.peer);renderMembers();renderOverlay();renderCursors()},error:()=>{}})}
+async function joinRoom(rawCode,spectator,onProgress=()=>{}){
+  const code=joinCodeFromInput(rawCode);
+  if(code.length<2||code.length>32)throw Error('合言葉は2〜32文字で入力してください。');
+  joinController?.abort();const controller=new AbortController();joinController=controller;
+  resetSession();isHost=false;const token=sessionToken;let p;
+  try{
+    onProgress('① 接続の準備をしています…');
+    p=await newPeer();
+    if(controller.signal.aborted||token!==sessionToken){p.destroy();throw new DOMException('接続を中止しました。','AbortError')}
+    peer=p;localId=p.id;
+    p.on('connection',c=>c.close());
+    const target=await roomPeerId(code);
+    recordConnection('接続先を決定',{fingerprint:target.slice(-8),attempt:1});
+    if(controller.signal.aborted||token!==sessionToken)throw new DOMException('接続を中止しました。','AbortError');
+    onProgress('② 部屋主との通信経路を確立しています…');
+    await joinAttempt(p,target,code,spectator,token,controller.signal,onProgress);
+  }catch(e){
+    p?.destroy();if(peer===p){peer=null;hostConn=null;room=null;connected=false;syncing=false;deferredMessages=[]}
+    throw e;
+  }finally{if(joinController===controller)joinController=null}
+}
+function onlineNameForJoin(){return profile.name||'プレイヤー'}
+function joinAttempt(p,target,code,spectator,token,signal,onProgress){
+  return ArtopiaAdmission.join({
+    peer:p,signal,isCurrent:()=>token===sessionToken,profile:validProfile(profile),spectator,
+    connect:()=>ArtopiaNetwork.connect(p,target),
+    onConnection:c=>{hostConn=c;observeDataConnection(c,'参加者')},
+    send:sendWire,decode:decodeWire,onProgress,
+    prepare:async msg=>{const next=new E.Engine(msg.engine.w,msg.engine.h);await next.restore(msg.engine);return next},
+    commit:(next,msg)=>{engine=next;room={...msg.room,code};members=new Map(msg.members.map(x=>[x.peerId,x]));sharedPalette=msg.sharedPalette||[];chat=msg.chat||[];locks=new Map((msg.locks||[]).map(l=>[l.id,l]));connected=true;enterStudio()},
+    onMessage:handleClient,
+    onTimeout:(phase,c)=>recordConnection('入室タイムアウト',{phase,ice:c?.peerConnection?.iceConnectionState,remoteDescription:!!c?.peerConnection?.remoteDescription}),
+    onDisconnected:()=>{connected=false;$('#connectionState').textContent='部屋主と切断・保存できます';toast('部屋主との接続が切れました。再接続しています。');pendingOps.clear();stroke=null;renderControls();scheduleReconnect()}
+  });
+}
+function enterStudio(){$('#home').hidden=true;$('#studio').hidden=false;$('#roomTitle').textContent=room.name;$('#connectionState').textContent=room.offline?'ひとりで試す':isHost?'部屋主として接続中':'接続中';$('#canvasSize').textContent=`${engine.w} × ${engine.h} px`;for(const c of [$('#display'),$('#overlay')]){c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';renderMembers();renderControls();render();requestAnimationFrame(fitView)}
+function sendRejection(id,text,opId){const m={type:'notice',text,opId};if(id===localId)handleClient(m);else sendWire(connections.get(id),m)}
+function bounds(a){if(a.kind==='setting')return null;if(a.tool==='fill')return{x:0,y:0,w:engine.w,h:engine.h};let xs=a.points.map(p=>p[0]),ys=a.points.map(p=>p[1]),r=(a.size||1)/2+5,x=Math.min(...xs)-r,y=Math.min(...ys)-r,x2=Math.max(...xs)+r,y2=Math.max(...ys)+r;if(a.tool==='transform'){let rad=Math.hypot(x2-x,y2-y)*a.scale/2,cx=a.cx+a.dx,cy=a.cy+a.dy;x=Math.min(x,cx-rad);y=Math.min(y,cy-rad);x2=Math.max(x2,cx+rad);y2=Math.max(y2,cy+rad)}return{x,y,w:x2-x,h:y2-y}}
+const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function conflicts(id,a){let b=bounds(a);return b&&room.protect&&[...locks.values()].some(l=>l.owner!==id&&l.layer===a.layer&&overlaps(b,l.rect))}
+function validAction(a){if(!a||typeof a.id!=='string'||a.id.length>64)return false;if(a.kind==='setting')return typeof a.key==='string'&&JSON.stringify(a).length<3000;if(!Number.isInteger(a.layer)||a.layer<0||a.layer>2||!['pen','eraser','warp','blur','fill','transform'].includes(a.tool)||!Array.isArray(a.points)||a.points.length<1||a.points.length>3000)return false;if(!a.points.every(p=>Array.isArray(p)&&p.length>=2&&p.slice(0,2).every(n=>Number.isFinite(n)&&Math.abs(n)<10000)))return false;if(a.tool==='transform')return['cx','cy','dx','dy','angle','scale','flipX','flipY'].every(k=>Number.isFinite(a[k]))&&a.scale>=.1&&a.scale<=3&&Math.abs(a.flipX)===1&&Math.abs(a.flipY)===1;return /^#[a-f0-9]{6}$/i.test(a.color)&&a.size>=1&&a.size<=160&&a.strength>=1&&a.strength<=100&&Number.isFinite(a.tolerance)&&a.tolerance>=0&&a.tolerance<=100}
+function handleHost(id,m){if(!room||!members.has(id))return;const member=members.get(id);if(m.type==='op'){if(member.spectator||!validAction(m.op)){sendRejection(id,'この操作は受け付けられません。',m.op?.id);return}if(engine.ops.some(a=>a.id===m.op.id))return;if(conflicts(id,m.op)){sendRejection(id,'ほかの人がこの範囲を変形中です。',m.op.id);return}const a={...m.op,author:id,at:Date.now(),disabled:false,expiredRedo:false};for(const prev of engine.ops)if(prev.author===id&&prev.disabled)prev.expiredRedo=true;handleClient({type:'commit',op:a});broadcast({type:'commit',op:a});return}
+if(m.type==='undo'||m.type==='redo'){let a=engine.ops.find(a=>a.id===m.id&&a.author===id);if(!a||a.at<Date.now()-room.history*60000||a.expiredRedo){sendRejection(id,'この操作の履歴は期限を過ぎています。');return}if(a.kind!=='setting'&&room.protect&&[...locks.values()].some(l=>l.layer===a.layer)){sendRejection(id,'変形が終わってから取り消してください。');return}const disabled=m.type==='undo';handleClient({type:'toggle',id:a.id,disabled});broadcast({type:'toggle',id:a.id,disabled});return}
+if(m.type==='draft'||m.type==='cursor'){if(member.spectator)return;if(m.type==='draft'&&(!validAction(m.op)||conflicts(id,m.op)))return;if(m.type==='cursor'&&(!Number.isFinite(m.x)||!Number.isFinite(m.y)))return;const q={...m,author:id};if(id!==localId)handleClient(q);broadcast(q,id);return}
+if(m.type==='profile'){member.profile=validProfile(m.profile);broadcast({type:'roster',members:[...members.values()]});renderMembers();return}
+if(m.type==='chat'){let text=String(m.text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,180);if(!text||Date.now()-(member.lastChat||0)<700)return;member.lastChat=Date.now();let q={type:'chatMessage',message:{id:uid(),author:id,name:member.profile.name,color:member.profile.color,text,at:Date.now()}};handleClient(q);broadcast(q);return}
+if(m.type==='palette'){if(member.spectator)return;let colors=Array.isArray(m.colors)?m.colors.filter(c=>/^#[a-f0-9]{6}$/i.test(c)).slice(0,24):[];sharedPalette=colors;broadcast({type:'palette',colors});renderPalette();return}
+if(m.type==='lock'){if(member.spectator||!room.protect)return;if(!m.lock||!Number.isInteger(m.lock.layer)||m.lock.layer<0||m.lock.layer>2||!m.lock.rect||!['x','y','w','h'].every(k=>Number.isFinite(m.lock.rect[k]))||m.lock.rect.w<=0||m.lock.rect.h<=0)return;let l={...m.lock,owner:id,at:Date.now()};if([...locks.values()].some(x=>x.owner!==id&&x.layer===l.layer&&overlaps(x.rect,l.rect))){sendRejection(id,'その範囲はほかの人が作業中です。');return}for(const[k,x]of locks)if(x.owner===id)locks.delete(k);locks.set(l.id,l);broadcastLocks();return}
+if(m.type==='unlock'){for(const[k,x]of locks)if(x.owner===id)locks.delete(k);broadcastLocks();return}
+if(m.type==='galleryRequest'||m.type==='artRequest'){if(!members.has(m.target))return;const q={...m,requester:id};if(m.target===localId)handleClient(q);else sendWire(connections.get(m.target),q);return}
+if(m.type==='galleryResponse'||m.type==='artResponse'){if(!members.has(m.target))return;const q={...m,owner:id};if(m.target===localId)handleClient(q);else sendWire(connections.get(m.target),q);return}
+}
+function broadcastLocks(){const q={type:'locks',locks:[...locks.values()]};handleClient(q);broadcast(q)}
+function handleClient(m){if(!engine)return;if(m.type==='commit'){pendingOps.delete(m.op.id);remoteDrafts.delete(m.op.author);engine.add(m.op);if(m.op.kind!=='setting')room.hasArt=true;if(m.op.author===localId){redoIds=[];if(m.op.kind==='setting')assignSetting(m.op.key,m.op.after)}render();renderControls();return}if(m.type==='toggle'){let a=engine.ops.find(a=>a.id===m.id);if(!a)return;a.disabled=m.disabled;if(a.author===localId){if(m.disabled){redoIds.push(a.id);if(a.kind==='setting')assignSetting(a.key,a.before)}else{redoIds=redoIds.filter(id=>id!==a.id);if(a.kind==='setting')assignSetting(a.key,a.after)}}engine.rebuild();render();renderControls();return}if(m.type==='compact'){engine.compact(m.cutoff);redoIds=redoIds.filter(id=>engine.ops.some(a=>a.id===id));renderControls();return}if(m.type==='roster'){members=new Map(m.members.map(x=>[x.peerId,x]));if(members.get(localId)?.spectator){stroke=null;if(selection)cancelSelection()}renderControls();for(const id of remoteCursors.keys())if(!members.has(id))remoteCursors.delete(id);renderMembers();renderCursors();return}if(m.type==='draft'){remoteDrafts.set(m.author,{...m.op,received:Date.now()});renderOverlay();return}if(m.type==='cursor'){remoteCursors.set(m.author,{x:m.x,y:m.y,at:Date.now()});renderCursors();return}if(m.type==='locks'){locks=new Map(m.locks.map(l=>[l.id,l]));renderOverlay();return}if(m.type==='notice'){if(m.opId)pendingOps.delete(m.opId);toast(m.text);renderControls();return}if(m.type==='chatMessage'){addChat(m.message);return}if(m.type==='palette'){sharedPalette=m.colors;renderPalette();return}if(m.type==='closing'){room.ended=true;connected=false;$('#connectionState').textContent='部屋が終了しました・保存できます';toast('部屋主が部屋を終了しました。この絵を保存できます。');return}if(m.type==='kicked'){room.ended=true;connected=false;hostConn?.close();toast('部屋主によって退出されました');$('#connectionState').textContent='退出済み・保存できます';return}if(m.type==='galleryRequest'){sendHost({type:'galleryResponse',target:m.requester,arts:gallery.slice(0,30).map(a=>({id:a.id,name:a.name,at:a.at,thumb:a.thumb}))});return}if(m.type==='galleryResponse'){let el=$('#remoteGallery');if(el&&el.dataset.owner===m.owner)renderGallery(el,m.arts.map(a=>({...a,owner:m.owner})),false);return}if(m.type==='artRequest'){let a=gallery.find(a=>a.id===m.artId);if(a)sendHost({type:'artResponse',target:m.requester,art:a});return}if(m.type==='artResponse'){showArt(m.art,false);return}}
+function requestArt(a){toast('作品を受信しています…');sendHost({type:'artRequest',target:a.owner,artId:a.id})}
+function renderMembers(){$('#memberCount').textContent=members.size;$('#memberList').innerHTML='';for(const [id,m]of members){let b=document.createElement('button');b.className='member';b.innerHTML=`<span class="avatar">${avatar(m.profile)}</span><span><b style="color:${m.profile.color};text-shadow:0 0 1px #73808b">${esc(m.profile.name)}</b><small>${id===localId?'あなた · ':''}${id===(isHost?localId:hostConn?.peer)?'♛ 部屋主':m.spectator?'観戦中':'参加中'}</small></span>`;b.onclick=()=>showMember(id);$('#memberList').append(b)}}
+function showMember(id){let m=members.get(id);if(!m)return;modal(m.profile.name,`<div class="profile-preview"><span class="avatar">${avatar(m.profile)}</span><b style="color:${m.profile.color}">${esc(m.profile.name)}</b></div><p class="profile-bio">${esc(m.profile.bio||'自己紹介はまだありません。')}</p><h3>絵画展</h3><div class="gallery" id="remoteGallery" data-owner="${esc(id)}"><p class="muted">作品を読み込んでいます…</p></div>${isHost&&id!==localId?'<div class="modal-actions"><button id="spectateMember">描画・観戦を切替</button><button id="kickMember">退室させる</button></div>':''}`);if(id===localId)renderGallery($('#remoteGallery'),gallery,true);else sendHost({type:'galleryRequest',target:id});if($('#kickMember')){$('#kickMember').onclick=()=>{if(confirm(`${m.profile.name}さんを退室させますか？`)){sendWire(connections.get(id),{type:'kicked'});setTimeout(()=>connections.get(id)?.close(),200);$('#modal').close()}};$('#spectateMember').onclick=()=>{m.spectator=!m.spectator;broadcast({type:'roster',members:[...members.values()]});renderMembers();toast(m.spectator?'観戦に切り替えました':'描画を許可しました')}}}
+function currentTool(){return prefs.tools[prefs.tool]||prefs.tools.pen}
+function settingValue(key){if(key.startsWith('tools.')){let[,t,p]=key.split('.');return prefs.tools[t][p]}return structuredClone(key==='pan'?pan:prefs[key])}
+function assignSetting(key,v){if(key.startsWith('tools.')){let[,t,p]=key.split('.');if(prefs.tools[t]&&['size','strength'].includes(p))prefs.tools[t][p]=v}else if(key==='pan'){pan=!!v}else if(['layer','opacities','tool','color','smooth','pressure','penOnly','tolerance','view'].includes(key))prefs[key]=structuredClone(v);if(key==='view')applyView();renderControls();render()}
+function commitSetting(key,before,after){if(JSON.stringify(before)===JSON.stringify(after))return;assignSetting(key,after);if(engine&&connected&&!members.get(localId)?.spectator)commit({kind:'setting',key,before,after})}
+function changeSetting(key,after){commitSetting(key,settingValue(key),after)}
+function commit(op){if(!connected||members.get(localId)?.spectator){toast('現在は描画できません');return}let a={...op,id:uid(),author:localId,at:Date.now()};pendingOps.add(a.id);sendHost({type:'op',op:a});renderControls()}
+for(const[tool,ic]of [['pen','brush'],['eraser','eraser'],['warp','warp'],['blur','blur'],['lasso','lasso'],['fill','fill']]){let b=document.createElement('button');b.innerHTML=icon(ic)+`<span>${labels[tool]}</span>`;b.dataset.tool=tool;b.onclick=()=>{if(selection)cancelSelection();changeSetting('tool',tool);if(pan)changeSetting('pan',false)};$('#toolButtons').append(b)}
+function renderControls(){document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===prefs.tool));let t=currentTool();$('#sizeRange').value=t.size;$('#sizeValue').textContent=t.size+' px';$('#strengthRange').value=t.strength;$('#strengthValue').textContent=t.strength+'%';$('#strengthText').textContent=['warp','blur'].includes(prefs.tool)?'強さ':'不透明度';$('#layerLabel').textContent='レイヤー '+(prefs.layer+1);$('#layerOpacityRange').value=prefs.opacities[prefs.layer];$('#layerOpacityValue').textContent=prefs.opacities[prefs.layer]+'%';$('#colorInput').value=prefs.color;$('#hexInput').value=prefs.color;$('#smoothRange').value=prefs.smooth;$('#pressureCheck').checked=prefs.pressure;$('#penOnlyCheck').checked=prefs.penOnly;$('#toleranceRange').value=prefs.tolerance;$('#panBtn').classList.toggle('active',pan);$('#panText').textContent='画面移動 '+(pan?'ON':'OFF');$('#viewport').style.cursor=pan?'grab':prefs.tool==='eyedrop'?'crosshair':'crosshair';let ops=engine?.ops.filter(a=>a.author===localId&&!a.disabled&&a.at>=Date.now()-(room?.history||3)*60000)||[],last=ops.at(-1);$('#undoBtn').disabled=!last||pendingOps.size>0||!connected;$('#redoBtn').disabled=!redoIds.length||pendingOps.size>0||!connected;$('#undoHint').textContent='次に戻る：'+(last?(last.kind==='setting'?(labels[last.key]||'サイズ・強さ'):labels[last.tool]):'—');renderPalette()}
+function renderPalette(){let colors=palette;$('#swatches').innerHTML='';for(const c of colors){let b=document.createElement('button');b.className='swatch'+(c===prefs.color?' selected':'');b.style.background=c;b.title=c;b.setAttribute('aria-label',c);b.onclick=()=>changeSetting('color',c);b.oncontextmenu=e=>{e.preventDefault();palette=palette.filter(x=>x!==c);persist('artopia-palette',palette);renderPalette()};$('#swatches').append(b)}}
+function range(id,key,after){let before=null,k=null;const el=$(id),getkey=()=>typeof key==='function'?key():key;el.addEventListener('pointerdown',()=>{k=getkey();before=settingValue(k)});el.addEventListener('keydown',()=>{if(before===null){k=getkey();before=settingValue(k)}});el.addEventListener('input',()=>{if(before===null){k=getkey();before=settingValue(k)}assignSetting(k,after?after(+el.value):+el.value)});el.addEventListener('change',()=>{let v=settingValue(k||getkey());commitSetting(k||getkey(),before??v,v);before=null;k=null})}
+range('#sizeRange',()=>`tools.${prefs.tool==='eyedrop'?'pen':prefs.tool}.size`);range('#strengthRange',()=>`tools.${prefs.tool==='eyedrop'?'pen':prefs.tool}.strength`);range('#smoothRange','smooth');range('#toleranceRange','tolerance');range('#layerOpacityRange','opacities',v=>{let n=[...prefs.opacities];n[prefs.layer]=v;return n});
+$('#pressureCheck').onchange=e=>changeSetting('pressure',e.target.checked);$('#penOnlyCheck').onchange=e=>changeSetting('penOnly',e.target.checked);$('#colorInput').onchange=e=>changeSetting('color',e.target.value);$('#hexInput').onchange=e=>{if(/^#[a-f0-9]{6}$/i.test(e.target.value))changeSetting('color',e.target.value);else renderControls()};$('#layerBtn').onclick=()=>{if(selection)cancelSelection();changeSetting('layer',(prefs.layer+1)%3)};
+$('#panBtn').onclick=()=>changeSetting('pan',!pan);$('#fitBtn').onclick=()=>{let before=structuredClone(prefs.view);fitView();commitSetting('view',before,prefs.view)};$('#eyedropBtn').onclick=()=>{changeSetting('tool','eyedrop');if(pan)changeSetting('pan',false);toast('キャンバスの色をタップして取得')};$('#addColorBtn').onclick=()=>{if(palette.includes(prefs.color))return;palette=[...palette,prefs.color].slice(-24);persist('artopia-palette',palette);renderPalette()};$('#sharedPaletteBtn').onclick=()=>{modal('部屋の共有パレット',`<div id="sharedColors" class="swatches"></div><p class="muted">この部屋の参加者で色を共有します。</p><div class="modal-actions"><button id="shareColor" class="primary">現在の色を追加</button></div>`);for(const c of sharedPalette){let b=document.createElement('button');b.className='swatch';b.style.background=c;b.title=c;b.onclick=()=>{changeSetting('color',c);$('#modal').close()};$('#sharedColors').append(b)}$('#shareColor').onclick=()=>{sendHost({type:'palette',colors:[...new Set([...sharedPalette,prefs.color])].slice(-24)});$('#modal').close()}};
+$('#undoBtn').onclick=()=>{if(selection){cancelSelection();return}let a=engine.ops.filter(a=>a.author===localId&&!a.disabled&&a.at>=Date.now()-room.history*60000).at(-1);if(a)sendHost({type:'undo',id:a.id})};$('#redoBtn').onclick=()=>{const id=redoIds.at(-1);if(id)sendHost({type:'redo',id})};
+function render(){if(!engine)return;let x=$('#display').getContext('2d');x.clearRect(0,0,engine.w,engine.h);x.fillStyle='#fff';x.fillRect(0,0,engine.w,engine.h);engine.layers.forEach((l,i)=>{x.globalAlpha=prefs.opacities[i]/100;x.drawImage(l,0,0)});x.globalAlpha=1;$('#emptyHint').hidden=engine.ops.some(a=>a.kind!=='setting'&&!a.disabled)||engine.base.some(c=>c._nonempty)||!!room?.hasArt;renderOverlay()}
+function renderOverlay(){if(!engine)return;let c=$('#overlay'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);for(const a of remoteDrafts.values())if(Date.now()-a.received<7000&&a.tool==='pen')E.apply(c,a);if(stroke&&stroke.tool==='pen')E.apply(c,stroke);if(stroke&&stroke.tool==='eraser'){x.save();x.strokeStyle='#758591';x.lineWidth=1/prefs.view.z;let p=stroke.points.at(-1);x.beginPath();x.arc(p[0],p[1],stroke.size/2,0,Math.PI*2);x.stroke();x.restore()}for(const l of locks.values())if(l.owner!==localId){x.save();x.fillStyle='#e9a34215';x.strokeStyle='#d89a42';x.lineWidth=2/prefs.view.z;x.setLineDash([7/prefs.view.z,4/prefs.view.z]);x.fillRect(l.rect.x,l.rect.y,l.rect.w,l.rect.h);x.strokeRect(l.rect.x,l.rect.y,l.rect.w,l.rect.h);x.restore()}
+if(selection){let temp=E.clone(engine.layers[prefs.layer]);E.apply(temp,{...selection,tool:'transform',layer:prefs.layer});let composite=E.make(engine.w,engine.h),cx=composite.getContext('2d');cx.fillStyle='white';cx.fillRect(0,0,engine.w,engine.h);engine.layers.forEach((l,i)=>{cx.globalAlpha=prefs.opacities[i]/100;cx.drawImage(i===prefs.layer?temp:l,0,0)});x.drawImage(composite,0,0);x.save();x.translate(selection.cx+selection.dx,selection.cy+selection.dy);x.rotate(selection.angle*Math.PI/180);x.scale(selection.scale*selection.flipX,selection.scale*selection.flipY);x.translate(-selection.cx,-selection.cy);x.beginPath();selection.points.forEach((p,i)=>i?x.lineTo(...p):x.moveTo(...p));x.closePath();x.setLineDash([6/prefs.view.z,4/prefs.view.z]);x.lineWidth=1.5/prefs.view.z/selection.scale;x.strokeStyle='#159ca6';x.stroke();x.restore()}else if(stroke?.tool==='lasso'){x.beginPath();stroke.points.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.lineWidth=1.5/prefs.view.z;x.setLineDash([5/prefs.view.z,4/prefs.view.z]);x.strokeStyle='#139aa3';x.stroke();x.setLineDash([])}}
+function applyView(){if(!engine)return;let v=prefs.view;$('#canvasSurface').style.transform=`translate(${v.x}px,${v.y}px) rotate(${v.angle}rad) scale(${v.z})`;$('#zoomValue').textContent=Math.round(v.z*100)+'%';renderCursors()}
+function fitView(){if(!engine)return;let r=$('#viewport').getBoundingClientRect(),z=Math.min((r.width-46)/engine.w,(r.height-55)/engine.h);z=Math.max(.03,z);prefs.view={x:(r.width-engine.w*z)/2,y:(r.height-30-engine.h*z)/2,z,angle:0};applyView()}
+function point(e){let r=$('#viewport').getBoundingClientRect(),v=prefs.view,x=e.clientX-r.left-v.x,y=e.clientY-r.top-v.y,c=Math.cos(-v.angle),s=Math.sin(-v.angle);return[(x*c-y*s)/v.z,(x*s+y*c)/v.z,e.pointerType==='pen'?Math.max(.05,e.pressure||.5):.625]}
+function renderCursors(){let el=$('#cursors');el.innerHTML='';if(!$('#cursorCheck').checked)return;for(const[id,c]of remoteCursors){let m=members.get(id);if(!m||Date.now()-c.at>10000)continue;let n=document.createElement('div');n.className='remote-cursor';n.style.left=c.x+'px';n.style.top=c.y+'px';n.style.transform=`scale(${1/prefs.view.z}) rotate(${-prefs.view.angle}rad)`;n.style.color=m.profile.color;n.innerHTML=`➤<span style="background:${m.profile.color}">${esc(m.profile.name)}</span>`;el.append(n)}}
+$('#cursorCheck').onchange=renderCursors;
+let pointers=new Map(),gesture=null,dragSelection=null,draftAt=0,effectPreviewAt=0,activePointer=null;
+function gestureStart(){let arr=[...pointers.values()],r=$('#viewport').getBoundingClientRect();let cx=arr.reduce((s,p)=>s+p.x,0)/arr.length-r.left,cy=arr.reduce((s,p)=>s+p.y,0)/arr.length-r.top;gesture={view:structuredClone(prefs.view),cx,cy,d:arr.length>1?Math.hypot(arr[1].x-arr[0].x,arr[1].y-arr[0].y):0,a:arr.length>1?Math.atan2(arr[1].y-arr[0].y,arr[1].x-arr[0].x):0};if(!moveUndo)moveUndo=structuredClone(prefs.view)}
+function gestureMove(){let arr=[...pointers.values()];if(!gesture||!arr.length)return;let r=$('#viewport').getBoundingClientRect(),cx=arr.reduce((s,p)=>s+p.x,0)/arr.length-r.left,cy=arr.reduce((s,p)=>s+p.y,0)/arr.length-r.top,g=gesture,v=g.view,z=v.z,ang=v.angle;if(arr.length>1&&g.d){z=Math.max(.03,Math.min(16,v.z*Math.hypot(arr[1].x-arr[0].x,arr[1].y-arr[0].y)/g.d));ang=v.angle+Math.atan2(arr[1].y-arr[0].y,arr[1].x-arr[0].x)-g.a}let ratio=z/v.z,da=ang-v.angle,dx=g.cx-v.x,dy=g.cy-v.y;prefs.view={x:cx-(dx*Math.cos(da)-dy*Math.sin(da))*ratio,y:cy-(dx*Math.sin(da)+dy*Math.cos(da))*ratio,z,angle:ang};applyView()}
+const viewport=$('#viewport');
+viewport.onpointerdown=e=>{if(e.target.closest('#transformBar'))return;e.preventDefault();viewport.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pan||(prefs.penOnly&&e.pointerType==='touch')||e.button===1){if(stroke){stroke=null;activePointer=null;renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(!connected||members.get(localId)?.spectator){toast('観戦中、または接続が切れています');return}let p=point(e);if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={id:'draft',layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength,color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,points:[p]};if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}if(stroke.tool==='fill'){commit(stroke);stroke=null}else renderOverlay()};
+viewport.onpointermove=e=>{if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture){gestureMove();return}let p=point(e);if(connected&&Date.now()-lastCursor>70){lastCursor=Date.now();sendHost({type:'cursor',x:p[0],y:p[1]})}if(e.pointerId!==activePointer)return;if(dragSelection&&selection){selection.dx=dragSelection.dx+p[0]-dragSelection.p[0];selection.dy=dragSelection.dy+p[1]-dragSelection.p[1];renderOverlay();return}if(!stroke)return;let prev=stroke.points.at(-1),s=stroke.tool==='pen'?1-prefs.smooth/100:1;p=[prev[0]+(p[0]-prev[0])*s,prev[1]+(p[1]-prev[1])*s,p[2]];let min=['warp','blur'].includes(stroke.tool)?Math.max(3,stroke.size/8):.6;if(Math.hypot(p[0]-prev[0],p[1]-prev[1])<min)return;if(stroke.points.length>=2999){finishStroke();return}stroke.points.push(p);if(['warp','blur'].includes(stroke.tool)){if(Date.now()-effectPreviewAt>90){effectPreviewAt=Date.now();let c=E.clone(engine.layers[stroke.layer]);E.apply(c,stroke);let x=$('#overlay').getContext('2d');x.fillStyle='white';x.fillRect(0,0,engine.w,engine.h);engine.layers.forEach((l,i)=>{x.globalAlpha=prefs.opacities[i]/100;x.drawImage(i===stroke.layer?c:l,0,0)});x.globalAlpha=1}}else renderOverlay();if(stroke.tool==='pen'&&Date.now()-draftAt>100){draftAt=Date.now();sendHost({type:'draft',op:stroke})}};
+function finishStroke(){if(!stroke)return;let a=stroke;stroke=null;if(a.tool==='lasso'){if(a.points.length>2){let b=bounds(a);selection={points:a.points.map(p=>p.slice(0,2)),cx:b.x+b.w/2,cy:b.y+b.h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1};$('#transformBar').hidden=false;$('#rotateSelection').value=0;$('#scaleSelection').value=100;if(room.protect)sendHost({type:'lock',lock:{id:uid(),layer:prefs.layer,rect:b}})}}else if(a.tool!=='warp'||a.points.length>1)commit(a);renderOverlay()}
+function pointerEnd(e,cancel=false){pointers.delete(e.pointerId);if(gesture){if(pointers.size)gestureStart();else{gesture=null;if(moveUndo){commitSetting('view',moveUndo,prefs.view);moveUndo=null}}return}if(e.pointerId===activePointer){if(cancel){stroke=null;renderOverlay()}else finishStroke();dragSelection=null;activePointer=null}}
+viewport.onpointerup=e=>pointerEnd(e);viewport.onpointercancel=e=>pointerEnd(e,true);viewport.oncontextmenu=e=>e.preventDefault();
+let wheelBefore=null,wheelTimer;viewport.addEventListener('wheel',e=>{if(!pan)return;e.preventDefault();if(!wheelBefore)wheelBefore=structuredClone(prefs.view);let r=viewport.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,v=prefs.view,z=Math.max(.03,Math.min(16,v.z*Math.exp(-e.deltaY*.002))),s=z/v.z;prefs.view={...v,x:x-(x-v.x)*s,y:y-(y-v.y)*s,z};applyView();clearTimeout(wheelTimer);wheelTimer=setTimeout(()=>{commitSetting('view',wheelBefore,prefs.view);wheelBefore=null},250)},{passive:false});
+function cancelSelection(){selection=null;$('#transformBar').hidden=true;if(room&&connected)sendHost({type:'unlock'});renderOverlay()}
+$('#cancelTransform').onclick=cancelSelection;$('#applyTransform').onclick=()=>{if(!selection)return;let op={...selection,tool:'transform',layer:prefs.layer};if(conflicts(localId,op)){toast('移動先に保護中の範囲があります');return}commit(op);cancelSelection()};$('#flipX').onclick=()=>{if(selection){selection.flipX*=-1;renderOverlay()}};$('#flipY').onclick=()=>{if(selection){selection.flipY*=-1;renderOverlay()}};$('#rotateSelection').oninput=e=>{if(selection){selection.angle=+e.target.value;renderOverlay()}};$('#scaleSelection').oninput=e=>{if(selection){selection.scale=+e.target.value/100;renderOverlay()}};
+new ResizeObserver(()=>{if(engine&&!$('#studio').hidden)fitView()}).observe(viewport);
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||$('#modal').open||!room)return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();(e.shiftKey?$('#redoBtn'):$('#undoBtn')).click()}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();$('#redoBtn').click()}else if(e.key==='Escape'){if(selection)cancelSelection();else if(pan)changeSetting('pan',false)}else if(e.code==='Space'){e.preventDefault();if(!e.repeat)$('#panBtn').click()}});
+$('#membersBtn').onclick=()=>$('#memberPanel').classList.toggle('open');
+function addChat(m){if(chat.some(x=>x.id===m.id))return;chat.push(m);chat=chat.slice(-200);if($('#modal').open&&$('#chatList'))renderChat();else if(m.author!==localId)unread++;$('#unreadBadge').textContent=unread||'';if($('#flyCheck').checked){let n=document.createElement('div');n.className='flying';n.style.top=(10+(chat.length%5)*12)+'%';let b=document.createElement('b');b.style.color=m.color;b.textContent=m.name;n.append(b,document.createTextNode(m.text));$('#flyLayer').append(n);n.onanimationend=()=>n.remove()}}
+function renderChat(){let el=$('#chatList');if(!el)return;el.innerHTML='';for(const m of chat){let n=document.createElement('div');n.className='chat-entry'+(m.author===localId?' self':'');n.innerHTML=`<header><b style="color:${esc(m.color)}">${esc(m.name)}</b><time>${new Date(m.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}</time></header><div>${esc(m.text)}</div>`;el.append(n)}el.scrollTop=el.scrollHeight}
+function openChat(){modal('コメント',`<div id="chatList" class="chat-list"></div><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="180" autocomplete="off" placeholder="みんなにメッセージ" aria-label="コメント"><button class="primary">送信</button></form><p class="muted">最新200件 · 1件180文字まで</p>`);unread=0;$('#unreadBadge').textContent='';renderChat();$('#chatForm').onsubmit=e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(!text||Date.now()-lastChat<700)return;lastChat=Date.now();sendHost({type:'chat',text});$('#chatInput').value=''}}
+$('#chatBtn').onclick=$('#mobileChat').onclick=openChat;
+$('#inviteBtn').onclick=()=>{modal('友だちを招待',`<p class="muted">「部屋に入る」で、この合言葉を入力してください。</p><div class="code-box">${esc(room.code)}</div><div class="modal-actions"><button id="copyCode">合言葉をコピー</button><button id="copyLink" class="primary">招待リンクをコピー</button></div>`);$('#copyCode').onclick=()=>copyText(room.code);$('#copyLink').onclick=()=>copyText(ArtopiaAdmission.invitation(room.code,location.href))};
+async function copyText(s){try{await navigator.clipboard.writeText(s);toast('コピーしました')}catch{prompt('コピーしてください',s)}}
+$('#snapshotBtn').onclick=()=>{if(!engine)return;modal('スナップショット',`<p class="muted">自分のレイヤー透明度を反映して、キャンバス全体を保存します。</p><label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">画像を書き出す</button><button id="snapshotSave" class="primary">絵画展に保存</button></div>`);$('#snapshotDownload').onclick=()=>download(engine.compose(prefs.opacities).toDataURL(),($('#snapshotName').value||'アートピア')+'.png');$('#snapshotSave').onclick=async()=>{try{$('#snapshotSave').disabled=true;await saveArt($('#snapshotName').value.trim()||room.name,engine.compose(prefs.opacities));$('#modal').close();toast('絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');$('#snapshotSave').disabled=false}}};
+$('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div class="modal-actions"><button id="roomDiagnostics">接続診断</button><button id="leaveSettings">${isHost?'保存して部屋を終了':'部屋を退出'}</button></div>`);$('#roomDiagnostics').onclick=showConnectionDiagnostics;$('#leaveSettings').onclick=leaveRoom};
+async function leaveRoom(){if(!room)return;modal(isHost?'部屋を終了しますか？':'部屋を退出しますか？',`<p class="muted">${isHost?'現在の絵をあなたの絵画展に保存してから終了します。参加者との接続も終了します。':'保存していない絵は、退出する前に保存してください。'}</p><div class="modal-actions"><button id="cancelLeave">戻る</button><button id="confirmLeave" class="primary">${isHost?'保存して終了':'退出する'}</button></div>`);$('#cancelLeave').onclick=()=>$('#modal').close();$('#confirmLeave').onclick=async()=>{if(isHost){try{$('#confirmLeave').disabled=true;await saveArt(room.name,engine.compose(prefs.opacities),'room-'+room.id);await db('recovery','readwrite',s=>s.delete(profile.id))}catch{toast('作品を保存できませんでした。画像を書き出してから終了してください。');$('#confirmLeave').disabled=false;return}broadcast({type:'closing'})}setTimeout(()=>{resetSession();engine=null;$('#studio').hidden=true;$('#home').hidden=false;$('#modal').close();refreshGallery()},150)}}
+$('#leaveBtn').onclick=leaveRoom;
+window.addEventListener('beforeunload',e=>{if(room&&connected){e.preventDefault();e.returnValue=''}});
+async function saveRecovery(){if(!isHost||!engine||!room)return;try{await db('recovery','readwrite',s=>s.put({id:profile.id,name:room.name,at:Date.now(),image:engine.compose(prefs.opacities).toDataURL()}))}catch{}}
+setInterval(()=>{if(!room||!engine)return;if(isHost){let cutoff=Date.now()-room.history*60000;if(engine.compact(cutoff))broadcast({type:'compact',cutoff});let removed=false;for(const[id,l]of locks)if(Date.now()-l.at>120000){locks.delete(id);removed=true}if(removed)broadcastLocks();if(Date.now()-lastRecovery>20000){lastRecovery=Date.now();saveRecovery()}}if(selection&&connected&&room.protect){let owned=[...locks.values()].find(l=>l.owner===localId);if(owned&&Date.now()-owned.at>30000)sendHost({type:'lock',lock:{...owned,rect:bounds({...selection,tool:'transform',layer:prefs.layer})}})}for(const[id,a]of remoteDrafts)if(Date.now()-a.received>7000)remoteDrafts.delete(id);renderControls();renderCursors()},3000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRecovery()});
+async function init(){await refreshGallery();try{let saved=await db('recovery','readonly',s=>s.get(profile.id));if(saved){const im=await E.image(saved.image),c=E.make(im.width,im.height);c.getContext('2d').drawImage(im,0,0);await saveArt(saved.name+'（復元）',c,'recovery-'+profile.id);await db('recovery','readwrite',s=>s.delete(profile.id));toast('前回のキャンバスを絵画展に復元しました')}}catch{}updateHome();if(!profile.name)showProfile(true);else if(new URLSearchParams(location.hash.slice(1)).has('room')){try{showJoin(joinCodeFromInput(location.href))}catch(e){toast(e.message)}};if(document.modelContext?.registerTool){try{document.modelContext.registerTool({name:'artopia_status',description:'現在のアートピアの部屋・参加人数・描画設定を読み取ります。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({room:room?.name||null,connected,members:members.size,layer:prefs.layer+1,tool:prefs.tool,canvas:engine?{width:engine.w,height:engine.h}:null})});document.modelContext.registerTool({name:'artopia_open_room_creation',description:'部屋作成の設定画面を開きます。部屋の作成は確定しません。',inputSchema:{type:'object',properties:{},additionalProperties:false},execute:()=>{if(room)throw Error('部屋を退出してから操作してください');showCreate();return{opened:true}}})}catch{}}}
+init();
+
+let reconnectTimer=null,reconnectAttempts=0,reconnectController=null;
+function scheduleReconnect(){if(!room||room.ended||isHost||reconnectAttempts>=5||connected)return;clearTimeout(reconnectTimer);reconnectTimer=setTimeout(reconnectSession,3000)}
+async function reconnectSession(){
+  if(!room||room.ended||connected||!peer||peer.destroyed||reconnectController)return;
+  const token=sessionToken,hostId=hostConn?.peer,code=room.code,spectator=members.get(localId)?.spectator||false;
+  if(!hostId)return;
+  reconnectAttempts++;const controller=new AbortController();reconnectController=controller;
+  try{
+    await joinAttempt(peer,hostId,code,spectator,token,controller.signal,text=>{$('#connectionState').textContent='再接続：'+text});
+    if(token!==sessionToken)return;
+    reconnectAttempts=0;pendingOps.clear();redoIds=redoIds.filter(id=>engine.ops.some(a=>a.id===id));renderControls();toast('部屋に再接続しました');
+  }catch(e){if(token===sessionToken&&!controller.signal.aborted)$('#connectionState').textContent=errorText(e)}
+  finally{if(reconnectController===controller)reconnectController=null;if(token===sessionToken&&!connected)scheduleReconnect()}
+}
+
+</script></body></html>
