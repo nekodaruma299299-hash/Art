@@ -36,9 +36,11 @@ return{Engine,make,clone,image,apply,selection};})();
 
 </script><script>
 'use strict';
-// Artopia room transport TEST. PeerJS DataConnection + STUN only (NO TURN).
-// Based on the Dream Crafter connection style: PeerJS handles offer/answer/ICE.
-// This test explicitly overrides PeerJS's default ICE config so TURN cannot be used.
+// Artopia Safari compatibility transport. PeerJS DataConnection with PeerJS default ICE.
+// Safari hardening: fresh-connection ICE retries, longer admission timeouts,
+// and richer ICE diagnostics. No custom SDP/candidate injection is used.
+const __artopiaUA=navigator.userAgent||'';
+window.__artopiaSafari=/Safari\//.test(__artopiaUA)&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(__artopiaUA);
 const ArtopiaNetwork = (() => {
   const PROTOCOL='artopia-rtc-1';
   const PEERJS_URL='https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js';
@@ -69,7 +71,7 @@ const ArtopiaNetwork = (() => {
   function decorateConnection(c){
     if(!c||c.__artopiaDecorated)return c;
     c.__artopiaDecorated=true;
-    c.metrics={mode:'peerjs-dream-crafter-default'};
+    c.metrics={mode:'peerjs-safari-compatible',attempt:c.__artopiaAttempt||1,safari:window.__artopiaSafari===true};
     // PeerJS exposes peerConnection/dataChannel; no custom candidate injection is done here.
     return c;
   }
@@ -100,10 +102,11 @@ const ArtopiaNetwork = (() => {
     return c;
   }
 
-  function connect(p,id){
+  function connect(p,id,attempt=1){
     if(!p||p.destroyed||p.disconnected)throw fault('network','部屋への接続準備ができていません。');
-    const c=p.connect(id,{reliable:true,serialization:'json',metadata:{protocol:PROTOCOL}});
+    const c=p.connect(id,{reliable:true,serialization:'json',metadata:{protocol:PROTOCOL,attempt}});
     if(!c)throw fault('network','部屋への接続を開始できませんでした。');
+    c.__artopiaAttempt=attempt;
     return decorateConnection(c);
   }
 
@@ -127,67 +130,73 @@ const ArtopiaAdmission={
   invitation(code,base){const url=new URL(base);url.hash=new URLSearchParams({room:this.normalize(code)}).toString();return url.href},
   join(options){
     return new Promise((resolve,reject)=>{
-      const o=options;let connection,alive=true,ready=false,loading=false,timer,helloTimer;
-      const pending=[],deadline=Date.now()+120000;
+      const o=options;let connection,alive=true,ready=false,loading=false,timer,helloTimer,retryTimer;
+      const pending=[],deadline=Date.now()+(window.__artopiaSafari?150000:120000);
+      const maxAttempts=window.__artopiaSafari?3:2;
+      let attempt=0,phase='部屋主との接続';
       const current=()=>alive&&!o.signal.aborted&&o.isCurrent();
-      const cleanup=()=>{clearTimeout(timer);clearInterval(helloTimer);o.signal.removeEventListener('abort',abort);o.peer.off('error',fail)};
-      const fail=error=>{if(!alive||ready)return;alive=false;cleanup();connection?.close();reject(error)};
-      const abort=()=>fail(new DOMException('接続を中止しました。','AbortError'));
-      let phase='部屋主との接続';
-      const stage=(name,text,ms=30000)=>{
+      const cleanup=()=>{clearTimeout(timer);clearTimeout(retryTimer);clearInterval(helloTimer);o.signal.removeEventListener('abort',abort);o.peer.off('error',peerFail)};
+      const finalFail=error=>{if(!alive||ready)return;alive=false;cleanup();try{connection?.close()}catch{}reject(error)};
+      const abort=()=>finalFail(new DOMException('接続を中止しました。','AbortError'));
+      const stage=(name,text,ms)=>{
         phase=name;clearTimeout(timer);o.onProgress(text);
+        const base=ms??(window.__artopiaSafari?45000:30000);
         timer=setTimeout(()=>{
           o.onTimeout(phase,connection);
-          fail(Object.assign(Error(`${phase}で時間切れになりました。「接続診断」で通信状況を確認できます。`),{type:'join-timeout'}));
-        },Math.max(0,Math.min(ms,deadline-Date.now())));
+          if(!ready&&phase==='部屋主との接続'&&attempt<maxAttempts){retry('timeout');return}
+          finalFail(Object.assign(Error(`${phase}で時間切れになりました。「接続診断」で通信状況を確認できます。`),{type:'join-timeout'}));
+        },Math.max(0,Math.min(base,deadline-Date.now())));
       };
-      const hello=()=>{if(current()&&!ready&&connection.open)o.send(connection,{type:'hello',profile:o.profile,spectator:o.spectator})};
+      const hello=()=>{if(current()&&!ready&&connection?.open)o.send(connection,{type:'hello',profile:o.profile,spectator:o.spectator})};
       const receive=async message=>{
         if(!current())return;
-        if(message.type==='reject'){fail(Error(message.message));return}
+        if(message.type==='reject'){finalFail(Error(message.message));return}
         if(message.type==='hostReady'){hello();return}
         if(message.type==='helloAck'){clearInterval(helloTimer);return}
         if(ready){o.onMessage(message);return}
-        if(message.type==='welcomeStart'){
-          clearInterval(helloTimer);stage('キャンバスの受信','④ キャンバスを受信しています…');return;
-        }
-        if(message.type==='welcomeProgress'){
-          clearInterval(helloTimer);stage('キャンバスの受信',`④ キャンバスを受信しています… ${Math.floor(message.received/message.total*100)}%`);return;
-        }
+        if(message.type==='welcomeStart'){clearInterval(helloTimer);stage('キャンバスの受信','④ キャンバスを受信しています…');return}
+        if(message.type==='welcomeProgress'){clearInterval(helloTimer);stage('キャンバスの受信',`④ キャンバスを受信しています… ${Math.floor(message.received/message.total*100)}%`);return}
         if(message.type==='welcome'){
-          if(loading)return;loading=true;clearInterval(helloTimer);
-          stage('キャンバスの復元','⑤ キャンバスを開いています…');
-          try{
-            const prepared=await o.prepare(message);
-            if(!current())return;
-            o.commit(prepared,message);ready=true;cleanup();
-            for(const item of pending)o.onMessage(item);pending.length=0;
-            resolve(connection);
-          }catch(error){fail(error)}
+          if(loading)return;loading=true;clearInterval(helloTimer);stage('キャンバスの復元','⑤ キャンバスを開いています…');
+          try{const prepared=await o.prepare(message);if(!current())return;o.commit(prepared,message);ready=true;cleanup();for(const item of pending)o.onMessage(item);pending.length=0;resolve(connection)}catch(error){finalFail(error)}
           return;
         }
-        if(pending.length>=2000){fail(Error('入室中の更新が多すぎるため、もう一度入室してください。'));return}
+        if(pending.length>=2000){finalFail(Error('入室中の更新が多すぎるため、もう一度入室してください。'));return}
         pending.push(message);
       };
+      const bind=c=>{
+        connection=c;o.onConnection(c);
+        let opened=false,ended=false;
+        c.on('open',()=>{if(!current()||ended)return;opened=true;stage('参加受付','③ 部屋主に参加情報を送っています…',window.__artopiaSafari?25000:15000);hello();helloTimer=setInterval(hello,1000)});
+        c.on('data',packet=>{if(current()&&!ended)o.decode(c,packet,receive)});
+        c.on('error',error=>{if(ended||!current()||ready)return;ended=true;if(!opened&&attempt<maxAttempts){retry(error?.type||'connection-error');return}finalFail(error)});
+        c.on('close',()=>{if(ended||!current())return;ended=true;if(!ready){if(!opened&&attempt<maxAttempts){retry('closed-before-open');return}finalFail(Object.assign(Error('部屋主との接続が閉じられました。'),{type:'connection-closed'}));return}alive=false;cleanup();o.onDisconnected()});
+      };
+      const startAttempt=()=>{
+        if(!current())return;
+        attempt++;
+        clearTimeout(timer);clearTimeout(retryTimer);clearInterval(helloTimer);
+        try{try{connection?.close()}catch{};stage('部屋主との接続',`② 部屋主との通信経路を確立しています…${attempt>1?`（再試行 ${attempt}/${maxAttempts}）`:''}`,window.__artopiaSafari?30000:30000);bind(o.connect(attempt))}catch(error){if(attempt<maxAttempts){retry(error?.type||'connect-error');return}finalFail(error)}
+      };
+      const retry=reason=>{
+        if(!current()||ready)return;
+        clearTimeout(timer);clearInterval(helloTimer);
+        try{connection?.close()}catch{}
+        o.onProgress(`② Safari互換接続を再試行しています…（${Math.min(attempt+1,maxAttempts)}/${maxAttempts}）`);
+        if(typeof o.onRetry==='function')o.onRetry(attempt+1,reason,connection);
+        retryTimer=setTimeout(startAttempt,900);
+      };
+      const peerFail=error=>{
+        // A per-connection WebRTC error may be followed by a successful fresh DataConnection.
+        const t=String(error?.type||'');
+        if(!ready&&attempt<maxAttempts&&['webrtc','network','negotiation-failed'].includes(t)){retry(t);return}
+        if(!ready&&['peer-unavailable','invalid-id','unavailable-id'].includes(t)){finalFail(error);return}
+      };
       if(o.signal.aborted){abort();return}
-      o.signal.addEventListener('abort',abort,{once:true});o.peer.on('error',fail);
-      stage('部屋主との接続','② 部屋主との通信経路を確立しています…');
-      try{connection=o.connect();o.onConnection(connection)}catch(error){fail(error);return}
-      connection.on('open',()=>{
-        if(!current())return;
-        stage('参加受付','③ 部屋主に参加情報を送っています…',15000);
-        hello();helloTimer=setInterval(hello,1000);
-      });
-      connection.on('data',packet=>{if(current())o.decode(connection,packet,receive)});
-      connection.on('error',fail);
-      connection.on('close',()=>{
-        if(!current())return;
-        if(!ready){fail(Object.assign(Error('部屋主との接続が閉じられました。'),{type:'connection-closed'}));return}
-        alive=false;cleanup();o.onDisconnected();
-      });
+      o.signal.addEventListener('abort',abort,{once:true});o.peer.on('error',peerFail);
+      startAttempt();
     });
-  }
-};
+  }};
 
 </script><script>
 'use strict';
@@ -204,7 +213,7 @@ let palette=load('artopia-palette',['#30485b','#f38da0','#f6d666','#9bd39f','#74
 let engine=null,room=null,peer=null,hostConn=null,localId='',isHost=false,connected=false,members=new Map(),connections=new Map(),sharedPalette=[],locks=new Map(),redoIds=[],pendingOps=new Set(),gallery=[],activeArt='',selection=null,stroke=null,pan=false,chat=[],unread=0,lastChat=0,lastCursor=0,remoteDrafts=new Map(),remoteCursors=new Map(),outboundQueue=[],wireBusy=false,peerLoading=null,sessionToken=0,mutationBusy=false,syncing=false,deferredMessages=[],lastRecovery=0,moveUndo=null;
 const prefs={layer:0,opacities:[100,100,100],tool:'pen',color:'#30485b',smooth:20,pressure:true,penOnly:false,tolerance:20,tools:{pen:{size:12,strength:100},eraser:{size:30,strength:100},warp:{size:60,strength:65},blur:{size:50,strength:70},lasso:{size:12,strength:100},fill:{size:12,strength:100}},view:{x:0,y:0,z:1,angle:0}};
 const labels={pen:'ペン',eraser:'消しゴム',warp:'歪み',blur:'ぼかし',lasso:'投げ縄',fill:'塗りつぶし',transform:'範囲変形',color:'色',layer:'レイヤー',opacities:'レイヤー透明度',tool:'ツール',smooth:'手ぶれ補正',pressure:'筆圧',penOnly:'ペン操作',tolerance:'塗りの許容差',view:'画面位置',pan:'画面移動'};
-const connectionDiagnostics={version:'0.0.8-DC-PEERJS-TEST',started:Date.now(),events:[],last:null};
+const connectionDiagnostics={version:'0.0.9-SAFARI-COMPAT',started:Date.now(),events:[],last:null};
 function recordConnection(event,details={}){
   // Only deliberately selected connection state, never SDP, IP, names or passphrases.
   connectionDiagnostics.events.push({ms:Date.now()-connectionDiagnostics.started,event,...details});
@@ -225,14 +234,15 @@ function observeDataConnection(c,role){
   const read=()=>{if(!pc)return;state.ice=pc.iceConnectionState;state.gathering=pc.iceGatheringState;state.signaling=pc.signalingState;state.connection=pc.connectionState||'未対応';state.localDescription=!!pc.localDescription;state.remoteDescription=!!pc.remoteDescription};
   read();
   for(const event of ['iceconnectionstatechange','icegatheringstatechange','signalingstatechange','connectionstatechange'])pc?.addEventListener?.(event,()=>{read();recordConnection(event,{ice:state.ice,gathering:state.gathering,signaling:state.signaling,connection:state.connection,localDescription:state.localDescription,remoteDescription:state.remoteDescription})});
-  pc?.addEventListener?.('icecandidate',e=>{if(e.candidate){let type=e.candidate.type||'unknown';state.candidates[type]=(state.candidates[type]||0)+1}else recordConnection('候補収集完了',{types:{...state.candidates}})});
-  c.on('open',()=>{state.open=true;read();recordConnection('データ通信開通',{role})});
+  pc?.addEventListener?.('icecandidate',e=>{if(e.candidate){let type=e.candidate.type||'unknown';state.candidates[type]=(state.candidates[type]||0)+1;recordConnection('ICE候補取得',{type,protocol:e.candidate.protocol||null,tcpType:e.candidate.tcpType||null})}else recordConnection('候補収集完了',{types:{...state.candidates}})});
+  pc?.addEventListener?.('icecandidateerror',e=>{let host='';try{host=e.url?new URL(e.url).hostname:''}catch{}recordConnection('ICE候補エラー',{code:Number(e.errorCode)||0,server:host||'unknown',text:String(e.errorText||'').slice(0,120)})});
+  c.on('open',()=>{state.open=true;read();recordConnection('データ通信開通',{role,attempt:c.__artopiaAttempt||1})});
   c.on('close',()=>{state.open=false;read();recordConnection('データ通信終了',{role})});
   c.on('error',e=>recordConnection('データ通信エラー',{role,type:String(e?.type||'unknown')}));
   return state;
 }
 function diagnosticText(){
-  return JSON.stringify({version:connectionDiagnostics.version,transport:'peerjs-dream-crafter-default-test',role:room?(isHost?'部屋主':'参加者'):'入室前',online:navigator.onLine,secureContext:window.isSecureContext,embedded:window.self!==window.top,webRTC:typeof RTCPeerConnection!=='undefined',peerRegistered:!!peer?.open,signalingDisconnected:peer?.disconnected??null,canvasOpen:!$('#studio').hidden,lastConnection:connectionDiagnostics.last,events:connectionDiagnostics.events},null,2);
+  return JSON.stringify({version:connectionDiagnostics.version,transport:'peerjs-safari-compatible',role:room?(isHost?'部屋主':'参加者'):'入室前',online:navigator.onLine,secureContext:window.isSecureContext,embedded:window.self!==window.top,safariApp:window.__artopiaSafari===true,userAgentFamily:window.__artopiaSafari?'Safari':'Other WebKit/browser',webRTC:typeof RTCPeerConnection!=='undefined',peerRegistered:!!peer?.open,signalingDisconnected:peer?.disconnected??null,canvasOpen:!$('#studio').hidden,lastConnection:connectionDiagnostics.last,events:connectionDiagnostics.events},null,2);
 }
 function showConnectionDiagnostics(){
   joinController?.abort();
@@ -355,12 +365,13 @@ function onlineNameForJoin(){return profile.name||'プレイヤー'}
 function joinAttempt(p,target,code,spectator,token,signal,onProgress){
   return ArtopiaAdmission.join({
     peer:p,signal,isCurrent:()=>token===sessionToken,profile:validProfile(profile),spectator,
-    connect:()=>ArtopiaNetwork.connect(p,target),
+    connect:attempt=>ArtopiaNetwork.connect(p,target,attempt),
     onConnection:c=>{hostConn=c;observeDataConnection(c,'参加者')},
     send:sendWire,decode:decodeWire,onProgress,
     prepare:async msg=>{const next=new E.Engine(msg.engine.w,msg.engine.h);await next.restore(msg.engine);return next},
     commit:(next,msg)=>{engine=next;room={...msg.room,code};members=new Map(msg.members.map(x=>[x.peerId,x]));sharedPalette=msg.sharedPalette||[];chat=msg.chat||[];locks=new Map((msg.locks||[]).map(l=>[l.id,l]));connected=true;enterStudio()},
     onMessage:handleClient,
+    onRetry:(attempt,reason)=>recordConnection('Safari互換再試行',{attempt,reason:String(reason||'')}),
     onTimeout:(phase,c)=>recordConnection('入室タイムアウト',{phase,ice:c?.peerConnection?.iceConnectionState,remoteDescription:!!c?.peerConnection?.remoteDescription}),
     onDisconnected:()=>{connected=false;$('#connectionState').textContent='部屋主と切断・保存できます';toast('部屋主との接続が切れました。再接続しています。');pendingOps.clear();stroke=null;renderControls();scheduleReconnect()}
   });
