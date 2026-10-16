@@ -223,7 +223,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 
 
 /* SECTION: X投稿プレビュー */
-.x-share-preview img{display:block;max-width:100%;max-height:52dvh;object-fit:contain;margin:auto;border:1px solid #d4e3e5}.x-share-preview .modal-actions{flex-wrap:wrap}.x-share-link{display:inline-flex;align-items:center;padding:10px 14px;border-radius:10px;background:#24484c;color:white;text-decoration:none}#xCanvasShare{width:100%;margin-top:8px;font-size:12px;white-space:nowrap;padding:6px;min-height:36px}
+.x-share-preview img{display:block;max-width:100%;max-height:52dvh;object-fit:contain;margin:auto;border:1px solid #d4e3e5}.x-share-preview .modal-actions{flex-wrap:wrap}.x-share-link{display:inline-flex;align-items:center;padding:10px 14px;border-radius:10px;background:#24484c;color:white;text-decoration:none}
 </style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.0.1</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section></main><footer class="home-footer"><span>みんなで、ふくらむ、ひとつの絵。</span><span>プロフィールと作品はこの端末に保存されます</span></footer></div>
@@ -1507,7 +1507,8 @@ setInterval(()=>{if(isHost&&room?.snapshotInterval&&Date.now()-lastCheckpointAt>
 
 /* SECTION: app/35-save-exit-dialogs.js */
 $('#snapshotBtn').onclick=()=>{if(window.ArtGame?.enabled())return;
- if(!engine)return;modal('キャンバス保存',`<p class="muted">3レイヤーを別々に保持し、表示中の透明度も一緒に保存します。全体画像は今の見た目で保存します。</p><div class="modal-actions"><button id="checkpointHistory">定期スナップショットを見る</button></div><label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">PNGを書き出す</button><button id="snapshotSave" class="primary">3レイヤーで保存</button></div>`);
+ if(!engine)return;modal('キャンバス保存',`<p class="muted">3レイヤーを別々に保持し、表示中の透明度も一緒に保存します。全体画像は今の見た目で保存します。</p><div class="modal-actions"><button id="checkpointHistory">定期スナップショットを見る</button></div><label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">PNGを書き出す</button><button id="xCanvasShare">Xに投稿する</button><button id="snapshotSave" class="primary">3レイヤーで保存</button></div>`);
+ $('#xCanvasShare').onclick=()=>window.ArtShare.prepare('あーとぴあで描きました！');
  $('#checkpointHistory').onclick=showCheckpointHistory;$('#snapshotDownload').onclick=()=>showArt(captureArtwork($('#snapshotName').value.trim()||room.name),false);
  $('#snapshotSave').onclick=async()=>{try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
 };
@@ -2147,7 +2148,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2215,10 +2216,6 @@ window.ArtShare=(()=>{
   }catch(e){toast(e.message||'画像を準備できませんでした。');if($('#modal').open&&target.firstElementChild===marker)target.innerHTML='<p>画像を準備できませんでした。閉じてからもう一度お試しください。</p>'}
   finally{if(c)c.width=c.height=0;busy=false}
  }
- const button=document.createElement('button');button.id='xCanvasShare';button.type='button';button.className='quiet';button.textContent='Xに投稿する';
- $('.toolbox').append(button);button.onclick=()=>prepare('あーとぴあで描きました！');
- function update(){button.hidden=!!window.ArtGame?.enabled()}
- const original=renderControls;renderControls=function(...args){const result=original(...args);update();return result};update();
  return{prepare,poster};
 })();
 </script>
