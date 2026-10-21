@@ -224,6 +224,14 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 
 /* SECTION: X投稿プレビュー */
 .x-share-preview img{display:block;max-width:100%;max-height:52dvh;object-fit:contain;margin:auto;border:1px solid #d4e3e5}.x-share-preview .modal-actions{flex-wrap:wrap}.x-share-link{display:inline-flex;align-items:center;padding:10px 14px;border-radius:10px;background:#24484c;color:white;text-decoration:none}
+
+/* Keep lobby actions inside the header, outside the drawing workspace. */
+.studio.shared-lobby>.studio-header{height:auto;flex-basis:auto;grid-template-rows:auto 32px;row-gap:4px}
+.studio.shared-lobby .header-identity{grid-row:1}
+.studio-header>#sharedLobbyBar{grid-column:1/-1;grid-row:2;justify-content:flex-end;flex-wrap:nowrap;min-width:0;padding:0;background:transparent;gap:6px}
+.studio-header>#sharedLobbyBar button{min-height:30px;padding:4px 10px;font-size:12px;white-space:nowrap}
+.studio-header>#sharedLobbyBar>span{font-size:11px;color:var(--muted);min-width:0}
+@media(max-width:420px){.studio.shared-lobby>.studio-header{grid-template-rows:40px 48px 32px}.studio-header>#sharedLobbyBar{grid-row:3}}
 </style>
 <style>
 /* CATEGORY: ゲーム発表・お題と投票の操作 */
@@ -2721,15 +2729,15 @@ window.ArtArts=(()=>{
 window.ArtSessionUI=(()=>{
  const previous=window.ArtGame,drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  const studio=$('#studio'),bar=document.createElement('div'),badge=document.createElement('div');let helping=false,lastPhase=null;
- bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));studio.insertBefore(bar,$('.workspace'));
+ bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));$('.studio-header').append(bar);
  const active=()=>!!(room&&previous.enabled()&&(!previous.getView?.()||previous.getView().phase==='lobby'));
  function status(){badge.hidden=!room;if(!room)return;const m=members.get(localId),caught=room.mode==='wolf'&&(previous.getView?.()?.caught||[]).includes(localId),watch=!!m?.spectator;badge.dataset.watching=String(watch||caught);badge.textContent=!connected?'接続が切れています · 再接続を待っています':caught?'閲覧中 · 発見済み人狼（全員発見後に最終回答）':watch?'👁 閲覧中 · 描画・投票には参加していません':'✎ 参加中'+(isHost?' · 部屋主':'');}
  function lobby(){status();if(helping)return false;const yes=active();if(yes&&lastPhase&&lastPhase!=='lobby'){window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();remoteCursors.clear();prefs.opacities=[100,100,100];room.hasArt=false;$('#transformBar').hidden=true;invalidateLocalView();render();renderControls()}lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=!yes;studio.classList.toggle('shared-lobby',yes);if(!yes)return false;
  studio.classList.remove('relay-mode','game-drawing','wolf-mode','wolf-drawing','answer-mode','answer-drawing','arts-mode','arts-creating','arts-battle');
  for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar','artsStage','artsBar'])if($('#'+id))$('#'+id).hidden=true;
- bar.innerHTML='<b>待機室 · みんなでお絵描き</b><button id="lobbyHelp" aria-label="ゲームの説明">ⓘ 説明</button>'+(isHost?'<button id="lobbySettings">部屋設定</button><button id="lobbyStart" class="primary">ゲーム開始</button>':'<span>部屋主の開始を待っています</span>');
+ bar.innerHTML='<button id="lobbyHelp" aria-label="ゲームモードの説明">ⓘ ゲーム説明</button>'+(isHost?'<button id="lobbyStart" class="primary">ゲーム開始</button>':'<span>部屋主の開始を待っています</span>');
  $('#lobbyHelp').onclick=()=>{let content='';helping=true;try{previous.render();const id={wolf:'wolfStage',answer:'answerStage',arts:'artsStage'}[room.mode]||'gameStage';const copy=$('#'+id)?.cloneNode(true);if(copy){copy.querySelectorAll('button,input,select,label').forEach(e=>e.remove());content=copy.innerHTML}}finally{helping=false;lobby()}modal('ゲームの説明',content||'<p>部屋設定で遊び方を確認できます。</p>')};
- if($('#lobbyStart'))$('#lobbyStart').onclick=()=>previous.begin();if($('#lobbySettings'))$('#lobbySettings').onclick=()=>previous.settingsDialog();return true;
+ if($('#lobbyStart'))$('#lobbyStart').onclick=()=>previous.begin();return true;
  }
  window.ArtGame={...previous,canDraw:()=>active()?connected&&!members.get(localId)?.spectator:previous.canDraw(),sharedCanvas:()=>active()||!!previous.sharedCanvas?.(),blankSnapshot:()=>active()?engine.snapshot():previous.blankSnapshot(),localDraw:m=>active()&&drawTypes.has(m.type)?false:previous.localDraw(m),hostMessage:(id,m)=>{if(m.type==='gameLeave'&&id!==localId&&gameInProgress()){removeMember(id);return true}if(active()&&drawTypes.has(m.type))return false;return previous.hostMessage(id,m)},reset:()=>{lastPhase=null;previous.reset();bar.hidden=badge.hidden=true;studio.classList.remove('shared-lobby')},departed:(id,...args)=>{if(id!==localId&&members.get(id)?.disconnected)return;previous.departed(id,...args)},exportHost:()=>{const h=previous.exportHost?.();return h?{...h,resumeKeys:[...resumeKeys]}:h},importHost:h=>{resumeKeys.clear();for(const [id,key]of h?.resumeKeys||[])resumeKeys.set(id,key);previous.importHost?.(h)}};
  new MutationObserver(()=>document.body.classList.toggle('room-open',!studio.hidden)).observe(studio,{attributes:true,attributeFilter:['hidden']});
