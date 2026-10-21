@@ -225,13 +225,29 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 /* SECTION: X投稿プレビュー */
 .x-share-preview img{display:block;max-width:100%;max-height:52dvh;object-fit:contain;margin:auto;border:1px solid #d4e3e5}.x-share-preview .modal-actions{flex-wrap:wrap}.x-share-link{display:inline-flex;align-items:center;padding:10px 14px;border-radius:10px;background:#24484c;color:white;text-decoration:none}
 
-/* Keep lobby actions inside the header, outside the drawing workspace. */
-.studio.shared-lobby>.studio-header{height:auto;flex-basis:auto;grid-template-rows:auto 32px;row-gap:4px}
-.studio.shared-lobby .header-identity{grid-row:1}
-.studio-header>#sharedLobbyBar{grid-column:1/-1;grid-row:2;justify-content:flex-end;flex-wrap:nowrap;min-width:0;padding:0;background:transparent;gap:6px}
-.studio-header>#sharedLobbyBar button{min-height:30px;padding:4px 10px;font-size:12px;white-space:nowrap}
-.studio-header>#sharedLobbyBar>span{font-size:11px;color:var(--muted);min-width:0}
-@media(max-width:420px){.studio.shared-lobby>.studio-header{grid-template-rows:40px 48px 32px}.studio-header>#sharedLobbyBar{grid-row:3}}
+/* Lobby actions share the snapshot toolbar row. */
+.header-actions>#sharedLobbyBar{display:flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:4px;padding:0;background:transparent}
+.header-actions>#sharedLobbyBar[hidden]{display:none}
+.header-actions>#sharedLobbyBar button{min-height:32px;min-width:0;padding:4px 7px;font-size:12px;white-space:nowrap}
+.header-actions>#sharedLobbyBar>span{font-size:11px;color:var(--muted);white-space:nowrap}
+.studio.shared-lobby>.studio-header{grid-template-columns:minmax(0,1fr) auto auto}
+@media(max-width:650px){
+ .studio.shared-lobby>.studio-header{grid-template-columns:auto minmax(0,1fr) auto;gap:3px}
+ .shared-lobby .header-actions{gap:2px}
+ .header-actions>#sharedLobbyBar{gap:2px}
+ .header-actions>#sharedLobbyBar button{padding:4px;font-size:10px}
+ .header-actions>#sharedLobbyBar>span{max-width:70px;white-space:normal;font-size:10px;line-height:1.2}
+}
+@media(max-width:420px){
+ .studio.shared-lobby{--studio-header-height:54px}
+ .studio.shared-lobby>.studio-header{grid-template-rows:1fr;padding:4px}
+ .shared-lobby .header-identity{grid-column:1;grid-row:1}
+ .shared-lobby #layerStatus{grid-column:2;grid-row:1}
+ .shared-lobby .header-actions{grid-column:3;grid-row:1}
+ .shared-lobby #activeLayerBadge .current-layer-text{font-size:16px}
+ .shared-lobby #activeLayerBadge{padding:0}
+ .shared-lobby .exit-label{font-size:10px;padding:4px}
+}
 </style>
 <style>
 /* CATEGORY: ゲーム発表・お題と投票の操作 */
@@ -2729,7 +2745,7 @@ window.ArtArts=(()=>{
 window.ArtSessionUI=(()=>{
  const previous=window.ArtGame,drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  const studio=$('#studio'),bar=document.createElement('div'),badge=document.createElement('div');let helping=false,lastPhase=null;
- bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));$('.studio-header').append(bar);
+ bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));$('#snapshotBtn').after(bar);
  const active=()=>!!(room&&previous.enabled()&&(!previous.getView?.()||previous.getView().phase==='lobby'));
  function status(){badge.hidden=!room;if(!room)return;const m=members.get(localId),caught=room.mode==='wolf'&&(previous.getView?.()?.caught||[]).includes(localId),watch=!!m?.spectator;badge.dataset.watching=String(watch||caught);badge.textContent=!connected?'接続が切れています · 再接続を待っています':caught?'閲覧中 · 発見済み人狼（全員発見後に最終回答）':watch?'👁 閲覧中 · 描画・投票には参加していません':'✎ 参加中'+(isHost?' · 部屋主':'');}
  function lobby(){status();if(helping)return false;const yes=active();if(yes&&lastPhase&&lastPhase!=='lobby'){window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();remoteCursors.clear();prefs.opacities=[100,100,100];room.hasArt=false;$('#transformBar').hidden=true;invalidateLocalView();render();renderControls()}lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=!yes;studio.classList.toggle('shared-lobby',yes);if(!yes)return false;
