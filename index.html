@@ -230,9 +230,9 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 .header-actions>#sharedLobbyBar[hidden]{display:none}
 .header-actions>#sharedLobbyBar button{min-height:32px;min-width:0;padding:4px 7px;font-size:12px;white-space:nowrap}
 .header-actions>#sharedLobbyBar>span{font-size:11px;color:var(--muted);white-space:nowrap}
-.studio.shared-lobby>.studio-header{grid-template-columns:minmax(0,1fr) auto auto}
+.studio.shared-lobby>.studio-header{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 @media(max-width:650px){
- .studio.shared-lobby>.studio-header{grid-template-columns:auto minmax(0,1fr) auto;gap:3px}
+ .studio.shared-lobby>.studio-header{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:3px}
  .shared-lobby .header-actions{gap:2px}
  .header-actions>#sharedLobbyBar{gap:2px}
  .header-actions>#sharedLobbyBar button{padding:4px;font-size:10px}
@@ -258,7 +258,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 @media(max-width:800px){.shared-lobby .header-identity{gap:6px}}
 @media(max-width:650px){
  #lobbyStartSlot>#lobbyStart,.header-actions>#sharedLobbyBar>#lobbyHelp{min-height:38px;padding:6px 8px;font-size:13px}
- .studio.shared-lobby>.studio-header{grid-template-columns:auto minmax(0,1fr) auto}
+ .studio.shared-lobby>.studio-header{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 }
 @media(max-width:420px){
  .shared-lobby .header-identity{gap:3px}
