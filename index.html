@@ -248,6 +248,22 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
  .shared-lobby #activeLayerBadge{padding:0}
  .shared-lobby .exit-label{font-size:10px;padding:4px}
 }
+
+/* Place Start to the left of layers; keep Help beside Snapshot. */
+.shared-lobby .header-identity{overflow:visible}
+.shared-lobby .header-identity .room-heading{flex:1;overflow:hidden}
+#lobbyStartSlot{display:flex;align-items:center;flex-shrink:0;margin-left:auto}
+#lobbyStartSlot[hidden]{display:none}
+#lobbyStartSlot>#lobbyStart,.header-actions>#sharedLobbyBar>#lobbyHelp{min-height:42px;padding:8px 14px;font-size:15px;font-weight:700;white-space:nowrap}
+@media(max-width:800px){.shared-lobby .header-identity{gap:6px}}
+@media(max-width:650px){
+ #lobbyStartSlot>#lobbyStart,.header-actions>#sharedLobbyBar>#lobbyHelp{min-height:38px;padding:6px 8px;font-size:13px}
+ .studio.shared-lobby>.studio-header{grid-template-columns:auto minmax(0,1fr) auto}
+}
+@media(max-width:420px){
+ .shared-lobby .header-identity{gap:3px}
+ #lobbyStartSlot>#lobbyStart,.header-actions>#sharedLobbyBar>#lobbyHelp{min-height:36px;padding:5px 6px;font-size:12px}
+}
 </style>
 <style>
 /* CATEGORY: ゲーム発表・お題と投票の操作 */
@@ -2744,18 +2760,18 @@ window.ArtArts=(()=>{
 
 window.ArtSessionUI=(()=>{
  const previous=window.ArtGame,drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
- const studio=$('#studio'),bar=document.createElement('div'),badge=document.createElement('div');let helping=false,lastPhase=null;
- bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));$('#snapshotBtn').after(bar);
+ const studio=$('#studio'),bar=document.createElement('div'),badge=document.createElement('div'),startSlot=document.createElement('div');let helping=false,lastPhase=null;
+ bar.id='sharedLobbyBar';bar.hidden=true;badge.id='participationStatus';badge.setAttribute('role','status');badge.hidden=true;studio.insertBefore(badge,$('.workspace'));$('#snapshotBtn').before(bar);startSlot.id='lobbyStartSlot';startSlot.hidden=true;$('.header-identity').append(startSlot);
  const active=()=>!!(room&&previous.enabled()&&(!previous.getView?.()||previous.getView().phase==='lobby'));
  function status(){badge.hidden=!room;if(!room)return;const m=members.get(localId),caught=room.mode==='wolf'&&(previous.getView?.()?.caught||[]).includes(localId),watch=!!m?.spectator;badge.dataset.watching=String(watch||caught);badge.textContent=!connected?'接続が切れています · 再接続を待っています':caught?'閲覧中 · 発見済み人狼（全員発見後に最終回答）':watch?'👁 閲覧中 · 描画・投票には参加していません':'✎ 参加中'+(isHost?' · 部屋主':'');}
- function lobby(){status();if(helping)return false;const yes=active();if(yes&&lastPhase&&lastPhase!=='lobby'){window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();remoteCursors.clear();prefs.opacities=[100,100,100];room.hasArt=false;$('#transformBar').hidden=true;invalidateLocalView();render();renderControls()}lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=!yes;studio.classList.toggle('shared-lobby',yes);if(!yes)return false;
+ function lobby(){status();if(helping)return false;const yes=active();if(yes&&lastPhase&&lastPhase!=='lobby'){window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();remoteCursors.clear();prefs.opacities=[100,100,100];room.hasArt=false;$('#transformBar').hidden=true;invalidateLocalView();render();renderControls()}lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=startSlot.hidden=!yes;startSlot.replaceChildren();studio.classList.toggle('shared-lobby',yes);if(!yes)return false;
  studio.classList.remove('relay-mode','game-drawing','wolf-mode','wolf-drawing','answer-mode','answer-drawing','arts-mode','arts-creating','arts-battle');
  for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar','artsStage','artsBar'])if($('#'+id))$('#'+id).hidden=true;
  bar.innerHTML='<button id="lobbyHelp" aria-label="ゲームモードの説明">ⓘ ゲーム説明</button>'+(isHost?'<button id="lobbyStart" class="primary">ゲーム開始</button>':'<span>部屋主の開始を待っています</span>');
  $('#lobbyHelp').onclick=()=>{let content='';helping=true;try{previous.render();const id={wolf:'wolfStage',answer:'answerStage',arts:'artsStage'}[room.mode]||'gameStage';const copy=$('#'+id)?.cloneNode(true);if(copy){copy.querySelectorAll('button,input,select,label').forEach(e=>e.remove());content=copy.innerHTML}}finally{helping=false;lobby()}modal('ゲームの説明',content||'<p>部屋設定で遊び方を確認できます。</p>')};
- if($('#lobbyStart'))$('#lobbyStart').onclick=()=>previous.begin();return true;
+ if($('#lobbyStart')){const start=$('#lobbyStart');startSlot.append(start);start.onclick=()=>previous.begin()}return true;
  }
- window.ArtGame={...previous,canDraw:()=>active()?connected&&!members.get(localId)?.spectator:previous.canDraw(),sharedCanvas:()=>active()||!!previous.sharedCanvas?.(),blankSnapshot:()=>active()?engine.snapshot():previous.blankSnapshot(),localDraw:m=>active()&&drawTypes.has(m.type)?false:previous.localDraw(m),hostMessage:(id,m)=>{if(m.type==='gameLeave'&&id!==localId&&gameInProgress()){removeMember(id);return true}if(active()&&drawTypes.has(m.type))return false;return previous.hostMessage(id,m)},reset:()=>{lastPhase=null;previous.reset();bar.hidden=badge.hidden=true;studio.classList.remove('shared-lobby')},departed:(id,...args)=>{if(id!==localId&&members.get(id)?.disconnected)return;previous.departed(id,...args)},exportHost:()=>{const h=previous.exportHost?.();return h?{...h,resumeKeys:[...resumeKeys]}:h},importHost:h=>{resumeKeys.clear();for(const [id,key]of h?.resumeKeys||[])resumeKeys.set(id,key);previous.importHost?.(h)}};
+ window.ArtGame={...previous,canDraw:()=>active()?connected&&!members.get(localId)?.spectator:previous.canDraw(),sharedCanvas:()=>active()||!!previous.sharedCanvas?.(),blankSnapshot:()=>active()?engine.snapshot():previous.blankSnapshot(),localDraw:m=>active()&&drawTypes.has(m.type)?false:previous.localDraw(m),hostMessage:(id,m)=>{if(m.type==='gameLeave'&&id!==localId&&gameInProgress()){removeMember(id);return true}if(active()&&drawTypes.has(m.type))return false;return previous.hostMessage(id,m)},reset:()=>{lastPhase=null;previous.reset();bar.hidden=badge.hidden=startSlot.hidden=true;studio.classList.remove('shared-lobby')},departed:(id,...args)=>{if(id!==localId&&members.get(id)?.disconnected)return;previous.departed(id,...args)},exportHost:()=>{const h=previous.exportHost?.();return h?{...h,resumeKeys:[...resumeKeys]}:h},importHost:h=>{resumeKeys.clear();for(const [id,key]of h?.resumeKeys||[])resumeKeys.set(id,key);previous.importHost?.(h)}};
  new MutationObserver(()=>document.body.classList.toggle('room-open',!studio.hidden)).observe(studio,{attributes:true,attributeFilter:['hidden']});
  let touch=null;document.addEventListener('touchstart',e=>{touch=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!room||!touch||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;touch={x:t.clientX,y:t.clientY};for(let el=e.target;el&&el!==document.body;el=el.parentElement){if(!(el instanceof Element))continue;const st=getComputedStyle(el);if(Math.abs(dy)>=Math.abs(dx)&&/(auto|scroll)/.test(st.overflowY)&&el.scrollHeight>el.clientHeight+1&&((dy>0&&el.scrollTop>0)||(dy<0&&el.scrollTop+el.clientHeight<el.scrollHeight-1)))return;if(Math.abs(dx)>Math.abs(dy)&&/(auto|scroll)/.test(st.overflowX)&&el.scrollWidth>el.clientWidth+1&&((dx>0&&el.scrollLeft>0)||(dx<0&&el.scrollLeft+el.clientWidth<el.scrollWidth-1)))return;}if(e.cancelable)e.preventDefault()},{passive:false});
