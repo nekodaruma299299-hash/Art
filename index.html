@@ -2670,7 +2670,7 @@ window.ArtsRules=(()=>{
  inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:7500,text:'右下から左上への斜線→そのまま外側を一周。つながった一筆の🚫で近距離攻撃＋インク回復停止。'},
  star:{name:'スターフォール',class:'magician',rate:.065,cooldown:10000,text:'☆の中心に1秒後、広範囲の星が落下。装甲を無視する大ダメージ。'},
  ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:6200,text:'上の横線→右端をくの字で折り返す→下の横線。右端がつながった一筆の＝で、0.7秒後に貫通光線。'},
- nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:5500,text:'○の中心で0.8秒後に爆発。装甲を無視する範囲攻撃。'},
+ nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:5500,text:'💧しずく形の輪郭を一筆で描くと、その中心で0.8秒後に爆発。装甲を無視する範囲攻撃。丸のワープホールとは別の図形です。'},
  heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:15000,text:'厚みのある➕の輪郭。範囲内の自分・味方のHPを全回復。アンカーショックの細い一筆の＋とは異なります。'},
  build:{name:'ブロックビルド',class:'tank',rate:.08,cooldown:3000,text:'射程内の空いている場所に四角（長方形も可）を描くと、その位置・大きさに壊せる壁。プレイヤーや地形と重なる位置には作れません。'},
  iron:{name:'アイアンコート',class:'tank',rate:.07,cooldown:10000,text:'六角形で6秒間、装甲の固定軽減を強化。マジックは装甲を貫通します。'},
@@ -2679,75 +2679,80 @@ window.ArtsRules=(()=>{
  mirage:{name:'ミラージュステップ',class:'trickster',rate:.065,cooldown:3200,text:'S字を一筆で描くとその方向に瞬間移動。元の場所に約2秒残像を残す。壁の中へは移動できません。'},
  decoy:{name:'デコイパレード',class:'trickster',rate:.08,cooldown:9000,text:'∞を一筆で描くと、2体の偽の自分が別方向へ動いて4秒間相手を惑わせます。'},
  smoke:{name:'インクスモーク',class:'trickster',rate:.065,cooldown:8000,text:'渦巻きを一筆で描き、約4秒間の煙幕を展開。煙幕に隠れた味方は敵から見えません。攻撃時は一瞬位置が露見します。'},
- warp:{name:'ワープホール',class:'trickster',rate:.085,cooldown:5500,text:'半円を描き、描いた中央付近へ瞬間移動。壁・石の中へはワープできません。'},
+ warp:{name:'ワープホール',class:'trickster',rate:.085,cooldown:5500,text:'○の輪郭を一筆で閉じると、描いた丸の中心付近へ瞬間移動。壁・石の中へはワープできません。'},
  burst:{name:'ラピッドバースト',class:'gunner',rate:.085,cooldown:4000,text:'稲妻を描くと、前方に5発の小弾をテンポよく連射。威力は攻撃力依存。'},
  ghost:{name:'ゴーストショット',class:'gunner',rate:.095,cooldown:7500,text:'矢印を描き、照準0.8秒後に高速の貫通弾を発射。敵と壁を貫通します。'},
  spread:{name:'スプレッドショット',class:'gunner',rate:.08,cooldown:4300,text:'Y字を一筆で描き、前方へ扇状に5発の散弾を放つ。近距離で多段ヒット。'},
  ricochet:{name:'リコシェット',class:'gunner',rate:.10,cooldown:12000,text:'ひし形を一筆で描くと10秒間壁と外周を跳ね続ける弾を発射。敵に再命中も可能。'}
  };
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
- function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]>=25?stats[2]+stats[3]:-1,magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
+ function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]+stats[3],magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
- function defenseSurface(fill,aspect,solidCore){
-  // Require broad, continuous paint; ordinary detail must not dominate stats.
-  const coverage=clamp((fill-.70)/.27,0,1),core=clamp((solidCore-.38)/.40,0,1);
-  return clamp((coverage*coverage*core*core-.05)/.95,0,1)*clamp((2.25-aspect)/1.3,0,1);
- }
  function drawingStats(raw,fill=0,aspect=1,solidCore=0){
-  // An individual gesture has ONE primary role: straight / outward spike /
-  // continuous winding / outward-reaching smooth curve. Surface coverage is
-  // calculated from raster pixels, rather than counted strokes.
+  // A gesture should be judged mainly by its dominant visual role, not by how
+  // many tiny details were added afterward. Big silhouette features win.
   const paths=cleanDrawingPaths(raw);if(!paths.length)return null;
   const all=paths.flat();let minx=64,miny=64,maxx=-64,maxy=-64;
   for(const p of all){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)}
   const span=Math.hypot(maxx-minx,maxy-miny);if(span<1)return null;
   const center={x:(minx+maxx)/2,y:(miny+maxy)/2};
+  const radial=p=>Math.hypot(p.x-center.x,p.y-center.y);
+  const pathMeta=paths.map((path,idx)=>{const len=length([path]);const rs=path.map(radial);return{idx,len,chord:dist(path[0],path.at(-1)),radMin:Math.min(...rs),radMax:Math.max(...rs)}});
+  const dominant=new Set(pathMeta.slice().sort((a,b)=>(b.len+b.radMax*1.2)-(a.len+a.radMax*1.2)).slice(0,Math.min(3,pathMeta.length)).map(v=>v.idx));
   // The 5x5 opaque raster core suppresses thin hatching and outlines. A
   // compact, truly painted mass should dominate, not a large quantity of lines.
-  let solid=defenseSurface(fill,aspect,solidCore);
+  let solid=clamp((fill-.46)/.39,0,1)*clamp((solidCore-.16)/.46,0,1)*clamp((2.25-aspect)/1.3,0,1);
   const strengths=[0,0,0,0,0],candidates=[[],[],[],[],[]];
-  let lengthyStraights=0, horizontalHatch=0, verticalHatch=0;
-  const radial=p=>Math.hypot(p.x-center.x,p.y-center.y);
-  for(const path of paths){
-   const len=length([path]),chord=dist(path[0],path.at(-1));
-   if(len<span*.08)continue; // Ignore only tiny ornaments.
+  let lengthyStraights=0,horizontalHatch=0,verticalHatch=0,detailPaths=0;
+  // Coarse outer silhouette: big angular peaks help Attack, large outward limbs help Range.
+  const bins=Array.from({length:18},()=>0);
+  for(const p of all){const a=(Math.atan2(p.y-center.y,p.x-center.x)+Math.PI)/(2*Math.PI);const i=Math.min(17,Math.floor(a*18));bins[i]=Math.max(bins[i],radial(p));}
+  let silhouettePeaks=0,silhouetteReach=0;
+  for(let i=0;i<bins.length;i++){
+   const prev=bins[(i+bins.length-1)%bins.length],cur=bins[i],next=bins[(i+1)%bins.length];
+   if(cur>prev+span*.038&&cur>next+span*.038)silhouettePeaks++;
+   silhouetteReach=Math.max(silhouetteReach,cur-Math.min(prev,next));
+  }
+  for(let pi=0;pi<paths.length;pi++){
+   const path=paths[pi],meta=pathMeta[pi],len=meta.len,chord=meta.chord;
+   if(len<span*.19)continue; // Eyes, mouths, embroidery and tiny ornaments.
+   detailPaths++;
    const ratio=chord/Math.max(.0001,len);
    const closed=chord<span*.042;
-   // Preserve real hand-drawn bends, but discard pixel-sized wobble.
    const smoothPoints=resample(path,Math.min(48,Math.max(12,path.length*2)));
-   let turn=0,absTurn=0,majorKinks=0,curvatureSign=0;
+   let turn=0,absTurn=0,majorKinks=0,rightishAngles=0;
    for(let i=1;i<smoothPoints.length-1;i++){
     const a=smoothPoints[i-1],b=smoothPoints[i],c=smoothPoints[i+1];
     const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-b.x,vy=c.y-b.y;
     const cross=ux*vy-uy*vx,dot=ux*vx+uy*vy;
     const angle=Math.atan2(cross,dot);turn+=angle;absTurn+=Math.abs(angle);
     if(Math.abs(angle)>.75)majorKinks++;
-    curvatureSign+=angle;
+    if(Math.abs(angle)>1.57)rightishAngles++;
    }
-   // Max deviation from an infinite line is used to avoid mistaking a long
-   // gentle curve for a straight speed stroke.
    let deviation=0;
    if(chord>0)for(const p of path){const a=path[0],b=path.at(-1);deviation=Math.max(deviation,Math.abs((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x))/chord)}
-   const straightQuality=clamp((ratio-.91)/.075,0,1)*clamp((.07-deviation/span)/.052,0,1);
-   const straightLength=clamp((chord/span-.27)/.57,0,1);
-   if(straightQuality*.75*straightLength>.065){
-    candidates[0].push(straightQuality*straightLength);
+   // Long straight main lines -> Speed. Vertical lines get a tiny bonus.
+   const straightQuality=clamp((ratio-.905)/.08,0,1)*clamp((.072-deviation/span)/.055,0,1);
+   const straightLength=clamp((chord/span-.25)/.58,0,1);
+   const dx=Math.abs(path.at(-1).x-path[0].x),dy=Math.abs(path.at(-1).y-path[0].y);
+   const verticality=dy/Math.max(1,dx+dy);
+   const straightScore=straightQuality*straightLength*(.92+.18*verticality);
+   if(straightScore>.07){
+    candidates[0].push(straightScore);
     lengthyStraights++;
-    const dx=Math.abs(path.at(-1).x-path[0].x),dy=Math.abs(path.at(-1).y-path[0].y);
     if(dx>dy*2)horizontalHatch++;
     if(dy>dx*2)verticalHatch++;
     continue;
    }
-   // Long smooth windings: an actual continuous coil, not a simple head/eye loop.
-   const windIntensity=clamp((absTurn-2.55*Math.PI)/(3.8*Math.PI),0,1)*clamp((len/span-2.35)/2.3,0,1);
-   const openWinding=clamp((len/span-1.35)/2.8,0,1)*clamp((absTurn-1.8*Math.PI)/(3.4*Math.PI),0,1);
-   const winding=Math.max(windIntensity,closed?0:openWinding);
+   // Real coils and spirals -> Ink. Compact, same-direction winding matters.
+   const windIntensity=clamp((absTurn-2.45*Math.PI)/(3.6*Math.PI),0,1)*clamp((len/span-2.15)/2.4,0,1);
    const sameDirection=Math.abs(turn)/Math.max(absTurn,.0001);
-   if(winding>.10&&sameDirection>.70){candidates[3].push(winding);continue}
-   // Detect visible outward pointed peaks on the original drawn segments.
-   // For curved round heads the bend over a small neighborhood is too mild.
+   const compactCoil=clamp((span*.62-(meta.radMax-meta.radMin))/(span*.36),0,1);
+   const winding=Math.max(windIntensity*sameDirection,0)*(closed?.9:1.05)*(.68+.32*compactCoil);
+   if(winding>.115&&sameDirection>.66){candidates[3].push(winding);continue}
+   // Big outward spikes / sharp corners on silhouette -> Attack.
    let spikes=0;
    const simple=pts=>{
     if(pts.length<3)return pts;
@@ -2758,62 +2763,54 @@ window.ArtsRules=(()=>{
      const d=Math.hypot(z.x-p.x-dx*t,z.y-p.y-dy*t);
      if(d>best){best=d;k=i}
     }
-    return k>=0&&best>span*.013?simple(pts.slice(0,k+1)).slice(0,-1).concat(simple(pts.slice(k))):[p,q];
+    return k>=0&&best>span*.014?simple(pts.slice(0,k+1)).slice(0,-1).concat(simple(pts.slice(k))):[p,q];
    };
    const simplified=simple(path),pts=closed?simplified.slice(0,-1):simplified;
    for(let i=0;i<pts.length;i++){
     if(!closed&&(i===0||i===pts.length-1))continue;
     const prev=pts[(i+pts.length-1)%pts.length],tip=pts[i],next=pts[(i+1)%pts.length];
     const la=dist(prev,tip),lb=dist(next,tip);
-    if(Math.min(la,lb)<span*.073)continue;
+    if(Math.min(la,lb)<span*.078)continue;
     const u={x:tip.x-prev.x,y:tip.y-prev.y},v={x:next.x-tip.x,y:next.y-tip.y};
     const bend=Math.acos(clamp((u.x*v.x+u.y*v.y)/(la*lb),-1,1));
-    if(bend<1.12)continue;
+    if(bend<1.08)continue;
     const prominence=radial(tip)-Math.max(radial(prev),radial(next));
-    if(prominence<span*.022||radial(tip)<span*.25)continue;
-    // Locally sharp in source samples (smooth round outlines excluded).
-    let ix=-1,close=Infinity;
-    for(let j=0;j<path.length;j++){const d=dist(path[j],tip);if(d<close){close=d;ix=j}}
-    const local=(direction)=>{let j=ix,travel=0;for(let t=0;t<path.length-1&&travel<span*.088;t++){
-     let z=j+direction;if(closed)z=(z+path.length)%path.length;else if(z<0||z>=path.length)break;
-     travel+=dist(path[j],path[z]);j=z;
-    }return path[j]};
-    const before=local(-1),after=local(1),u1={x:tip.x-before.x,y:tip.y-before.y},v1={x:after.x-tip.x,y:after.y-tip.y};
-    const l1=Math.hypot(u1.x,u1.y),l2=Math.hypot(v1.x,v1.y);
-    if(l1<.001||l2<.001||Math.acos(clamp((u1.x*v1.x+u1.y*v1.y)/(l1*l2),-1,1))<.99)continue;
-    spikes+=clamp(prominence/(span*.075),.35,1.5)*clamp(Math.min(la,lb)/(span*.17),.35,1.2);
+    if(prominence<span*.026||radial(tip)<span*.29)continue;
+    spikes+=clamp(prominence/(span*.08),.35,1.55)*clamp(Math.min(la,lb)/(span*.18),.35,1.2);
    }
-   if(spikes>.40){candidates[1].push(clamp(spikes/2.9,0,1.6));continue}
-   // Range requires an OPEN, large, smooth, reaching curve. It is explicitly
-   // excluded from the winding and straight categories above.
-   const smoothCurve=clamp((ratio-.33)/.30,0,1)*clamp((.99-ratio)/.085,0,1);
-   const outward=clamp((Math.abs(radial(path.at(-1))-radial(path[0]))/span-.07)/.22,0,1);
-   const reach=clamp((chord/span-.28)/.44,0,1);
-   const bending=clamp((deviation/span-.017)/.085,0,1);
-   const nonJitter=clamp((5.0-absTurn)/2.8,0,1)*clamp((5-majorKinks)/4,0,1);
-   const rangePower=(!closed&&absTurn<5&&ratio>.33)?reach*bending*nonJitter*smoothCurve*(.62+.38*outward):0;
-   if(rangePower>.09){candidates[4].push(rangePower);continue}
-   // Weak contour evidence keeps ordinary curved outlines responsive without
-   // treating detail as spikes or solid paint. Strong specialist shapes win.
-   const contour=clamp(len/span,0,1)*clamp(absTurn/Math.PI,.12,1)*clamp(1-majorKinks/12,.15,1);
-   candidates[4].push(.012*contour);
+   const attackScore=(dominant.has(pi)?1:.72)*clamp((spikes+rightishAngles*.14)/2.6,0,1.65)*clamp((meta.radMax/span-.26)/.36,0,1);
+   if(attackScore>.34){candidates[1].push(attackScore);continue}
+   // Open smooth outward appendages -> Range. One end should be near the body.
+   const smoothCurve=clamp((ratio-.31)/.31,0,1)*clamp((.985-ratio)/.10,0,1);
+   const end0=radial(path[0]),end1=radial(path.at(-1));
+   const rootNear=clamp((span*.34-Math.min(end0,end1))/(span*.18),0,1);
+   const tipFar=clamp((Math.max(end0,end1)/span-.42)/.30,0,1);
+   const reach=clamp((meta.radMax-meta.radMin-span*.10)/(span*.34),0,1);
+   const bending=clamp((deviation/span-.017)/.088,0,1);
+   const nonJitter=clamp((4.7-absTurn)/2.6,0,1)*clamp((4.5-majorKinks)/3.8,0,1);
+   const rangePower=(!closed&&absTurn<5.1&&ratio>.31)?smoothCurve*rootNear*tipFar*reach*bending*nonJitter:0;
+   if(rangePower>.095){candidates[4].push(rangePower);continue}
+   // Ordinary outlines and decorations are neutral.
   }
   for(const i of [0,1,3,4]){
    const list=candidates[i].sort((a,b)=>b-a);
-   strengths[i]=list.length?Math.min(1.5,list[0]+(list[1]||0)*.23+(list[2]||0)*.12):0;
+   strengths[i]=list.length?Math.min(1.55,list[0]+(list[1]||0)*.22+(list[2]||0)*.10):0;
   }
-  // A cross-hatched grid can become opaque at 64px raster resolution, but
-  // the visibly separate lines are not equivalent to an intentionally filled
-  // solid silhouette. Parallel brush bands still register as genuine fill.
+  strengths[1]+=clamp((silhouettePeaks-2)/7,0,.28)*clamp((silhouetteReach/span-.03)/.10,0,1);
+  strengths[4]+=clamp((silhouetteReach/span-.06)/.18,0,.22)*(1-clamp((silhouettePeaks-4)/6,0,1)*.35);
+  // Cross-hatched grids are not real fill.
   if(horizontalHatch>=8&&verticalHatch>=8)solid=0;
   if(lengthyStraights>=8)strengths[0]*=clamp((17-lengthyStraights)/9,0,1);
   strengths[2]=solid;
-  // Painting does not erase independent stroke features. Defense has a lower
-  // gain so a coloured character can retain its distinctive shape.
-  if(!strengths.some(v=>v>0))return null; // Let visible raster shape supply the fallback.
-  // Five distinctive features, five disjoint score sources (100 points total).
-  return allocate([1+88*strengths[0],1+84*strengths[1],1+24*strengths[2],1+82*strengths[3],1+86*strengths[4]]);
+  // Dense detailing should not automatically become attacker/gunner.
+  const detailDamp=clamp((detailPaths-8)/10,0,1);
+  strengths[1]*=(1-.18*detailDamp);
+  strengths[4]*=(1-.14*detailDamp);
+  // Pixel fill and strokes share the same global strength budget.
+  for(const i of [0,1,3,4])strengths[i]*=(1-.82*solid);
+  return allocate([1+88*strengths[0],1+84*strengths[1],1+96*strengths[2],1+84*strengths[3],1+85*strengths[4]]);
  }
+
 
  function analyze(data,w,h,paths=[]){
   let count=0,minx=w,miny=h,maxx=0,maxy=0,edge=0;
@@ -2822,7 +2819,7 @@ window.ArtsRules=(()=>{
    count++;minx=Math.min(x,minx);miny=Math.min(y,miny);maxx=Math.max(x,maxx);maxy=Math.max(y,maxy);
    for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(!filled(x+dx,y+dy))edge++;
   }
-  if(!count)return [0,0,0,0,0];
+  if(!count)return paths.length?(drawingStats(paths,0,1)||[20,20,20,20,20]):[20,20,20,20,20];
   const bw=maxx-minx+1,bh=maxy-miny+1,area=bw*bh,fill=count/area,
    aspect=Math.max(bw,bh)/Math.max(1,Math.min(bw,bh)),rough=clamp(edge/(4*Math.sqrt(count)),1,5);
   // A 5x5 continuous interior is present in a painted region, but almost never
@@ -2838,19 +2835,28 @@ window.ArtsRules=(()=>{
   }
   const solidCore=deepInterior/area;
   if(paths.length){const drawn=drawingStats(paths,fill,aspect,solidCore);if(drawn)return drawn}
-  const slender=clamp((aspect-1)/2,0,1),solid=defenseSurface(fill,aspect,solidCore),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
-  return allocate([1+40*slender,1+35*spiky*(1-solid),1+24*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)]);
+  const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.48)/.40,0,1)*clamp((solidCore-.18)/.48,0,1)*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
+  return allocate([1+40*slender,1+35*spiky*(1-solid),1+63*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)]);
  }
  function length(strokes){let n=0;for(const s of strokes)for(let i=1;i<s.length;i++)n+=dist(s[i],s[i-1]);return n}
  function resample(s,n=48){if(s.length<2)return s;const total=length([s]);if(total<.001)return [s[0]];let out=[],cum=[0];for(let i=1;i<s.length;i++)cum.push(cum.at(-1)+dist(s[i],s[i-1]));let j=1;for(let i=0;i<n;i++){const t=total*i/(n-1);while(j<cum.length-1&&cum[j]<t)j++;const f=(t-cum[j-1])/(cum[j]-cum[j-1]||1);out.push({x:s[j-1].x+(s[j].x-s[j-1].x)*f,y:s[j-1].y+(s[j].y-s[j-1].y)*f})}return out}
  const poly=n=>Array.from({length:n+1},(_,i)=>({x:Math.sin(i*2*Math.PI/n)*70,y:-Math.cos(i*2*Math.PI/n)*70}));
  const line=(x,y,a,b)=>[{x,y},{x:a,y:b}];
  const circle=()=>Array.from({length:65},(_,i)=>({x:70*Math.cos(i*Math.PI/32),y:70*Math.sin(i*Math.PI/32)}));
- function template(k){switch(k){case'guard':return[line(-80,-95,80,-95)];case'magic':return[line(0,-35,0,-175)];case'slash':return[Array.from({length:49},(_,i)=>({x:105*Math.cos(Math.PI+i*Math.PI/48),y:105*Math.sin(Math.PI+i*Math.PI/48)}))];case'thrust':return[poly(3)];case'cross':return[[{x:-75,y:-75},{x:75,y:75},{x:0,y:0},{x:75,y:-75},{x:0,y:0},{x:-75,y:75}]];case'feint':return[[{x:-65,y:-65},{x:65,y:-65},{x:-65,y:65},{x:65,y:65}]];case'inkcut':return[[{x:49.5,y:49.5},{x:-49.5,y:-49.5},...Array.from({length:65},(_,i)=>({x:70*Math.cos(-3*Math.PI/4+i*Math.PI/32),y:70*Math.sin(-3*Math.PI/4+i*Math.PI/32)}))]];case'star':return[Array.from({length:6},(_,i)=>({x:Math.sin((i*2%5)*2*Math.PI/5)*75,y:-Math.cos((i*2%5)*2*Math.PI/5)*75}))];case'ray':return[[{x:-86,y:-38},{x:77,y:-38},{x:101,y:0},{x:77,y:38},{x:-86,y:38}]];case'nova':return[circle()];case'heal':return[[[-25,-75],[25,-75],[25,-25],[75,-25],[75,25],[25,25],[25,75],[-25,75],[-25,25],[-75,25],[-75,-25],[-25,-25],[-25,-75]].map(([x,y])=>({x,y}))];case'build':return[[[-65,-65],[65,-65],[65,65],[-65,65],[-65,-65]].map(([x,y])=>({x,y}))];case'iron':return[poly(6)];case'anchor':return[[{x:-78,y:0},{x:0,y:0},{x:0,y:-78},{x:0,y:0},{x:0,y:78},{x:0,y:0},{x:78,y:0}]];case'reactor':return[poly(5)];
+ // A closed ink drop with a pointed tip. Both sides are cubic curves, drawn
+ // continuously; the recognizer uses the same geometry as the visible guide.
+ const inkDrop=()=>{
+  const bezier=(a,b,c,d,t)=>{const u=1-t;return{x:u*u*u*a.x+3*u*u*t*b.x+3*u*t*t*c.x+t*t*t*d.x,y:u*u*u*a.y+3*u*u*t*b.y+3*u*t*t*c.y+t*t*t*d.y}};
+  const top={x:0,y:-98},bottom={x:0,y:85};
+  const right=Array.from({length:33},(_,i)=>bezier(top,{x:117,y:-24},{x:100,y:79},bottom,i/32));
+  const left=Array.from({length:32},(_,i)=>bezier(bottom,{x:-100,y:79},{x:-117,y:-24},top,(i+1)/32));
+  return right.concat(left);
+ };
+ function template(k){switch(k){case'guard':return[line(-80,-95,80,-95)];case'magic':return[line(0,-35,0,-175)];case'slash':return[Array.from({length:49},(_,i)=>({x:105*Math.cos(Math.PI+i*Math.PI/48),y:105*Math.sin(Math.PI+i*Math.PI/48)}))];case'thrust':return[poly(3)];case'cross':return[[{x:-75,y:-75},{x:75,y:75},{x:0,y:0},{x:75,y:-75},{x:0,y:0},{x:-75,y:75}]];case'feint':return[[{x:-65,y:-65},{x:65,y:-65},{x:-65,y:65},{x:65,y:65}]];case'inkcut':return[[{x:49.5,y:49.5},{x:-49.5,y:-49.5},...Array.from({length:65},(_,i)=>({x:70*Math.cos(-3*Math.PI/4+i*Math.PI/32),y:70*Math.sin(-3*Math.PI/4+i*Math.PI/32)}))]];case'star':return[Array.from({length:6},(_,i)=>({x:Math.sin((i*2%5)*2*Math.PI/5)*75,y:-Math.cos((i*2%5)*2*Math.PI/5)*75}))];case'ray':return[[{x:-86,y:-38},{x:77,y:-38},{x:101,y:0},{x:77,y:38},{x:-86,y:38}]];case'nova':return[inkDrop()];case'heal':return[[[-25,-75],[25,-75],[25,-25],[75,-25],[75,25],[25,25],[25,75],[-25,75],[-25,25],[-75,25],[-75,-25],[-25,-25],[-25,-75]].map(([x,y])=>({x,y}))];case'build':return[[[-65,-65],[65,-65],[65,65],[-65,65],[-65,-65]].map(([x,y])=>({x,y}))];case'iron':return[poly(6)];case'anchor':return[[{x:-78,y:0},{x:0,y:0},{x:0,y:-78},{x:0,y:0},{x:0,y:78},{x:0,y:0},{x:78,y:0}]];case'reactor':return[poly(5)];
  case'mirage':return[Array.from({length:49},(_,i)=>{const t=i/48;return{x:67*Math.cos(Math.PI*.5+2*Math.PI*t),y:-96+192*t}})];
  case'decoy':return[Array.from({length:97},(_,i)=>{const t=2*Math.PI*i/96;return{x:86*Math.sin(t),y:52*Math.sin(2*t)}})];
  case'smoke':return[Array.from({length:97},(_,i)=>{const t=i/96,a=t*Math.PI*4.7,r=6+t*82;return{x:r*Math.cos(a),y:r*Math.sin(a)}})];
- case'warp':return[Array.from({length:49},(_,i)=>{const a=Math.PI-i*Math.PI/48;return{x:86*Math.cos(a),y:86*Math.sin(a)}})];
+ case'warp':return[circle()];
  case'burst':return[[[-45,-95],[-7,-25],[-35,-25],[27,45],[8,45],[38,97]].map(([x,y])=>({x,y}))];
  case'ghost':return[[[-100,0],[78,0],[37,-41],[78,0],[37,41]].map(([x,y])=>({x,y}))];
  case'spread':return[[[-74,-78],[0,0],[0,90],[0,0],[74,-78]].map(([x,y])=>({x,y}))];
@@ -2871,6 +2877,30 @@ window.ArtsRules=(()=>{
  }
  function stabilizeStroke(points){const xs=points.map(p=>p.x),ys=points.map(p=>p.y),tolerance=clamp(Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*.025,2.5,5);const simplify=ps=>{if(ps.length<3)return ps;const a=ps[0],b=ps.at(-1),dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let far=0,index=0;for(let i=1;i<ps.length-1;i++){const q=ps[i],t=l?clamp(((q.x-a.x)*dx+(q.y-a.y)*dy)/l,0,1):0,d=Math.hypot(q.x-a.x-dx*t,q.y-a.y-dy*t);if(d>far){far=d;index=i}}return far>tolerance?simplify(ps.slice(0,index+1)).slice(0,-1).concat(simplify(ps.slice(index))):[a,b]};return simplify(points)}
  function isTriangle(points){if(points.length<4)return false;const xs=points.map(p=>p.x),ys=points.map(p=>p.y),diag=Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));if(diag<20||dist(points[0],points.at(-1))>diag*.25)return false;const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x),sorted=[...points].sort((a,b)=>a.x-b.x||a.y-b.y),lo=[],hi=[];for(const p of sorted){while(lo.length>1&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p)}for(const p of [...sorted].reverse()){while(hi.length>1&&cross(hi.at(-2),hi.at(-1),p)<=0)hi.pop();hi.push(p)}let hull=lo.slice(0,-1).concat(hi.slice(0,-1));while(hull.length>3){let index=0,min=Infinity;for(let i=0;i<hull.length;i++){const area=Math.abs(cross(hull[(i+hull.length-1)%hull.length],hull[i],hull[(i+1)%hull.length]));if(area<min){min=area;index=i}}hull.splice(index,1)}if(hull.length!==3||Math.abs(cross(...hull))/2<diag*diag*.08)return false;const error=p=>Math.min(...hull.map((a,i)=>{const b=hull[(i+1)%3],dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t)/diag}));const samples=resample(points,64),errors=samples.map(error);return errors.reduce((a,b)=>a+b,0)/errors.length<.035&&errors.filter(e=>e>.09).length<=3}
+ // Closed-circle portals and ink-drop novas must never share a gesture.
+ // Test shape geometry, not just the nearest-neighbour template, so a rough
+ // circle cannot accidentally activate Ink Nova (and vice versa).
+ function loopKind(path,diag){
+  if(path.length<6||diag<20)return null;
+  const gap=dist(path[0],path.at(-1));
+  if(gap>diag*.24)return null;
+  const open=path.slice(0,-1);
+  if(open.length<5)return null;
+  const mid={x:(Math.min(...path.map(p=>p.x))+Math.max(...path.map(p=>p.x)))/2,y:(Math.min(...path.map(p=>p.y))+Math.max(...path.map(p=>p.y)))/2};
+  const radii=open.map(p=>dist(p,mid)),mean=radii.reduce((a,b)=>a+b,0)/radii.length;
+  const variation=Math.sqrt(radii.reduce((a,b)=>a+(b-mean)**2,0)/radii.length)/(mean||1);
+  const turns=open.map((p,i)=>{
+   const prev=open[(i+open.length-1)%open.length],next=open[(i+1)%open.length],a={x:p.x-prev.x,y:p.y-prev.y},b={x:next.x-p.x,y:next.y-p.y};
+   return Math.acos(clamp((a.x*b.x+a.y*b.y)/(Math.hypot(a.x,a.y)*Math.hypot(b.x,b.y)||1),-1,1));
+  });
+  const peak=Math.max(...turns),sharp=turns.filter(t=>t>.70).length;
+  const w=Math.max(...path.map(p=>p.x))-Math.min(...path.map(p=>p.x));
+  const h=Math.max(...path.map(p=>p.y))-Math.min(...path.map(p=>p.y));
+  if(Math.min(w,h)/Math.max(w,h)<.55)return null;
+  if(peak<1.05&&sharp<=3&&variation<.21)return'warp';
+  if(peak>.79&&sharp<=2&&variation<.39)return'nova';
+  return null;
+ }
  function recognize(strokes,skill){if(!valid(strokes))return null;strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<25||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<20)return null;
  // Short, simple common arts take precedence over equipped complex skills.
  // Previously the nearest-neighbour skill matcher labelled even a normal Slash arc as Cross/Star/etc.
@@ -2892,13 +2922,18 @@ window.ArtsRules=(()=>{
     totalTurn+=Math.abs(angle);
    }
    if(major===0&&flip<=1&&totalTurn>.45&&totalTurn<4.7){
-    // A warp portal curves clockwise in a deliberate single stroke; a Slash curves the other way.
-    // They can be rotated without changing which direction the stroke turns.
-    kind=skill==='warp'&&sign<0?'warp':'slash';
+    // Open arcs are always the common Slash. The Warp Hole now requires a
+    // genuinely CLOSED circle, so direction no longer changes its identity.
+    kind='slash';
    }
   }
  }
- if(!kind&&skill==='thrust'&&strokes.length===1&&isTriangle(points))kind='thrust';
+ // Recognize completed circular portals before other complex matching.
+ // The ink-drop Nova instead needs a visible pointed tip.
+ const closedSymbol=strokes.length===1?loopKind(strokes[0],diag):null;
+ if(!kind&&skill==='warp'&&closedSymbol==='warp')kind='warp';
+ if(!kind&&skill==='nova'&&closedSymbol==='nova')kind='nova';
+ if(!kind&&skill==='thrust'&&closedSymbol!=='nova'&&strokes.length===1&&isTriangle(points))kind='thrust';
  // Identify rotated four-corner squares/rectangles by their angles rather than their axis-aligned bounding box.
  // This keeps a wall symbol available even when the player rotates the stylus.
  if(!kind&&skill==='build'&&strokes.length===1){
@@ -2915,7 +2950,7 @@ window.ArtsRules=(()=>{
  }
  // Accept hand-drawn rectangles for the equipped wall skill, including small gaps.
  if(skill==='build'&&w>=20&&h>=20&&Math.max(w/h,h/w)<=4&&len>=2*(w+h)*.72){const normalized=points.map(p=>({x:(p.x-minx)/w,y:(p.y-miny)/h})),cornersCovered=[[0,0],[1,0],[1,1],[0,1]].every(([x,y])=>normalized.some(p=>Math.hypot(p.x-x,p.y-y)<.20)),onEdges=normalized.filter(p=>Math.min(p.x,1-p.x,p.y,1-p.y)<.16).length/normalized.length;if(cornersCovered&&onEdges>=.8)kind='build'}
- if(!kind&&skill&&moves[skill]?.class&&w>25&&h>25){const distance=match(strokes,skill);const limit=['cross','feint','inkcut','heal','star','ray','anchor','mirage','decoy','smoke','warp','burst','ghost','spread','ricochet'].includes(skill)?.16:.12;if(distance<limit){const family=['build','iron','reactor','nova'];const best=family.includes(skill)?family.reduce((best,k)=>{const d=k===skill?distance:match(strokes,k);return d<best.d?{k,d}:best},{k:skill,d:distance}):{k:skill};if(best.k===skill||distance<=best.d+.02)kind=skill}}
+ if(!kind&&skill&&moves[skill]?.class&&!['warp','nova'].includes(skill)&&!(closedSymbol==='nova'&&skill==='thrust')&&w>25&&h>25){const distance=match(strokes,skill);const limit=['cross','feint','inkcut','heal','star','ray','anchor','mirage','decoy','smoke','warp','burst','ghost','spread','ricochet'].includes(skill)?.16:.12;if(distance<limit){const family=['build','iron','reactor','nova'];const best=family.includes(skill)?family.reduce((best,k)=>{const d=k===skill?distance:match(strokes,k);return d<best.d?{k,d}:best},{k:skill,d:distance}):{k:skill};if(best.k===skill||distance<=best.d+.02)kind=skill}}
  if(!kind&&strokes.length===1){const a=points[0],b=points.at(-1),chord=dist(a,b);if(chord/len>.82){const dx=b.x-a.x,dy=b.y-a.y,radial=Math.abs(dx*cx+dy*cy)/(Math.hypot(dx,dy)*Math.hypot(cx,cy)||1);kind=radial>.60?'magic':'guard'}else{const radii=points.map(p=>Math.hypot(p.x,p.y)),avg=radii.reduce((a,b)=>a+b,0)/radii.length,variance=Math.sqrt(radii.reduce((a,b)=>a+(b-avg)**2,0)/radii.length)/(avg||1);let sharp=0;for(let i=1;i<points.length-1;i++){const u={x:points[i].x-points[i-1].x,y:points[i].y-points[i-1].y},v={x:points[i+1].x-points[i].x,y:points[i+1].y-points[i].y};if(Math.acos(clamp((u.x*v.x+u.y*v.y)/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y)||1),-1,1))>1.1)sharp++}if(!sharp&&variance<.50&&len/(avg||1)>.85&&len/(avg||1)<4.8&&chord/len>.40&&chord/len<.88&&chord>diag*.32)kind='slash'}}
  if(!kind)return null;return{type:kind,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:kind==='thrust'?triangleAngle(points):Math.atan2(cy,cx),tip:points[0],strokes}}
  // Stat 5 is solely the radius of the drawable circle; every art shares it.
@@ -2947,9 +2982,9 @@ window.ArtArts=(()=>{
  const bar=document.createElement('div');bar.id='artsBar';bar.hidden=true;$('#studio').insertBefore(bar,$('.workspace'));
  const stage=document.createElement('section');stage.id='artsStage';stage.hidden=true;$('#viewport').append(stage);
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel','contextmenu'])stage.addEventListener(ev,e=>{e.stopPropagation();if(ev==='contextmenu')e.preventDefault()});
- const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">—</output><progress id="artsLiveBar'+i+'" max="100" value="0" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
+ const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">20</output><progress id="artsLiveBar'+i+'" max="100" value="20" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
  function syncLiveStats(){const editing=!!(enabled()&&view?.phase==='create'&&participant()&&!view.ready[localId]);$('#studio').classList.toggle('arts-character-editing',editing);liveStats.hidden=!editing;return editing}
- function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats)]+' 寄り';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
+ function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const paths=collectDrawingPaths(true),stats=sampleArtwork(true).stats;$('#artsLiveClass').textContent=paths.length?R.classNames[R.type(stats)]+' 寄り':'描いてみよう';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=n;$('#artsLiveBar'+i).value=n})}catch{}}
  function clearCanvas(){characterPaths=[];characterFacing=1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value='1';window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();prefs.opacities=[100,100,100];$('#transformBar').hidden=true;render();renderControls();fitView()}
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
  function publicState(withImages=false){return{id:host.id,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,ink:p.ink,maxInk:p.maxInk,stats:p.stats,class:p.class,skill:p.skill,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,nextSkill:p.nextSkill,flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
@@ -2970,13 +3005,20 @@ window.ArtArts=(()=>{
  async function characterPicker(){try{await refreshGallery();const list=gallery.filter(a=>a.format==='arts-character');modal('絵画展のキャラクター','<p>キャラを選ぶと、制作中のキャンバスに読み込めます。ホームでは次回使用するキャラを選択します。</p><div class="arts-character-grid">'+list.map(a=>'<button data-character-id="'+esc(a.id)+'"><img src="'+esc(a.thumb)+'" alt=""><b>'+esc(a.name)+'</b>'+(selectedCharacter()===a.id?'<small>選択中</small>':'')+'</button>').join('')+'</div>'+(!list.length?'<p>保存したキャラがありません。「キャラ制作だけ」から作成できます。</p>':'')+'<button id="artsCharacterClear">次回は白紙から描く</button>');document.querySelectorAll('[data-character-id]').forEach(button=>button.onclick=async()=>{const a=await db('art','readonly',store=>store.get(button.dataset.characterId));if(!a){toast('キャラが見つかりません。');return}if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のキャラ作成時に読み込みます。')}});$('#artsCharacterClear').onclick=()=>{if(installCharacter('')){$('#modal').close();toast('次回は白紙から描きます。')}}}catch{toast('絵画展を読み込めませんでした。')}}
  function showCharacter(a){modal(a.name,'<img class="art-view" src="'+esc(a.image)+'" alt="'+esc(a.name)+'">'+statsHTML(a.stats||[20,20,20,20,20])+'<div class="modal-actions"><button id="artsInstallCharacter" class="primary">このキャラを使う</button><button id="artsEditCharacter">キャラ制作で開く</button><button id="artsDownloadCharacter">PNG保存</button><button id="artsDeleteCharacter">削除</button></div>');$('#artsInstallCharacter').onclick=async()=>{if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のアートアーツでこのキャラを読み込みます。')}};$('#artsEditCharacter').onclick=()=>openCharacterStudio(a);$('#artsDownloadCharacter').onclick=()=>download(a.image,a.name+'.png');$('#artsDeleteCharacter').onclick=async()=>{if(!confirm('このキャラを絵画展から削除しますか？'))return;await db('art','readwrite',store=>store.delete(a.id));if(selectedCharacter()===a.id)installCharacter('');$('#modal').close();await refreshGallery()};}
  function collectDrawingPaths(includeCurrent=false){const ops=engine.ops.filter(a=>!a.disabled&&a.tool==='pen'&&Array.isArray(a.points)&&a.points.length>=2);if(includeCurrent&&stroke?.tool==='pen'&&stroke.points?.length>=2&&!ops.some(a=>a.id===stroke.id))ops.push(stroke);const indexed=ops.map((a,i)=>({a,i,weight:a.points.reduce((sum,p,j)=>j?sum+Math.hypot(p[0]-a.points[j-1][0],p[1]-a.points[j-1][1]):sum,0)}));const ranked=[...indexed].sort((a,b)=>b.weight-a.weight).slice(0,28);const seen=new Set(ranked.map(p=>p.i));const remaining=indexed.filter(p=>!seen.has(p.i));const slots=Math.max(0,64-characterPaths.length-ranked.length);for(let j=0;j<Math.min(slots,remaining.length);j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/Math.min(slots,remaining.length)))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48));return [...characterPaths,...paths].slice(-64)}
- function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{return{image:'',drawingPaths:[],artFacing:characterFacing,stats:[0,0,0,0,0],empty:true}}x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
+ function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{
+ // Missing paint in the composite is not proof that the user drew nothing: recover visible art from pen paths.
+ const paths=collectDrawingPaths(includeCurrent),context=out.getContext('2d');
+ if(paths.length){const all=paths.flat(),lx=Math.min(...all.map(p=>p.x)),rx=Math.max(...all.map(p=>p.x)),ly=Math.min(...all.map(p=>p.y)),ry=Math.max(...all.map(p=>p.y)),z=176/Math.max(rx-lx,ry-ly,2),ox=(192-(rx-lx)*z)/2,oy=(192-(ry-ly)*z)/2;
+ context.strokeStyle=profile.color||'#7d68a0';context.lineWidth=Math.max(2,Math.min(9,z*.85));context.lineCap='round';context.lineJoin='round';
+ for(const path of paths){context.beginPath();path.forEach((p,i)=>i?context.lineTo(ox+(p.x-lx)*z,oy+(p.y-ly)*z):context.moveTo(ox+(p.x-lx)*z,oy+(p.y-ly)*z));context.stroke()}
+ }else{context.fillStyle=profile.color||'#7d68a0';context.beginPath();context.arc(96,96,60,0,Math.PI*2);context.fill();context.fillStyle='white';context.font='bold 55px sans-serif';context.textAlign='center';context.fillText('?',96,114)}
+ }x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
  const drawingPaths=collectDrawingPaths(includeCurrent),stats=R.analyze(x.getImageData(0,0,64,64).data,64,64,drawingPaths);
- return{image:out.toDataURL('image/png'),drawingPaths,artFacing:characterFacing,stats,empty:false}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
+ return{image:out.toDataURL('image/png'),drawingPaths,artFacing:characterFacing,stats,empty:x1<0&&!drawingPaths.length}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
  function cancelReady(){if(!view||view.phase!=='create'||!participant()||!view.ready[localId]||room.characterOnly)return;sendHost({type:'gameArtsUnready',gameId:view.id})}
  function submit(){if(room?.characterOnly){saveCharacter();return}if(!view||!['create','collect'].includes(view.phase)||!participant()||view.ready[localId]||submitted===view.id)return;capturing=true;try{if(stroke)finishStroke();if(selection)$('#applyTransform').click();const art=sampleArtwork();if(art.empty){toast('絵が取得できていません。ペンで描いてから、もう一度準備完了を押してください。');return}submitted=view.id;sendHost({type:'gameArtsReady',gameId:view.id,image:art.image,drawingPaths:art.drawingPaths,artFacing:art.artFacing})}catch{toast('絵を送れませんでした。もう一度お試しください。')}finally{capturing=false}}
- async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===0)){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
- function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];a.class=R.type(a.stats);a.skill=R.skills(a.class)[0];if(p.bot)host.equipped[p.id]=true}sendAll(true)}
+ async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===20)&&!drawingPaths.length){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
+ function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats);a.skill=R.skills(a.class)[0];if(p.bot)host.equipped[p.id]=true}sendAll(true)}
  function startBattle(){if(!host||host.phase!=='equip')return;host.blocks=R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;const spots=[[110,70],[610,1050],[610,70],[110,1050],[360,90],[360,1030],[45,550],[675,570]];host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],team=i%2,spot=host.settings.teams==='teams'?[90+Math.floor(i/2)*170,team?1050:70]:spots[i];return{id:p.id,team,x:spot[0],y:spot[1],hp:100,ink:60+stats[3]*2,maxInk:60+stats[3]*2,stats,class:R.type(stats),skill:a?.skill||R.skills(R.type(stats))[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,nextSkill:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
  const friendly=(a,b)=>R.allies(a,b,host.settings.teams);
@@ -3151,7 +3193,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は小さく、普通の曲がった輪郭は射程の弱い特徴として評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを控えめに防御力として評価します。色を塗ってもトゲ・直線・曲線の特徴評価は下がりません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。ただしタンク候補になるには防御力25以上が必要です。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様は能力を増やしません。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを防御力として評価します。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -3202,8 +3244,9 @@ window.ArtArts=(()=>{
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   cross:'左上 → 右下 → 中央に戻る → 右上 → 中央に戻る → 左下',
+  warp:'一筆で丸を描き、始点まで戻して閉じます',
+  nova:'先端を尖らせた水滴の輪郭を一筆で閉じます',
   decoy:'左右2つの輪が中央で交差する「∞」を一筆で描きます',
-  warp:'半円を一筆で描いて瞬間移動',
   ghost:'矢印を一筆で描いて0.8秒後に壁貫通射撃',
   ricochet:'ひし形を一筆で描いて10秒間跳弾',
   ray:'上の横線 → 右端で折り返す → 下の横線',
