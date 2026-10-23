@@ -2691,93 +2691,121 @@ window.ArtsRules=(()=>{
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
  function drawingStats(raw,fill=0,aspect=1,solidCore=0){
+  // An individual gesture has ONE primary role: straight / outward spike /
+  // continuous winding / outward-reaching smooth curve. Surface coverage is
+  // calculated from raster pixels, rather than counted strokes.
   const paths=cleanDrawingPaths(raw);if(!paths.length)return null;
-  const all=paths.flat(),xs=all.map(p=>p.x),ys=all.map(p=>p.y);
-  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const all=paths.flat();let minx=64,miny=64,maxx=-64,maxy=-64;
+  for(const p of all){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)}
   const span=Math.hypot(maxx-minx,maxy-miny);if(span<1)return null;
   const center={x:(minx+maxx)/2,y:(miny+maxy)/2};
-  const simplify=points=>{if(points.length<3)return points;const a=points[0],b=points.at(-1),dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let best=0,index=0;for(let i=1;i<points.length-1;i++){const p=points[i],t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0,d=Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);if(d>best){best=d;index=i}}return best>span*.014?simplify(points.slice(0,index+1)).slice(0,-1).concat(simplify(points.slice(index))):[a,b]};
-  let spikeScore=0,flowScore=0,flowLength=0,hasLongCurve=false;
+  // The 5x5 opaque raster core suppresses thin hatching and outlines. A
+  // compact, truly painted mass should dominate, not a large quantity of lines.
+  let solid=clamp((fill-.46)/.39,0,1)*clamp((solidCore-.16)/.46,0,1)*clamp((2.25-aspect)/1.3,0,1);
+  const strengths=[0,0,0,0,0],candidates=[[],[],[],[],[]];
+  let lengthyStraights=0, horizontalHatch=0, verticalHatch=0;
+  const radial=p=>Math.hypot(p.x-center.x,p.y-center.y);
   for(const path of paths){
-   const plen=length([path]);if(plen<.23*span)continue;
-   const a=simplify(path),closed=dist(path[0],path.at(-1))<span*.035;
-   let sharpCount=0,roundedTurn=0,turnCount=0;
-   const stop=closed&&a.length>3?a.length-1:a.length;
-   for(let i=0;i<stop;i++){
-    if(!closed&&(i===0||i===stop-1))continue;
-    const prev=a[(i+stop-1)%stop],p=a[i],next=a[(i+1)%stop];
-    const la=dist(prev,p),lb=dist(p,next);if(la<.001||lb<.001)continue;
-    const u={x:p.x-prev.x,y:p.y-prev.y},v={x:next.x-p.x,y:next.y-p.y};
-    const angle=Math.acos(clamp((u.x*v.x+u.y*v.y)/(la*lb),-1,1));
-    if(angle>.09){turnCount++;if(angle<1.1)roundedTurn+=angle}
-    // A spike is a substantial OUTWARD tip, not an angle inside an eye or mouth.
-    if(angle<1.13||Math.min(la,lb)<span*.075)continue;
-    const radial=q=>Math.hypot(q.x-center.x,q.y-center.y);
-    const depth=radial(p)-Math.max(radial(prev),radial(next));
-    const midpoint={x:(prev.x+next.x)/2,y:(prev.y+next.y)/2};
-    const bulge=dist(p,midpoint);
-    // Simplification makes a smooth round head or eye look like a sharp polygon.
-    // Test the turn on the ORIGINAL pen samples over a short local distance.
-    const samples=closed?path.slice(0,-1):path,idx=samples.indexOf(p);
-    if(idx<0)continue;
-    const neighbour=direction=>{
-     let current=idx,travel=0;
-     for(let steps=0;steps<samples.length-1&&travel<span*.085;steps++){
-      let next=current+direction;
-      if(closed)next=(next+samples.length)%samples.length;
-      else if(next<0||next>=samples.length)break;
-      travel+=dist(samples[current],samples[next]);current=next;
-     }
-     return samples[current];
-    };
-    const before=neighbour(-1),after=neighbour(1),il=dist(before,p),ol=dist(p,after);
-    if(il<.001||ol<.001)continue;
-    const realTurn=Math.acos(clamp(((p.x-before.x)*(after.x-p.x)+(p.y-before.y)*(after.y-p.y))/(il*ol),-1,1));
-    if(realTurn<1.0)continue;
-    if(depth>span*.022&&bulge>span*.055&&radial(p)>span*.25){
-     sharpCount++;spikeScore+=clamp(depth/(span*.095),.25,1.3)*clamp(Math.min(la,lb)/(span*.16),.4,1.4);
+   const len=length([path]),chord=dist(path[0],path.at(-1));
+   if(len<span*.20)continue; // Eyes, mouths, embroidery and tiny ornaments.
+   const ratio=chord/Math.max(.0001,len);
+   const closed=chord<span*.042;
+   // Preserve real hand-drawn bends, but discard pixel-sized wobble.
+   const smoothPoints=resample(path,Math.min(48,Math.max(12,path.length*2)));
+   let turn=0,absTurn=0,majorKinks=0,curvatureSign=0;
+   for(let i=1;i<smoothPoints.length-1;i++){
+    const a=smoothPoints[i-1],b=smoothPoints[i],c=smoothPoints[i+1];
+    const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-b.x,vy=c.y-b.y;
+    const cross=ux*vy-uy*vx,dot=ux*vx+uy*vy;
+    const angle=Math.atan2(cross,dot);turn+=angle;absTurn+=Math.abs(angle);
+    if(Math.abs(angle)>.75)majorKinks++;
+    curvatureSign+=angle;
+   }
+   // Max deviation from an infinite line is used to avoid mistaking a long
+   // gentle curve for a straight speed stroke.
+   let deviation=0;
+   if(chord>0)for(const p of path){const a=path[0],b=path.at(-1);deviation=Math.max(deviation,Math.abs((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x))/chord)}
+   const straightQuality=clamp((ratio-.91)/.075,0,1)*clamp((.07-deviation/span)/.052,0,1);
+   const straightLength=clamp((chord/span-.27)/.57,0,1);
+   if(straightQuality*.75*straightLength>.065){
+    candidates[0].push(straightQuality*straightLength);
+    lengthyStraights++;
+    const dx=Math.abs(path.at(-1).x-path[0].x),dy=Math.abs(path.at(-1).y-path[0].y);
+    if(dx>dy*2)horizontalHatch++;
+    if(dy>dx*2)verticalHatch++;
+    continue;
+   }
+   // Long smooth windings: an actual continuous coil, not a simple head/eye loop.
+   const windIntensity=clamp((absTurn-2.55*Math.PI)/(3.8*Math.PI),0,1)*clamp((len/span-2.35)/2.3,0,1);
+   const openWinding=clamp((len/span-1.35)/2.8,0,1)*clamp((absTurn-1.8*Math.PI)/(3.4*Math.PI),0,1);
+   const winding=Math.max(windIntensity,closed?0:openWinding);
+   const sameDirection=Math.abs(turn)/Math.max(absTurn,.0001);
+   if(winding>.10&&sameDirection>.70){candidates[3].push(winding);continue}
+   // Detect visible outward pointed peaks on the original drawn segments.
+   // For curved round heads the bend over a small neighborhood is too mild.
+   let spikes=0;
+   const simple=pts=>{
+    if(pts.length<3)return pts;
+    const p=pts[0],q=pts.at(-1),dx=q.x-p.x,dy=q.y-p.y,ll=dx*dx+dy*dy;
+    let best=0,k=-1;
+    for(let i=1;i<pts.length-1;i++){
+     const z=pts[i],t=ll?clamp(((z.x-p.x)*dx+(z.y-p.y)*dy)/ll,0,1):0;
+     const d=Math.hypot(z.x-p.x-dx*t,z.y-p.y-dy*t);
+     if(d>best){best=d;k=i}
     }
+    return k>=0&&best>span*.013?simple(pts.slice(0,k+1)).slice(0,-1).concat(simple(pts.slice(k))):[p,q];
+   };
+   const simplified=simple(path),pts=closed?simplified.slice(0,-1):simplified;
+   for(let i=0;i<pts.length;i++){
+    if(!closed&&(i===0||i===pts.length-1))continue;
+    const prev=pts[(i+pts.length-1)%pts.length],tip=pts[i],next=pts[(i+1)%pts.length];
+    const la=dist(prev,tip),lb=dist(next,tip);
+    if(Math.min(la,lb)<span*.073)continue;
+    const u={x:tip.x-prev.x,y:tip.y-prev.y},v={x:next.x-tip.x,y:next.y-tip.y};
+    const bend=Math.acos(clamp((u.x*v.x+u.y*v.y)/(la*lb),-1,1));
+    if(bend<1.12)continue;
+    const prominence=radial(tip)-Math.max(radial(prev),radial(next));
+    if(prominence<span*.022||radial(tip)<span*.25)continue;
+    // Locally sharp in source samples (smooth round outlines excluded).
+    let ix=-1,close=Infinity;
+    for(let j=0;j<path.length;j++){const d=dist(path[j],tip);if(d<close){close=d;ix=j}}
+    const local=(direction)=>{let j=ix,travel=0;for(let t=0;t<path.length-1&&travel<span*.088;t++){
+     let z=j+direction;if(closed)z=(z+path.length)%path.length;else if(z<0||z>=path.length)break;
+     travel+=dist(path[j],path[z]);j=z;
+    }return path[j]};
+    const before=local(-1),after=local(1),u1={x:tip.x-before.x,y:tip.y-before.y},v1={x:after.x-tip.x,y:after.y-tip.y};
+    const l1=Math.hypot(u1.x,u1.y),l2=Math.hypot(v1.x,v1.y);
+    if(l1<.001||l2<.001||Math.acos(clamp((u1.x*v1.x+u1.y*v1.y)/(l1*l2),-1,1))<.99)continue;
+    spikes+=clamp(prominence/(span*.075),.35,1.5)*clamp(Math.min(la,lb)/(span*.17),.35,1.2);
    }
-   // Winding, continuous curves contribute to Ink and Range, not Attack.
-   const chord=dist(path[0],path.at(-1)),winding=plen/Math.max(chord,span*.2);
-   if(plen>span*.6&&winding>1.18){
-    const continuity=clamp((winding-1.12)/2.2,0,1)*clamp((plen/span-.6)/2.8,0,1);
-    const smooth=clamp(1-sharpCount/Math.max(2,turnCount),.25,1);
-    // A simple loop (head, eye, mouth) is not a winding magic stroke.
-    const loopPenalty=closed?clamp((plen/span-2.5)/2.0,.05,1):1;
-    flowScore+=continuity*smooth*loopPenalty;flowLength+=plen/Math.max(span,1);hasLongCurve=true;
-   }
+   if(spikes>.40){candidates[1].push(clamp(spikes/2.9,0,1.6));continue}
+   // Range requires an OPEN, large, smooth, reaching curve. It is explicitly
+   // excluded from the winding and straight categories above.
+   const smoothCurve=clamp((ratio-.33)/.30,0,1)*clamp((.99-ratio)/.085,0,1);
+   const outward=clamp((Math.abs(radial(path.at(-1))-radial(path[0]))/span-.07)/.22,0,1);
+   const reach=clamp((chord/span-.28)/.44,0,1);
+   const bending=clamp((deviation/span-.017)/.085,0,1);
+   const nonJitter=clamp((5.0-absTurn)/2.8,0,1)*clamp((5-majorKinks)/4,0,1);
+   const rangePower=(!closed&&absTurn<5&&ratio>.33)?reach*bending*nonJitter*smoothCurve*(.62+.38*outward):0;
+   if(rangePower>.09){candidates[4].push(rangePower);continue}
+   // Ordinary outlines and decorations are neutral; painting more lines does
+   // not silently increase Attack, Defense or Ink.
   }
-  const totalLength=length(paths),detail=totalLength/span;
-  // Evaluate genuinely long straight strokes individually, even with eyes, hair,
-  // clothes and other decorative paths on the same character. Formerly this
-  // only worked when the entire drawing consisted of exactly one path.
-  let majorStraightCount=0,straightStrength=0;
-  for(const path of paths){
-   const plen=length([path]),chord=dist(path[0],path.at(-1));
-   if(plen<span*.25||chord<span*.25)continue;
-   const straightness=chord/Math.max(plen,.001);
-   if(straightness<.90)continue;
-   const prominence=clamp((chord/span-.24)/.62,0,1);
-   const quality=clamp((straightness-.90)/.08,0,1);
-   if(prominence*quality>.08){majorStraightCount++;straightStrength=Math.max(straightStrength,prominence*quality)}
+  for(const i of [0,1,3,4]){
+   const list=candidates[i].sort((a,b)=>b-a);
+   strengths[i]=list.length?Math.min(1.5,list[0]+(list[1]||0)*.23+(list[2]||0)*.12):0;
   }
-  // Dozens of parallel hatching strokes mean detail, not a speed-specialized
-  // stick figure. One or a few prominent straight strokes are a strong signal.
-  const straight=straightStrength*clamp((9-majorStraightCount)/7,0,1);
-  // Solid defense needs continuous thick painted interiors, not merely many fine strokes.
-  // solidCore is the fraction of the image's bounding box filled through a 5x5 neighbourhood.
-  const solid=clamp((fill-.48)/.40,0,1)*clamp((solidCore-.18)/.48,0,1)*clamp((2.25-aspect)/1.3,0,1);
-  const spikes=clamp(spikeScore/5.2,0,1)*clamp((spikeScore-.5)/2.5,0,1);
-  const dense=clamp((detail-4.0)/11,0,1);
-  const flowing=hasLongCurve?clamp(flowScore/(1+.25*(paths.length-1)),0,1):0;
-  const openness=clamp((Math.max(maxx-minx,maxy-miny)-span*.36)/(span*.65),0,1);
-  // Eyes/mouth/hair count as meaningful detail, without being mistaken for spikes.
-  // Without a baseline for ordinary details, valid drawings often scored 20 in every stat.
-  const ordinaryDetail=clamp((detail-1.0)/6,0,1);
-  // Dense details (eyes, hair, clothing, line hatching) enrich ink/range, not armor.
-  // Only a broad, genuinely solid color region contributes appreciably to defense.
-  return allocate([1+76*straight*(1-solid)*(1-.5*spikes)+4*dense*(1-spikes),1+53*spikes*(1-solid),1+63*solid,1+39*flowing+11*dense*(1-spikes)+2.8*ordinaryDetail,1+33*flowing*(.65+.35*openness)+7*dense*(1-spikes)+1.9*ordinaryDetail]);
+  // A cross-hatched grid can become opaque at 64px raster resolution, but
+  // the visibly separate lines are not equivalent to an intentionally filled
+  // solid silhouette. Parallel brush bands still register as genuine fill.
+  if(horizontalHatch>=8&&verticalHatch>=8)solid=0;
+  if(lengthyStraights>=8)strengths[0]*=clamp((17-lengthyStraights)/9,0,1);
+  strengths[2]=solid;
+  // Pixel fill and strokes share the same global strength budget. A filled
+  // block should be a tank, not a speed class from its hatching brush paths.
+  for(const i of [0,1,3,4])strengths[i]*=(1-.82*solid);
+  // Five distinctive features, five disjoint score sources (100 points total).
+  return allocate([1+88*strengths[0],1+84*strengths[1],1+96*strengths[2],1+82*strengths[3],1+86*strengths[4]]);
  }
 
  function analyze(data,w,h,paths=[]){
@@ -3123,7 +3151,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵全体のトゲ・直線・曲線・塗りつぶしから、5つの能力を合計100ポイントに配分します。各能力は最低3ポイントで、特徴を強くすると70〜80台の特化も狙えます。</p><ul><li><b>アタッカー：</b>トゲ・鋭い折れ曲がりをたくさん描くと攻撃力特化。一本のまっすぐな棒なら素早さ特化になります。</li><li><b>マジシャン：</b>一筆で長く曲がりくねった線を描くと、インク量・射程が大きく伸びます。巻き込む線はインク量寄り、広く伸びる曲線は射程にも配分されます。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを防御力として評価します。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様は能力を増やしません。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを防御力として評価します。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
