@@ -2690,127 +2690,102 @@ window.ArtsRules=(()=>{
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
+ // Local geometric features and detached objects have separate score sources.
+ function statBox(points){const xs=points.map(p=>p.x),ys=points.map(p=>p.y),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;return{x,y,w,h,span:Math.hypot(w,h),cx:x+w/2,cy:y+h/2}}
+ function statPointDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
+ function statSimplify(p,tol){if(p.length<3)return p;let k=0,best=0;for(let i=1;i<p.length-1;i++){const d=statPointDistance(p[i],p[0],p.at(-1));if(d>best){best=d;k=i}}return best>tol?statSimplify(p.slice(0,k+1),tol).slice(0,-1).concat(statSimplify(p.slice(k),tol)):[p[0],p.at(-1)]}
+ function statMeta(path){const box=statBox(path),len=length([path]),chord=dist(path[0],path.at(-1)),ratio=chord/(len||1),closed=chord<box.span*.12;
+  const pts=resample(path,64);let signed=0,turn=0,kinks=0;
+  for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],angle=Math.atan2((b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x),(b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y));signed+=angle;turn+=Math.abs(angle);if(Math.abs(angle)>.85)kinks++}
+  const winding=clamp((turn/(2*Math.PI)-.95)/1.8,0,1.3)*clamp((len/(box.span||1)-2.1)/2.8,0,1)*clamp(1-kinks/10,0,1);
+  const straight=clamp((ratio-.90)/.09,0,1);
+  return{path,box,len,chord,ratio,closed,turn,kinks,winding,straight};
+ }
+ function statPathGap(a,b){let gap=Infinity;for(let i=1;i<a.length;i++)for(let j=1;j<b.length;j++){
+  const p=a[i-1],q=a[i],r=b[j-1],s=b[j],cross=(u,v,w)=>(v.x-u.x)*(w.y-u.y)-(v.y-u.y)*(w.x-u.x);
+  if(cross(p,q,r)*cross(p,q,s)<0&&cross(r,s,p)*cross(r,s,q)<0)return 0;
+  gap=Math.min(gap,statPointDistance(p,r,s),statPointDistance(q,r,s),statPointDistance(r,p,q),statPointDistance(s,p,q));
+ }return gap}
+ function statObjects(meta){
+  const parent=meta.map((_,i)=>i),root=i=>parent[i]===i?i:(parent[i]=root(parent[i]));
+  const extent=statBox(meta.flatMap(m=>m.path)),join=Math.max(.25,extent.span*.012);
+  for(let i=0;i<meta.length;i++)for(let j=0;j<i;j++){
+   const a=meta[i].box,b=meta[j].box;
+   if(a.x>b.x+b.w+join||b.x>a.x+a.w+join||a.y>b.y+b.h+join||b.y>a.y+a.h+join)continue;
+   if(statPathGap(meta[i].path,meta[j].path)<=join)parent[root(i)]=root(j);
+  }
+  const groups=new Map();meta.forEach((m,i)=>{const k=root(i);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(m)});
+  const objects=[...groups.values()].map(items=>({items,box:statBox(items.flatMap(m=>m.path))}));
+  // Speed marks and coils cannot become the body or projectiles merely by being long.
+  const usable=objects.filter(o=>!o.items.every(m=>m.straight>.65||m.winding>.1));
+  const body=(usable.length?usable:objects).sort((a,b)=>b.box.w*b.box.h-a.box.w*a.box.h)[0];
+  const detached=new Set(),scores=[];if(!body)return{detached,scores};
+  for(const o of objects){if(o===body||o.items.some(m=>m.winding>.1)||o.items.every(m=>m.straight>.65)&&o.items.length<3)continue;
+   const b=body.box,q=o.box,dx=Math.max(b.x-q.x-q.w,q.x-b.x-b.w,0),dy=Math.max(b.y-q.y-q.h,q.y-b.y-b.h,0),gap=Math.hypot(dx,dy);
+   if(gap<b.span*.045||q.span<b.span*.055||Math.min(q.w,q.h)<q.span*.12)continue;
+   const closed=o.items.some(m=>m.closed)||o.items.length>=3&&o.items.every(m=>[m.path[0],m.path.at(-1)].every(p=>o.items.some(n=>n!==m&&n.path.some(v=>dist(v,p)<join*2))));
+   if(!closed)continue;
+   o.items.forEach(m=>detached.add(m));scores.push(clamp(.30+gap/(b.span||1),.3,1)*clamp(q.span/(b.span*.16),.3,1));
+  }return{detached,scores};
+ }
  function drawingStats(raw,fill=0,aspect=1,solidCore=0){
-  // A gesture should be judged mainly by its dominant visual role, not by how
-  // many tiny details were added afterward. Big silhouette features win.
   const paths=cleanDrawingPaths(raw);if(!paths.length)return null;
-  const all=paths.flat();let minx=64,miny=64,maxx=-64,maxy=-64;
-  for(const p of all){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y)}
-  const span=Math.hypot(maxx-minx,maxy-miny);if(span<1)return null;
-  const center={x:(minx+maxx)/2,y:(miny+maxy)/2};
-  const radial=p=>Math.hypot(p.x-center.x,p.y-center.y);
-  const pathMeta=paths.map((path,idx)=>{const len=length([path]);const rs=path.map(radial);return{idx,len,chord:dist(path[0],path.at(-1)),radMin:Math.min(...rs),radMax:Math.max(...rs)}});
-  const dominant=new Set(pathMeta.slice().sort((a,b)=>(b.len+b.radMax*1.2)-(a.len+a.radMax*1.2)).slice(0,Math.min(3,pathMeta.length)).map(v=>v.idx));
-  // The 5x5 opaque raster core suppresses thin hatching and outlines. A
-  // compact, truly painted mass should dominate, not a large quantity of lines.
-  let solid=clamp((fill-.46)/.39,0,1)*clamp((solidCore-.16)/.46,0,1)*clamp((2.25-aspect)/1.3,0,1);
-  const strengths=[0,0,0,0,0],candidates=[[],[],[],[],[]];
-  let lengthyStraights=0,horizontalHatch=0,verticalHatch=0,detailPaths=0;
-  // Coarse outer silhouette: big angular peaks help Attack, large outward limbs help Range.
-  const bins=Array.from({length:18},()=>0);
-  for(const p of all){const a=(Math.atan2(p.y-center.y,p.x-center.x)+Math.PI)/(2*Math.PI);const i=Math.min(17,Math.floor(a*18));bins[i]=Math.max(bins[i],radial(p));}
-  let silhouettePeaks=0,silhouetteReach=0;
-  for(let i=0;i<bins.length;i++){
-   const prev=bins[(i+bins.length-1)%bins.length],cur=bins[i],next=bins[(i+1)%bins.length];
-   if(cur>prev+span*.038&&cur>next+span*.038)silhouettePeaks++;
-   silhouetteReach=Math.max(silhouetteReach,cur-Math.min(prev,next));
-  }
-  for(let pi=0;pi<paths.length;pi++){
-   const path=paths[pi],meta=pathMeta[pi],len=meta.len,chord=meta.chord;
-   if(len<span*.19)continue; // Eyes, mouths, embroidery and tiny ornaments.
-   detailPaths++;
-   const ratio=chord/Math.max(.0001,len);
-   const closed=chord<span*.042;
-   const smoothPoints=resample(path,Math.min(48,Math.max(12,path.length*2)));
-   let turn=0,absTurn=0,majorKinks=0,rightishAngles=0;
-   for(let i=1;i<smoothPoints.length-1;i++){
-    const a=smoothPoints[i-1],b=smoothPoints[i],c=smoothPoints[i+1];
-    const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-b.x,vy=c.y-b.y;
-    const cross=ux*vy-uy*vx,dot=ux*vx+uy*vy;
-    const angle=Math.atan2(cross,dot);turn+=angle;absTurn+=Math.abs(angle);
-    if(Math.abs(angle)>.75)majorKinks++;
-    if(Math.abs(angle)>1.57)rightishAngles++;
-   }
-   let deviation=0;
-   if(chord>0)for(const p of path){const a=path[0],b=path.at(-1);deviation=Math.max(deviation,Math.abs((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x))/chord)}
-   // Long straight main lines -> Speed. Vertical lines get a tiny bonus.
-   const straightQuality=clamp((ratio-.905)/.08,0,1)*clamp((.072-deviation/span)/.055,0,1);
-   const straightLength=clamp((chord/span-.25)/.58,0,1);
-   const dx=Math.abs(path.at(-1).x-path[0].x),dy=Math.abs(path.at(-1).y-path[0].y);
-   const verticality=dy/Math.max(1,dx+dy);
-   const straightScore=straightQuality*straightLength*(.92+.18*verticality);
-   if(straightScore>.07){
-    candidates[0].push(straightScore);
-    lengthyStraights++;
-    if(dx>dy*2)horizontalHatch++;
-    if(dy>dx*2)verticalHatch++;
-    continue;
-   }
-   // Real coils and spirals -> Ink. Compact, same-direction winding matters.
-   const windIntensity=clamp((absTurn-2.45*Math.PI)/(3.6*Math.PI),0,1)*clamp((len/span-2.15)/2.4,0,1);
-   const sameDirection=Math.abs(turn)/Math.max(absTurn,.0001);
-   const compactCoil=clamp((span*.62-(meta.radMax-meta.radMin))/(span*.36),0,1);
-   const winding=Math.max(windIntensity*sameDirection,0)*(closed?.9:1.05)*(.68+.32*compactCoil);
-   if(winding>.115&&sameDirection>.66){candidates[3].push(winding);continue}
-   // Big outward spikes / sharp corners on silhouette -> Attack.
-   let spikes=0;
-   const simple=pts=>{
-    if(pts.length<3)return pts;
-    const p=pts[0],q=pts.at(-1),dx=q.x-p.x,dy=q.y-p.y,ll=dx*dx+dy*dy;
-    let best=0,k=-1;
-    for(let i=1;i<pts.length-1;i++){
-     const z=pts[i],t=ll?clamp(((z.x-p.x)*dx+(z.y-p.y)*dy)/ll,0,1):0;
-     const d=Math.hypot(z.x-p.x-dx*t,z.y-p.y-dy*t);
-     if(d>best){best=d;k=i}
-    }
-    return k>=0&&best>span*.014?simple(pts.slice(0,k+1)).slice(0,-1).concat(simple(pts.slice(k))):[p,q];
-   };
-   const simplified=simple(path),pts=closed?simplified.slice(0,-1):simplified;
+  const meta=paths.map(statMeta).filter(m=>m.box.span>.35),allBox=statBox(paths.flat());if(!meta.length)return null;
+  const {detached,scores}=statObjects(meta),candidates=[[],[],[],[],scores];
+  for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
+   if(straight>.15){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
+   if(winding>.06){candidates[3].push(winding);continue}
+   // Inspect local corners. Internal angle >= 90 degrees is armor, not a spike.
+   const simple=statSimplify(path,box.span*.025),pts=m.closed?simple.slice(0,-1):simple;
+   let attack=0,armor=0;
    for(let i=0;i<pts.length;i++){
-    if(!closed&&(i===0||i===pts.length-1))continue;
-    const prev=pts[(i+pts.length-1)%pts.length],tip=pts[i],next=pts[(i+1)%pts.length];
-    const la=dist(prev,tip),lb=dist(next,tip);
-    if(Math.min(la,lb)<span*.078)continue;
-    const u={x:tip.x-prev.x,y:tip.y-prev.y},v={x:next.x-tip.x,y:next.y-tip.y};
-    const bend=Math.acos(clamp((u.x*v.x+u.y*v.y)/(la*lb),-1,1));
-    if(bend<1.08)continue;
-    const prominence=radial(tip)-Math.max(radial(prev),radial(next));
-    if(prominence<span*.026||radial(tip)<span*.29)continue;
-    spikes+=clamp(prominence/(span*.08),.35,1.55)*clamp(Math.min(la,lb)/(span*.18),.35,1.2);
+    if(!m.closed&&(i===0||i===pts.length-1))continue;
+    const a=pts[(i+pts.length-1)%pts.length],b=pts[i],c=pts[(i+1)%pts.length],la=dist(a,b),lb=dist(b,c);
+    if(Math.min(la,lb)<box.span*.10)continue;
+    const bend=Math.acos(clamp(((b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y))/(la*lb),-1,1));
+    // Check that a corner exists over a small neighbourhood in original samples.
+    let ix=0;for(let j=1;j<path.length;j++)if(dist(path[j],b)<dist(path[ix],b))ix=j;
+    const near=dir=>{let j=ix,walk=0;for(let k=0;k<path.length-1&&walk<box.span*.07;k++){let n=j+dir;if(m.closed)n=(n+path.length)%path.length;else if(n<0||n>=path.length)break;walk+=dist(path[j],path[n]);j=n}return path[j]};
+    const u=near(-1),v=near(1),lu=dist(u,b),lv=dist(v,b),local=Math.acos(clamp(((b.x-u.x)*(v.x-b.x)+(b.y-u.y)*(v.y-b.y))/(lu*lv||1),-1,1));
+    if(local<.48)continue;
+    const rad=p=>Math.hypot(p.x-box.cx,p.y-box.cy),outer=rad(b)>Math.max(rad(a),rad(c))+box.span*.025;
+    if(bend>1.72&&local>1.5&&outer)attack+=clamp(Math.min(la,lb)/(box.span*.25),0,1);
+    else if(bend>=.40&&bend<=1.72)armor+=clamp(Math.min(la,lb)/(box.span*.22),0,1);
    }
-   const attackScore=(dominant.has(pi)?1:.72)*clamp((spikes+rightishAngles*.14)/2.6,0,1.65)*clamp((meta.radMax/span-.26)/.36,0,1);
-   if(attackScore>.34){candidates[1].push(attackScore);continue}
-   // Open smooth outward appendages -> Range. One end should be near the body.
-   const smoothCurve=clamp((ratio-.31)/.31,0,1)*clamp((.985-ratio)/.10,0,1);
-   const end0=radial(path[0]),end1=radial(path.at(-1));
-   const rootNear=clamp((span*.34-Math.min(end0,end1))/(span*.18),0,1);
-   const tipFar=clamp((Math.max(end0,end1)/span-.42)/.30,0,1);
-   const reach=clamp((meta.radMax-meta.radMin-span*.10)/(span*.34),0,1);
-   const bending=clamp((deviation/span-.017)/.088,0,1);
-   const nonJitter=clamp((4.7-absTurn)/2.6,0,1)*clamp((4.5-majorKinks)/3.8,0,1);
-   const rangePower=(!closed&&absTurn<5.1&&ratio>.31)?smoothCurve*rootNear*tipFar*reach*bending*nonJitter:0;
-   if(rangePower>.095){candidates[4].push(rangePower);continue}
-   // Ordinary outlines and decorations are neutral.
+   // Tiny face details are weak; a shield occupying part of the body still counts.
+   const size=clamp((box.span/allBox.span-.055)/.16,0,1);
+   if(attack>.15)candidates[1].push(clamp(attack/2,0,1.3)*size);
+   if(armor>.15)candidates[2].push(clamp(armor/3,0,1.3)*size);
+   // Smooth continuous curves with alternating bends also add a little Ink.
+   if(!attack&&!armor&&m.turn>Math.PI*.7)candidates[3].push(.14*size*clamp(m.turn/(2*Math.PI),0,1)*clamp(1-m.kinks/5,0,1));
   }
-  for(const i of [0,1,3,4]){
-   const list=candidates[i].sort((a,b)=>b-a);
-   strengths[i]=list.length?Math.min(1.55,list[0]+(list[1]||0)*.22+(list[2]||0)*.10):0;
-  }
-  strengths[1]+=clamp((silhouettePeaks-2)/7,0,.28)*clamp((silhouetteReach/span-.03)/.10,0,1);
-  strengths[4]+=clamp((silhouetteReach/span-.06)/.18,0,.22)*(1-clamp((silhouettePeaks-4)/6,0,1)*.35);
-  // Cross-hatched grids are not real fill.
-  if(horizontalHatch>=8&&verticalHatch>=8)solid=0;
-  if(lengthyStraights>=8)strengths[0]*=clamp((17-lengthyStraights)/9,0,1);
-  strengths[2]=solid;
-  // Dense detailing should not automatically become attacker/gunner.
-  const detailDamp=clamp((detailPaths-8)/10,0,1);
-  strengths[1]*=(1-.18*detailDamp);
-  strengths[4]*=(1-.14*detailDamp);
-  // Pixel fill and strokes share the same global strength budget.
-  for(const i of [0,1,3,4])strengths[i]*=(1-.82*solid);
-  return allocate([1+88*strengths[0],1+84*strengths[1],1+96*strengths[2],1+84*strengths[3],1+85*strengths[4]]);
+  const strengths=candidates.map(list=>{list.sort((a,b)=>b-a);return Math.min(1.5,(list[0]||0)+.25*(list[1]||0)+.12*(list[2]||0))});
+  const solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*clamp((2.3-aspect)/1.3,0,1);
+  strengths[2]=Math.max(strengths[2],solid*.85);
+  return allocate(strengths.map(v=>1+60*v));
  }
 
+ function statRasterRange(data,w,h){
+  const on=i=>data[i*4+3]>45,seen=new Uint8Array(w*h),objects=[];
+  for(let n=0;n<w*h;n++){if(seen[n]||!on(n))continue;const queue=[n];seen[n]=1;let loX=w,loY=h,hiX=0,hiY=0;
+   for(let k=0;k<queue.length;k++){const i=queue[k],x=i%w,y=Math.floor(i/w);loX=Math.min(loX,x);hiX=Math.max(hiX,x);loY=Math.min(loY,y);hiY=Math.max(hiY,y);
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy,j=ny*w+nx;if(nx>=0&&nx<w&&ny>=0&&ny<h&&!seen[j]&&on(j)){seen[j]=1;queue.push(j)}}
+   }objects.push({x:loX,y:loY,w:hiX-loX+1,h:hiY-loY+1,pixels:queue});
+  }
+  objects.sort((a,b)=>b.w*b.h-a.w*a.h);const body=objects[0];if(!body)return 0;const span=Math.hypot(body.w,body.h),scores=[];
+  for(const o of objects.slice(1)){
+   const gap=Math.hypot(Math.max(body.x-o.x-o.w,o.x-body.x-body.w,0),Math.max(body.y-o.y-o.h,o.y-body.y-body.h,0));
+   if(gap<span*.045||Math.min(o.w,o.h)<2||Math.max(o.w,o.h)>Math.min(o.w,o.h)*4||o.pixels.length<4)continue;
+   const bw=o.w+2,bh=o.h+2,wall=new Uint8Array(bw*bh),outside=new Uint8Array(bw*bh);for(const i of o.pixels)wall[(Math.floor(i/w)-o.y+1)*bw+i%w-o.x+1]=1;
+   const q=[0];outside[0]=1;for(let k=0;k<q.length;k++){const i=q[k],x=i%bw,y=Math.floor(i/bw);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,j=ny*bw+nx;if(nx>=0&&nx<bw&&ny>=0&&ny<bh&&!wall[j]&&!outside[j]){outside[j]=1;q.push(j)}}}
+   const hole=wall.some((v,i)=>!v&&!outside[i]);
+   // Coils and thin open strokes have no enclosed area or solid interior.
+   let core=0;for(let y=1;y<bh-1;y++)for(let x=1;x<bw-1;x++){let full=true;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(!wall[(y+dy)*bw+x+dx])full=false;if(full)core++}
+   if(!hole&&(o.pixels.length/(o.w*o.h)<.45||core<o.w*o.h*.08))continue;
+   scores.push(clamp(.3+gap/span,.3,1)*clamp(Math.hypot(o.w,o.h)/(span*.16),.3,1));
+  }
+  scores.sort((a,b)=>b-a);return Math.min(1.5,(scores[0]||0)+.25*(scores[1]||0)+.12*(scores[2]||0));
+ }
 
  function analyze(data,w,h,paths=[]){
   let count=0,minx=w,miny=h,maxx=0,maxy=0,edge=0;
@@ -2819,7 +2794,7 @@ window.ArtsRules=(()=>{
    count++;minx=Math.min(x,minx);miny=Math.min(y,miny);maxx=Math.max(x,maxx);maxy=Math.max(y,maxy);
    for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(!filled(x+dx,y+dy))edge++;
   }
-  if(!count)return paths.length?(drawingStats(paths,0,1)||[20,20,20,20,20]):[20,20,20,20,20];
+  if(!count)return [0,0,0,0,0];
   const bw=maxx-minx+1,bh=maxy-miny+1,area=bw*bh,fill=count/area,
    aspect=Math.max(bw,bh)/Math.max(1,Math.min(bw,bh)),rough=clamp(edge/(4*Math.sqrt(count)),1,5);
   // A 5x5 continuous interior is present in a painted region, but almost never
@@ -2835,8 +2810,8 @@ window.ArtsRules=(()=>{
   }
   const solidCore=deepInterior/area;
   if(paths.length){const drawn=drawingStats(paths,fill,aspect,solidCore);if(drawn)return drawn}
-  const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.48)/.40,0,1)*clamp((solidCore-.18)/.48,0,1)*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
-  return allocate([1+40*slender,1+35*spiky*(1-solid),1+63*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)]);
+  const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
+  return allocate([1+40*slender,1+35*spiky*(1-solid),1+63*solid,1+8*airy*(1-slender),1+60*statRasterRange(data,w,h)]);
  }
  function length(strokes){let n=0;for(const s of strokes)for(let i=1;i<s.length;i++)n+=dist(s[i],s[i-1]);return n}
  function resample(s,n=48){if(s.length<2)return s;const total=length([s]);if(total<.001)return [s[0]];let out=[],cum=[0];for(let i=1;i<s.length;i++)cum.push(cum.at(-1)+dist(s[i],s[i-1]));let j=1;for(let i=0;i<n;i++){const t=total*i/(n-1);while(j<cum.length-1&&cum[j]<t)j++;const f=(t-cum[j-1])/(cum[j]-cum[j-1]||1);out.push({x:s[j-1].x+(s[j].x-s[j-1].x)*f,y:s[j-1].y+(s[j].y-s[j-1].y)*f})}return out}
@@ -2982,9 +2957,9 @@ window.ArtArts=(()=>{
  const bar=document.createElement('div');bar.id='artsBar';bar.hidden=true;$('#studio').insertBefore(bar,$('.workspace'));
  const stage=document.createElement('section');stage.id='artsStage';stage.hidden=true;$('#viewport').append(stage);
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel','contextmenu'])stage.addEventListener(ev,e=>{e.stopPropagation();if(ev==='contextmenu')e.preventDefault()});
- const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">20</output><progress id="artsLiveBar'+i+'" max="100" value="20" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
+ const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">—</output><progress id="artsLiveBar'+i+'" max="100" value="0" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
  function syncLiveStats(){const editing=!!(enabled()&&view?.phase==='create'&&participant()&&!view.ready[localId]);$('#studio').classList.toggle('arts-character-editing',editing);liveStats.hidden=!editing;return editing}
- function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const paths=collectDrawingPaths(true),stats=sampleArtwork(true).stats;$('#artsLiveClass').textContent=paths.length?R.classNames[R.type(stats)]+' 寄り':'描いてみよう';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=n;$('#artsLiveBar'+i).value=n})}catch{}}
+ function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats)]+' 寄り';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
  function clearCanvas(){characterPaths=[];characterFacing=1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value='1';window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();prefs.opacities=[100,100,100];$('#transformBar').hidden=true;render();renderControls();fitView()}
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
  function publicState(withImages=false){return{id:host.id,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,ink:p.ink,maxInk:p.maxInk,stats:p.stats,class:p.class,skill:p.skill,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,nextSkill:p.nextSkill,flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
@@ -3005,19 +2980,12 @@ window.ArtArts=(()=>{
  async function characterPicker(){try{await refreshGallery();const list=gallery.filter(a=>a.format==='arts-character');modal('絵画展のキャラクター','<p>キャラを選ぶと、制作中のキャンバスに読み込めます。ホームでは次回使用するキャラを選択します。</p><div class="arts-character-grid">'+list.map(a=>'<button data-character-id="'+esc(a.id)+'"><img src="'+esc(a.thumb)+'" alt=""><b>'+esc(a.name)+'</b>'+(selectedCharacter()===a.id?'<small>選択中</small>':'')+'</button>').join('')+'</div>'+(!list.length?'<p>保存したキャラがありません。「キャラ制作だけ」から作成できます。</p>':'')+'<button id="artsCharacterClear">次回は白紙から描く</button>');document.querySelectorAll('[data-character-id]').forEach(button=>button.onclick=async()=>{const a=await db('art','readonly',store=>store.get(button.dataset.characterId));if(!a){toast('キャラが見つかりません。');return}if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のキャラ作成時に読み込みます。')}});$('#artsCharacterClear').onclick=()=>{if(installCharacter('')){$('#modal').close();toast('次回は白紙から描きます。')}}}catch{toast('絵画展を読み込めませんでした。')}}
  function showCharacter(a){modal(a.name,'<img class="art-view" src="'+esc(a.image)+'" alt="'+esc(a.name)+'">'+statsHTML(a.stats||[20,20,20,20,20])+'<div class="modal-actions"><button id="artsInstallCharacter" class="primary">このキャラを使う</button><button id="artsEditCharacter">キャラ制作で開く</button><button id="artsDownloadCharacter">PNG保存</button><button id="artsDeleteCharacter">削除</button></div>');$('#artsInstallCharacter').onclick=async()=>{if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のアートアーツでこのキャラを読み込みます。')}};$('#artsEditCharacter').onclick=()=>openCharacterStudio(a);$('#artsDownloadCharacter').onclick=()=>download(a.image,a.name+'.png');$('#artsDeleteCharacter').onclick=async()=>{if(!confirm('このキャラを絵画展から削除しますか？'))return;await db('art','readwrite',store=>store.delete(a.id));if(selectedCharacter()===a.id)installCharacter('');$('#modal').close();await refreshGallery()};}
  function collectDrawingPaths(includeCurrent=false){const ops=engine.ops.filter(a=>!a.disabled&&a.tool==='pen'&&Array.isArray(a.points)&&a.points.length>=2);if(includeCurrent&&stroke?.tool==='pen'&&stroke.points?.length>=2&&!ops.some(a=>a.id===stroke.id))ops.push(stroke);const indexed=ops.map((a,i)=>({a,i,weight:a.points.reduce((sum,p,j)=>j?sum+Math.hypot(p[0]-a.points[j-1][0],p[1]-a.points[j-1][1]):sum,0)}));const ranked=[...indexed].sort((a,b)=>b.weight-a.weight).slice(0,28);const seen=new Set(ranked.map(p=>p.i));const remaining=indexed.filter(p=>!seen.has(p.i));const slots=Math.max(0,64-characterPaths.length-ranked.length);for(let j=0;j<Math.min(slots,remaining.length);j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/Math.min(slots,remaining.length)))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48));return [...characterPaths,...paths].slice(-64)}
- function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{
- // Missing paint in the composite is not proof that the user drew nothing: recover visible art from pen paths.
- const paths=collectDrawingPaths(includeCurrent),context=out.getContext('2d');
- if(paths.length){const all=paths.flat(),lx=Math.min(...all.map(p=>p.x)),rx=Math.max(...all.map(p=>p.x)),ly=Math.min(...all.map(p=>p.y)),ry=Math.max(...all.map(p=>p.y)),z=176/Math.max(rx-lx,ry-ly,2),ox=(192-(rx-lx)*z)/2,oy=(192-(ry-ly)*z)/2;
- context.strokeStyle=profile.color||'#7d68a0';context.lineWidth=Math.max(2,Math.min(9,z*.85));context.lineCap='round';context.lineJoin='round';
- for(const path of paths){context.beginPath();path.forEach((p,i)=>i?context.lineTo(ox+(p.x-lx)*z,oy+(p.y-ly)*z):context.moveTo(ox+(p.x-lx)*z,oy+(p.y-ly)*z));context.stroke()}
- }else{context.fillStyle=profile.color||'#7d68a0';context.beginPath();context.arc(96,96,60,0,Math.PI*2);context.fill();context.fillStyle='white';context.font='bold 55px sans-serif';context.textAlign='center';context.fillText('?',96,114)}
- }x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
+ function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{return{image:'',drawingPaths:[],artFacing:characterFacing,stats:[0,0,0,0,0],empty:true}}x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
  const drawingPaths=collectDrawingPaths(includeCurrent),stats=R.analyze(x.getImageData(0,0,64,64).data,64,64,drawingPaths);
- return{image:out.toDataURL('image/png'),drawingPaths,artFacing:characterFacing,stats,empty:x1<0&&!drawingPaths.length}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
+ return{image:out.toDataURL('image/png'),drawingPaths,artFacing:characterFacing,stats,empty:false}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
  function cancelReady(){if(!view||view.phase!=='create'||!participant()||!view.ready[localId]||room.characterOnly)return;sendHost({type:'gameArtsUnready',gameId:view.id})}
  function submit(){if(room?.characterOnly){saveCharacter();return}if(!view||!['create','collect'].includes(view.phase)||!participant()||view.ready[localId]||submitted===view.id)return;capturing=true;try{if(stroke)finishStroke();if(selection)$('#applyTransform').click();const art=sampleArtwork();if(art.empty){toast('絵が取得できていません。ペンで描いてから、もう一度準備完了を押してください。');return}submitted=view.id;sendHost({type:'gameArtsReady',gameId:view.id,image:art.image,drawingPaths:art.drawingPaths,artFacing:art.artFacing})}catch{toast('絵を送れませんでした。もう一度お試しください。')}finally{capturing=false}}
- async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===20)&&!drawingPaths.length){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
+ async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===0)){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
  function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats);a.skill=R.skills(a.class)[0];if(p.bot)host.equipped[p.id]=true}sendAll(true)}
  function startBattle(){if(!host||host.phase!=='equip')return;host.blocks=R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;const spots=[[110,70],[610,1050],[610,70],[110,1050],[360,90],[360,1030],[45,550],[675,570]];host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],team=i%2,spot=host.settings.teams==='teams'?[90+Math.floor(i/2)*170,team?1050:70]:spots[i];return{id:p.id,team,x:spot[0],y:spot[1],hp:100,ink:60+stats[3]*2,maxInk:60+stats[3]*2,stats,class:R.type(stats),skill:a?.skill||R.skills(R.type(stats))[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,nextSkill:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
@@ -3193,7 +3161,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様は能力を増やしません。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを防御力として評価します。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>渦巻きの巻き数や連続する曲線はインク量。本体から離れた閉じた弾・魔法弾は射程になります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>タンク：</b>広い塗りつぶしと、盾・装甲のような内角90度以上の角で防御力が上がります。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。独立した弾と鋭いトゲが目印。目・口など本体内の部品、一本線、渦巻きは射程に数えません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -3348,7 +3316,7 @@ window.ArtArts=(()=>{
  const hud=$('#artsHUD');if(hud){const text=me&&me.active?'<span>HP <b>'+Math.ceil(me.hp)+'</b> / 100</span><span>インク <b>'+Math.floor(me.ink)+'</b> / '+me.maxInk+'</span><span>'+R.classNames[me.class]+' / '+(view.settings.teams==='teams'?'チーム'+(me.team+1)+' / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!battleActive();if(info&&me){const seconds=Math.max(0,Math.ceil((me.nextSkill-now)/1000));const label=(moves[me.skill]?.name||'スキル')+' / '+(seconds?seconds+'秒':'説明・お手本');if(info.textContent!==label)info.textContent=label}}}
 
 /* SECTION: arts/settings-lifecycle.js */
- function configHTML(s=R.settings()){return '<label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'庭園（標準）',ruins:'遺跡（遮蔽物が多い）',forest:'森（茂みが多い）',arena:'闘技場（広く開けた地形）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、広い塗りつぶしは防御力、長く曲がる一筆書きはインク量・射程に特化します。HPは全員100。2〜8人。チーム戦は参加順で交互に振り分けます。時間切れ後は安全地帯が縮小します。</p>'}
+ function configHTML(s=R.settings()){return '<label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'庭園（標準）',ruins:'遺跡（遮蔽物が多い）',forest:'森（茂みが多い）',arena:'闘技場（広く開けた地形）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、塗りつぶしや盾の角は防御力、渦巻き・連続曲線はインク量、本体から離れた弾・魔法弾は射程に特化します。HPは全員100。2〜8人。チーム戦は参加順で交互に振り分けます。時間切れ後は安全地帯が縮小します。</p>'}
  function readSettings(){return R.settings({createSeconds:$('#artsCreateSeconds').value,battleSeconds:$('#artsBattleSeconds').value,teams:$('#artsTeamMode').value,stage:$('#artsStageSelect').value})}
  function settingsDialog(){const editable=isHost&&host?.phase==='lobby';modal('あーとあーつのゲーム設定','<form id="artsSettingsForm"><fieldset '+(editable?'':'disabled')+'>'+configHTML(R.settings(room.artsSettings))+'</fieldset>'+(editable?'<button class="primary">保存</button>':'<p>開始前に部屋主が変更できます。</p>')+'</form>');$('#artsSettingsForm').onsubmit=e=>{e.preventDefault();if(!editable||!e.target.reportValidity())return;host.settings=readSettings();room.artsSettings=host.settings;sendAll();$('#modal').close()}}
  function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとあーつ（試作）','arts'));const block=document.createElement('div');block.id='artsCreate';block.innerHTML=configHTML();$('#answerCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='arts';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=false;$('#newWidth').value=$('#newHeight').value=512;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
