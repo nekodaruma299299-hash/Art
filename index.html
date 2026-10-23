@@ -2735,7 +2735,10 @@ window.ArtsRules=(()=>{
   const dense=clamp((detail-4.0)/11,0,1);
   const flowing=hasLongCurve?clamp(flowScore/(1+.25*(paths.length-1)),0,1):0;
   const openness=clamp((Math.max(maxx-minx,maxy-miny)-span*.36)/(span*.65),0,1);
-  return allocate([1+40*straight*(1-solid),1+53*spikes*(1-solid),1+58*solid+12*dense*(1-spikes)*(1-flowing),1+39*flowing+5*dense*(1-spikes),1+33*flowing*(.65+.35*openness)]);
+  // Eyes/mouth/hair count as meaningful detail, without being mistaken for spikes.
+  // Without a baseline for ordinary details, valid drawings often scored 20 in every stat.
+  const ordinaryDetail=clamp((detail-1.0)/6,0,1);
+  return allocate([1+40*straight*(1-solid),1+53*spikes*(1-solid),1+58*solid+12*dense*(1-spikes)*(1-flowing)+2.5*ordinaryDetail,1+39*flowing+5*dense*(1-spikes)+1.7*ordinaryDetail,1+33*flowing*(.65+.35*openness)]);
  }
 
  function analyze(data,w,h,paths=[]){let count=0,minx=w,miny=h,maxx=0,maxy=0,edge=0;const filled=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&data[(y*w+x)*4+3]>45;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(filled(x,y)){count++;minx=Math.min(x,minx);miny=Math.min(y,miny);maxx=Math.max(x,maxx);maxy=Math.max(y,maxy);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(!filled(x+dx,y+dy))edge++}if(!count)return paths.length?(drawingStats(paths,0,1)||[20,20,20,20,20]):[20,20,20,20,20];const bw=maxx-minx+1,bh=maxy-miny+1,fill=count/(bw*bh),aspect=Math.max(bw,bh)/Math.max(1,Math.min(bw,bh)),rough=clamp(edge/(4*Math.sqrt(count)),1,5);if(paths.length){const drawn=drawingStats(paths,fill,aspect);if(drawn)return drawn}const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.35)/.5,0,1)*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);return allocate([1+40*slender,1+35*spiky*(1-solid),1+55*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)])}
@@ -2748,7 +2751,7 @@ window.ArtsRules=(()=>{
  case'mirage':return[Array.from({length:49},(_,i)=>{const t=i/48;return{x:67*Math.cos(Math.PI*.5+2*Math.PI*t),y:-96+192*t}})];
  case'decoy':return[Array.from({length:97},(_,i)=>{const t=2*Math.PI*i/96;return{x:86*Math.sin(t),y:52*Math.sin(2*t)}})];
  case'smoke':return[Array.from({length:97},(_,i)=>{const t=i/96,a=t*Math.PI*4.7,r=6+t*82;return{x:r*Math.cos(a),y:r*Math.sin(a)}})];
- case'warp':return[Array.from({length:49},(_,i)=>{const a=Math.PI+i*Math.PI/48;return{x:86*Math.cos(a),y:86*Math.sin(a)}})];
+ case'warp':return[Array.from({length:49},(_,i)=>{const a=Math.PI-i*Math.PI/48;return{x:86*Math.cos(a),y:86*Math.sin(a)}})];
  case'burst':return[[[-45,-95],[-7,-25],[-35,-25],[27,45],[8,45],[38,97]].map(([x,y])=>({x,y}))];
  case'ghost':return[[[-100,0],[78,0],[37,-41],[78,0],[37,41]].map(([x,y])=>({x,y}))];
  case'spread':return[[[-74,-78],[0,0],[0,90],[0,0],[74,-78]].map(([x,y])=>({x,y}))];
@@ -2789,10 +2792,28 @@ window.ArtsRules=(()=>{
     if(Math.abs(angle)>.08){if(sign&&sign*Math.sign(angle)<0)flip++;sign=Math.sign(angle)}
     totalTurn+=Math.abs(angle);
    }
-   if(major===0&&flip<=1&&totalTurn>.45&&totalTurn<4.7)kind='slash';
+   if(major===0&&flip<=1&&totalTurn>.45&&totalTurn<4.7){
+    // A warp portal curves clockwise in a deliberate single stroke; a Slash curves the other way.
+    // They can be rotated without changing which direction the stroke turns.
+    kind=skill==='warp'&&sign<0?'warp':'slash';
+   }
   }
  }
  if(!kind&&skill==='thrust'&&strokes.length===1&&isTriangle(points))kind='thrust';
+ // Identify rotated four-corner squares/rectangles by their angles rather than their axis-aligned bounding box.
+ // This keeps a wall symbol available even when the player rotates the stylus.
+ if(!kind&&skill==='build'&&strokes.length===1){
+  const v=strokes[0],close=dist(v[0],v.at(-1))<diag*.23;
+  const corners=close?v.slice(0,-1):[];
+  if(corners.length===4){
+   const sides=corners.map((p,i)=>dist(p,corners[(i+1)%4]));
+   const squareAngles=corners.every((p,i)=>{
+    const q=corners[(i+3)%4],r=corners[(i+1)%4],u={x:q.x-p.x,y:q.y-p.y},v={x:r.x-p.x,y:r.y-p.y};
+    return Math.abs((u.x*v.x+u.y*v.y)/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y)||1))<.48;
+   });
+   if(squareAngles&&Math.min(...sides)>diag*.23)kind='build';
+  }
+ }
  // Accept hand-drawn rectangles for the equipped wall skill, including small gaps.
  if(skill==='build'&&w>=20&&h>=20&&Math.max(w/h,h/w)<=4&&len>=2*(w+h)*.72){const normalized=points.map(p=>({x:(p.x-minx)/w,y:(p.y-miny)/h})),cornersCovered=[[0,0],[1,0],[1,1],[0,1]].every(([x,y])=>normalized.some(p=>Math.hypot(p.x-x,p.y-y)<.20)),onEdges=normalized.filter(p=>Math.min(p.x,1-p.x,p.y,1-p.y)<.16).length/normalized.length;if(cornersCovered&&onEdges>=.8)kind='build'}
  if(!kind&&skill&&moves[skill]?.class&&w>25&&h>25){const distance=match(strokes,skill);const limit=['cross','feint','inkcut','heal','star','ray','anchor','mirage','decoy','smoke','warp','burst','ghost','spread','ricochet'].includes(skill)?.16:.12;if(distance<limit){const family=['build','iron','reactor','nova'];const best=family.includes(skill)?family.reduce((best,k)=>{const d=k===skill?distance:match(strokes,k);return d<best.d?{k,d}:best},{k:skill,d:distance}):{k:skill};if(best.k===skill||distance<=best.d+.02)kind=skill}}
@@ -2870,8 +2891,12 @@ window.ArtArts=(()=>{
  function finishBattle(){if(host?.phase!=='battle')return;host.phase='finished';host.deadline=null;host.shots=[];host.effects=[];const survivors=alive();host.result={winners:host.settings.teams==='teams'&&survivors.length?host.fighters.filter(p=>p.team===survivors[0].team&&p.active).map(p=>p.id):survivors.map(p=>p.id)};for(const p of host.fighters)p.drawing=p.moving=false;sendAll(true)}
  function hurt(target,damage,now,source,armorPierce=false,knockback=0){if(target.hp<=0||!target.active)return 0;let reduction=armorPierce?0:target.stats[2]*.22+(target.iron>now?12:0); const actual=Math.min(target.hp,Math.max(0,damage-reduction));target.hp-=actual;if(target.hp<=0&&actual>0)target.killedBy=source?.owner||source?.id||null;if(actual>0){target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=actual;if(knockback>0&&source){const dx=target.x-source.x,dy=target.y-source.y,d=Math.hypot(dx,dy)||1,total=knockback*Math.min(1,actual/Math.max(1,damage)),steps=Math.ceil(total/6);for(let i=0;i<steps;i++){const nx=target.x+dx/d*total/steps,ny=target.y+dy/d*total/steps;if(R.blocked(nx,ny,host.blocks))break;target.x=nx;target.y=ny}target.dash=null}target.flash=now+1000;if(target.reactor>now)target.ink=Math.min(target.maxInk,target.ink+actual*1.5)}return actual}
  function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<steps;i++){const x=a.x+(b.x-a.x)*i/steps,y=a.y+(b.y-a.y)*i/steps;if(host.blocks.some(v=>['wall','stone'].includes(v.type)&&(v.type==='stone'||v.hp>0)&&R.intersects(x,y,1,v)))return false}return true}
- function melee(p,e,now){const ux=Math.cos(e.angle),uy=Math.sin(e.angle);for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&((q.x-e.x)*ux+(q.y-e.y)*uy)>=-5&&lineClear(e,q)){hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x+ux*e.r*.65,e.y+uy*e.r*.65,e.r*.65,b))b.hp=Math.max(0,b.hp-1)}
- function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m||!p.drawing)return false;if(m.class&&(shape.type!==p.skill||m.class!==p.class))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:4,temporary:true,expires:now+15000};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>q.temporary&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}const cost=R.cost(shape);if(p.nextCast>now||(m.class&&p.nextSkill>now)){p.castError='再使用まであと '+Math.ceil((Math.max(p.nextCast,m.class?p.nextSkill:0)-now)/100)/10+'秒です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;p.nextCast=now+(m.class?350:m.cooldown);if(m.class)p.nextSkill=now+m.cooldown;p.drawing=false;p.flash=now+800;
+ function melee(p,e,now){const ux=Math.cos(e.angle),uy=Math.sin(e.angle);
+ for(const d of host.effects)if(d.type==='decoyBody'&&d.end>now&&d.owner!==p.id&&R.dist(d,e)<e.r+d.r&&((d.x-e.x)*ux+(d.y-e.y)*uy)>=-5&&lineClear(e,d))d.end=now;
+ for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&((q.x-e.x)*ux+(q.y-e.y)*uy)>=-5&&lineClear(e,q)){hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x+ux*e.r*.65,e.y+uy*e.r*.65,e.r*.65,b))b.hp=Math.max(0,b.hp-1)}
+ function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m||!p.drawing)return false;if(m.class&&(shape.type!==p.skill||m.class!==p.class))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:4,temporary:true,expires:now+15000};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>q.temporary&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}if(shape.type==='warp'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R+2)){p.castError='ワープ先に壁や石があります。空いた場所へ描いてください。';return false}
+ if(shape.type==='ricochet'&&host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(p.x+shape.x,p.y+shape.y,11,b))){p.castError='壁の中からは跳弾を撃てません。';return false}
+ const cost=R.cost(shape);if(p.nextCast>now||(m.class&&p.nextSkill>now)){p.castError='再使用まであと '+Math.ceil((Math.max(p.nextCast,m.class?p.nextSkill:0)-now)/100)/10+'秒です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;p.nextCast=now+(m.class?350:m.cooldown);if(m.class)p.nextSkill=now+m.cooldown;p.drawing=false;p.flash=now+800;
  const power=R.clamp(shape.length/220,.45,2.6),aim=Number.isFinite(shape.angle)?shape.angle:Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):-Math.PI/2,dx=shape.x,dy=shape.y,len=Math.hypot(dx,dy)||1,target={x:R.clamp(p.x+dx,20,R.W-20),y:R.clamp(p.y+dy,20,R.H-20)};
  const e={id:++host.seq,type:shape.type,owner:id,x:target.x,y:target.y,tx:target.x,ty:target.y,r:Math.min(shape.radius,140),angle:aim,start:now,end:now+450,power:0,done:false};
  if(shape.type==='guard'){p.guard=now+1000;p.guardAngle=aim;p.guardWidth=R.clamp(shape.length/160,.4,1.55);p.guardValue=8+p.stats[2]*.35+power*3;p.guardX=target.x;p.guardY=target.y;p.guardRadius=R.clamp(shape.length/2,30,150);e.r=p.guardRadius;e.end=p.guard}
@@ -2886,6 +2911,41 @@ window.ArtArts=(()=>{
  if(shape.type==='reactor')p.reactor=now+6000;
  if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=Math.min(shape.extent+25,170);e.power=8*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
  if(buildBlock){buildBlock.id=++host.seq;host.blocks.push(buildBlock)}
+ // TRICKSTER: mobility, illusions, smoke and safe teleport.
+ if(shape.type==='mirage'){
+  const ox=p.x,oy=p.y,aimAngle=Math.atan2(shape.strokes.at(-1).at(-1).y-shape.strokes[0][0].y,shape.strokes.at(-1).at(-1).x-shape.strokes[0][0].x),angle=Number.isFinite(aimAngle)?aimAngle:aim,dist=Math.min(190,Math.max(90,shape.extent));
+  const ux=Math.cos(angle),uy=Math.sin(angle);for(let traveled=0;traveled<dist;traveled+=7){const nx=p.x+ux*7,ny=p.y+uy*7;if(R.blocked(nx,ny,host.blocks,R.R))break;p.x=nx;p.y=ny}
+  host.effects.push({id:++host.seq,type:'decoyBody',owner:id,x:ox,y:oy,vx:0,vy:0,r:25,start:now,end:now+2000});e.x=ox;e.y=oy;e.r=45;e.end=now+450;
+ }
+ if(shape.type==='decoy'){
+  for(const direction of [-1,1]){
+   const a=aim+direction*1.12,xx=p.x+Math.cos(a)*22,yy=p.y+Math.sin(a)*22;
+   host.effects.push({id:++host.seq,type:'decoyBody',owner:id,x:xx,y:yy,vx:Math.cos(a)*65,vy:Math.sin(a)*65,r:25,start:now,end:now+4000});
+  }e.x=p.x;e.y=p.y;e.r=60;e.end=now+700;
+ }
+ if(shape.type==='smoke'){e.r=R.clamp(shape.radius+45,85,170);e.end=now+4000;e.x=target.x;e.y=target.y;}
+ if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=40;e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:36,start:now,end:now+600});}
+ // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
+ function fireShot(dir,opts={}){
+  const speed=opts.speed||460,distance=opts.distance||800;
+  host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,vx:Math.cos(dir)*speed,vy:Math.sin(dir)*speed,power:opts.power||R.magicDamage(p.stats,shape.length,false)*.40,radius:opts.radius||9,knockback:opts.knockback||8,left:distance,end:now+(opts.duration||distance/speed*1000+100),hit:[],pierce:!!opts.pierce,passWalls:!!opts.passWalls,ricochetUntil:opts.ricochetUntil||0,fireAt:opts.fireAt||now,style:opts.style||'gun'});
+ }
+ if(shape.type==='burst'){
+  for(let i=0;i<5;i++)fireShot(aim,{power:Math.max(5,5+p.stats[1]*.25),radius:7,speed:550,fireAt:now+i*85,duration:2700,distance:950,style:'burst'});
+  e.end=now+650;e.r=55;
+ }
+ if(shape.type==='ghost'){
+  fireShot(aim,{power:25+p.stats[1]*.75,speed:880,distance:1300,radius:11,knockback:30,pierce:true,passWalls:true,fireAt:now+800,duration:2450,style:'ghost'});
+  e.hit=now+800;e.end=now+1150;e.range=850;e.r=16;
+ }
+ if(shape.type==='spread'){
+  for(const delta of [-.32,-.16,0,.16,.32])fireShot(aim+delta,{power:Math.max(5,5+p.stats[1]*.22),radius:9,speed:430,distance:570,style:'spread'});
+  e.end=now+650;e.r=65;
+ }
+ if(shape.type==='ricochet'){
+  fireShot(aim,{power:12+p.stats[1]*.37,radius:11,speed:385,distance:999999,duration:10000,ricochetUntil:now+10000,pierce:true,style:'ricochet'});
+  e.end=now+850;e.r=70;
+ }
  host.effects.push(e);return true}
  function hostMessage(id,m){if(drawTypes.has(m.type))return true;if(!m.type.startsWith('gameArts'))return false;if(!isHost||!host||m.gameId!==host.id)return true;const player=host.players.find(p=>p.id===id&&p.active&&!p.bot);if(!player)return true;
  if(m.type==='gameArtsReady'&&['create','collect'].includes(host.phase)&&!host.ready[id]){acceptArt(id,m.image,m.drawingPaths,m.artFacing);return true}
@@ -2907,30 +2967,47 @@ window.ArtArts=(()=>{
  if(p.dash)advanceDash(p,dt,now);else{const vx=mx*speed*dt,vy=my*speed*dt,steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
  }
- // 弾は壁・石と衝突した時点で消滅。壊れた壁と草むらは通過する。
- // 半径を考慮して移動を8px以下に分割し、高速の弾も壁をすり抜けないようにする。
- function shotHitsWall(s){return host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(s.x,s.y,s.radius||4,b))}
+ // High-speed bullets are stepped in 8px increments. Ghost shots alone pass through stone/walls.
+ function shotHitsWallAt(x,y,r){return host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(x,y,r,b))}
+ for(const e of host.effects)if(e.type==='decoyBody'&&e.end>now&&(e.vx||e.vy)){
+  const nx=e.x+e.vx*dt,ny=e.y+e.vy*dt;
+  if(!R.blocked(nx,e.y,host.blocks,15))e.x=nx;else e.vx*=-1;
+  if(!R.blocked(e.x,ny,host.blocks,15))e.y=ny;else e.vy*=-1;
+ }
  host.shots=host.shots.filter(s=>{
   if(now>=s.end||s.left<=0)return false;
-  const owner=host.fighters.find(p=>p.id===s.owner);
-  if(!owner||shotHitsWall(s))return false;
+  const owner=host.fighters.find(p=>p.id===s.owner);if(!owner)return false;
+  if(now<(s.fireAt||0))return true;
+  if(!s.passWalls&&!s.ricochetUntil&&shotHitsWallAt(s.x,s.y,s.radius||4))return false;
   const distance=Math.hypot(s.vx,s.vy)*dt,steps=Math.max(1,Math.ceil(distance/8));
   for(let i=0;i<steps;i++){
-   const ax=s.x,ay=s.y;
-   s.x+=s.vx*dt/steps;s.y+=s.vy*dt/steps;
+   const ax=s.x,ay=s.y,tx=s.x+s.vx*dt/steps,ty=s.y+s.vy*dt/steps,r=s.radius||4;
    s.left-=distance/steps;
-   // 敵への命中判定より先に、移動先の障害物をチェックする。
-   if(s.x<0||s.y<0||s.x>R.W||s.y>R.H||shotHitsWall(s))return false;
-   if(host.fighters.some(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,s.radius||4,now)))return false;
+   const blockX=tx<r||tx>R.W-r||(!s.passWalls&&shotHitsWallAt(tx,ay,r));
+   const blockY=ty<r||ty>R.H-r||(!s.passWalls&&shotHitsWallAt(ax,ty,r));
+   const blockBoth=!s.passWalls&&shotHitsWallAt(tx,ty,r);
+   if(s.ricochetUntil&&now<s.ricochetUntil&&(blockX||blockY||blockBoth)){
+    if(blockX||(!blockX&&!blockY&&blockBoth))s.vx=-s.vx;
+    if(blockY||(!blockX&&!blockY&&blockBoth))s.vy=-s.vy;
+    // Stay on the unobstructed side of the wall so the next sub-step can advance.
+    const nx=ax+s.vx*dt/steps,ny=ay+s.vy*dt/steps;
+    if(nx>=r&&nx<=R.W-r&&ny>=r&&ny<=R.H-r&&!shotHitsWallAt(nx,ny,r)){s.x=nx;s.y=ny}else{s.x=ax;s.y=ay}
+   }else if(blockX||blockY||blockBoth)return false;
+   else{s.x=tx;s.y=ty}
+   if(host.fighters.some(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now)))return false;
+   const decoy=host.effects.find(e=>e.type==='decoyBody'&&e.end>now&&e.owner!==s.owner&&R.dist(e,s)<e.r+r);
+   if(decoy){decoy.end=now;return false}
    for(const q of host.fighters){
-    if(!friendly(owner,q)&&q.hp>0&&q.active&&!s.hit.includes(q.id)&&R.dist(q,s)<R.R+(s.radius||4)){
-     s.hit.push(q.id);hurt(q,s.power,now,{x:q.x-s.vx,y:q.y-s.vy,owner:s.owner},true,s.knockback||0);
-    }
+    if(friendly(owner,q)||q.hp<=0||!q.active||R.dist(q,s)>=R.R+r)continue;
+    if(s.ricochetUntil){s.hitTimes??={};if(now-(s.hitTimes[q.id]||0)<800)continue;s.hitTimes[q.id]=now}
+    else if(s.hit.includes(q.id))continue;
+    s.hit.push(q.id);hurt(q,s.power,now,{x:q.x-s.vx,y:q.y-s.vy,owner:s.owner},true,s.knockback||0);
+    if(!s.pierce)return false;
    }
   }
   return true;
  });
- for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=e.range&&across<=e.r+R.R}if(hit)hurt(p,e.power,now,e,true)}if(e.type!=='ray')for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x,e.y,e.r,b))b.hp=Math.max(0,b.hp-2)}host.effects=host.effects.filter(e=>e.end>now);
+ for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}if(e.type==='ghost')continue;for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=e.range&&across<=e.r+R.R}if(hit)hurt(p,e.power,now,e,true)}if(e.type!=='ray')for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x,e.y,e.r,b))b.hp=Math.max(0,b.hp-2)}host.effects=host.effects.filter(e=>e.end>now);
  if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,610-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}if(remainingSides()<=1)finishBattle()}
 
  function tick(){if(!enabled()||!view)return;const now=Date.now();updateLiveStats(now);if($('#artsClock'))$('#artsClock').textContent=view.deadline?Math.max(0,Math.ceil((view.deadline-now-offset)/1000))+'秒':'';
@@ -2970,9 +3047,9 @@ window.ArtArts=(()=>{
  }
  function receive(m){if(m.type==='gameArtsFeedback'){hint(m.text);return}if(m.type!=='gameArtsState'||!m.state)return;const old=view;view=m.state;updateDamageShakes(old,view);offset=view.now-Date.now();room.artsSettings=view.settings;if(old?.fighters?.find(p=>p.id===localId)?.hp>0&&view.fighters.find(p=>p.id===localId)?.hp<=0)stopInput();if(!view.art&&old?.id===view.id)view.art=old.art;if(view.art){for(const [id,a]of Object.entries(view.art)){if(!a.image||images.get(id)?.src===a.image)continue;const img=new Image();img.src=a.image;images.set(id,img)}}
  if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){submitted='';clearCanvas();loadInstalledCharacter()}
- if(old?.phase!==view.phase){if(view.phase==='finished'&&view.result?.winners?.includes(localId))window.ArtSound?.play('artsWin',5);stopInput();uiKey='';if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null}}renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){window.ArtSound?.play(['guard','iron','reactor','build'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor'].includes(e.type)?'artsThrow':'artsMagic',2);previousFx.add(e.id)}previousFx=new Set(view.effects.map(e=>e.id));if(!raf)raf=requestAnimationFrame(frame)}renderControls()}
+ if(old?.phase!==view.phase){if(view.phase==='finished'&&view.result?.winners?.includes(localId))window.ArtSound?.play('artsWin',5);stopInput();uiKey='';if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null}}renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){window.ArtSound?.play(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic',2);previousFx.add(e.id)}previousFx=new Set(view.effects.map(e=>e.id));if(!raf)raf=requestAnimationFrame(frame)}renderControls()}
  function statsHTML(stats){return '<div class="arts-statlist">'+stats.map((n,i)=>'<span>'+names[i]+' <b>'+n+'</b></span>').join('')+'</div>'}
- const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ、プレイヤーの前を横切る線＝1秒ガード、自分から外へ伸びる線＝マジック。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程の数値が高いほど描画円が広がり、低いほど狭くなります。マジックのダメージは攻撃力に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値でタイプが決まり、4種類から固有スキルを1つ装備。装備していない固有スキルは使えません。</li><li>茶色の壁は4回の斬撃で破壊。灰色の壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
+ const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ、プレイヤーの前を横切る線＝1秒ガード、自分から外へ伸びる線＝マジック。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程の数値が高いほど描画円が広がり、低いほど狭くなります。マジックのダメージは攻撃力に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値で5つの職業のいずれかが決まり、職業別の4種類から固有スキルを1つ装備。装備していない固有スキルは使えません。</li><li>茶色の壁は4回の斬撃で破壊。灰色の壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
@@ -3095,18 +3172,30 @@ window.ArtArts=(()=>{
  x.restore();
  }
  function drawArtsEffects(x,now){
- for(const e of view.effects){drawSkillDetail(x,e,now);const t=R.clamp((now-e.start)/(e.end-e.start),0,1),impact=!e.hit||now>=e.hit,cx=e.x,cy=e.y,color=['guard','iron','build','reactor'].includes(e.type)?'#6edfff':e.type==='heal'?'#6fffb2':['nova','star'].includes(e.type)?'#ffba61':'#d2a1ff';
+ for(const e of view.effects){
+  if(e.type==='decoyBody'){
+   const im=images.get(e.owner);x.save();x.globalAlpha=.52+Math.sin(now/120+e.id)*.15;x.shadowColor='#a6d3ff';x.shadowBlur=12;
+   if(im?.complete&&im.naturalWidth)x.drawImage(im,e.x-32,e.y-38,64,64);else{x.fillStyle='#b29ade';x.beginPath();x.arc(e.x,e.y-6,25,0,Math.PI*2);x.fill()}
+   x.strokeStyle='#99c9ff';x.beginPath();x.arc(e.x,e.y-7,27,0,Math.PI*2);x.stroke();x.restore();continue;
+  }
+  if(e.type==='smoke'){x.save();x.fillStyle='#8b73b94f';x.strokeStyle='#7e6dacaa';x.lineWidth=4;
+   x.beginPath();x.arc(e.x,e.y,e.r,0,Math.PI*2);x.fill();x.stroke();x.restore();continue;}
+  drawSkillDetail(x,e,now);const t=R.clamp((now-e.start)/(e.end-e.start),0,1),impact=!e.hit||now>=e.hit,cx=e.x,cy=e.y,color=['guard','iron','build','reactor'].includes(e.type)?'#6edfff':e.type==='heal'?'#6fffb2':['nova','star'].includes(e.type)?'#ffba61':'#d2a1ff';
  x.save();x.globalAlpha=(1-t)*.9;x.strokeStyle=color;x.fillStyle=color;x.shadowColor=color;x.shadowBlur=12;x.lineWidth=3;
  if(['thrust','feint'].includes(e.type)){if(e.path){x.save();x.globalAlpha=.3;x.setLineDash([6,6]);x.lineWidth=2;x.beginPath();e.path.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.stroke();x.restore()}const owner=view.fighters.find(p=>p.id===e.owner);if(owner){x.lineWidth=8;x.beginPath();x.moveTo(e.x,e.y);x.lineTo(owner.x,owner.y);x.stroke()}}
  if(e.type==='practiceAim'){x.shadowBlur=0;x.strokeStyle='#e88636';x.globalAlpha=.6;x.setLineDash([10,8]);x.lineWidth=3;x.beginPath();x.moveTo(e.x,e.y);x.lineTo(e.x+Math.cos(e.angle)*300,e.y+Math.sin(e.angle)*300);x.stroke();x.setLineDash([]);x.font='bold 14px sans-serif';x.textAlign='center';x.fillStyle='#a85616';x.fillText('発射予告',e.x,e.y-65)}
  if(e.type==='guard'){const dx=-Math.sin(e.angle)*e.r,dy=Math.cos(e.angle)*e.r;x.globalAlpha=.85;x.lineWidth=9;x.beginPath();x.moveTo(e.x-dx,e.y-dy);x.lineTo(e.x+dx,e.y+dy);x.stroke();x.strokeStyle='#efffff';x.lineWidth=3;x.stroke()}
- if(['nova','star','heal','iron','reactor','magic','anchor','cross','inkcut','build'].includes(e.type)){const r=impact?Math.max(12,e.r*(.35+t*.9)):e.r;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();if(impact)for(let i=0;i<12;i++){const a=i*Math.PI/6+e.id*.7,rr=r*(.6+t*.8);x.beginPath();x.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);x.lineTo(cx+Math.cos(a)*(rr+10*(1-t)),cy+Math.sin(a)*(rr+10*(1-t)));x.stroke()}}
+ if(['nova','star','heal','iron','reactor','magic','anchor','cross','inkcut','build','mirage','decoy','warp','warpExit','burst','ghost','spread','ricochet'].includes(e.type)){const r=impact?Math.max(12,e.r*(.35+t*.9)):e.r;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();if(impact)for(let i=0;i<12;i++){const a=i*Math.PI/6+e.id*.7,rr=r*(.6+t*.8);x.beginPath();x.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);x.lineTo(cx+Math.cos(a)*(rr+10*(1-t)),cy+Math.sin(a)*(rr+10*(1-t)));x.stroke()}}
  x.restore();}
  }
  function drawArena(time){const c=$('#artsArena');if(!c)return;const r=c.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);const cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch}const x=c.getContext('2d'),cam=cameraRect(dpr),scale=cam.scale,left=cam.left,top=cam.top;x.setTransform(1,0,0,1,0,0);const theme={garden:['#dce7d7','#f4ecd6','#d6ccae'],ruins:['#bfc3ce','#e3e0e7','#c7bfce'],forest:['#adbea8','#dce8ce','#b7c9a8'],arena:['#c7d3de','#edf0f5','#d2dae3']}[view.settings.stage]||['#dce7d7','#f4ecd6','#d6ccae'];x.fillStyle=theme[0];x.fillRect(0,0,cw,ch);x.setTransform(scale,0,0,scale,-left*scale,-top*scale);x.fillStyle=theme[1];x.fillRect(0,0,R.W,R.H);x.strokeStyle=theme[2];x.lineWidth=1;for(let i=0;i<=R.W;i+=50){x.beginPath();x.moveTo(i,0);x.lineTo(i,R.H);x.stroke()}for(let i=0;i<=R.H;i+=50){x.beginPath();x.moveTo(0,i);x.lineTo(R.W,i);x.stroke()}
  const now=Date.now()+offset;for(const e of view.effects)if(e.hit&&now>=e.hit&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(e.type==='cross'?'artsSlash':'artsBlast',3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));for(const b of view.blocks){if(b.type==='wall'&&b.hp<=0){x.fillStyle='#c8a07755';x.fillRect(b.x,b.y,b.w,b.h);continue}x.fillStyle={stone:'#7d8990',wall:'#b98559',hole:'#41475a',bush:'#82ad72'}[b.type];x.fillRect(b.x,b.y,b.w,b.h);x.strokeStyle={stone:'#65747d',wall:'#8b5c38',hole:'#6d748a',bush:'#648e52'}[b.type];x.lineWidth=4;x.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);if(b.type==='wall'){x.fillStyle='#f8deb0';x.fillRect(b.x+5,b.y+5,(b.w-10)*b.hp/4,4)}if(b.type==='bush'){x.strokeStyle='#98bd83';x.lineWidth=3;for(let j=b.x+12;j<b.x+b.w;j+=22){x.beginPath();x.moveTo(j,b.y+12);x.lineTo(j+5,b.y+b.h-10);x.stroke()}}}
- const me=view.fighters.find(p=>p.id===localId);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)))continue;const hidden=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b))&&p.flash<now&&!p.drawing;if(p.id!==localId&&me&&me.hp>0&&hidden&&R.dist(p,me)>160)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos);const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=hidden?.65:1;x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=1;if(p.id===localId){x.strokeStyle='#7053a3';x.lineWidth=3;x.beginPath();x.ellipse(pos.x,pos.y+21,29,11,0,0,Math.PI*2);x.stroke()}for(const [buff,color,n]of [[p.iron,'#a6aabb',6],[p.reactor,'#55a7cf',5]])if(buff>now){x.strokeStyle=color;x.lineWidth=3;x.beginPath();for(let i=0;i<=n;i++){const a=i*Math.PI*2/n;x.lineTo(pos.x+Math.sin(a)*35,pos.y-Math.cos(a)*35)}x.stroke()}if(p.inkLock>now){x.fillStyle='#a33a64';x.font='bold 13px sans-serif';x.fillText('回復禁止',pos.x,pos.y+62)}x.fillStyle='#493e53';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(player?.name||'',pos.x,pos.y-49);x.fillStyle='#634d5f';x.fillRect(pos.x-26,pos.y-43,52,5);x.fillStyle='#7ca865';x.fillRect(pos.x-26,pos.y-43,52*p.hp/100,5);if(p.drawing){x.fillStyle='#c16f3c';x.fillText('描画中',pos.x,pos.y+46)}}
- for(const s of view.shots){x.save();const a=Math.atan2(s.vy,s.vx);x.shadowColor='#9c68ff';x.shadowBlur=18;x.strokeStyle='#b58aff99';x.lineWidth=10;x.lineCap='round';x.beginPath();x.moveTo(s.x-Math.cos(a)*40,s.y-Math.sin(a)*40);x.lineTo(s.x,s.y);x.stroke();x.fillStyle='#f6edff';x.beginPath();x.arc(s.x,s.y,s.radius||6,0,Math.PI*2);x.fill();x.restore()}
+ const me=view.fighters.find(p=>p.id===localId);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)))continue;const bushHidden=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b))&&p.flash<now&&!p.drawing;
+ const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
+ const hidden=bushHidden||smokeHidden;
+ const ally=me&&(p.id===me.id||(view.settings.teams==='teams'&&p.team===me.team));
+ if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160)))continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos);const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=hidden?.65:1;x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=1;if(p.id===localId){x.strokeStyle='#7053a3';x.lineWidth=3;x.beginPath();x.ellipse(pos.x,pos.y+21,29,11,0,0,Math.PI*2);x.stroke()}for(const [buff,color,n]of [[p.iron,'#a6aabb',6],[p.reactor,'#55a7cf',5]])if(buff>now){x.strokeStyle=color;x.lineWidth=3;x.beginPath();for(let i=0;i<=n;i++){const a=i*Math.PI*2/n;x.lineTo(pos.x+Math.sin(a)*35,pos.y-Math.cos(a)*35)}x.stroke()}if(p.inkLock>now){x.fillStyle='#a33a64';x.font='bold 13px sans-serif';x.fillText('回復禁止',pos.x,pos.y+62)}x.fillStyle='#493e53';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(player?.name||'',pos.x,pos.y-49);x.fillStyle='#634d5f';x.fillRect(pos.x-26,pos.y-43,52,5);x.fillStyle='#7ca865';x.fillRect(pos.x-26,pos.y-43,52*p.hp/100,5);if(p.drawing){x.fillStyle='#c16f3c';x.fillText('描画中',pos.x,pos.y+46)}}
+ for(const s of view.shots){if(now<(s.fireAt||0))continue;x.save();const a=Math.atan2(s.vy,s.vx);x.shadowColor=s.style==='ghost'?'#57cef9':s.style==='ricochet'?'#e8a54d':'#9c68ff';x.shadowBlur=18;x.strokeStyle=s.style==='ghost'?'#66dfff99':s.style==='ricochet'?'#ffcd6e99':'#b58aff99';x.lineWidth=10;x.lineCap='round';x.beginPath();x.moveTo(s.x-Math.cos(a)*40,s.y-Math.sin(a)*40);x.lineTo(s.x,s.y);x.stroke();x.fillStyle=s.style==='ghost'?'#dffaff':s.style==='ricochet'?'#fff0bd':'#f6edff';x.beginPath();x.arc(s.x,s.y,s.radius||6,0,Math.PI*2);x.fill();x.restore()}
  for(const e of view.effects){const t=R.clamp((now-e.start)/(e.end-e.start),0,1);x.globalAlpha=1-t*.65;x.lineWidth=5;if(e.type==='star'){x.strokeStyle='#d69637';x.fillStyle=now<e.hit?'#efb85022':'#ffcc6088';x.beginPath();x.arc(e.x,e.y,e.r,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#cf8a26';x.font='bold 48px sans-serif';x.textAlign='center';x.fillText('★',e.x,e.y+(now<e.hit?-80*(1-t)+15:15))}else if(e.type==='slash'){x.save();x.shadowColor='#b57bff';x.shadowBlur=18;const angle=e.angle;x.strokeStyle='#cda2ff';x.lineWidth=12*(1-t)+3;x.beginPath();x.arc(e.x,e.y,e.r,angle-Math.PI/2+t*.4,angle+Math.PI/2+t*.4);x.stroke();x.strokeStyle='#fff4ff';x.lineWidth=3;x.beginPath();x.arc(e.x,e.y,e.r*.94,angle-Math.PI/2+t*.4,angle+Math.PI/2+t*.4);x.stroke();x.restore()}x.globalAlpha=1}
  drawArtsEffects(x,now);
  for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||!p.preview?.length)continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}x.restore()}
