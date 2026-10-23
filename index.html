@@ -2686,10 +2686,15 @@ window.ArtsRules=(()=>{
  ricochet:{name:'リコシェット',class:'gunner',rate:.10,cooldown:12000,text:'ひし形を一筆で描くと10秒間壁と外周を跳ね続ける弾を発射。敵に再命中も可能。'}
  };
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
- function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]+stats[3],magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
+ function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]>=25?stats[2]+stats[3]:-1,magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
+ function defenseSurface(fill,aspect,solidCore){
+  // Require broad, continuous paint; ordinary detail must not dominate stats.
+  const coverage=clamp((fill-.70)/.27,0,1),core=clamp((solidCore-.38)/.40,0,1);
+  return clamp((coverage*coverage*core*core-.05)/.95,0,1)*clamp((2.25-aspect)/1.3,0,1);
+ }
  function drawingStats(raw,fill=0,aspect=1,solidCore=0){
   // An individual gesture has ONE primary role: straight / outward spike /
   // continuous winding / outward-reaching smooth curve. Surface coverage is
@@ -2701,7 +2706,7 @@ window.ArtsRules=(()=>{
   const center={x:(minx+maxx)/2,y:(miny+maxy)/2};
   // The 5x5 opaque raster core suppresses thin hatching and outlines. A
   // compact, truly painted mass should dominate, not a large quantity of lines.
-  let solid=clamp((fill-.46)/.39,0,1)*clamp((solidCore-.16)/.46,0,1)*clamp((2.25-aspect)/1.3,0,1);
+  let solid=defenseSurface(fill,aspect,solidCore);
   const strengths=[0,0,0,0,0],candidates=[[],[],[],[],[]];
   let lengthyStraights=0, horizontalHatch=0, verticalHatch=0;
   const radial=p=>Math.hypot(p.x-center.x,p.y-center.y);
@@ -2801,11 +2806,10 @@ window.ArtsRules=(()=>{
   if(horizontalHatch>=8&&verticalHatch>=8)solid=0;
   if(lengthyStraights>=8)strengths[0]*=clamp((17-lengthyStraights)/9,0,1);
   strengths[2]=solid;
-  // Pixel fill and strokes share the same global strength budget. A filled
-  // block should be a tank, not a speed class from its hatching brush paths.
-  for(const i of [0,1,3,4])strengths[i]*=(1-.82*solid);
+  // Painting does not erase independent stroke features. Defense has a lower
+  // gain so a coloured character can retain its distinctive shape.
   // Five distinctive features, five disjoint score sources (100 points total).
-  return allocate([1+88*strengths[0],1+84*strengths[1],1+96*strengths[2],1+82*strengths[3],1+86*strengths[4]]);
+  return allocate([1+88*strengths[0],1+84*strengths[1],1+24*strengths[2],1+82*strengths[3],1+86*strengths[4]]);
  }
 
  function analyze(data,w,h,paths=[]){
@@ -2831,8 +2835,8 @@ window.ArtsRules=(()=>{
   }
   const solidCore=deepInterior/area;
   if(paths.length){const drawn=drawingStats(paths,fill,aspect,solidCore);if(drawn)return drawn}
-  const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.48)/.40,0,1)*clamp((solidCore-.18)/.48,0,1)*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
-  return allocate([1+40*slender,1+35*spiky*(1-solid),1+63*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)]);
+  const slender=clamp((aspect-1)/2,0,1),solid=defenseSurface(fill,aspect,solidCore),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
+  return allocate([1+40*slender,1+35*spiky*(1-solid),1+24*solid,1+8*airy*(1-slender),1+7*airy*(1-slender)]);
  }
  function length(strokes){let n=0;for(const s of strokes)for(let i=1;i<s.length;i++)n+=dist(s[i],s[i-1]);return n}
  function resample(s,n=48){if(s.length<2)return s;const total=length([s]);if(total<.001)return [s[0]];let out=[],cum=[0];for(let i=1;i<s.length;i++)cum.push(cum.at(-1)+dist(s[i],s[i-1]));let j=1;for(let i=0;i<n;i++){const t=total*i/(n-1);while(j<cum.length-1&&cum[j]<t)j++;const f=(t-cum[j-1])/(cum[j]-cum[j-1]||1);out.push({x:s[j-1].x+(s[j].x-s[j-1].x)*f,y:s[j-1].y+(s[j].y-s[j-1].y)*f})}return out}
@@ -3151,7 +3155,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様は能力を増やしません。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを防御力として評価します。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様は能力を増やしません。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線は素早さになります。</li><li><b>マジシャン：</b>長く巻き込む渦巻きはインク量、中心から外側へ大きく伸びる滑らかな曲線は射程になります。同じ線で両方には加点しません。</li><li><b>タンク：</b>広い面を隙間なく塗りつぶすほど防御力特化。細い棒と広い塗りつぶしは別に判定します。細かい描き込みは防御力にならず、広くしっかり塗られた面だけを控えめに防御力として評価します。色を塗ってもトゲ・直線・曲線の特徴評価は下がりません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。ただしタンク候補になるには防御力25以上が必要です。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
