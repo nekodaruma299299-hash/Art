@@ -353,7 +353,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 #artsDrawToggle[aria-pressed=true]{background:#d56f39}#artsField.arts-inking{box-shadow:inset 0 0 0 5px #d99052}#artsField.arts-inking #artsJoystick{opacity:.3}
 #artsField.arts-inking #artsJoystick{opacity:1}#artsDrawToggle{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;min-width:94px;min-height:74px}
 #artsSkillInfo{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);max-width:calc(100% - 230px);min-height:48px;font-size:12px;padding:8px;background:#fffaf1;border:2px solid #bda9ce;touch-action:manipulation}
-.arts-skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.arts-skill-grid article{padding:12px;border:1px solid #d9cfea;background:#fff;border-radius:12px;display:flex;flex-direction:column;gap:8px;align-items:center}.arts-skill-grid svg{width:100%;height:115px}.arts-skill-grid p{font-size:13px;margin:0;line-height:1.6}.arts-skill-grid button{margin-top:auto;width:100%;font-size:13px}.arts-skill-grid small{font-size:12px;color:#776481}
+.arts-skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.arts-skill-grid article{padding:12px;border:1px solid #d9cfea;background:#fff;border-radius:12px;display:flex;flex-direction:column;gap:8px;align-items:center}.arts-skill-grid svg{width:100%;height:145px}.arts-guide-graphic{width:100%;display:grid;gap:4px}.arts-guide-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;font-size:10px;color:#685780}.arts-guide-legend span{display:flex;align-items:center;gap:4px}.arts-guide-legend i{width:9px;height:9px;display:inline-block;border-radius:100%;background:#23b99a}.arts-guide-legend i.arts-guide-end{background:#ed805d}.arts-guide-legend i.arts-guide-back{width:15px;height:0;border-radius:0;border-top:3px dashed #f09b52;background:none}.arts-guide-tip{color:#5c4d77;font-size:11px;text-align:center;line-height:1.5}.arts-skill-grid p{font-size:13px;margin:0;line-height:1.6}.arts-skill-grid button{margin-top:auto;width:100%;font-size:13px}.arts-skill-grid small{font-size:12px;color:#776481}
 #artsBattleHint{padding:7px 10px;background:#fff;font-size:12px;line-height:1.5;text-align:center;flex:none;min-height:34px}
 #artsBar details{position:static!important}#artsBar details[open]{max-width:100%;background:#fff;padding:8px;border-radius:8px}
 @media(max-width:650px){#artsBar{padding:6px 8px;gap:6px;font-size:12px}#artsBar button{padding:6px 9px}.arts-sheet{padding:16px 12px}.arts-sheet h2{font-size:23px}#artsJoystick{width:80px;height:80px;left:10px;bottom:10px}#artsDrawToggle{right:10px;bottom:16px;padding:12px}#artsHUD{font-size:11px}#artsBattleHint{font-size:11px}}
@@ -2663,16 +2663,16 @@ window.ArtsRules=(()=>{
  slash:{name:'スラッシュ',rate:.055,cooldown:250,text:'描いた弧の中心から、プレイヤーの外向きに半円の範囲を斬ります。'},
  magic:{name:'マジック',rate:.16,cooldown:650,text:'射程内で描いた直線から外向きに太い弾を放ちます。威力は攻撃力と描いた線の長さに依存し、大きく押し戻します。装甲は無視しますが、壁と正面のガードに止められます。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:5000,text:'進路上に△を一筆で描き、線の始点近くまで閉じると、描き始めから線の順になぞって突進。細長い三角形や向きを変えた三角形も使えます。射程外はキャンセル。地形に当たると停止。'},
- cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4500,text:'×の方向へ2連続の近接斬撃。'},
+ cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4500,text:'左上→右下→中央へ戻る→右上→中央へ戻る→左下。一筆の×で2連続斬撃。'},
  feint:{name:'フェイントステップ',class:'attacker',rate:.065,cooldown:5000,text:'進路上にZを描き、その線をなぞって移動攻撃。射程外はキャンセル。'},
- inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:10000,text:'丸に斜線（🚫）。近距離にダメージ＋相手のインク自動回復を5秒停止。'},
+ inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:10000,text:'右下から左上への斜線→そのまま外側を一周。つながった一筆の🚫で近距離攻撃＋インク回復停止。'},
  star:{name:'スターフォール',class:'magician',rate:.065,cooldown:9000,text:'☆の中心に1秒後、広範囲の星が落下。装甲を無視する大ダメージ。'},
- ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:8000,text:'横線→端で短く折り返す→逆向きの横線。一筆の横長コの字（＝の右端をつなぐ形）で、0.7秒の予告後に貫通光線。'},
+ ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:8000,text:'上の横線→右端をくの字で折り返す→下の横線。右端がつながった一筆の＝で、0.7秒後に貫通光線。'},
  nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:8000,text:'○の中心で0.8秒後に爆発。装甲を無視する範囲攻撃。'},
  heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:20000,text:'厚みのある➕の輪郭。範囲内の自分・味方のHPを全回復。アンカーショックの細い一筆の＋とは異なります。'},
  build:{name:'ブロックビルド',class:'tank',rate:.08,cooldown:6500,text:'射程内の空いている場所に四角（長方形も可）を描くと、その位置・大きさに壊せる壁。プレイヤーや地形と重なる位置には作れません。'},
  iron:{name:'アイアンコート',class:'tank',rate:.07,cooldown:12000,text:'六角形で6秒間、装甲の固定軽減を強化。マジックは装甲を貫通します。'},
- anchor:{name:'アンカーショック',class:'tank',rate:.10,cooldown:8000,text:'横線を引いて中央まで戻り、上へ進んで下までなぞる一筆の＋。周囲に衝撃波を放ち、命中した敵を2秒間減速。'},
+ anchor:{name:'アンカーショック',class:'tank',rate:.10,cooldown:8000,text:'左→中央→上→中央へ戻る→下→中央へ戻る→右。一筆の＋で、周囲に衝撃波を放ち敵を2秒減速。'},
  reactor:{name:'インクリアクター',class:'tank',rate:.07,cooldown:12000,text:'五角形で6秒間、受けた実ダメージの1.5倍をインクに変換。HPダメージは無効化しません。'}
  };
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン'};
@@ -2736,7 +2736,7 @@ window.ArtsRules=(()=>{
  const poly=n=>Array.from({length:n+1},(_,i)=>({x:Math.sin(i*2*Math.PI/n)*70,y:-Math.cos(i*2*Math.PI/n)*70}));
  const line=(x,y,a,b)=>[{x,y},{x:a,y:b}];
  const circle=()=>Array.from({length:65},(_,i)=>({x:70*Math.cos(i*Math.PI/32),y:70*Math.sin(i*Math.PI/32)}));
- function template(k){switch(k){case'guard':return[line(-80,-95,80,-95)];case'magic':return[line(0,-35,0,-175)];case'slash':return[Array.from({length:49},(_,i)=>({x:105*Math.cos(Math.PI+i*Math.PI/48),y:105*Math.sin(Math.PI+i*Math.PI/48)}))];case'thrust':return[poly(3)];case'cross':return[[{x:-65,y:-65},{x:65,y:65},{x:0,y:0},{x:-65,y:65},{x:65,y:-65}]];case'feint':return[[{x:-65,y:-65},{x:65,y:-65},{x:-65,y:65},{x:65,y:65}]];case'inkcut':return[[...circle(),{x:-50,y:-50},{x:50,y:50}]];case'star':return[Array.from({length:6},(_,i)=>({x:Math.sin((i*2%5)*2*Math.PI/5)*75,y:-Math.cos((i*2%5)*2*Math.PI/5)*75}))];case'ray':return[[{x:-70,y:-28},{x:70,y:-28},{x:70,y:28},{x:-70,y:28}]];case'nova':return[circle()];case'heal':return[[[-25,-75],[25,-75],[25,-25],[75,-25],[75,25],[25,25],[25,75],[-25,75],[-25,25],[-75,25],[-75,-25],[-25,-25],[-25,-75]].map(([x,y])=>({x,y}))];case'build':return[[[-65,-65],[65,-65],[65,65],[-65,65],[-65,-65]].map(([x,y])=>({x,y}))];case'iron':return[poly(6)];case'anchor':return[[{x:-75,y:0},{x:75,y:0},{x:0,y:0},{x:0,y:-75},{x:0,y:75}]];case'reactor':return[poly(5)]}return[]}
+ function template(k){switch(k){case'guard':return[line(-80,-95,80,-95)];case'magic':return[line(0,-35,0,-175)];case'slash':return[Array.from({length:49},(_,i)=>({x:105*Math.cos(Math.PI+i*Math.PI/48),y:105*Math.sin(Math.PI+i*Math.PI/48)}))];case'thrust':return[poly(3)];case'cross':return[[{x:-75,y:-75},{x:75,y:75},{x:0,y:0},{x:75,y:-75},{x:0,y:0},{x:-75,y:75}]];case'feint':return[[{x:-65,y:-65},{x:65,y:-65},{x:-65,y:65},{x:65,y:65}]];case'inkcut':return[[{x:49.5,y:49.5},{x:-49.5,y:-49.5},...Array.from({length:65},(_,i)=>({x:70*Math.cos(-3*Math.PI/4+i*Math.PI/32),y:70*Math.sin(-3*Math.PI/4+i*Math.PI/32)}))]];case'star':return[Array.from({length:6},(_,i)=>({x:Math.sin((i*2%5)*2*Math.PI/5)*75,y:-Math.cos((i*2%5)*2*Math.PI/5)*75}))];case'ray':return[[{x:-86,y:-38},{x:77,y:-38},{x:101,y:0},{x:77,y:38},{x:-86,y:38}]];case'nova':return[circle()];case'heal':return[[[-25,-75],[25,-75],[25,-25],[75,-25],[75,25],[25,25],[25,75],[-25,75],[-25,25],[-75,25],[-75,-25],[-25,-25],[-25,-75]].map(([x,y])=>({x,y}))];case'build':return[[[-65,-65],[65,-65],[65,65],[-65,65],[-65,-65]].map(([x,y])=>({x,y}))];case'iron':return[poly(6)];case'anchor':return[[{x:-78,y:0},{x:0,y:0},{x:0,y:-78},{x:0,y:0},{x:0,y:78},{x:0,y:0},{x:78,y:0}]];case'reactor':return[poly(5)]}return[]}
  function cloud(strokes){const total=length(strokes);const pts=strokes.flatMap(s=>resample(s,Math.max(2,Math.round(length([s])/Math.max(1,total)*40))));const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y)),scale=Math.max(maxx-minx,maxy-miny,1);return pts.map(p=>({x:(p.x-(minx+maxx)/2)/scale,y:(p.y-(miny+maxy)/2)/scale}))}
  function match(strokes,k){const a=cloud(strokes),base=cloud(template(k));let best=Infinity;const nearest=(from,to)=>{let sum=0;for(const p of from){let d=Infinity;for(const q of to){const n=(p.x-q.x)**2+(p.y-q.y)**2;if(n<d)d=n}sum+=Math.sqrt(d)}return sum/from.length};for(let step=0;step<24;step++){const t=step*Math.PI/12,c=Math.cos(t),s=Math.sin(t),b=base.map(p=>({x:p.x*c-p.y*s,y:p.x*s+p.y*c}));best=Math.min(best,(nearest(a,b)+nearest(b,a))/2);if(best<.012)break}return best}
  function valid(strokes){return Array.isArray(strokes)&&strokes.length>0&&strokes.length<=16&&strokes.reduce((n,s)=>n+(Array.isArray(s)?s.length:10000),0)<=1024&&strokes.every(s=>Array.isArray(s)&&s.length>=2&&s.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&Math.abs(p.x)<=1100&&Math.abs(p.y)<=1100))}
@@ -2976,7 +2976,50 @@ window.ArtArts=(()=>{
  }
  document.addEventListener('pointerup',e=>{if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointerup?.(e)});
  function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}const shape=R.recognize(paths,me?.skill);hint(shape?moves[shape.type].name+' / 必要インク '+R.cost(shape)+'（描き終わると発動）':'ペンや指を離すとすぐに判定します。')}
- function guideSVG(key){const paths=R.template(key);return '<svg viewBox="-150 -260 300 420" aria-label="'+esc(moves[key].name)+'の描き方">'+paths.map((s,i)=>'<polyline points="'+s.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="'+['#8061b1','#d58a55'][i%2]+'" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+s[0].x+'" cy="'+s[0].y+'" r="7" fill="#57a8a3"/>').join('')+'</svg>'}
+ // The skill card and live trace share the exact same one-stroke template as the recognizer.
+ const guideTips={
+  cross:'左上 → 右下 → 中央に戻る → 右上 → 中央に戻る → 左下',
+  ray:'上の横線 → 右端で折り返す → 下の横線',
+  anchor:'左 → 中央 → 上 → 中央 → 下 → 中央 → 右',
+  inkcut:'右下 → 左上 → そのまま丸く一周'
+ };
+ function guideSegments(paths){
+  const seen=[];
+  return paths.flatMap(path=>path.slice(1).map((end,i)=>{
+   const start=path[i],retrace=seen.some(([a,b])=>Math.hypot(a.x-end.x,a.y-end.y)<1&&Math.hypot(b.x-start.x,b.y-start.y)<1);
+   seen.push([start,end]);return{start,end,retrace};
+  }));
+ }
+ function guideSVG(key){
+  const paths=R.template(key),points=paths.flat(),segments=guideSegments(paths),xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys),pad=32;
+  const vb=[minx-pad,miny-pad,Math.max(115,maxx-minx+2*pad),Math.max(105,maxy-miny+2*pad)].join(' ');
+  const arrow=(a,b,color)=>{const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);if(len<18)return'';
+   const t=.62,px=a.x+dx*t,py=a.y+dy*t,ux=dx/len,uy=dy/len;
+   return '<polygon points="'+[ [px+ux*8,py+uy*8],[px-ux*6-uy*5,py-uy*6+ux*5],[px-ux*6+uy*5,py-uy*6-ux*5] ].map(p=>p.map(n=>n.toFixed(2)).join(',')).join(' ')+'" fill="'+color+'" stroke="#fff" stroke-width="1.6"/>';
+  };
+  const trace=segments.map((seg,i)=>{const color=seg.retrace?'#f09b52':(i===0?'#6356c7':'#9464cd');
+   return '<line x1="'+seg.start.x+'" y1="'+seg.start.y+'" x2="'+seg.end.x+'" y2="'+seg.end.y+'" stroke="'+color+'" stroke-width="'+(seg.retrace?4:6)+'" stroke-linecap="round" '+(seg.retrace?'stroke-dasharray="8 5"':'')+'/>'+arrow(seg.start,seg.end,color);
+  }).join('');
+  const first=paths[0][0],last=paths.at(-1).at(-1);
+  const markers='<circle cx="'+first.x+'" cy="'+first.y+'" r="9" fill="#23b99a" stroke="white" stroke-width="3"/>'+
+  '<circle cx="'+last.x+'" cy="'+last.y+'" r="7" fill="#ed805d" stroke="white" stroke-width="2.5"/>';
+  const names=esc(moves[key].name),tip=guideTips[key];
+  return '<div class="arts-guide-graphic"><svg viewBox="'+vb+'" role="img" aria-label="'+names+' 一筆書きの進む方向"><title>'+names+'の一筆書き</title>'+
+    '<g fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round">'+paths.map(path=>'<polyline points="'+path.map(p=>p.x+','+p.y).join(' ')+'"/>').join('')+'</g>'+
+    '<g fill="none">'+trace+'</g>'+markers+'</svg>'+
+    '<div class="arts-guide-legend"><span><i class="arts-guide-start"></i>開始</span><span><i class="arts-guide-back"></i>戻る線</span><span><i class="arts-guide-end"></i>終了</span></div>'+
+    (tip?'<small class="arts-guide-tip">'+tip+'</small>':'')+'</div>';
+ }
+ function drawBattleGuide(ctx,pos,key){
+  const paths=R.template(key),segments=guideSegments(paths);ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.globalAlpha=.62;for(const seg of segments){const a=seg.start,b=seg.end;const color=seg.retrace?'#e99b4b':'#8160b9';ctx.strokeStyle=color;ctx.lineWidth=seg.retrace?3.3:4;ctx.setLineDash(seg.retrace?[5,5]:[]);
+   ctx.beginPath();ctx.moveTo(pos.x+a.x,pos.y+a.y);ctx.lineTo(pos.x+b.x,pos.y+b.y);ctx.stroke();ctx.setLineDash([]);
+   const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);if(len<18)continue;const px=pos.x+a.x+dx*.62,py=pos.y+a.y+dy*.62,ux=dx/len,uy=dy/len;
+   ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(px+ux*8,py+uy*8);ctx.lineTo(px-ux*6-uy*5,py-uy*6+ux*5);ctx.lineTo(px-ux*6+uy*5,py-uy*6-ux*5);ctx.closePath();ctx.fill();
+  }
+  ctx.globalAlpha=.9;const start=paths[0][0],end=paths.at(-1).at(-1);for(const[p,c,r]of [[start,'#23b99a',7],[end,'#ed805d',6]]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(pos.x+p.x,pos.y+p.y,r,0,Math.PI*2);ctx.fill()};ctx.restore();
+ }
  function showSkills(){if(!battleActive())return;stopInput();const p=self(),list=['slash','guard','magic',p.skill];modal('アーツ・装備スキル',`<p>緑の点から射程円の内側に描きます。方向・大きさを変えて使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。</p><div class="arts-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p><small>${moves[k].class?'再使用 '+moves[k].cooldown/1000+'秒':'共通アーツ'}</small><button type="button" data-arts-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="artsGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-arts-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.artsGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#artsGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
  document.addEventListener('keydown',e=>{if(!enabled()||view?.phase!=='battle'||e.target.closest?.('input,textarea,select,[contenteditable=true]')||$('#modal').open)return;e.stopImmediatePropagation();if(e.code==='Space'){if(paintMode||gesture||strokes.length){e.preventDefault();finishPaint(false)}return}if(e.key==='Escape'){gesture=null;strokes=[];paintMode=false;holdSource=null;refreshPaintUI();hint('アーツをキャンセルしました。');sendInput();return}if(!battleActive())return;const k=e.key.toLowerCase();if(!['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))return;e.preventDefault();keys.add(k);keyMove()},true);
  document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(keys.delete(k)){keyMove();if(enabled())e.preventDefault()}},true);
@@ -3016,7 +3059,7 @@ window.ArtArts=(()=>{
  drawArtsEffects(x,now);
  for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||!p.preview?.length)continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}x.restore()}
 
- if(me){const pos=positions.get(localId)||me;const drawPaths=(paths,color,dashed=false)=>{x.strokeStyle=color;x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.setLineDash(dashed?[7,7]:[]);for(const path of paths){x.beginPath();path.forEach((p,i)=>i?x.lineTo(pos.x+p.x,pos.y+p.y):x.moveTo(pos.x+p.x,pos.y+p.y));x.stroke()}x.setLineDash([])};const range=R.placementRange(null,me.stats);if(paintMode||gesture||strokes.length){x.save();x.fillStyle='#bfa3ec0e';x.strokeStyle='#71579baa';x.lineWidth=2.5;x.setLineDash([8,8]);x.beginPath();x.arc(pos.x,pos.y,range,0,Math.PI*2);x.fill();x.stroke();x.setLineDash([]);x.fillStyle='#704d92';x.font='bold 14px sans-serif';x.textAlign='center';x.fillText('射程 '+Math.round(range),pos.x,pos.y-range-9);x.restore()}if(me.hp>0&&guide)drawPaths(R.template(guide),'#7351a250',true);drawPaths([...strokes,...(gesture?[gesture.points]:[])],'#9b61bb')}
+ if(me){const pos=positions.get(localId)||me;const drawPaths=(paths,color,dashed=false)=>{x.strokeStyle=color;x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.setLineDash(dashed?[7,7]:[]);for(const path of paths){x.beginPath();path.forEach((p,i)=>i?x.lineTo(pos.x+p.x,pos.y+p.y):x.moveTo(pos.x+p.x,pos.y+p.y));x.stroke()}x.setLineDash([])};const range=R.placementRange(null,me.stats);if(paintMode||gesture||strokes.length){x.save();x.fillStyle='#bfa3ec0e';x.strokeStyle='#71579baa';x.lineWidth=2.5;x.setLineDash([8,8]);x.beginPath();x.arc(pos.x,pos.y,range,0,Math.PI*2);x.fill();x.stroke();x.setLineDash([]);x.fillStyle='#704d92';x.font='bold 14px sans-serif';x.textAlign='center';x.fillText('射程 '+Math.round(range),pos.x,pos.y-range-9);x.restore()}if(me.hp>0&&guide)drawBattleGuide(x,pos,guide);drawPaths([...strokes,...(gesture?[gesture.points]:[])],'#9b61bb')}
  if(view.stormStart){const radius=Math.max(0,610-(now-view.stormStart)/1000*18);x.strokeStyle='#a653bf';x.lineWidth=7;x.beginPath();x.arc(R.W/2,R.H/2,radius,0,Math.PI*2);x.stroke()}
  for(const e of view.effects){if(['star','slash'].includes(e.type))continue;x.globalAlpha=.65;x.strokeStyle=e.type==='heal'?'#56ab87':'#b77bc8';x.lineWidth=4;if(e.type==='ray'){x.beginPath();x.moveTo(e.x,e.y);x.lineTo(e.x+Math.cos(e.angle)*e.range,e.y+Math.sin(e.angle)*e.range);x.lineWidth=now<e.hit?3:e.r*2;x.stroke()}else if(['nova','heal','anchor','inkcut','cross'].includes(e.type)){x.beginPath();x.arc(e.type==='nova'||e.type==='heal'?e.x:e.tx,e.type==='nova'||e.type==='heal'?e.y:e.ty,e.r,0,Math.PI*2);x.stroke()}x.globalAlpha=1}
 
