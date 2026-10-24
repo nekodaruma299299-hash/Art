@@ -355,7 +355,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 .arts-sheet{max-width:680px;margin:auto;padding:26px 22px;text-align:center}.arts-sheet h2{font-size:28px;margin:8px 0 16px}.arts-sheet p{line-height:1.7}.arts-sheet .modal-actions{justify-content:center;flex-wrap:wrap}.arts-sheet ul{text-align:left;line-height:1.9;padding-left:24px}
 .arts-statlist{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.arts-statlist span{background:white;padding:6px 9px;border-radius:8px;font-size:12px;border:1px solid #ded5eb}
 #artsStage.arts-battle{overflow:hidden;background:#e4eddf;display:flex;flex-direction:column}
-#artsField{position:relative;flex:1;min-height:0;overflow:hidden}#artsArena{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#artsField{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none}#artsArena{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #artsHUD{position:absolute;top:8px;left:10px;right:10px;pointer-events:none;display:flex;flex-wrap:wrap;gap:6px;font-size:12px}#artsHUD span{background:#ffffffed;padding:5px 9px;border-radius:8px;box-shadow:0 2px 8px #26382c17}
 #artsJoystick{position:absolute;bottom:14px;left:16px;width:92px;height:92px;border-radius:50%;border:2px solid #ffffffb0;background:#254a3a25;touch-action:none;display:grid;place-items:center;user-select:none;color:#244236}#artsJoystick i{display:block;width:38px;height:38px;border-radius:50%;background:#ffffffb8;pointer-events:none;box-shadow:0 2px 6px #29492d30}
 #artsDrawToggle{position:absolute;bottom:22px;right:18px;padding:15px 18px;background:#805caa;color:white;border:3px solid white;font-weight:700;box-shadow:0 3px 12px #4a32663b;touch-action:manipulation}
@@ -2920,7 +2920,7 @@ window.ArtsRules=(()=>{
  const score=p=>{const others=hull.filter(q=>q!==p),a=others[0],b=others[1],cos=((a.x-p.x)*(b.x-p.x)+(a.y-p.y)*(b.y-p.y))/(dist(a,p)*dist(b,p)||1);return Math.acos(clamp(cos,-1,1))+1e-6*Math.min(Math.abs(p.x-cx)/(maxx-minx||1),Math.abs(p.y-cy)/(maxy-miny||1))};
  const tip=[...hull].sort((a,b)=>score(a)-score(b))[0],base=hull.filter(p=>p!==tip);return Math.atan2(tip.y-(base[0].y+base[1].y)/2,tip.x-(base[0].x+base[1].x)/2);
  }
- function stabilizeStroke(points){const xs=points.map(p=>p.x),ys=points.map(p=>p.y),tolerance=clamp(Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*.025,2.5,5);const simplify=ps=>{if(ps.length<3)return ps;const a=ps[0],b=ps.at(-1),dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let far=0,index=0;for(let i=1;i<ps.length-1;i++){const q=ps[i],t=l?clamp(((q.x-a.x)*dx+(q.y-a.y)*dy)/l,0,1):0,d=Math.hypot(q.x-a.x-dx*t,q.y-a.y-dy*t);if(d>far){far=d;index=i}}return far>tolerance?simplify(ps.slice(0,index+1)).slice(0,-1).concat(simplify(ps.slice(index))):[a,b]};return simplify(points)}
+ function stabilizeStroke(points){const xs=points.map(p=>p.x),ys=points.map(p=>p.y),tolerance=clamp(Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*.014,1.15,2.7);const simplify=ps=>{if(ps.length<3)return ps;const a=ps[0],b=ps.at(-1),dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let far=0,index=0;for(let i=1;i<ps.length-1;i++){const q=ps[i],t=l?clamp(((q.x-a.x)*dx+(q.y-a.y)*dy)/l,0,1):0,d=Math.hypot(q.x-a.x-dx*t,q.y-a.y-dy*t);if(d>far){far=d;index=i}}return far>tolerance?simplify(ps.slice(0,index+1)).slice(0,-1).concat(simplify(ps.slice(index))):[a,b]};return simplify(points)}
  function isTriangle(points){if(points.length<4)return false;const xs=points.map(p=>p.x),ys=points.map(p=>p.y),diag=Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));if(diag<20||dist(points[0],points.at(-1))>diag*.25)return false;const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x),sorted=[...points].sort((a,b)=>a.x-b.x||a.y-b.y),lo=[],hi=[];for(const p of sorted){while(lo.length>1&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p)}for(const p of [...sorted].reverse()){while(hi.length>1&&cross(hi.at(-2),hi.at(-1),p)<=0)hi.pop();hi.push(p)}let hull=lo.slice(0,-1).concat(hi.slice(0,-1));while(hull.length>3){let index=0,min=Infinity;for(let i=0;i<hull.length;i++){const area=Math.abs(cross(hull[(i+hull.length-1)%hull.length],hull[i],hull[(i+1)%hull.length]));if(area<min){min=area;index=i}}hull.splice(index,1)}if(hull.length!==3||Math.abs(cross(...hull))/2<diag*diag*.08)return false;const error=p=>Math.min(...hull.map((a,i)=>{const b=hull[(i+1)%3],dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t)/diag}));const samples=resample(points,64),errors=samples.map(error);return errors.reduce((a,b)=>a+b,0)/errors.length<.035&&errors.filter(e=>e>.09).length<=3}
  // Closed-circle portals and ink-drop novas must never share a gesture.
  // Test shape geometry, not just the nearest-neighbour template, so a rough
@@ -3182,7 +3182,7 @@ window.ArtsRules=(()=>{
   const sides=lower.filter(q=>q.x<b.cx-b.w*.24).length>3&&lower.filter(q=>q.x>b.cx+b.w*.24).length>3;
   return sides&&match([path],'nova')<.19;
  }
- function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<25||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<20)return null;
+ function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
  // Short, simple common arts take precedence over equipped complex skills.
  // Previously the nearest-neighbour skill matcher labelled even a normal Slash arc as Cross/Star/etc.
  let kind=equipped.includes('summon')&&strokes.length>=2&&isHeartCore(strokes[0])?'summon':null;
@@ -3196,11 +3196,11 @@ window.ArtsRules=(()=>{
  if(!kind&&equipped.includes('warp')&&strokes.length===1&&artFeatureScore(strokes[0],'warp')>=.72)kind='warp';
  if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){
   const path=strokes[0],first=path[0],last=path.at(-1),chord=dist(first,last),ratio=chord/Math.max(1,len),closed=chord<diag*.22;
-  if(ratio>=.87){
+  if(ratio>=.83){
    const dx=last.x-first.x,dy=last.y-first.y;
    const radial=Math.abs(dx*cx+dy*cy)/(Math.hypot(dx,dy)*Math.hypot(cx,cy)||1);
    kind=radial>.57?'magic':'guard';
-  }else if(!closed&&ratio>.40&&ratio<.88){
+  }else if(!closed&&ratio>.30&&ratio<.91){
    let totalTurn=0,major=0,sign=0,flip=0;
    for(let i=1;i<path.length-1;i++){
     const a=path[i-1],b=path[i],c=path[i+1],u={x:b.x-a.x,y:b.y-a.y},v={x:c.x-b.x,y:c.y-b.y},d=Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y);
@@ -3210,7 +3210,7 @@ window.ArtsRules=(()=>{
     if(Math.abs(angle)>.08){if(sign&&sign*Math.sign(angle)<0)flip++;sign=Math.sign(angle)}
     totalTurn+=Math.abs(angle);
    }
-   if(major===0&&flip<=1&&totalTurn>.45&&totalTurn<4.7){
+   if(major<=1&&flip<=3&&totalTurn>.16&&totalTurn<6.8){
     // Open arcs are always the common Slash. The Warp Hole now requires a
     // genuinely CLOSED circle, so direction no longer changes its identity.
     kind='slash';
@@ -3227,7 +3227,8 @@ window.ArtsRules=(()=>{
    const d=match(strokes,k);if(d<best){best=d;kind=k}
   }
  }
- if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){const a=points[0],b=points.at(-1),chord=dist(a,b);if(chord/len>.82){const dx=b.x-a.x,dy=b.y-a.y,radial=Math.abs(dx*cx+dy*cy)/(Math.hypot(dx,dy)*Math.hypot(cx,cy)||1);kind=radial>.60?'magic':'guard'}else{const radii=points.map(p=>Math.hypot(p.x,p.y)),avg=radii.reduce((a,b)=>a+b,0)/radii.length,variance=Math.sqrt(radii.reduce((a,b)=>a+(b-avg)**2,0)/radii.length)/(avg||1);let sharp=0;for(let i=1;i<points.length-1;i++){const u={x:points[i].x-points[i-1].x,y:points[i].y-points[i-1].y},v={x:points[i+1].x-points[i].x,y:points[i+1].y-points[i].y};if(Math.acos(clamp((u.x*v.x+u.y*v.y)/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y)||1),-1,1))>1.1)sharp++}if(!sharp&&variance<.50&&len/(avg||1)>.85&&len/(avg||1)<4.8&&chord/len>.40&&chord/len<.88&&chord>diag*.32)kind='slash'}}
+ if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){const path=strokes[0],a=path[0],b=path.at(-1),chord=dist(a,b),ratio=chord/Math.max(1,len);if(chord>11&&ratio>.28&&ratio<.91){let biggest=0;for(const v of path){const dx=b.x-a.x,dy=b.y-a.y,t=((v.x-a.x)*dx+(v.y-a.y)*dy)/(chord*chord);const d=Math.hypot(v.x-(a.x+dx*clamp(t,0,1)),v.y-(a.y+dy*clamp(t,0,1)));biggest=Math.max(biggest,d)}if(biggest>Math.max(3,diag*.065)&&biggest<diag*.65)kind='slash'}}
+ if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){const a=points[0],b=points.at(-1),chord=dist(a,b);if(chord/len>.79){const dx=b.x-a.x,dy=b.y-a.y,radial=Math.abs(dx*cx+dy*cy)/(Math.hypot(dx,dy)*Math.hypot(cx,cy)||1);kind=radial>.60?'magic':'guard'}else{const radii=points.map(p=>Math.hypot(p.x,p.y)),avg=radii.reduce((a,b)=>a+b,0)/radii.length,variance=Math.sqrt(radii.reduce((a,b)=>a+(b-avg)**2,0)/radii.length)/(avg||1);let sharp=0;for(let i=1;i<points.length-1;i++){const u={x:points[i].x-points[i-1].x,y:points[i].y-points[i-1].y},v={x:points[i+1].x-points[i].x,y:points[i+1].y-points[i].y};if(Math.acos(clamp((u.x*v.x+u.y*v.y)/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y)||1),-1,1))>1.1)sharp++}if(!sharp&&variance<.50&&len/(avg||1)>.85&&len/(avg||1)<4.8&&chord/len>.40&&chord/len<.88&&chord>diag*.32)kind='slash'}}
  if(!kind)return null;return{type:kind,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.hypot(cx,cy)>1?Math.atan2(cy,cx):kind==='thrust'?triangleAngle(points):-Math.PI/2,tip:points[0],strokes}}
  // Stat 5 is solely the radius of the drawable circle; every art shares it.
  function placementRange(type,stats){return clamp(175+5*clamp(Number(stats?.[4])||3,3,85),190,600)}
@@ -3504,7 +3505,7 @@ window.ArtArts=(()=>{
  function cameraRect(pixelRatio=1){const c=$('#artsArena'),r=c.getBoundingClientRect();const me=cameraFighter(),focus=positions.get(me?.id)||me||{x:R.W/2,y:R.H/2};const zoom=1.35,scale=Math.max(r.width/R.W,r.height/R.H)*zoom*pixelRatio,viewW=(r.width*pixelRatio)/scale,viewH=(r.height*pixelRatio)/scale,left=R.clamp(focus.x-viewW/2,0,Math.max(0,R.W-viewW)),top=R.clamp(focus.y-viewH/2,0,Math.max(0,R.H-viewH));return{scale,left,top,viewW,viewH}}
  function worldPoint(e){const c=$('#artsArena'),r=c.getBoundingClientRect(),cam=cameraRect();return{x:R.clamp((e.clientX-r.left)/cam.scale+cam.left,0,R.W),y:R.clamp((e.clientY-r.top)/cam.scale+cam.top,0,R.H)}}
  function relativePoint(e){const p=worldPoint(e),me=self(),pos=positions.get(localId)||me;return{x:p.x-pos.x,y:p.y-pos.y}}
- function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<2)return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900||R.length(all)>=2400){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
+ function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<(gesture.pointerType==='pen'?.65:1.4))return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900||R.length(all)>=2400){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
  function bindBattle(){const c=$('#artsArena'),joy=$('#artsJoystick'),field=$('#artsField');$('#artsSkillInfo').onclick=showSkills;
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
@@ -3521,10 +3522,30 @@ window.ArtArts=(()=>{
  c.onpointerdown=e=>{if(e.pointerType==='touch'&&inZone(e))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
  c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();const events=e.getCoalescedEvents?.()||[];for(const point of events)drawPoint({...point,pointerId:e.pointerId,clientX:point.clientX,clientY:point.clientY});drawPoint(e)};
  c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;for(const p of e.getCoalescedEvents?.()||[])drawPoint({pointerId:e.pointerId,clientX:p.clientX,clientY:p.clientY});drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コアが出現しました。続けて周りへ描くとペットになります。');sendInput();return}finishPaint(false)};
- c.onpointercancel=e=>{if(gesture?.id===e.pointerId){gesture=null;finishPaint(true)}};
- field.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&e.target!==c&&!e.target.closest('button')){e.stopPropagation();c.onpointerdown(e)}},true);
+ c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd){c.onpointerup(e)}else{gesture=null;finishPaint(true)}}};
+ c.addEventListener('lostpointercapture',e=>{
+  // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
+  if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
+ });
+ // Pencil may start over a HUD/overlay. Route the entire pointer stream, not only its down event.
+ field.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='pen'||e.target===c||e.target.closest('button,input,select,textarea,[role=button]'))return;
+  if(gesture?.id===e.pointerId)return;
+  e.stopPropagation();c.onpointerdown(e);
+ },true);
  }
- document.addEventListener('pointerup',e=>{if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointerup?.(e)});
+ // Track Pencil across overlay elements even when Safari doesn't capture the pointer to canvas.
+ // Capture phase works even if a child stops propagation in the bubble phase.
+ document.addEventListener('pointermove',e=>{
+  if(!enabled()||view?.phase!=='battle'||e.pointerType!=='pen'||gesture?.id!==e.pointerId)return;
+  $('#artsArena')?.onpointermove?.(e);
+ },true);
+ document.addEventListener('pointerup',e=>{
+  if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointerup?.(e)
+ },true);
+ document.addEventListener('pointercancel',e=>{
+  if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointercancel?.(e)
+ },true);
  function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}if((me?.skills||[me?.skill]).includes('summon')){if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コア配置OK。続けて周りへ描くとペットを召喚します。');return}if(paths.length===1){hint('最初に♡でコアを描きます。');return}}const shape=R.recognize(paths,me?.skills||[me?.skill]);hint(shape?'候補：'+moves[shape.type].name+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
