@@ -2741,7 +2741,7 @@ window.ArtsRules=(()=>{
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats,paths=[]){
-  const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.82+stats[0]*.58,gunner:stats[4]*1.08+stats[1]*.42};
+  const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.08+stats[1]*.42};
   // A recognizable *local* symbol determines the profession, irrespective of
   // offensive/defensive stats. Stats continue to describe the entire picture.
   const motifs=localClassSignals(paths);
@@ -2793,7 +2793,7 @@ window.ArtsRules=(()=>{
  // Explicit local archetypes: a crisp shield or spiral overrides the whole-picture
  // score. A dense hairstyle or a swarm of short angles is never sufficient.
  function localClassSignals(raw){
-  const result={tank:0,magician:0,trickster:0,gunner:0};
+  const result={attacker:0,tank:0,magician:0,trickster:0,gunner:0};
   const paths=cleanDrawingPaths(raw);
   if(!paths.length)return result;
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
@@ -2802,11 +2802,25 @@ window.ArtsRules=(()=>{
   for(const m of meta){
    const {path,box}=m,size=box.span/full;
    if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
+   const oval=statOvalContour(path,box);
+   const outline=statSimplify(path,box.span*.022),corners=m.closed?outline.slice(0,-1):outline;
+   let sharp=0;
+   if(!oval)for(let i=0;i<corners.length;i++){
+    if(!m.closed&&(i===0||i===corners.length-1))continue;
+    const a=corners[(i+corners.length-1)%corners.length],b=corners[i],c=corners[(i+1)%corners.length],la=dist(a,b),lb=dist(b,c);
+    if(Math.min(la,lb)<box.span*.14)continue;
+    const bend=Math.acos(clamp(((b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y))/(la*lb||1),-1,1));
+    let ix=0;for(let j=1;j<path.length;j++)if(dist(path[j],b)<dist(path[ix],b))ix=j;
+    if(bend>1.85&&statSharpTip(path,ix,m.closed,box.span))sharp++;
+   }
+   if(sharp)result.attacker=Math.max(result.attacker,(1.08+Math.min(2,sharp-1)*.12)*clamp((size-.09)/.10,0,1));
    // A four-sided / angular closed shield is recognizable even if it occupies
    // only a corner of the character; it need not dominate the overall image.
    if(m.closed&&size>=.15){
     const polygon=statSimplify(path,Math.max(.30,box.span*.032));
     const vertices=dist(polygon[0],polygon.at(-1))<box.span*.16?polygon.slice(0,-1):polygon;
+    // Closing a hand-drawn polygon can leave two nearly coincident corners.
+    for(let i=vertices.length-1;i>=0&&vertices.length>3;i--)if(dist(vertices[i],vertices[(i+1)%vertices.length])<box.span*.09)vertices.splice(i,1);
     if(vertices.length>=4&&vertices.length<=7){
      const bends=[],signs=[];
      for(let i=0;i<vertices.length;i++){
@@ -2817,14 +2831,15 @@ window.ArtsRules=(()=>{
       signs.push(Math.sign(ab.x*bc.y-ab.y*bc.x));
      }
      const convex=signs.length===vertices.length&&signs.every(v=>v&&v===signs[0]);
-     if(convex&&bends.length===vertices.length){
+     const crispCorners=vertices.filter(b=>{let ix=0;for(let j=1;j<path.length;j++)if(dist(path[j],b)<dist(path[ix],b))ix=j;return statArmorCorner(path,ix,true,box.span)}).length;
+     if(convex&&crispCorners>=3&&bends.length===vertices.length&&bends.filter(t=>t>1.85).length<=1){
       let quality=0;
       if(vertices.length===4){
        const right=bends.filter(t=>t>.82&&t<2.26).length;
        if(right>=3)quality=1.35+Math.min(1,(right-3)*.25);
       }else if(vertices.length>=5){
        const angular=bends.filter(t=>t>.42&&t<1.9).length;
-       if(angular>=vertices.length-1)quality=.92;
+       if(angular>=vertices.length-1)quality=1.22;
       }
       if(quality)result.tank=Math.max(result.tank,quality*clamp((size-.09)/.13,.55,1));
      }
@@ -2832,8 +2847,12 @@ window.ArtsRules=(()=>{
    }
    // Genuine spiral: one continuous open stroke winding around a centre
    // more than one full turn; a circular eye or jagged scribble is not enough.
-   if(size>=.13&&!m.closed){
-    const sampled=resample(path,56);const centre={x:box.cx,y:box.cy};
+   if(size>=.13&&!oval){
+   const coilPaths=[path];
+   if(path.length>=16)for(const fraction of [.4,.6,.8]){const n=Math.max(8,Math.floor(path.length*fraction));coilPaths.push(path.slice(0,n),path.slice(-n))}
+   for(const coil of coilPaths){
+    const cb=statBox(coil);if(cb.span/full<.10||dist(coil[0],coil.at(-1))<cb.span*.06)continue;
+    const sampled=resample(coil,56);const centre={x:cb.cx,y:cb.cy};
     let signed=0,absolute=0,flips=0,previous=0;
     const radii=sampled.map(p=>Math.hypot(p.x-centre.x,p.y-centre.y));
     for(let i=1;i<sampled.length;i++){
@@ -2845,11 +2864,12 @@ window.ArtsRules=(()=>{
     const coherence=Math.abs(signed)/(absolute||1);
     const n=Math.max(5,Math.floor(radii.length*.19));
     const first=radii.slice(0,n).reduce((a,b)=>a+b,0)/n,last=radii.slice(-n).reduce((a,b)=>a+b,0)/n;
-    const growth=Math.abs(last-first)/Math.max(box.span*.5,1);
+    const growth=Math.abs(last-first)/Math.max(cb.span*.5,1);
     if(Math.abs(signed)>=2.45*Math.PI&&coherence>.75&&growth>.15&&flips<=7){
-     const confidence=1.10*clamp((Math.abs(signed)/(2*Math.PI)-1.05)/.55,0,1)*clamp((growth-.08)/.24,0,1)*clamp((size-.07)/.14,.55,1);
+     const confidence=1.28*clamp((Math.abs(signed)/(2*Math.PI)-1.05)/.55,0,1)*clamp((growth-.08)/.24,0,1)*clamp((size-.07)/.14,.55,1);
      result.magician=Math.max(result.magician,confidence);
     }
+   }
    }
    // Two-lobed infinity is a distinct Trickster symbol, unlike a plain oval.
    if(m.closed&&size>.17&&m.len/Math.max(box.span,1)>2.45){
@@ -2876,7 +2896,7 @@ window.ArtsRules=(()=>{
   }
   // Projectiles separated from the character also remain a specific motif,
   // even when many strokes otherwise imply an attacker.
-  if(meta.length>1&&meta.length<=32){
+  if(meta.length>1){
    const {scores:pellets}=statObjects(meta);
    if(pellets.length)result.gunner=Math.max(result.gunner,Math.min(1.10,(pellets[0]||0)*1.17));
   }
@@ -2921,8 +2941,8 @@ window.ArtsRules=(()=>{
    if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
    if(winding>.04){
     candidates[3].push(clamp(.60+winding*.62,0,1.45));
-    candidates[0].push(clamp(.50+winding*.85,0,1.25));
-    candidates[4].push(winding*.24);continue
+    // Coils are magic/ink features, not speed features.
+    candidates[4].push(winding*.65);continue
    }
    // Inspect local corners. Internal angle >= 90 degrees is armor, not a spike.
    const simple=statSimplify(path,box.span*.025),pts=m.closed?simple.slice(0,-1):simple;
@@ -2984,6 +3004,11 @@ window.ArtsRules=(()=>{
   const solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*clamp((2.3-aspect)/1.3,0,1);
   strengths[2]=Math.max(strengths[2],solid*.40);
   strengths[3]=Math.max(strengths[3],solid*1.25);
+  const local=localClassSignals(paths);
+  strengths[1]=Math.max(strengths[1],local.attacker*.95);
+  strengths[2]=Math.max(strengths[2],local.tank*.90);
+  strengths[3]=Math.max(strengths[3],local.magician*.80);
+  strengths[4]=Math.max(strengths[4],local.magician*.95,local.gunner);
   return allocate(strengths.map(v=>1+60*v));
  }
 
