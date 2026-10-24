@@ -2724,7 +2724,7 @@ window.ArtsRules=(()=>{
  Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'上下2つの丸い弧を右の先端でつなぎ、ふくらみのある＞を一筆で描く',newSmoke:'W字を一筆で描く'});
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
- function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]+stats[3],magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
+ function type(stats){const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.82+stats[0]*.58,gunner:stats[4]*1.08+stats[1]*.42};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
@@ -2784,7 +2784,11 @@ window.ArtsRules=(()=>{
   const {detached,scores}=statObjects(meta),candidates=[[],[],[],[],scores];
   for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
    if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
-   if(winding>.04){candidates[3].push(clamp(.60+winding*.62,0,1.45));candidates[4].push(winding*.48);continue}
+   if(winding>.04){
+    candidates[3].push(clamp(.60+winding*.62,0,1.45));
+    candidates[0].push(clamp(.50+winding*.85,0,1.25));
+    candidates[4].push(winding*.24);continue
+   }
    // Inspect local corners. Internal angle >= 90 degrees is armor, not a spike.
    const simple=statSimplify(path,box.span*.025),pts=m.closed?simple.slice(0,-1):simple;
    let attack=0,armor=0;
@@ -2800,16 +2804,44 @@ window.ArtsRules=(()=>{
     if(local<.48)continue;
     const rad=p=>Math.hypot(p.x-box.cx,p.y-box.cy),outer=rad(b)>Math.max(rad(a),rad(c))+box.span*.025;
     if(bend>1.72&&local>1.5&&outer)attack+=clamp(Math.min(la,lb)/(box.span*.25),0,1);
-    else if(bend>=.48&&bend<=1.72&&statArmorCorner(path,ix,m.closed,box.span))armor+=clamp(Math.min(la,lb)/(box.span*.22),0,1);
+    else if(bend>=.70&&bend<=1.72
+       &&box.span>=allBox.span*.22
+       &&Math.min(la,lb)>=allBox.span*.095
+       &&statArmorCorner(path,ix,m.closed,box.span)){
+     // Count only corners made from visibly long sides. Decoration detail cannot
+     // outscore a deliberate shield/corner motif just by adding more strokes.
+     const support=clamp(Math.min(la,lb)/(allBox.span*.28),0,1);
+     const crisp=clamp((local-.54)/.55,0,1);
+     armor+=support*crisp;
+    }
+   }
+   if(m.closed&&pts.length>=4&&pts.length<=18&&armor>.20){
+    const turns=[];
+    for(let i=0;i<pts.length;i++){
+     const a=pts[(i+pts.length-1)%pts.length],b=pts[i],c=pts[(i+1)%pts.length];
+     const cross=(b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x);
+     if(Math.abs(cross)>box.span*box.span*.001)turns.push(Math.sign(cross));
+    }
+    if(turns.length>=4&&turns.every(v=>v===turns[0])){armor+=Math.min(2.5,attack)*.9;attack=0}
    }
    // Tiny face details are weak; a shield occupying part of the body still counts.
    const size=clamp((box.span/allBox.span-.055)/.16,0,1);
    if(attack>.15)candidates[1].push(clamp(.55+attack*.34,0,1.5)*Math.max(.42,size));
-   if(armor>.15)candidates[2].push(clamp(.65+armor*.30,0,1.5)*Math.max(.45,size));
+   if(armor>.33){
+    const visible=clamp((box.span/allBox.span-.14)/.34,0,1);
+    const clarity=clamp(.22+armor*.22+(m.closed&&armor>1.0?.12:0),0,1.18);
+    if(visible>.20)candidates[2].push(clarity*visible);
+   }
    // Smooth continuous curves with alternating bends also add a little Ink.
    if(!attack&&!armor&&m.turn>Math.PI*.7)candidates[3].push(.14*size*clamp(m.turn/(2*Math.PI),0,1)*clamp(1-m.kinks/5,0,1));
   }
-  const strengths=candidates.map(list=>{list.sort((a,b)=>b-a);return Math.min(1.6,(list[0]||0)+.24*(list[1]||0)+.10*(list[2]||0))});
+  const strengths=candidates.map((list,i)=>{
+   list.sort((a,b)=>b-a);
+   // Defense is a distinct shield-like motif, never a count of small corners.
+   // Other feature types retain their prior local multi-motif scoring.
+   if(i===2)return Math.min(1.3,(list[0]||0)+.10*(list[1]||0));
+   return Math.min(1.6,(list[0]||0)+.24*(list[1]||0)+.10*(list[2]||0));
+  });
   // A single conspicuous local motif should outweigh unrelated ink strokes.
   // Long outlines on detailed characters cannot win purely through line count.
   const motif=Math.max(strengths[1],strengths[2],strengths[3],strengths[4]);
