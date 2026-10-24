@@ -2551,7 +2551,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2705,7 +2705,7 @@ window.ArtsRules=(()=>{
  summon:{name:'サモンペイント',class:'magician',rate:.07,cooldown:14000,text:'♡でコアを置き、続けて周りへ落書きするとペットになる。ペットは召喚者について行き、敵を見つけると接近して突進攻撃する。'},
  reflect:{name:'リフレクトウォール',class:'tank',rate:.085,cooldown:11000,text:'H字を一筆で描くと、6秒間通常弾を反射する盾を設置する。近接・範囲攻撃には無効。'},
  confusion:{name:'コンフュージョン',class:'trickster',rate:.065,cooldown:9000,text:'🌀を描いた範囲の敵は2秒間移動入力が反転する。重ねても延長しない。'},
- charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'撃ちたい方向に＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壁で止まる。'},
+ charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壁で止まる。'},
  newSmoke:{name:'スモーク',class:'trickster',rate:.065,cooldown:8000,text:'W字を描いて4秒間の煙幕を展開し、範囲内の味方を敵から隠す。'}
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
@@ -2714,7 +2714,7 @@ window.ArtsRules=(()=>{
  for(const[k,[effect,range]]of Object.entries(moveDetails))Object.assign(moves[k],{effect,range});
  Object.assign(moves.thrust,{distance:220,speed:720});
  const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"直角の曲がりを「同方向2回・逆方向1回」の順で4組作り、太い十字の輪郭を閉じる。","cross":"斜線を進み、折り返し、約90度曲がって別の斜線を往復する。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
- Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'放つ方向に尖った＞を描く',newSmoke:'W字を一筆で描く'});
+ Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'上下2つの丸い弧を右の先端でつなぎ、ふくらみのある＞を一筆で描く',newSmoke:'W字を一筆で描く'});
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats){const scores={attacker:stats[0]+stats[1],tank:stats[2]+stats[3],magician:stats[3]+stats[4],trickster:stats[0]+stats[3],gunner:stats[4]+stats[1]};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
@@ -2887,7 +2887,13 @@ window.ArtsRules=(()=>{
  case'summon':return[[...Array.from({length:49},(_,i)=>{const t=i*Math.PI*2/48;return{x:72*Math.sin(t)**3,y:-10-(55*Math.cos(t)-22*Math.cos(2*t)-9*Math.cos(3*t)-5*Math.cos(4*t))}})]];
  case'reflect':return[[{x:-65,y:80},{x:-65,y:-80},{x:-65,y:0},{x:65,y:0},{x:65,y:-80},{x:65,y:80}]];
  case'confusion':return oldTemplate('smoke');
- case'charge':return[[{x:-72,y:-86},{x:18,y:-10},{x:72,y:0},{x:18,y:10},{x:-72,y:86}]];
+ case'charge':{
+   // Two flowing, convex arcs meet at the pointed right-hand tip.
+   const quad=(a,c,b,n=15)=>Array.from({length:n+1},(_,i)=>{const t=i/n,u=1-t;return{x:u*u*a.x+2*u*t*c.x+t*t*b.x,y:u*u*a.y+2*u*t*c.y+t*t*b.y}});
+   const top=quad({x:-86,y:-82},{x:8,y:-111},{x:72,y:0});
+   const bottom=quad({x:72,y:0},{x:8,y:111},{x:-86,y:82});
+   return[[...top,...bottom.slice(1)]];
+  }
  case'newSmoke':return[[{x:-90,y:-70},{x:-50,y:75},{x:0,y:-65},{x:50,y:75},{x:90,y:-70}]];
  default:return oldTemplate(k)}};
  function cloud(strokes){const total=length(strokes);const pts=strokes.flatMap(s=>resample(s,Math.max(2,Math.round(length([s])/Math.max(1,total)*40))));const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y)),scale=Math.max(maxx-minx,maxy-miny,1);return pts.map(p=>({x:(p.x-(minx+maxx)/2)/scale,y:(p.y-(miny+maxy)/2)/scale}))}
@@ -3030,6 +3036,34 @@ window.ArtsRules=(()=>{
   }return 0;
  }
 
+ // Recognize a rounded > by its overall shape rather than an exact corner angle.
+ // The two endpoints lie left of a right-side tip; the upper and lower arms
+ // smoothly converge. Slightly uneven, hand-drawn curves are accepted.
+ function curvedChargeGesture(path){
+  if(!Array.isArray(path)||path.length<5)return false;
+  const pts=resample(path,49),box=statBox(pts),w=box.w,h=box.h;
+  if(w<24||h<24||w/h<.38||w/h>2.8)return false;
+  const tipIdx=pts.reduce((best,p,i)=>p.x>pts[best].x?i:best,0);
+  if(tipIdx<12||tipIdx>36)return false;
+  const tip=pts[tipIdx],start=pts[0],end=pts.at(-1);
+  if(Math.abs(start.y-end.y)<h*.50)return false;
+  if(Math.min(tip.x-start.x,tip.x-end.x)<w*.52)return false;
+  if(Math.abs(tip.y-(start.y+end.y)/2)>h*.36)return false;
+  const upper=start.y<end.y?pts:pts.slice().reverse();
+  const idx=start.y<end.y?tipIdx:48-tipIdx;
+  let offCourse=0, reversals=0;
+  for(let i=1;i<upper.length;i++){
+   const a=upper[i-1],b=upper[i];
+   if(i<=idx){if(b.y<a.y-h*.055)offCourse++;if(b.x<a.x-w*.08)reversals++}
+   else{if(b.y<a.y-h*.055)offCourse++;if(b.x>a.x+w*.08)reversals++}
+  }
+  if(offCourse>5||reversals>5)return false;
+  // Ends should occupy the left side of the gesture, not near the tip.
+  if(start.x>box.x+w*.48||end.x>box.x+w*.48)return false;
+  // Avoid interpreting an almost closed loop as a charge gesture.
+  if(dist(start,end)<box.span*.25)return false;
+  return true;
+ }
  function skillGesture(path,skill){
   if(['warp','thrust','build','star'].includes(skill))return artFeatureScore(path,skill)>=.72;
   const g=strokeGrammar(path),{closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len}=g;
@@ -3054,7 +3088,7 @@ window.ArtsRules=(()=>{
    case'confusion':return !closed&&intersections.length===0&&abs>Math.PI*2.6&&abs<Math.PI*9&&Math.abs(signed)/abs>.78&&degrees.every(a=>Math.abs(a)<125);
    case'hook':return !closed&&pattern([75,75],88);
    case'reflect':return !closed&&pattern([180,-90,-90,180],68);
-   case'charge':return !closed&&pattern([95],58);
+   case'charge':return curvedChargeGesture(path)||(!closed&&pattern([95],68));
    case'newSmoke':return !closed&&pattern([110,-110,110],58);
    case'inkcut':{
     // A straight diameter first, followed by a loop back to the diameter end.
@@ -3421,6 +3455,7 @@ window.ArtArts=(()=>{
   ricochet:'ひし形を一筆で描いて10秒間跳弾',
   ray:'上の横線 → 右端で折り返す → 下の横線',
   anchor:'左 → 中央 → 上 → 中央 → 下 → 中央 → 右',
+  charge:'左上から弓なりに右端へ → 下へ折り返し、弓なりに左下へ（一筆書き）',
   inkcut:'右下 → 左上 → そのまま丸く一周'
  };
  function guideSegments(paths){
@@ -3442,22 +3477,26 @@ window.ArtArts=(()=>{
   const trace=segments.map((seg,i)=>{const color=seg.retrace?'#f09b52':(i===0?'#6356c7':'#9464cd');
    return '<line x1="'+seg.start.x+'" y1="'+seg.start.y+'" x2="'+seg.end.x+'" y2="'+seg.end.y+'" stroke="'+color+'" stroke-width="'+(seg.retrace?4:6)+'" stroke-linecap="round" '+(seg.retrace?'stroke-dasharray="8 5"':'')+'/>'+arrow(seg.start,seg.end,color);
   }).join('');
+  const chargeTrace=key==='charge'?'<path d="'+paths.map(smoothSvgPath).join(' ')+'" fill="none" stroke="#8060bd" stroke-width="6" stroke-linecap="round"/>':'';
   const first=paths[0][0],last=paths.at(-1).at(-1);
   const markers='<circle cx="'+first.x+'" cy="'+first.y+'" r="9" fill="#23b99a" stroke="white" stroke-width="3"/>'+
   '<circle cx="'+last.x+'" cy="'+last.y+'" r="7" fill="#ed805d" stroke="white" stroke-width="2.5"/>';
   const names=esc(moves[key].name),tip=guideTips[key];
   return '<div class="arts-guide-graphic"><svg viewBox="'+vb+'" role="img" aria-label="'+names+' 一筆書きの進む方向"><title>'+names+'の一筆書き</title>'+
     '<g fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">'+paths.map(path=>'<path d="'+smoothSvgPath(path)+'"/>').join('')+'</g>'+
-    '<g fill="none">'+trace+'</g>'+markers+'</svg>'+
+    '<g fill="none">'+(key==='charge'?chargeTrace:trace)+'</g>'+markers+'</svg>'+
     '<div class="arts-guide-legend"><span><i class="arts-guide-start"></i>開始</span><span><i class="arts-guide-back"></i>戻る線</span><span><i class="arts-guide-end"></i>終了</span></div>'+
     (tip?'<small class="arts-guide-tip">'+tip+'</small>':'')+'</div>';
  }
  function drawBattleGuide(ctx,pos,key){
   const paths=R.template(key),segments=guideSegments(paths);ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  if(key==='charge'){const line=paths[0];ctx.globalAlpha=.7;ctx.strokeStyle='#8160b9';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(pos.x+line[0].x,pos.y+line[0].y);for(let i=1;i<line.length-1;i++){const m={x:(line[i].x+line[i+1].x)/2,y:(line[i].y+line[i+1].y)/2};ctx.quadraticCurveTo(pos.x+line[i].x,pos.y+line[i].y,pos.x+m.x,pos.y+m.y)}ctx.lineTo(pos.x+line.at(-1).x,pos.y+line.at(-1).y);ctx.stroke();}
+  else{
   ctx.globalAlpha=.62;for(const seg of segments){const a=seg.start,b=seg.end;const color=seg.retrace?'#e99b4b':'#8160b9';ctx.strokeStyle=color;ctx.lineWidth=seg.retrace?3.3:4;ctx.setLineDash(seg.retrace?[5,5]:[]);
    ctx.beginPath();ctx.moveTo(pos.x+a.x,pos.y+a.y);ctx.lineTo(pos.x+b.x,pos.y+b.y);ctx.stroke();ctx.setLineDash([]);
    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);if(len<18)continue;const px=pos.x+a.x+dx*.62,py=pos.y+a.y+dy*.62,ux=dx/len,uy=dy/len;
    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(px+ux*8,py+uy*8);ctx.lineTo(px-ux*6-uy*5,py-uy*6+ux*5);ctx.lineTo(px-ux*6+uy*5,py-uy*6-ux*5);ctx.closePath();ctx.fill();
+  }
   }
   ctx.globalAlpha=.9;const start=paths[0][0],end=paths.at(-1).at(-1);for(const[p,c,r]of [[start,'#23b99a',7],[end,'#ed805d',6]]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(pos.x+p.x,pos.y+p.y,r,0,Math.PI*2);ctx.fill()};ctx.restore();
  }
