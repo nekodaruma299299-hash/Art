@@ -2724,7 +2724,15 @@ window.ArtsRules=(()=>{
  Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'上下2つの丸い弧を右の先端でつなぎ、ふくらみのある＞を一筆で描く',newSmoke:'W字を一筆で描く'});
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
- function type(stats){const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.82+stats[0]*.58,gunner:stats[4]*1.08+stats[1]*.42};return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0]}
+ function type(stats,paths=[]){
+  const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.82+stats[0]*.58,gunner:stats[4]*1.08+stats[1]*.42};
+  // A recognizable *local* symbol determines the profession, irrespective of
+  // offensive/defensive stats. Stats continue to describe the entire picture.
+  const motifs=localClassSignals(paths);
+  const priority=Object.entries(motifs).filter(([kind,confidence])=>confidence>=.70);
+  if(priority.length){priority.sort((a,b)=>b[1]-a[1]);return priority[0][0]}
+  return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0];
+ }
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
@@ -2765,6 +2773,98 @@ window.ArtsRules=(()=>{
    if(!closed)continue;
    o.items.forEach(m=>detached.add(m));scores.push(clamp(.30+gap/(b.span||1),.3,1)*clamp(q.span/(b.span*.16),.3,1));
   }return{detached,scores};
+ }
+ // Explicit local archetypes: a crisp shield or spiral overrides the whole-picture
+ // score. A dense hairstyle or a swarm of short angles is never sufficient.
+ function localClassSignals(raw){
+  const result={tank:0,magician:0,trickster:0,gunner:0};
+  const paths=cleanDrawingPaths(raw);
+  if(!paths.length)return result;
+  const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
+  if(!meta.length)return result;
+  const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
+  for(const m of meta){
+   const {path,box}=m,size=box.span/full;
+   if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
+   // A four-sided / angular closed shield is recognizable even if it occupies
+   // only a corner of the character; it need not dominate the overall image.
+   if(m.closed&&size>=.15){
+    const polygon=statSimplify(path,Math.max(.30,box.span*.032));
+    const vertices=dist(polygon[0],polygon.at(-1))<box.span*.16?polygon.slice(0,-1):polygon;
+    if(vertices.length>=4&&vertices.length<=7){
+     const bends=[],signs=[];
+     for(let i=0;i<vertices.length;i++){
+      const a=vertices[(i+vertices.length-1)%vertices.length],b=vertices[i],c=vertices[(i+1)%vertices.length];
+      const ab={x:b.x-a.x,y:b.y-a.y},bc={x:c.x-b.x,y:c.y-b.y};
+      if(Math.min(Math.hypot(ab.x,ab.y),Math.hypot(bc.x,bc.y))<box.span*.085)continue;
+      bends.push(Math.acos(clamp((ab.x*bc.x+ab.y*bc.y)/(Math.hypot(ab.x,ab.y)*Math.hypot(bc.x,bc.y)||1),-1,1)));
+      signs.push(Math.sign(ab.x*bc.y-ab.y*bc.x));
+     }
+     const convex=signs.length===vertices.length&&signs.every(v=>v&&v===signs[0]);
+     if(convex&&bends.length===vertices.length){
+      let quality=0;
+      if(vertices.length===4){
+       const right=bends.filter(t=>t>.82&&t<2.26).length;
+       if(right>=3)quality=1.35+Math.min(1,(right-3)*.25);
+      }else if(vertices.length>=5){
+       const angular=bends.filter(t=>t>.42&&t<1.9).length;
+       if(angular>=vertices.length-1)quality=.92;
+      }
+      if(quality)result.tank=Math.max(result.tank,quality*clamp((size-.09)/.13,.55,1));
+     }
+    }
+   }
+   // Genuine spiral: one continuous open stroke winding around a centre
+   // more than one full turn; a circular eye or jagged scribble is not enough.
+   if(size>=.13&&!m.closed){
+    const sampled=resample(path,56);const centre={x:box.cx,y:box.cy};
+    let signed=0,absolute=0,flips=0,previous=0;
+    const radii=sampled.map(p=>Math.hypot(p.x-centre.x,p.y-centre.y));
+    for(let i=1;i<sampled.length;i++){
+     const a=sampled[i-1],b=sampled[i],a0=Math.atan2(a.y-centre.y,a.x-centre.x),a1=Math.atan2(b.y-centre.y,b.x-centre.x);
+     let turn=a1-a0;while(turn>Math.PI)turn-=2*Math.PI;while(turn< -Math.PI)turn+=2*Math.PI;
+     if(Math.abs(turn)>.035){const direction=Math.sign(turn);if(previous&&direction!==previous)flips++;previous=direction}
+     signed+=turn;absolute+=Math.abs(turn);
+    }
+    const coherence=Math.abs(signed)/(absolute||1);
+    const n=Math.max(5,Math.floor(radii.length*.19));
+    const first=radii.slice(0,n).reduce((a,b)=>a+b,0)/n,last=radii.slice(-n).reduce((a,b)=>a+b,0)/n;
+    const growth=Math.abs(last-first)/Math.max(box.span*.5,1);
+    if(Math.abs(signed)>=2.45*Math.PI&&coherence>.75&&growth>.15&&flips<=7){
+     const confidence=1.10*clamp((Math.abs(signed)/(2*Math.PI)-1.05)/.55,0,1)*clamp((growth-.08)/.24,0,1)*clamp((size-.07)/.14,.55,1);
+     result.magician=Math.max(result.magician,confidence);
+    }
+   }
+   // Two-lobed infinity is a distinct Trickster symbol, unlike a plain oval.
+   if(m.closed&&size>.17&&m.len/Math.max(box.span,1)>2.45){
+    const samples=resample(path,49),near=[];
+    for(let j=0;j<samples.length;j++)if(dist(samples[j],{x:box.cx,y:box.cy})<box.span*.115)near.push(j);
+    if(near.some(j=>j<8)&&near.some(j=>j>18&&j<31)&&near.some(j=>j>40)){
+     result.trickster=Math.max(result.trickster,.91*clamp((size-.1)/.17,.6,1));
+    }
+   }
+   // S-shaped smooth curve: one clear reversal in turning direction.
+   if(!m.closed&&size>.20&&m.len/Math.max(box.span,1)>1.3){
+    const sample=resample(path,29),turns=[];
+    for(let j=4;j<sample.length-4;j+=2){
+     const a=sample[j-4],b=sample[j],c=sample[j+4],ab={x:b.x-a.x,y:b.y-a.y},bc={x:c.x-b.x,y:c.y-b.y};
+     const angle=Math.atan2(ab.x*bc.y-ab.y*bc.x,ab.x*bc.x+ab.y*bc.y);
+     if(Math.abs(angle)>.11)turns.push(angle);
+    }
+    const positive=turns.filter(x=>x>0).reduce((a,b)=>a+b,0),negative=-turns.filter(x=>x<0).reduce((a,b)=>a+b,0);
+    const changes=turns.filter((t,j)=>j&&Math.sign(t)!==Math.sign(turns[j-1])).length;
+    if(positive>1.0&&negative>1.0&&changes===1&&m.chord/m.len>.40){
+     result.trickster=Math.max(result.trickster,.86*clamp((size-.12)/.20,.6,1));
+    }
+   }
+  }
+  // Projectiles separated from the character also remain a specific motif,
+  // even when many strokes otherwise imply an attacker.
+  if(meta.length>1&&meta.length<=32){
+   const {scores:pellets}=statObjects(meta);
+   if(pellets.length)result.gunner=Math.max(result.gunner,Math.min(1.10,(pellets[0]||0)*1.17));
+  }
+  return result;
  }
  // A real corner keeps its turn when the measurement window shrinks.
  // Smooth curves lose most of their turn; interpolate to avoid sample-spacing bias.
@@ -3293,7 +3393,7 @@ window.ArtArts=(()=>{
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel','contextmenu'])stage.addEventListener(ev,e=>{e.stopPropagation();if(ev==='contextmenu')e.preventDefault()});
  const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">—</output><progress id="artsLiveBar'+i+'" max="100" value="0" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
  function syncLiveStats(){const editing=!!(enabled()&&view?.phase==='create'&&participant()&&!view.ready[localId]);$('#studio').classList.toggle('arts-character-editing',editing);liveStats.hidden=!editing;return editing}
- function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats)]+' 寄り';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
+ function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats,art.drawingPaths)]+' 寄り';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
  function clearCanvas(){characterPaths=[];characterFacing=1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value='1';window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();prefs.opacities=[100,100,100];$('#transformBar').hidden=true;render();renderControls();fitView()}
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
  function publicState(withImages=false){return{id:host.id,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,ink:p.ink,maxInk:p.maxInk,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
@@ -3309,19 +3409,26 @@ window.ArtArts=(()=>{
  async function loadInstalledCharacter(){const id=selectedCharacter();if(!id)return;const token=sessionToken,game=view?.id;try{const a=await db('art','readonly',store=>store.get(id));if(a?.format==='arts-character'&&token===sessionToken&&game===view?.id&&!room.hasArt&&!stroke&&!engine.ops.length)await loadCharacter(a,true)}catch{toast('保存キャラを読み込めませんでした。')}}
  function saveCharacter(){let art;try{if(canDraw()){if(stroke)finishStroke();if(selection)$('#applyTransform').click();art=sampleArtwork()}else art=view?.art?.[localId];if(!art?.image){toast('保存できるキャラがありません。');return}}catch{toast('キャラを生成できませんでした。');return}
  modal('キャラクターを絵画展に保存','<img class="art-view" style="max-height:220px;image-rendering:auto" src="'+esc(art.image)+'" alt="保存するキャラ">'+statsHTML(art.stats)+'<form id="artsSaveCharacterForm"><label class="form-field">キャラの名前<input id="artsCharacterName" maxlength="40" value="'+esc(profile.name+'のキャラ')+'" required></label><button class="primary">絵画展に保存</button></form>');
- $('#artsSaveCharacterForm').onsubmit=async e=>{e.preventDefault();const name=$('#artsCharacterName').value.trim();if(!name)return;const button=e.target.querySelector('button');button.disabled=true;try{const record={id:uid(),format:'arts-character',name,at:Date.now(),image:art.image,thumb:art.image,w:192,h:192,stats:[...art.stats],drawingPaths:R.cleanDrawingPaths(art.drawingPaths||[]),artFacing:art.artFacing===-1?-1:1,class:R.type(art.stats)};await db('art','readwrite',store=>store.put(record));await refreshGallery();$('#modal').close();toast('キャラを絵画展に保存しました。')}catch{button.disabled=false;toast('保存できませんでした。端末の空き容量をご確認ください。')}};
+ $('#artsSaveCharacterForm').onsubmit=async e=>{e.preventDefault();const name=$('#artsCharacterName').value.trim();if(!name)return;const button=e.target.querySelector('button');button.disabled=true;try{const record={id:uid(),format:'arts-character',name,at:Date.now(),image:art.image,thumb:art.image,w:192,h:192,stats:[...art.stats],drawingPaths:R.cleanDrawingPaths(art.drawingPaths||[]),artFacing:art.artFacing===-1?-1:1,class:R.type(art.stats,art.drawingPaths)};await db('art','readwrite',store=>store.put(record));await refreshGallery();$('#modal').close();toast('キャラを絵画展に保存しました。')}catch{button.disabled=false;toast('保存できませんでした。端末の空き容量をご確認ください。')}};
  }
  async function characterPicker(){try{await refreshGallery();const list=gallery.filter(a=>a.format==='arts-character');modal('絵画展のキャラクター','<p>キャラを選ぶと、制作中のキャンバスに読み込めます。ホームでは次回使用するキャラを選択します。</p><div class="arts-character-grid">'+list.map(a=>'<button data-character-id="'+esc(a.id)+'"><img src="'+esc(a.thumb)+'" alt=""><b>'+esc(a.name)+'</b>'+(selectedCharacter()===a.id?'<small>選択中</small>':'')+'</button>').join('')+'</div>'+(!list.length?'<p>保存したキャラがありません。「キャラ制作だけ」から作成できます。</p>':'')+'<button id="artsCharacterClear">次回は白紙から描く</button>');document.querySelectorAll('[data-character-id]').forEach(button=>button.onclick=async()=>{const a=await db('art','readonly',store=>store.get(button.dataset.characterId));if(!a){toast('キャラが見つかりません。');return}if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のキャラ作成時に読み込みます。')}});$('#artsCharacterClear').onclick=()=>{if(installCharacter('')){$('#modal').close();toast('次回は白紙から描きます。')}}}catch{toast('絵画展を読み込めませんでした。')}}
  function showCharacter(a){modal(a.name,'<img class="art-view" src="'+esc(a.image)+'" alt="'+esc(a.name)+'">'+statsHTML(a.stats||[20,20,20,20,20])+'<div class="modal-actions"><button id="artsInstallCharacter" class="primary">このキャラを使う</button><button id="artsEditCharacter">キャラ制作で開く</button><button id="artsDownloadCharacter">PNG保存</button><button id="artsDeleteCharacter">削除</button></div>');$('#artsInstallCharacter').onclick=async()=>{if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のアートアーツでこのキャラを読み込みます。')}};$('#artsEditCharacter').onclick=()=>openCharacterStudio(a);$('#artsDownloadCharacter').onclick=()=>download(a.image,a.name+'.png');$('#artsDeleteCharacter').onclick=async()=>{if(!confirm('このキャラを絵画展から削除しますか？'))return;await db('art','readwrite',store=>store.delete(a.id));if(selectedCharacter()===a.id)installCharacter('');$('#modal').close();await refreshGallery()};}
- function collectDrawingPaths(includeCurrent=false){const ops=engine.ops.filter(a=>!a.disabled&&a.tool==='pen'&&Array.isArray(a.points)&&a.points.length>=2);if(includeCurrent&&stroke?.tool==='pen'&&stroke.points?.length>=2&&!ops.some(a=>a.id===stroke.id))ops.push(stroke);const indexed=ops.map((a,i)=>({a,i,weight:a.points.reduce((sum,p,j)=>j?sum+Math.hypot(p[0]-a.points[j-1][0],p[1]-a.points[j-1][1]):sum,0)}));const ranked=[...indexed].sort((a,b)=>b.weight-a.weight).slice(0,28);const seen=new Set(ranked.map(p=>p.i));const remaining=indexed.filter(p=>!seen.has(p.i));const slots=Math.max(0,64-characterPaths.length-ranked.length);for(let j=0;j<Math.min(slots,remaining.length);j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/Math.min(slots,remaining.length)))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48));return [...characterPaths,...paths].slice(-64)}
+ function collectDrawingPaths(includeCurrent=false){const ops=engine.ops.filter(a=>!a.disabled&&a.tool==='pen'&&Array.isArray(a.points)&&a.points.length>=2);if(includeCurrent&&stroke?.tool==='pen'&&stroke.points?.length>=2&&!ops.some(a=>a.id===stroke.id))ops.push(stroke);const indexed=ops.map((a,i)=>({a,i,weight:a.points.reduce((sum,p,j)=>j?sum+Math.hypot(p[0]-a.points[j-1][0],p[1]-a.points[j-1][1]):sum,0)}));const slots=Math.max(0,64-Math.min(characterPaths.length,ops.length?48:64)),ranked=[...indexed].sort((a,b)=>b.weight-a.weight).slice(0,Math.min(24,Math.max(0,slots-12)));
+  const seen=new Set(ranked.map(p=>p.i));
+  // Always preserve recent strokes: shields and coils added to detailed art
+  // must not disappear behind the 64-path transmission limit.
+  const latest=indexed.slice(-Math.min(16,Math.max(0,slots-ranked.length))).filter(p=>!seen.has(p.i));
+  for(const p of latest){ranked.push(p);seen.add(p.i)}
+  const remaining=indexed.filter(p=>!seen.has(p.i)),extra=Math.min(remaining.length,Math.max(0,slots-ranked.length));
+  for(let j=0;j<extra;j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/extra))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48));return [...characterPaths,...paths].slice(-64)}
  function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{return{image:'',drawingPaths:[],artFacing:characterFacing,stats:[0,0,0,0,0],empty:true}}x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
  const drawingPaths=collectDrawingPaths(includeCurrent),stats=R.analyze(x.getImageData(0,0,64,64).data,64,64,drawingPaths);
  return{image:out.toDataURL('image/png'),drawingPaths,artFacing:characterFacing,stats,empty:false}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
  function cancelReady(){if(!view||view.phase!=='create'||!participant()||!view.ready[localId]||room.characterOnly)return;sendHost({type:'gameArtsUnready',gameId:view.id})}
  function submit(){if(room?.characterOnly){saveCharacter();return}if(!view||!['create','collect'].includes(view.phase)||!participant()||view.ready[localId]||submitted===view.id)return;capturing=true;try{if(stroke)finishStroke();if(selection)$('#applyTransform').click();const art=sampleArtwork();if(art.empty){toast('絵が取得できていません。ペンで描いてから、もう一度準備完了を押してください。');return}submitted=view.id;sendHost({type:'gameArtsReady',gameId:view.id,image:art.image,drawingPaths:art.drawingPaths,artFacing:art.artFacing})}catch{toast('絵を送れませんでした。もう一度お試しください。')}finally{capturing=false}}
- async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===0)){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
- function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats);const pool=R.skills(a.class),picked=[...(Array.isArray(a.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);a.skills=picked.slice(0,2);a.skill=a.skills[0];if(p.bot)host.equipped[p.id]=true}sendAll(true)}
- function startBattle(){if(!host||host.phase!=='equip')return;host.blocks=R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;const spots=[[110,70],[610,1050],[610,70],[110,1050],[360,90],[360,1030],[45,550],[675,570]];host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats),pool=R.skills(clazz),team=i%2,spot=host.settings.teams==='teams'?[90+Math.floor(i/2)*170,team?1050:70]:spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);picked.splice(2);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,ink:60+stats[3]*2,maxInk:60+stats[3]*2,stats,class:clazz,skills:picked,skillIndex:0,skill:picked[0]||pool[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
+ async function acceptArt(id,image,drawingPaths=[],artFacing=1){artFacing=artFacing===-1?-1:1;drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===0)){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing,class:R.type(stats,drawingPaths)};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
+ function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats,a.drawingPaths||[]);const pool=R.skills(a.class),picked=[...(Array.isArray(a.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);a.skills=picked.slice(0,2);a.skill=a.skills[0];if(p.bot)host.equipped[p.id]=true}sendAll(true)}
+ function startBattle(){if(!host||host.phase!=='equip')return;host.blocks=R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;const spots=[[110,70],[610,1050],[610,70],[110,1050],[360,90],[360,1030],[45,550],[675,570]];host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),team=i%2,spot=host.settings.teams==='teams'?[90+Math.floor(i/2)*170,team?1050:70]:spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);picked.splice(2);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,ink:60+stats[3]*2,maxInk:60+stats[3]*2,stats,class:clazz,skills:picked,skillIndex:0,skill:picked[0]||pool[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
  const friendly=(a,b)=>R.allies(a,b,host.settings.teams);
  function remainingSides(){return new Set(alive().map(p=>host.settings.teams==='teams'?p.team:p.id)).size}
@@ -3513,7 +3620,7 @@ window.ArtArts=(()=>{
  if(stage.hidden){stage.innerHTML='';return}
  if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="あーとあーつの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';bindBattle();return}
  let body='';if(phase==='lobby'){const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);body='<h2>描いた相棒で、戦おう。</h2><p>自由に描いた絵がキャラクターに。<br>戦場では線を描いて、共通アーツと選んだスキルを発動します。</p><p>'+people.map(p=>esc(p.profile.name)).join(' ・ ')+(room.offline?' ＋ 練習くん':'')+'</p><p>作成 '+view.settings.createSeconds+'秒 / 対戦 '+view.settings.battleSeconds+'秒</p><div class="modal-actions">'+(isHost?'<button id="artsStart" class="primary">キャラクター作成へ</button><button id="artsSettings">部屋設定</button>':'部屋主の開始を待っています。')+'</div>'+instructions}
- else if(phase==='equip'){const a=view.art?.[localId],pool=a?R.skills(a.class):[],choice=a&&participant()?ensureEquipChoice(a):[];body=a&&participant()?'<h2>'+R.classNames[a.class]+'</h2><p>絵のステータスからタイプが決まりました。固有スキルを2つ選んでください。</p>'+statsHTML(a.stats)+'<p class="muted">現在の選択：'+choice.map(k=>moves[k].name).join(' / ')+'（'+choice.length+'/2）</p><div class="arts-skill-grid">'+pool.map(k=>'<article>'+guideSVG(k)+'<b>'+moves[k].name+'</b><p>'+moves[k].text+'</p>'+skillDetails(k)+'<button data-arts-pick="'+k+'" '+(view.equipped?.[localId]?'disabled':'')+'>'+(choice.includes(k)?'選択中':'このスキルを選ぶ')+'</button></article>').join('')+'</div><div class="modal-actions"><button id="artsEquipConfirm" class="primary" '+(view.equipped?.[localId]||choice.length!==2?'disabled':'')+'>この2つで決定</button></div><p>時間切れでは最初の2つを自動装備します。戦闘中はどちらの図形もそのまま描けば発動します。</p>':'<h2>スキル選択中</h2><p>参加者の選択を待っています。</p>'}
+ else if(phase==='equip'){const a=view.art?.[localId],pool=a?R.skills(a.class):[],choice=a&&participant()?ensureEquipChoice(a):[];body=a&&participant()?'<h2>'+R.classNames[a.class]+'</h2><p>絵の一部分にある盾・渦巻き・弾丸などの特徴も優先してクラスを判定しました。固有スキルを2つ選んでください。</p>'+statsHTML(a.stats)+'<p class="muted">現在の選択：'+choice.map(k=>moves[k].name).join(' / ')+'（'+choice.length+'/2）</p><div class="arts-skill-grid">'+pool.map(k=>'<article>'+guideSVG(k)+'<b>'+moves[k].name+'</b><p>'+moves[k].text+'</p>'+skillDetails(k)+'<button data-arts-pick="'+k+'" '+(view.equipped?.[localId]?'disabled':'')+'>'+(choice.includes(k)?'選択中':'このスキルを選ぶ')+'</button></article>').join('')+'</div><div class="modal-actions"><button id="artsEquipConfirm" class="primary" '+(view.equipped?.[localId]||choice.length!==2?'disabled':'')+'>この2つで決定</button></div><p>時間切れでは最初の2つを自動装備します。戦闘中はどちらの図形もそのまま描けば発動します。</p>':'<h2>スキル選択中</h2><p>参加者の選択を待っています。</p>'}
   else if(phase==='create'||phase==='collect')body='<h2>'+(participant()?'準備完了！':'観戦中')+'</h2><p>みんなのキャラクターが揃うのを待っています。</p><p>'+Object.values(view.ready).filter(Boolean).length+' / '+view.players.filter(p=>p.active).length+'人 準備完了</p>'+(phase==='create'&&participant()&&view.ready[localId]&&!room.characterOnly&&view.deadline>Date.now()+offset?'<p>全員が準備完了になると5秒後にスキル選択へ進みます。</p><button type="button" id="artsCancelReady">準備完了を取り消して描き直す</button>':'');
  else if(phase==='finished'){const winners=view.result?.winners||[];body='<h2>'+(winners.length?winners.map(id=>esc(view.players.find(p=>p.id===id)?.name||'参加者')).join('・')+' の勝利！':'引き分け')+'</h2>'+view.fighters.slice().sort((a,b)=>b.hp-a.hp).map(p=>'<article class="arts-result-player">'+(view.art?.[p.id]?.image?'<img src="'+esc(view.art[p.id].image)+'" alt="'+esc(view.players.find(q=>q.id===p.id)?.name||'参加者')+'のキャラ">':'<div class="arts-result-placeholder">'+(view.players.find(q=>q.id===p.id)?.bot?'練習くん':'画像なし')+'</div>')+'<div><b>'+esc(view.players.find(q=>q.id===p.id)?.name||'参加者')+'</b><p>'+R.classNames[p.class]+' · HP '+Math.ceil(p.hp)+(p.active?'':'（退出）')+'</p>'+statsHTML(p.stats)+'</div></article>').join('')+(view.art?.[localId]?.image?'<section class="arts-result-character"><h3>今回使ったキャラクター</h3><img src="'+esc(view.art[localId].image)+'" alt="今回使ったキャラ"><button id="artsSaveResultCharacter" class="primary">このキャラを絵画展に保存</button></section>':'')+'<div class="modal-actions">'+(isHost?'<button id="artsAgain" class="primary">待機室へ戻る</button>':'')+'<button id="artsExit">退出</button></div>'}
  stage.innerHTML='<div class="arts-sheet">'+body+'</div>';document.querySelectorAll('[data-arts-pick]').forEach(b=>b.onclick=()=>{toggleEquipChoice(b.dataset.artsPick);uiKey='';renderUI()});if($('#artsEquipConfirm'))$('#artsEquipConfirm').onclick=()=>sendHost({type:'gameArtsEquip',gameId:view.id,skills:ensureEquipChoice(view.art?.[localId]).slice(0,2)});if($('#artsCancelReady'))$('#artsCancelReady').onclick=cancelReady;if($('#artsStart'))$('#artsStart').onclick=begin;if($('#artsSettings'))$('#artsSettings').onclick=settingsDialog;if($('#artsSaveResultCharacter'))$('#artsSaveResultCharacter').onclick=saveCharacter;if($('#artsAgain'))$('#artsAgain').onclick=newHost;if($('#artsExit'))$('#artsExit').onclick=leaveRoom;
