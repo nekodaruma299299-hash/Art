@@ -2742,8 +2742,11 @@ window.ArtsRules=(()=>{
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats,paths=[]){
   const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.08+stats[1]*.42};
-  // A recognizable *local* symbol determines the profession, irrespective of
-  // offensive/defensive stats. Stats continue to describe the entire picture.
+  // A clear ranged-attack build must not be overridden by a sword, shield or coil.
+  // Require BOTH attack and range to be leading stats, not merely a long range.
+  const attack=stats[1],range=stats[4],other=Math.max(stats[0],stats[2],stats[3]);
+  if(Math.min(attack,range)>=22&&attack+range>=55&&Math.min(attack,range)>=other)return 'gunner';
+  // Local motifs still distinguish professions when the build is not decisive.
   const motifs=localClassSignals(paths);
   const priority=Object.entries(motifs).filter(([kind,confidence])=>confidence>=.70);
   if(priority.length){priority.sort((a,b)=>b[1]-a[1]);return priority[0][0]}
