@@ -455,6 +455,43 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 
 #createModeGear{display:flex;margin-left:auto;margin-bottom:12px}#createModePanel{padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:16px}#moveLayerBtn{width:100%;font-size:12px;margin-top:6px}
 
+/* アートキメラ完成画面: 3体の縦長作品が下端まで見られるようにする。
+   これより前の .chimera-result 用全画面固定レイアウトは、組み立てキャンバス用。
+   完成ギャラリーだけは自然な高さを保ち、ステージ側で縦スクロールする。 */
+#chimeraStage.chimera-result{
+  overflow-x:hidden;
+  overflow-y:auto;
+  touch-action:pan-y;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding-bottom:max(32px,env(safe-area-inset-bottom));
+}
+#chimeraStage.chimera-result .chimera-sheet{
+  display:block;
+  height:auto;
+  min-height:100%;
+  max-width:none;
+  overflow:visible;
+}
+#chimeraStage.chimera-result .chimera-finished-gallery{
+  height:auto;
+  min-height:0;
+  overflow:visible;
+  align-items:start;
+  padding-bottom:36px;
+}
+#chimeraStage.chimera-result .chimera-finished-card{
+  min-height:0;
+  overflow:visible;
+}
+#chimeraStage.chimera-result .chimera-finished-canvas{
+  flex-shrink:0;
+}
+@media(max-width:600px){
+  #chimeraStage.chimera-result{padding:8px 8px max(40px,env(safe-area-inset-bottom))}
+  #chimeraStage.chimera-result .chimera-finished-gallery{padding-bottom:40px}
+}
+
 .arts-result-player{display:flex;align-items:center;gap:16px;text-align:left;padding:12px;border-bottom:1px solid var(--line)}.arts-result-player>img,.arts-result-placeholder{width:112px;height:112px;object-fit:contain;flex-shrink:0;background:#fff;border-radius:12px}.arts-result-player>div{min-width:0}.arts-result-player p{margin:6px 0}#artsClassHelp{border-radius:50%;min-width:36px;min-height:36px;padding:4px;font-size:20px}
 </style></head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.2.11</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
