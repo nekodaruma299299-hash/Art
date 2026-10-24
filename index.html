@@ -2690,6 +2690,7 @@ window.ArtTransfer=(()=>{
 })();
 </script>
 <!-- CATEGORY: あーとあーつ / 試作 -->
+<!-- 2026-10-24 ガンナーのロングストローク射程判定を調整 -->
 <script data-category="arts.js">
 /* SECTION: arts/rules.js — relative multi-stroke arts, balanced classes */
 'use strict';
@@ -2742,14 +2743,15 @@ window.ArtsRules=(()=>{
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats,paths=[]){
   const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.08+stats[1]*.42};
-  // A clear ranged-attack build must not be overridden by a sword, shield or coil.
-  // Require BOTH attack and range to be leading stats, not merely a long range.
-  const attack=stats[1],range=stats[4],other=Math.max(stats[0],stats[2],stats[3]);
-  if(Math.min(attack,range)>=22&&attack+range>=55&&Math.min(attack,range)>=other)return 'gunner';
-  // Local motifs still distinguish professions when the build is not decisive.
+  // Distinctive shapes remain authoritative: a shield or spiral should still
+  // change the class even when a character has high Attack and Range.
   const motifs=localClassSignals(paths);
   const priority=Object.entries(motifs).filter(([kind,confidence])=>confidence>=.70);
   if(priority.length){priority.sort((a,b)=>b[1]-a[1]);return priority[0][0]}
+  const attack=stats[1],range=stats[4],other=Math.max(stats[0],stats[2],stats[3]);
+  // A character specialized in drawing reach may be a Gunner even without
+  // equally extreme Attack. Avoid rewarding incidental tiny detail.
+  if(range>=29&&range>=other+3&&range>=attack*.75)return 'gunner';
   return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0];
  }
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
@@ -2766,6 +2768,16 @@ window.ArtsRules=(()=>{
   const straight=clamp((ratio-.90)/.09,0,1);
   return{path,box,len,chord,ratio,closed,turn,kinks,winding,straight};
  }
+  // Long continuous, mostly directed strokes are intentional range marks.
+  // Use the chord AND smoothness, rather than raw ink length or drawing time:
+  // scribbling in place, coils and repeated little marks cannot farm Range.
+  function statLongLine(m,full){
+   if(m.closed||m.winding>.045||m.chord<11||m.ratio<.77)return 0;
+   const start=11,finish=38; // normalized 64x64 canvas, independent of other strokes
+   const reach=clamp((m.chord-start)/(finish-start),0,1);
+   const direction=clamp((m.ratio-.77)/.19,0,1);
+   return reach*direction;
+  }
  function statPathGap(a,b){let gap=Infinity;for(let i=1;i<a.length;i++)for(let j=1;j<b.length;j++){
   const p=a[i-1],q=a[i],r=b[j-1],s=b[j],cross=(u,v,w)=>(v.x-u.x)*(w.y-u.y)-(v.y-u.y)*(w.x-u.x);
   if(cross(p,q,r)*cross(p,q,s)<0&&cross(r,s,p)*cross(r,s,q)<0)return 0;
@@ -2829,7 +2841,9 @@ window.ArtsRules=(()=>{
   if(!paths.length)return result;
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
   if(!meta.length)return result;
-  const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
+   const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
+   const longMarks=meta.map(m=>statLongLine(m,full)).filter(n=>n>.15).sort((a,b)=>b-a);
+   if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.22,1.12*longMarks[0]+.16*(longMarks[1]||0)));
   for(const m of [...meta,...statJoinedShields(meta,full)]){
    const {path,box}=m,size=box.span/full;
    if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
@@ -2969,7 +2983,15 @@ window.ArtsRules=(()=>{
   const paths=cleanDrawingPaths(raw);if(!paths.length)return null;
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35),allBox=statBox(paths.flat());if(!meta.length)return null;
   const {detached,scores}=statObjects(meta),candidates=[[],[],[],[],scores];
-  for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
+   for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
+    // Very long uninterrupted lines raise Range. Tiny speed lines still raise
+    // Speed, but length alone no longer makes the character faster.
+    const reach=statLongLine(m,allBox.span);
+    if(reach>.10){
+     candidates[4].push(.13*reach);
+     if(straight>.7)candidates[0].push(.12*straight);
+     continue;
+    }
    if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
    if(winding>.04){
     candidates[3].push(clamp(.60+winding*.62,0,1.45));
@@ -3724,7 +3746,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>タンク：</b>盾・装甲のような内角90度以上の角で防御力が上がります。塗りつぶしはインク量中心で、防御力にも少し加点します。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>射程＋攻撃力が高いと出現。独立した弾と鋭いトゲが目印。目・口など本体内の小部品と一本線は射程に数えません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>タンク：</b>盾・装甲のような内角90度以上の角で防御力が上がります。塗りつぶしはインク量中心で、防御力にも少し加点します。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>長く連続した直線的な線や、本体から離れた弾丸を描くと射程が上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
