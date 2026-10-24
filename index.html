@@ -2690,7 +2690,7 @@ window.ArtTransfer=(()=>{
 })();
 </script>
 <!-- CATEGORY: あーとあーつ / 試作 -->
-<!-- 2026-10-24 ガンナーのロングストローク射程判定を調整 -->
+<!-- 2026-10-24 ガンナーの長い一筆による射程/クラス再調整、スターフォール着弾2秒 -->
 <script data-category="arts.js">
 /* SECTION: arts/rules.js — relative multi-stroke arts, balanced classes */
 'use strict';
@@ -2707,7 +2707,7 @@ window.ArtsRules=(()=>{
  cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→中央へ戻る→右上→中央へ戻る→左下。一筆の×で2連続斬撃。'},
  feint:{name:'フェイントステップ',class:'attacker',rate:.065,cooldown:3000,text:'進路上にZを描き、その線をなぞって移動攻撃。射程外はキャンセル。'},
  inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:7500,text:'右下から左上への斜線→そのまま外側を一周。つながった一筆の🚫で近距離攻撃＋インク回復停止。'},
- star:{name:'スターフォール',class:'magician',rate:.065,cooldown:10000,text:'☆の中心に1秒後、広範囲の星が落下。装甲を無視する大ダメージ。'},
+ star:{name:'スターフォール',class:'magician',rate:.065,cooldown:10000,text:'☆を描くと中心に2秒後、広範囲の星が落下。落下前に範囲外へ回避可能。装甲を無視する大ダメージ。'},
  ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:6200,text:'上の横線→右端をくの字で折り返す→下の横線。右端がつながった一筆の＝で、0.7秒後に貫通光線。'},
  nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:5500,text:'💧しずく形の輪郭を一筆で描くと、その中心で0.8秒後に爆発。装甲を無視する範囲攻撃。丸のワープホールとは別の図形です。'},
  heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:15000,text:'厚みのある➕の輪郭。範囲内の自分・味方のHPを全回復。アンカーショックの細い一筆の＋とは異なります。'},
@@ -2733,7 +2733,7 @@ window.ArtsRules=(()=>{
  newSmoke:{name:'ポイズンミスト',class:'trickster',rate:.065,cooldown:8000,text:'W字で広範囲の毒霧を4秒間展開。範囲内では従来どおり姿が隠れ、敵だけに0.5秒ごとに3HPの毒ダメージ。味方には無害。重ねても毒は増加せず、外に出ると止まる。'}
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
- const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","描いた弧の中心から半径45〜140"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["1秒後に装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP100まで回復","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる壁（耐久4）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["6秒間、装甲の固定ダメージ軽減＋12。魔法は貫通","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、敵・壁を貫通。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
+ const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","描いた弧の中心から半径45〜140"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP100まで回復","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる壁（耐久4）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["6秒間、装甲の固定ダメージ軽減＋12。魔法は貫通","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、敵・壁を貫通。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
  Object.assign(moveDetails,{hook:['敵を引き寄せる斬撃','前方140'],summon:['ハートのコアから落書きペットを召喚（HP30 / 20秒）','コアの近く / 索敵半径240'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['敵の移動入力を2秒間反転','中心から半径150'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間味方を隠す煙幕','中心から半径90〜170']});
  for(const[k,[effect,range]]of Object.entries(moveDetails))Object.assign(moves[k],{effect,range});
  Object.assign(moves.thrust,{distance:220,speed:720});
@@ -2742,7 +2742,7 @@ window.ArtsRules=(()=>{
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'タンク',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats,paths=[]){
-  const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*.95+stats[4]*.42,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.08+stats[1]*.42};
+  const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*1.12+stats[2]*.12,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.48+stats[1]*.27};
   // Distinctive shapes remain authoritative: a shield or spiral should still
   // change the class even when a character has high Attack and Range.
   const motifs=localClassSignals(paths);
@@ -2751,7 +2751,7 @@ window.ArtsRules=(()=>{
   const attack=stats[1],range=stats[4],other=Math.max(stats[0],stats[2],stats[3]);
   // A character specialized in drawing reach may be a Gunner even without
   // equally extreme Attack. Avoid rewarding incidental tiny detail.
-  if(range>=29&&range>=other+3&&range>=attack*.75)return 'gunner';
+  if(range>=26&&range>=other+1&&range>=attack*.63)return 'gunner';
   return Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0];
  }
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
@@ -2772,11 +2772,13 @@ window.ArtsRules=(()=>{
   // Use the chord AND smoothness, rather than raw ink length or drawing time:
   // scribbling in place, coils and repeated little marks cannot farm Range.
   function statLongLine(m,full){
-   if(m.closed||m.winding>.045||m.chord<11||m.ratio<.77)return 0;
-   const start=11,finish=38; // normalized 64x64 canvas, independent of other strokes
-   const reach=clamp((m.chord-start)/(finish-start),0,1);
-   const direction=clamp((m.ratio-.77)/.19,0,1);
-   return reach*direction;
+   // A long, directional stroke can have gentle curves or hand jitter.
+   // Reject circles, spirals and scribbles which do not travel far.
+   if(m.closed||m.winding>.10||m.chord<9||m.ratio<.53)return 0;
+   const reach=clamp((m.len-10)/32,0,1);
+   const travel=clamp((m.chord-9)/17,0,1);
+   const direction=clamp((m.ratio-.53)/.33,0,1);
+   return reach*travel*direction;
   }
  function statPathGap(a,b){let gap=Infinity;for(let i=1;i<a.length;i++)for(let j=1;j<b.length;j++){
   const p=a[i-1],q=a[i],r=b[j-1],s=b[j],cross=(u,v,w)=>(v.x-u.x)*(w.y-u.y)-(v.y-u.y)*(w.x-u.x);
@@ -2843,7 +2845,7 @@ window.ArtsRules=(()=>{
   if(!meta.length)return result;
    const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
    const longMarks=meta.map(m=>statLongLine(m,full)).filter(n=>n>.15).sort((a,b)=>b-a);
-   if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.22,1.12*longMarks[0]+.16*(longMarks[1]||0)));
+   if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.23,1.27*longMarks[0]+.16*(longMarks[1]||0)));
   for(const m of [...meta,...statJoinedShields(meta,full)]){
    const {path,box}=m,size=box.span/full;
    if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
@@ -2988,15 +2990,17 @@ window.ArtsRules=(()=>{
     // Speed, but length alone no longer makes the character faster.
     const reach=statLongLine(m,allBox.span);
     if(reach>.10){
-     candidates[4].push(.13*reach);
-     if(straight>.7)candidates[0].push(.12*straight);
+      // Range must be a strong *visible* reward for one long pen stroke.
+      // The old .13 multiplier gave only a few stat points even for a huge line.
+      candidates[4].push(1.25*reach);
+      if(straight>.7)candidates[0].push(.08*straight);
      continue;
     }
    if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
    if(winding>.04){
     candidates[3].push(clamp(.60+winding*.62,0,1.45));
-    // Coils are magic/ink features, not speed features.
-    candidates[4].push(winding*.65);continue
+     // Coils belong to Ink, never Range.
+     continue
    }
    // Inspect local corners. Internal angle >= 90 degrees is armor, not a spike.
    const simple=statSimplify(path,box.span*.025),pts=m.closed?simple.slice(0,-1):simple;
@@ -3061,8 +3065,9 @@ window.ArtsRules=(()=>{
   const local=localClassSignals(paths);
   strengths[1]=Math.max(strengths[1],local.attacker*.95);
   strengths[2]=Math.max(strengths[2],local.tank*.90);
-  strengths[3]=Math.max(strengths[3],local.magician*.80);
-  strengths[4]=Math.max(strengths[4],local.magician*.95,local.gunner);
+   strengths[3]=Math.max(strengths[3],local.magician*.95);
+   // Keep Ink and Range independent. A spiral cannot earn Range points.
+   strengths[4]=Math.max(strengths[4],local.gunner);
   return allocate(strengths.map(v=>1+60*v));
  }
 
@@ -3565,7 +3570,7 @@ window.ArtArts=(()=>{
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+p.stats[1]*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+p.stats[1]*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+p.stats[1]*.25)*power;e.debuff='ink';melee(p,e,now)}
- if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,260):e.r;e.range=440;e.hit=now+(shape.type==='star'?1000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?34:shape.type==='ray'?30:25)*power}
+ if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,260):e.r;e.range=440;e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?34:shape.type==='ray'?30:25)*power}
  if(shape.type==='heal'){e.x=target.x;e.y=target.y;e.r=Math.max(60,e.r);for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(p,q)&&R.dist(q,e)<=e.r+R.R)q.hp=100;e.end=now+750}
  if(shape.type==='iron')p.iron=now+6000;
  if(shape.type==='reactor')p.reactor=now+6000;
@@ -3746,7 +3751,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ <small>試作</small></b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>タンク：</b>盾・装甲のような内角90度以上の角で防御力が上がります。塗りつぶしはインク量中心で、防御力にも少し加点します。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>長く連続した直線的な線や、本体から離れた弾丸を描くと射程が上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>タンク：</b>盾・装甲のような内角90度以上の角で防御力が上がります。塗りつぶしはインク量中心で、防御力にも少し加点します。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
