@@ -2729,7 +2729,7 @@ window.ArtsRules=(()=>{
  reflect:{name:'リフレクトウォール',class:'tank',rate:.085,cooldown:11000,text:'H字を一筆で描くと、6秒間通常弾を反射する盾を設置する。近接・範囲攻撃には無効。'},
  confusion:{name:'コンフュージョン',class:'trickster',rate:.065,cooldown:9000,text:'🌀を描いた範囲の敵は2秒間移動入力が反転する。重ねても延長しない。'},
  charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壁で止まる。'},
- newSmoke:{name:'スモーク',class:'trickster',rate:.065,cooldown:8000,text:'W字を描いて4秒間の煙幕を展開し、範囲内の味方を敵から隠す。'}
+ newSmoke:{name:'ポイズンミスト',class:'trickster',rate:.065,cooldown:8000,text:'W字で広範囲の毒霧を4秒間展開。範囲内では従来どおり姿が隠れ、敵だけに0.5秒ごとに3HPの毒ダメージ。味方には無害。重ねても毒は増加せず、外に出ると止まる。'}
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
  const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","描いた弧の中心から半径45〜140"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["1秒後に装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP100まで回復","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる壁（耐久4）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["6秒間、装甲の固定ダメージ軽減＋12。魔法は貫通","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、敵・壁を貫通。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
@@ -3504,7 +3504,7 @@ window.ArtArts=(()=>{
    host.effects.push({id:++host.seq,type:'decoyBody',owner:id,x:xx,y:yy,vx:Math.cos(a)*65,vy:Math.sin(a)*65,r:25,start:now,end:now+4000});
   }e.x=p.x;e.y=p.y;e.r=60;e.end=now+700;
  }
- if(shape.type==='newSmoke'){e.type='smoke';e.r=R.clamp(shape.radius+45,85,170);e.end=now+4000;e.x=target.x;e.y=target.y;}
+ if(shape.type==='newSmoke'){e.type='smoke';e.poison=true;e.r=R.clamp(shape.radius+90,140,240);e.end=now+4000;e.x=target.x;e.y=target.y;}
  if(shape.type==='confusion'){e.r=R.clamp(shape.radius+35,90,155);e.end=now+600;for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&(!q.confused||q.confused<=now))q.confused=now+2000;}
  if(shape.type==='hook'){e.r=140;e.power=9+p.stats[1]*.34;melee(p,e,now);for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&R.dist(q,e)<160){const d=R.dist(p,q)||1;q.x=R.clamp(q.x+(p.x-q.x)/d*Math.min(75,d-30),R.R,R.W-R.R);q.y=R.clamp(q.y+(p.y-q.y)/d*Math.min(75,d-30),R.R,R.H-R.R)}e.end=now+550;}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius,55,125);e.end=now+6000;e.hp=5;}
@@ -3550,12 +3550,23 @@ window.ArtArts=(()=>{
  if(distance<=280&&distance>=70&&lineClear(p,target)&&now>=p.nextCast&&p.ink>=20){p.botAttack={angle,fireAt:now+1000};p.drawing=true;p.drawSince=now;host.effects.push({id:++host.seq,type:'practiceAim',owner:p.id,x:p.x,y:p.y,angle,r:10,start:now,end:now+1000});return{x:0,y:0,at:now}}
  const approach=distance>230?.38:distance<130?-.25:0;return{x:Math.cos(angle)*approach,y:Math.sin(angle)*approach,at:now};
  }
+ // Host-authoritative poison: overlapping clouds never multiply the damage.
+ function updatePoisonMist(dt,now){
+ for(const p of host.fighters){
+  if(!p.active||p.hp<=0){p.mistExposure=0;continue}
+  const cloud=host.effects.find(e=>e.type==='smoke'&&e.poison&&e.start<=now&&e.end>now&&R.dist(p,e)<e.r&&host.fighters.some(owner=>owner.id===e.owner&&!friendly(owner,p)));
+  if(!cloud){p.mistExposure=0;continue}
+  p.mistExposure=(p.mistExposure||0)+Math.max(0,dt);
+  while(p.mistExposure>=.5-1e-9&&p.hp>0){p.mistExposure=Math.max(0,p.mistExposure-.5);hurt(p,3,now,cloud,true)}
+ }
+ }
  function updateBattle(dt,now){host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(player.bot)input=practiceBotInput(p,now);
  if(now>=p.inkLock)p.ink=Math.min(p.maxInk,p.ink+dt*(7+p.stats[3]*.12));if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+p.stats[0]*4)*(p.slow>now?.5:1),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const vx=mx*speed*dt*(p.confused>now?-1:1),vy=my*speed*dt*(p.confused>now?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
  }
+ updatePoisonMist(dt,now);
  // High-speed bullets are stepped in 8px increments. Ghost shots alone pass through stone/walls.
  function shotHitsWallAt(x,y,r){return host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(x,y,r,b))}
  for(const e of host.effects)if(e.type==='decoyBody'&&e.end>now&&(e.vx||e.vy)){
@@ -3825,8 +3836,9 @@ window.ArtArts=(()=>{
   x.save();x.translate(0,-8);x.scale(1+Math.sin(age/130)*.08,1+Math.sin(age/130)*.08);x.fillStyle='#ff8fbe';x.beginPath();x.moveTo(0,8);x.bezierCurveTo(-22,-5,-10,-20,0,-9);x.bezierCurveTo(10,-20,22,-5,0,8);x.fill();x.restore();
   x.shadowBlur=0;x.fillStyle='#483452';x.fillRect(-22,r+13,44,4);x.fillStyle='#e6b3ff';x.fillRect(-22,r+13,44*R.clamp((e.hp||0)/30,0,1),4);
  }else if(e.type==='smoke'){
-  x.shadowBlur=0;x.fillStyle='#8c78ac27';x.strokeStyle='#a28bb977';ring(r);x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.fill();
+  x.shadowBlur=0;x.fillStyle=e.poison?'#69b75727':'#8c78ac27';x.strokeStyle=e.poison?'#73ad6099':'#a28bb977';ring(r);x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.fill();
   for(let i=0;i<9;i++){const a=i*2.4+age/6000,rr=r*(.28+.23*Math.sin(i*3.1));x.beginPath();x.arc(Math.cos(a)*rr,Math.sin(a)*rr,r*(.25+.04*Math.sin(age/400+i)),0,Math.PI*2);x.fill();x.stroke()}
+  if(e.poison){x.strokeStyle='#b3e18c';x.lineWidth=2;for(let i=0;i<7;i++){const a=i*2.4,rr=r*(.3+.07*i),rise=(age/18+i*13)%40;x.beginPath();x.arc(Math.cos(a)*rr,Math.sin(a)*rr-rise,3+i%3,0,Math.PI*2);x.stroke()}}
  }else if(e.type==='charge'){
   glow('#ff827f');x.rotate(e.angle||0);let distance=e.range||1000;
   // Clip the illustration at the same solid terrain that blocks the shot.
