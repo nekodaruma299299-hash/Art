@@ -2793,6 +2793,34 @@ window.ArtsRules=(()=>{
    o.items.forEach(m=>detached.add(m));scores.push(clamp(.30+gap/(b.span||1),.3,1)*clamp(q.span/(b.span*.16),.3,1));
   }return{detached,scores};
  }
+ // Reassemble only short, angular outlines for shield recognition. This does
+ // not merge combat gestures or change the stored/transmitted drawing strokes.
+ function statJoinedShields(meta,full){
+  const gap=Math.max(.45,Math.min(1.5,full*.022)),parts=meta.filter(m=>!m.closed&&m.box.span>=full*.045&&m.winding<.04&&m.turn<Math.PI*1.9&&statSimplify(m.path,m.box.span*.025).length<=6);
+  const found=[],seen=new Set();
+  for(let seed=0;seed<parts.length;seed++){
+   let budget=96;
+   function walk(path,ids){
+    if(--budget<0)return;
+    const box=statBox(path),closed=ids.length>=2&&dist(path[0],path.at(-1))<=gap;
+    if(closed){
+     const key=[...ids].sort((a,b)=>a-b).join(',');
+     if(!seen.has(key)&&box.span>=full*.12&&Math.min(box.w,box.h)>box.span*.20){seen.add(key);const points=[...path];points[points.length-1]={...points[0]};found.push({...statMeta(resample(points,64)),shieldOnly:true})}
+     return;
+    }
+    if(ids.length>=5)return;
+    for(let j=seed+1;j<parts.length;j++){
+     if(ids.includes(j))continue;
+     const p=parts[j].path,tail=path.at(-1);
+     if(dist(tail,p[0])<=gap)walk(path.concat(p),ids.concat(j));
+     else if(dist(tail,p.at(-1))<=gap)walk(path.concat([...p].reverse()),ids.concat(j));
+    }
+   }
+   walk(parts[seed].path,[seed]);
+   walk([...parts[seed].path].reverse(),[seed]);
+  }
+  return found;
+ }
  // Explicit local archetypes: a crisp shield or spiral overrides the whole-picture
  // score. A dense hairstyle or a swarm of short angles is never sufficient.
  function localClassSignals(raw){
@@ -2802,13 +2830,13 @@ window.ArtsRules=(()=>{
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
   if(!meta.length)return result;
   const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
-  for(const m of meta){
+  for(const m of [...meta,...statJoinedShields(meta,full)]){
    const {path,box}=m,size=box.span/full;
    if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
    const oval=statOvalContour(path,box);
    const outline=statSimplify(path,box.span*.022),corners=m.closed?outline.slice(0,-1):outline;
    let sharp=0;
-   if(!oval)for(let i=0;i<corners.length;i++){
+   if(!oval&&!m.shieldOnly)for(let i=0;i<corners.length;i++){
     if(!m.closed&&(i===0||i===corners.length-1))continue;
     const a=corners[(i+corners.length-1)%corners.length],b=corners[i],c=corners[(i+1)%corners.length],la=dist(a,b),lb=dist(b,c);
     if(Math.min(la,lb)<box.span*.14)continue;
@@ -2848,6 +2876,7 @@ window.ArtsRules=(()=>{
      }
     }
    }
+   if(m.shieldOnly)continue;
    // Genuine spiral: one continuous open stroke winding around a centre
    // more than one full turn; a circular eye or jagged scribble is not enough.
    if(size>=.13&&!oval){
