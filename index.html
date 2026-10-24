@@ -2783,8 +2783,8 @@ window.ArtsRules=(()=>{
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35),allBox=statBox(paths.flat());if(!meta.length)return null;
   const {detached,scores}=statObjects(meta),candidates=[[],[],[],[],scores];
   for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
-   if(straight>.15){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
-   if(winding>.04){candidates[3].push(winding*.70);candidates[4].push(winding*1.10);continue}
+   if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
+   if(winding>.04){candidates[3].push(clamp(.60+winding*.62,0,1.45));candidates[4].push(winding*.48);continue}
    // Inspect local corners. Internal angle >= 90 degrees is armor, not a spike.
    const simple=statSimplify(path,box.span*.025),pts=m.closed?simple.slice(0,-1):simple;
    let attack=0,armor=0;
@@ -2804,12 +2804,16 @@ window.ArtsRules=(()=>{
    }
    // Tiny face details are weak; a shield occupying part of the body still counts.
    const size=clamp((box.span/allBox.span-.055)/.16,0,1);
-   if(attack>.15)candidates[1].push(clamp(attack/2,0,1.3)*size);
-   if(armor>.15)candidates[2].push(clamp(armor/3,0,1.3)*size);
+   if(attack>.15)candidates[1].push(clamp(.55+attack*.34,0,1.5)*Math.max(.42,size));
+   if(armor>.15)candidates[2].push(clamp(.65+armor*.30,0,1.5)*Math.max(.45,size));
    // Smooth continuous curves with alternating bends also add a little Ink.
    if(!attack&&!armor&&m.turn>Math.PI*.7)candidates[3].push(.14*size*clamp(m.turn/(2*Math.PI),0,1)*clamp(1-m.kinks/5,0,1));
   }
-  const strengths=candidates.map(list=>{list.sort((a,b)=>b-a);return Math.min(1.5,(list[0]||0)+.25*(list[1]||0)+.12*(list[2]||0))});
+  const strengths=candidates.map(list=>{list.sort((a,b)=>b-a);return Math.min(1.6,(list[0]||0)+.24*(list[1]||0)+.10*(list[2]||0))});
+  // A single conspicuous local motif should outweigh unrelated ink strokes.
+  // Long outlines on detailed characters cannot win purely through line count.
+  const motif=Math.max(strengths[1],strengths[2],strengths[3],strengths[4]);
+  if(motif>.35)strengths[0]*=.52;
   const solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*clamp((2.3-aspect)/1.3,0,1);
   strengths[2]=Math.max(strengths[2],solid*.40);
   strengths[3]=Math.max(strengths[3],solid*1.25);
@@ -2974,7 +2978,7 @@ window.ArtsRules=(()=>{
   const pattern=(target,tolerance=27)=>{
    // Match the sequence, allowing a missed corner or a small extra hand bend.
    // Nearby turns in the same direction may be a rounded single corner.
-   const limit=Math.max(42,tolerance+12),orders=[degrees,[...degrees].reverse().map(a=>-a)];
+   const limit=Math.max(57,tolerance+23),orders=[degrees,[...degrees].reverse().map(a=>-a)];
    const error=(a,b)=>Math.abs(Math.abs(b)-180)<1?Math.abs(Math.abs(a)-180):Math.abs(a-b);
    for(const order of orders)for(const sign of [1,-1])for(let shift=0;shift<(closed?order.length:1);shift++){
     const actual=order.map((_,i)=>order[(i+shift)%order.length]*sign),n=actual.length,m=target.length;
@@ -2986,7 +2990,7 @@ window.ArtsRules=(()=>{
       if(i+1<n&&actual[i]*actual[i+1]>0&&Math.abs(actual[i]+actual[i+1])<190){const e=error(actual[i]+actual[i+1],target[j]);if(e<=limit)dp[i+2][j+1]=Math.min(dp[i+2][j+1],cost+.15+e/limit*.25)}
      }
     }
-    if(dp[n][m]<=Math.min(1.65,.45+m*.15))return true;
+    if(dp[n][m]<=Math.min(2.1,.62+m*.20))return true;
    }return false;
   };
   const convex=n=>closed&&intersections.length===0&&pattern(Array(n).fill(360/n),n===3?38:24)&&Math.abs(Math.abs(signed)-2*Math.PI)<.5;
@@ -3090,14 +3094,34 @@ window.ArtsRules=(()=>{
   const span=Math.hypot(end.x-start.x,end.y-start.y);
   return alternating>=Math.max(2,Math.floor((turns.length-1)*.64))&&span>=b.span*.55&&span/travel>.20&&turns.length<=22;
  }
+ function relaxedPolygon(path,wanted){
+  if(!Array.isArray(path)||path.length<4)return false;
+  const box=statBox(path),span=box.span;
+  if(span<28||Math.min(box.w,box.h)<span*.26)return false;
+  if(dist(path[0],path.at(-1))>span*.39)return false;
+  const raw=statSimplify([...path,path[0]],span*.075),pts=raw.slice(0,-1);
+  if(pts.length<3||pts.length>12)return false;
+  const turns=[];
+  for(let i=0;i<pts.length;i++){
+   const a=pts[(i+pts.length-1)%pts.length],p=pts[i],c=pts[(i+1)%pts.length];
+   const v={x:p.x-a.x,y:p.y-a.y},w={x:c.x-p.x,y:c.y-p.y};
+   if(Math.min(Math.hypot(v.x,v.y),Math.hypot(w.x,w.y))<span*.095)continue;
+   const angle=Math.atan2(v.x*w.y-v.y*w.x,v.x*w.x+v.y*w.y);
+   if(Math.abs(angle)>.30)turns.push(angle);
+  }
+  const significant=turns.filter(a=>Math.abs(a)>.53),coherence=Math.abs(turns.reduce((a,b)=>a+b,0))/(turns.reduce((a,b)=>a+Math.abs(b),0)||1);
+  if(coherence<.70||significant.length<Math.max(3,wanted-2)||significant.length>wanted+3)return false;
+  const avg=significant.reduce((a,b)=>a+Math.abs(b),0)/significant.length;
+  return avg>.40&&avg<2.25&&Math.abs(significant.length-wanted)<=3;
+ }
  function skillGesture(path,skill){
-  if(['warp','thrust','build','star'].includes(skill))return artFeatureScore(path,skill)>=.72;
+  if(['warp','thrust','build','star'].includes(skill))return artFeatureScore(path,skill)>=.59;
   const g=strokeGrammar(path),{closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len}=g;
   switch(skill){
-   case'build':case'ricochet':return convex(4);
-   case'thrust':return convex(3);
-   case'iron':return convex(6);
-   case'reactor':return convex(5);
+   case'build':case'ricochet':return convex(4)||relaxedPolygon(path,4);
+   case'thrust':return convex(3)||relaxedPolygon(path,3);
+   case'iron':return convex(6)||relaxedPolygon(path,6);
+   case'reactor':return convex(5)||relaxedPolygon(path,5);
    case'star':return closed&&((intersections.length>=4&&pattern([144,144,144,144,144],30))||(intersections.length===0&&pattern([144,-72,144,-72,144,-72,144,-72,144,-72],35)));
    case'heal':return closed&&intersections.length===0&&pattern([90,90,-90,90,90,-90,90,90,-90,90,90,-90],28);
    case'cross':return !closed&&pattern([180,90,180],30);
@@ -3193,7 +3217,16 @@ window.ArtsRules=(()=>{
    }
   }
  }
- if(!kind&&strokes.length===1){for(const k of equipped){if(k&&moves[k]?.class&&skillGesture(strokes[0],k)){kind=k;break}}}
+ if(!kind&&strokes.length===1){for(const k of equipped){if(k&&moves[k]?.class&&k!=='summon'&&skillGesture(strokes[0],k)){kind=k;break}}}
+ if(!kind&&strokes.length===1){
+  // Soft fallback for difficult arts; safeguard geometrically distinct loop skills.
+  const candidates=equipped.filter(k=>k&&moves[k]?.class&&!['summon','nova','warp','confusion','smoke','charge'].includes(k));
+  let best=.145;
+  for(const k of candidates){
+   if(['iron','reactor','build','ricochet','thrust'].includes(k)&&!relaxedPolygon(strokes[0],({iron:6,reactor:5,build:4,ricochet:4,thrust:3})[k]))continue;
+   const d=match(strokes,k);if(d<best){best=d;kind=k}
+  }
+ }
  if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){const a=points[0],b=points.at(-1),chord=dist(a,b);if(chord/len>.82){const dx=b.x-a.x,dy=b.y-a.y,radial=Math.abs(dx*cx+dy*cy)/(Math.hypot(dx,dy)*Math.hypot(cx,cy)||1);kind=radial>.60?'magic':'guard'}else{const radii=points.map(p=>Math.hypot(p.x,p.y)),avg=radii.reduce((a,b)=>a+b,0)/radii.length,variance=Math.sqrt(radii.reduce((a,b)=>a+(b-avg)**2,0)/radii.length)/(avg||1);let sharp=0;for(let i=1;i<points.length-1;i++){const u={x:points[i].x-points[i-1].x,y:points[i].y-points[i-1].y},v={x:points[i+1].x-points[i].x,y:points[i+1].y-points[i].y};if(Math.acos(clamp((u.x*v.x+u.y*v.y)/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y)||1),-1,1))>1.1)sharp++}if(!sharp&&variance<.50&&len/(avg||1)>.85&&len/(avg||1)<4.8&&chord/len>.40&&chord/len<.88&&chord>diag*.32)kind='slash'}}
  if(!kind)return null;return{type:kind,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.hypot(cx,cy)>1?Math.atan2(cy,cx):kind==='thrust'?triangleAngle(points):-Math.PI/2,tip:points[0],strokes}}
  // Stat 5 is solely the radius of the drawable circle; every art shares it.
