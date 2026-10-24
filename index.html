@@ -2947,7 +2947,56 @@ window.ArtsRules=(()=>{
   const flips=turns.slice(1).filter((a,i)=>a*turns[i]<0).length;
   return{p,closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len};
  }
+ // Four common symbols use independent evidence scores, not an exact turn sequence.
+ function artFeatureScore(path,skill){
+  if(!['warp','thrust','build','star'].includes(skill))return 0;
+  const b=statBox(path),diag=b.span,len=length([path]);if(diag<20||len<25)return 0;
+  const gap=dist(path[0],path.at(-1))/diag,closure=clamp(1-gap/ .65,0,1),g=strokeGrammar(path);
+  if(dist(path[0],path.at(-1))/len>.78)return 0;
+  const closePath=gap<.65?[...path,path[0]]:path;
+  const q=statSimplify(closePath,diag*.045),closed=gap<.65,vertices=closed?q.slice(0,-1):q,turns=[];
+  // A short bevel is evidence for one rounded corner, not two separate sides.
+  if(closed&&['build','thrust'].includes(skill)){const wanted=skill==='build'?4:3;while(vertices.length>wanted){let at=-1,best=diag*.17;for(let i=0;i<vertices.length;i++){const d=dist(vertices[i],vertices[(i+1)%vertices.length]);if(d<best){at=i;best=d}}if(at<0)break;vertices.splice(at,1)}}
+  for(let i=closed?0:1;i<(closed?vertices.length:vertices.length-1);i++){
+   const a=vertices[(i+vertices.length-1)%vertices.length],p=vertices[i],c=vertices[(i+1)%vertices.length];
+   if(Math.min(dist(a,p),dist(p,c))<diag*.055)continue;
+   turns.push(Math.atan2((p.x-a.x)*(c.y-p.y)-(p.y-a.y)*(c.x-p.x),(p.x-a.x)*(c.x-p.x)+(p.y-a.y)*(c.y-p.y))*180/Math.PI);
+  }
+  const magnitudes=turns.map(Math.abs),total=turns.reduce((a,b)=>a+b,0),sum=magnitudes.reduce((a,b)=>a+b,0),coherent=Math.abs(total)/(sum||1);
+  const major=magnitudes.filter(a=>a>50),tips=magnitudes.filter(a=>a>100).length;
+  if(skill==='star'){
+   // Sharp peaks plus crossings OR alternating valleys. Smooth circles cannot qualify.
+   const flips=turns.filter((v,i)=>i&&v*turns[i-1]<0).length;
+   if(tips<3||!(g.intersections.length>=2||flips>=5))return 0;
+   return .40*clamp(tips/5,0,1)+.25*Math.max(clamp(g.intersections.length/4,0,1),clamp(flips/8,0,1))+.15*closure+.20*clamp(sum/600,0,1);
+  }
+  if(skill==='warp'){
+   if(forgivingWarp(path))return 1;
+   // Preserve the pointed Nova rather than turning every closed shape into a portal.
+   if(loopKind(path,diag)==='nova'||tips>0)return 0;
+   const pts=resample(path,64).map(p=>({x:(p.x-b.cx)/(b.w/2||1),y:(p.y-b.cy)/(b.h/2||1)}));let winding=0,travel=0;
+   for(let i=1;i<pts.length;i++){const a=Math.atan2(pts[i-1].y,pts[i-1].x),z=Math.atan2(pts[i].y,pts[i].x),d=Math.atan2(Math.sin(z-a),Math.cos(z-a));winding+=d;travel+=Math.abs(d)}
+   const radii=pts.map(p=>Math.hypot(p.x,p.y)),avg=radii.reduce((a,b)=>a+b)/radii.length,variation=Math.sqrt(radii.reduce((a,b)=>a+(b-avg)**2,0)/radii.length)/avg;
+   if(Math.abs(winding)<Math.PI*1.45||Math.abs(winding)>Math.PI*2.5||Math.min(...radii)<.35||major.length>=3)return 0;
+   return .35*clamp(Math.abs(winding)/(2*Math.PI),0,1)+.25*clamp(1-variation/.4,0,1)+.20*clamp(Math.abs(winding)/(travel||1),0,1)+.20*closure;
+  }
+  if(g.intersections.length>1||coherent<.72)return 0;
+  const net=clamp(1-Math.abs(Math.abs(total)-360)/180,0,1);
+  if(skill==='thrust'){
+   if(major.length<2||major.length>4||tips<2)return 0;
+   const count=clamp(1-Math.abs(major.length-3)*.65,0,1),angles=major.reduce((n,a)=>n+clamp(1-Math.abs(a-120)/65,0,1),0)/major.length;
+   return .40*count+.25*angles+.15*closure+.20*net;
+  }
+  if(skill==='build'){
+   const right=major.filter(a=>a>=55&&a<=115).length;
+   if(right<3||major.length>6||tips>1)return 0;
+   const count=clamp(1-Math.abs(major.length-4)*.55,0,1),angles=major.reduce((n,a)=>n+clamp(1-Math.abs(a-90)/65,0,1),0)/major.length;
+   return .40*count+.25*angles+.15*closure+.20*net;
+  }return 0;
+ }
+
  function skillGesture(path,skill){
+  if(['warp','thrust','build','star'].includes(skill))return artFeatureScore(path,skill)>=.72;
   const g=strokeGrammar(path),{closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len}=g;
   switch(skill){
    case'build':case'ricochet':return convex(4);
@@ -3289,7 +3338,7 @@ window.ArtArts=(()=>{
  field.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&e.target!==c&&!e.target.closest('button')){e.stopPropagation();c.onpointerdown(e)}},true);
  }
  document.addEventListener('pointerup',e=>{if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointerup?.(e)});
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}const shape=R.recognize(paths,me?.skill);hint(shape?moves[shape.type].name+' / 必要インク '+R.cost(shape)+'（描き終わると発動）':'ペンや指を離すとすぐに判定します。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}const shape=R.recognize(paths,me?.skill);hint(shape?'候補：'+moves[shape.type].name+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   cross:'左上 → 右下 → 中央に戻る → 右上 → 中央に戻る → 左下',
@@ -3339,7 +3388,7 @@ window.ArtArts=(()=>{
   }
   ctx.globalAlpha=.9;const start=paths[0][0],end=paths.at(-1).at(-1);for(const[p,c,r]of [[start,'#23b99a',7],[end,'#ed805d',6]]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(pos.x+p.x,pos.y+p.y,r,0,Math.PI*2);ctx.fill()};ctx.restore();
  }
- function showSkills(){if(!battleActive())return;stopInput();const p=self(),list=['slash','guard','magic',p.skill];modal('アーツ・装備スキル',`<p>緑の点から射程円の内側に描きます。線をたどる順番・曲がる方向・折り返し・交差・閉じ方で判定します。回転・拡大縮小や逆順の描き方も使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。範囲の数値はゲーム内距離（キャラ直径40）です。描ける距離と技が届く距離は別です。クールダウンは技ごとに管理し、通常技の後は0.15秒、固有技の後は0.35秒の共通待ち時間があります。</p><div class="arts-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p>${skillDetails(k)}<button type="button" data-arts-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="artsGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-arts-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.artsGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#artsGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
+ function showSkills(){if(!battleActive())return;stopInput();const p=self(),list=['slash','guard','magic',p.skill];modal('アーツ・装備スキル',`<p>緑の点から射程円の内側に描きます。丸・三角・四角・星は複数の特徴を加点して判定し、少しの描き残しや丸い角も許容します。ほかの技は曲がる順番・折り返し・交差を使って判定します。候補表示を確認してから離すと狙いやすくなります。回転・拡大縮小や逆順の描き方も使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。範囲の数値はゲーム内距離（キャラ直径40）です。描ける距離と技が届く距離は別です。クールダウンは技ごとに管理し、通常技の後は0.15秒、固有技の後は0.35秒の共通待ち時間があります。</p><div class="arts-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p>${skillDetails(k)}<button type="button" data-arts-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="artsGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-arts-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.artsGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#artsGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
  document.addEventListener('keydown',e=>{if(!enabled()||view?.phase!=='battle'||e.target.closest?.('input,textarea,select,[contenteditable=true]')||$('#modal').open)return;e.stopImmediatePropagation();if(e.code==='Space'){if(paintMode||gesture||strokes.length){e.preventDefault();finishPaint(false)}return}if(e.key==='Escape'){gesture=null;strokes=[];paintMode=false;holdSource=null;refreshPaintUI();hint('アーツをキャンセルしました。');sendInput();return}if(!battleActive())return;const k=e.key.toLowerCase();if(!['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))return;e.preventDefault();keys.add(k);keyMove()},true);
  document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(keys.delete(k)){keyMove();if(enabled())e.preventDefault()}},true);
  function keyMove(){move={x:(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y:(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)};const l=Math.max(1,Math.hypot(move.x,move.y));move.x/=l;move.y/=l;sendInput()}
