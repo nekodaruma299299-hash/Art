@@ -2788,7 +2788,7 @@ window.ArtsRules=(()=>{
  };
  Object.assign(moves,{
  hook:{name:'フックラッシュ',class:'attacker',rate:.075,cooldown:6500,text:'J字を描いた場所へフックを飛ばす。最初に命中した敵を自分の近くへ引き寄せ、引き寄せ中と終了後2秒間、移動・描画・発動を封じる。壁に当たると止まる。'},
- summon:{name:'サモンペイント',class:'magician',rate:.07,cooldown:14000,text:'♡でコアを置き、続けて周りへ落書きするとペットになる。ペットは召喚者について行き、敵を見つけると接近して突進攻撃する。'},
+ summon:{name:'サモンペイント',class:'magician',rate:.07,cooldown:14000,text:'♡でコアを置き、続けて周りへ落書きするとペットになる。ペットは召喚者について行き、敵を見つけると狙った地点へ突進して1回攻撃し、召喚者へ戻りながら1.8秒休む。敵を追尾し続けず、近接攻撃でも倒せる。'},
  reflect:{name:'リフレクトウォール',class:'tank',rate:.085,cooldown:11000,text:'H字を一筆で描くと、6秒間通常弾を反射する盾を設置する。近接・範囲攻撃には無効。'},
  confusion:{name:'コンフュージョン',class:'trickster',rate:.065,cooldown:9000,text:'🌀を描いた範囲の敵は2秒間移動入力が反転する。重ねても延長しない。'},
  charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壊せる壁・破壊不可の壁を貫通する。'},
@@ -3442,14 +3442,15 @@ window.ArtsRules=(()=>{
  function newSkillGesture(path,skill){
  const g=strokeGrammar(path,true),{degrees,abs,signed,pattern}=g;
  if(dist(path[0],path.at(-1))<g.diag*.18)return false;
- if(skill==='aura')return degrees.length===5&&degrees.every((v,i)=>Math.abs(v)>60&&Math.abs(v)<165&&(!i||v*degrees[i-1]<0))&&match([path],skill)<.16;
- if(skill==='drain')return degrees.length===1&&Math.abs(degrees[0])>75&&Math.abs(degrees[0])<145&&match([path],skill)<.13;
- if(skill==='armor')return degrees.length>=7&&degrees.length<=10&&degrees.every(v=>Math.abs(v)>50&&Math.abs(v)<130)&&Math.abs(signed)/Math.max(abs,.01)>.90&&match([path],skill)<.16;
- if(!['recharge','repulse'].includes(skill)||abs<4.8||abs>12||match([path],skill)>.14)return false;
+ if(skill==='aura')return degrees.length>=5&&degrees.length<=11&&degrees.filter(v=>Math.abs(v)>30).length>=4&&g.flips>=4&&match([path],skill)<.24;
+ if(skill==='drain')return degrees.length>=1&&degrees.length<=4&&degrees.some(v=>Math.abs(v)>45&&Math.abs(v)<170)&&abs<4.5&&match([path],skill)<.23;
+ if(skill==='armor')return degrees.length>=5&&degrees.length<=15&&degrees.filter(v=>Math.abs(v)>35&&Math.abs(v)<155).length>=5&&Math.abs(signed)/Math.max(abs,.01)>.65&&match([path],skill)<.25;
+ if(skill==='repulse'&&degrees.some(v=>Math.abs(v)>155))return false;
+ if(!['recharge','repulse'].includes(skill)||abs<3.4||abs>16||match([path],skill)>.24)return false;
  const points=resample(path,96),diag=statBox(points).span;
  // A loop must return to an interior point; a plain circle has no tail(s).
- if(skill==='recharge')return [points,[...points].reverse()].some(q=>q.slice(12,65).some(p=>dist(p,q.at(-1))<diag*.13));
- for(let i=10;i<35;i++)for(let j=i+32;j<86;j++)if(dist(points[i],points[j])<diag*.10)return true;
+ if(skill==='recharge')return [points,[...points].reverse()].some(q=>q.slice(12,65).some(p=>dist(p,q.at(-1))<diag*.24));
+ for(let i=10;i<35;i++)for(let j=i+32;j<86;j++)if(dist(points[i],points[j])<diag*.20)return true;
  return false;
  }
  function skillGesture(path,skill){
@@ -3477,7 +3478,7 @@ window.ArtsRules=(()=>{
    case'confusion':return !closed&&intersections.length===0&&abs>Math.PI*2.6&&abs<Math.PI*9&&Math.abs(signed)/abs>.78&&degrees.every(a=>Math.abs(a)<125);
    case'hook':return !closed&&(pattern([75,75],88)||(abs>2.1&&abs<4.5&&Math.abs(signed)/abs>.75&&match([path],'hook')<.16));
    case'reflect':return !closed&&pattern([180,-90,-90,180],68);
-   case'charge':return curvedChargeGesture(path)||(!closed&&pattern([95],68));
+   case'charge':{const open=strokeGrammar(path,true),corners=open.degrees.filter(v=>Math.abs(v)>42);return curvedChargeGesture(path)||(!closed&&pattern([95],68))||(dist(path[0],path.at(-1))>open.diag*.28&&corners.length>=1&&corners.length<=3&&open.abs<6.8&&match([path],'charge')<.23);}
    case'newSmoke':return !closed&&pattern([110,-110,110],58);
    case'inkcut':{
     // A straight diameter first, followed by a loop back to the diameter end.
@@ -3665,6 +3666,7 @@ window.ArtArts=(()=>{
  function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<steps;i++){const x=a.x+(b.x-a.x)*i/steps,y=a.y+(b.y-a.y)*i/steps;if(host.blocks.some(v=>['wall','stone'].includes(v.type)&&(v.type==='stone'||v.hp>0)&&R.intersects(x,y,1,v)))return false}return true}
  function melee(p,e,now){const ux=Math.cos(e.angle),uy=Math.sin(e.angle);
  for(const d of host.effects)if(d.type==='decoyBody'&&d.end>now&&d.owner!==p.id&&R.dist(d,e)<e.r+d.r&&((d.x-e.x)*ux+(d.y-e.y)*uy)>=-5&&lineClear(e,d))d.end=now;
+ for(const pet of host.effects)if(pet.type==='summonBody'&&pet.end>now&&pet.hp>0&&pet.owner!==p.id){const owner=host.fighters.find(q=>q.id===pet.owner);if(owner&&!friendly(p,owner)&&R.dist(pet,e)<e.r+pet.r&&((pet.x-e.x)*ux+(pet.y-e.y)*uy)>=-5&&lineClear(e,pet)){pet.hp=Math.max(0,pet.hp-e.power);if(pet.hp<=0)pet.end=now}}
  for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&((q.x-e.x)*ux+(q.y-e.y)*uy)>=-5&&lineClear(e,q)){hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x+ux*e.r*.65,e.y+uy*e.r*.65,e.r*.65,b))damageWall(b,e.power,now)}
  // A completed gesture is an atomic cast request. Do not require the independent
  // drawing=true input packet to have arrived first (multiplayer latency/reordering).
@@ -3809,7 +3811,22 @@ window.ArtArts=(()=>{
   if(!R.blocked(nx,e.y,host.blocks,15))e.x=nx;else e.vx*=-1;
   if(!R.blocked(e.x,ny,host.blocks,15))e.y=ny;else e.vy*=-1;
  }
- for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0){const owner=host.fighters.find(q=>q.id===e.owner);if(!owner||owner.hp<=0){e.end=now;continue}const enemies=host.fighters.filter(q=>!friendly(owner,q)&&q.hp>0&&R.dist(e,q)<240);enemies.sort((a,b)=>R.dist(e,a)-R.dist(e,b));const target=enemies[0];if(target){const distance=R.dist(e,target)||1;const speed=distance<=(e.attackRange||110)?(e.chargeSpeed||520):(e.walkSpeed||190);const step=Math.min(distance,speed*dt);const nx=e.x+(target.x-e.x)*step/distance,ny=e.y+(target.y-e.y)*step/distance;if(!R.blocked(nx,ny,host.blocks,18)){e.x=nx;e.y=ny}if(R.dist(e,target)<R.R+e.r+6&&now>=e.attackAt){hurt(target,12,now,e);e.attackAt=now+850;}}else{const anchorX=owner.x-owner.facing*26,anchorY=owner.y+8,follow=R.dist(e,{x:anchorX,y:anchorY});if(follow>(e.followRange||60)){const distance=follow||1,step=Math.min(distance,220*dt);const nx=e.x+(anchorX-e.x)*step/distance,ny=e.y+(anchorY-e.y)*step/distance;if(!R.blocked(nx,ny,host.blocks,18)){e.x=nx;e.y=ny}}}}
+ for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0){
+ const owner=host.fighters.find(q=>q.id===e.owner);if(!owner||owner.hp<=0){e.end=now;continue}
+ const move=(tx,ty,speed)=>{const d=Math.hypot(tx-e.x,ty-e.y)||1,step=Math.min(d,speed*dt),steps=Math.max(1,Math.ceil(step/6));for(let i=0;i<steps;i++){const nx=e.x+(tx-e.x)/d*step/steps,ny=e.y+(ty-e.y)/d*step/steps;if(R.blocked(nx,ny,host.blocks,18))return false;e.x=nx;e.y=ny}return true};
+ if(e.summonPhase==='charge'){
+ const moved=move(e.chargeX,e.chargeY,e.chargeSpeed||520);
+ const target=host.fighters.find(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(e,q)<R.R+e.r&&lineClear(e,q));
+ if(target){hurt(target,12,now,e);e.chargeUntil=now}
+ if(!moved||now>=e.chargeUntil||R.dist(e,{x:e.chargeX,y:e.chargeY})<8){e.summonPhase='recover';e.attackAt=now+1800}
+ }else if(now<(e.attackAt||0)){
+ e.summonPhase='recover';move(owner.x-owner.facing*45,owner.y+12,240);
+ }else{
+ const enemies=host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(e,q)<240&&lineClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b)),target=enemies[0];
+ if(target){const d=R.dist(e,target)||1;if(d<=170){e.summonPhase='charge';e.chargeX=target.x;e.chargeY=target.y;e.chargeUntil=now+550}else move(target.x,target.y,190)}
+ else if(R.dist(e,owner)>60)move(owner.x-owner.facing*26,owner.y+8,220);
+ }
+ }
  host.shots=host.shots.filter(s=>{
   if(now>=s.end||s.left<=0)return false;
   const owner=host.fighters.find(p=>p.id===s.owner);if(!owner)return false;
