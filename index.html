@@ -4011,18 +4011,44 @@ window.ArtArts=(()=>{
  const place=e=>{const r=field.getBoundingClientRect(),radius=joy.offsetWidth/2;origin={x:R.clamp(e.clientX-r.left,radius,r.width-radius),y:R.clamp(e.clientY-r.top,radius,r.height-radius)};joy.style.left=(origin.x-radius)+'px';joy.style.top=(origin.y-radius)+'px';joy.style.bottom='auto';joy.classList.add('is-active')};
  const update=e=>{if(!origin||!battleActive())return;const r=field.getBoundingClientRect(),radius=joy.offsetWidth*.34,dx=(e.clientX-r.left-origin.x)/radius,dy=(e.clientY-r.top-origin.y)/radius,len=Math.hypot(dx,dy),amount=R.clamp((len-.08)/.92,0,1);move=len>.08?{x:dx/len*amount,y:dy/len*amount}:{x:0,y:0};joy.firstElementChild.style.transform='translate('+move.x*radius+'px,'+move.y*radius+'px)';sendInput()};
  const release=()=>{stick=null;touchStick=null;origin=null;move={x:0,y:0};joy.classList.remove('is-active');joy.firstElementChild.style.transform='translate(0,0)';sendInput()};
- field.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||!inZone(e)||!battleActive())return;e.preventDefault();e.stopImmediatePropagation();if(stick!==null)return;stick=e.pointerId;if(!origin)place(e);try{field.setPointerCapture(e.pointerId)}catch{}update(e)},true);
- field.addEventListener('pointermove',e=>{if(e.pointerId!==stick)return;e.preventDefault();e.stopImmediatePropagation();update(e)},true);
- for(const name of ['pointerup','pointercancel','lostpointercapture'])field.addEventListener(name,e=>{if(e.pointerId!==stick)return;e.stopImmediatePropagation();if(name==='pointerup'||touchStick===null)release()},true);
- // Touch fallback keeps the movement finger independent of Pencil pointer capture.
- field.addEventListener('touchstart',e=>{e.stopPropagation();if(touchStick!==null||!battleActive())return;const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));if(!t)return;touchStick=t.identifier;if(!origin)place(t);update(t)},{passive:true});
- field.addEventListener('touchmove',e=>{e.stopPropagation();const t=[...e.touches].find(t=>t.identifier===touchStick);if(t)update(t)},{passive:true});
- for(const name of ['touchend','touchcancel'])field.addEventListener(name,e=>{e.stopPropagation();if([...e.changedTouches].some(t=>t.identifier===touchStick))release()},{passive:true});
+ // Keep the movement finger entirely on Touch Events. On iPad, capturing a touch
+ // pointer on #artsField can interrupt the separate Apple Pencil pointer stream.
+ // Each input has its own identifier, so the joystick never captures the Pencil.
+ const fingerById=e=>[...e.changedTouches].find(t=>t.identifier===touchStick);
+ field.addEventListener('touchstart',e=>{
+  if(!battleActive()||touchStick!==null)return;
+  const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));
+  if(!t)return;
+  touchStick=t.identifier;
+  if(e.cancelable)e.preventDefault();
+  e.stopPropagation();
+  place(t);update(t);
+ },{passive:false,capture:true});
+ field.addEventListener('touchmove',e=>{
+  if(touchStick===null)return;
+  const t=[...e.touches].find(t=>t.identifier===touchStick);
+  if(!t)return;
+  if(e.cancelable)e.preventDefault();
+  e.stopPropagation();update(t);
+ },{passive:false,capture:true});
+ for(const name of ['touchend','touchcancel'])field.addEventListener(name,e=>{
+  if(touchStick===null||!fingerById(e))return;
+  e.stopPropagation();release();
+ },{passive:true,capture:true});
+ // Mouse fallback only: no touch pointer capture while the Pencil is active.
+ field.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse'||!inZone(e)||!battleActive()||stick!==null)return;
+  e.preventDefault();e.stopPropagation();stick=e.pointerId;place(e);update(e);
+ },true);
+ field.addEventListener('pointermove',e=>{if(stick!==e.pointerId||e.pointerType!=='mouse')return;update(e)},true);
+ for(const name of ['pointerup','pointercancel'])field.addEventListener(name,e=>{
+  if(stick===e.pointerId&&e.pointerType==='mouse')release();
+ },true);
  c.style.touchAction='none';field.style.touchAction='none';
  c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
  c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
  c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コアが出現しました。続けて周りへ描くとペットになります。');sendInput();return}finishPaint(false)};
- c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd&&g.pointerType!=='pen'){c.onpointerup(e)}else{gesture=null;finishPaint(true)}}};
+ c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd&&g.pointerType!=='pen'){c.onpointerup(e)}else{if(g.pointerType==='pen')hint('ペン入力が端末側で中断されました。移動指はそのまま、ペンで描き直してください。');gesture=null;finishPaint(true)}}};
  c.addEventListener('lostpointercapture',e=>{
   // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
   if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
