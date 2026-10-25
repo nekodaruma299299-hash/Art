@@ -2763,7 +2763,7 @@ window.ArtsRules=(()=>{
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
  guard:{name:'ガード',rate:.035,cooldown:1400,text:'線の位置に1秒の盾。正面から来るマジックの弾を消し、ダメージとノックバックを防ぎます。近接攻撃は盾を貫通します。'},
- slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた位置で方角と斬撃の距離を指定します。近くに描けば近くを斬り、距離の上限は最大射程の半分です。威力は攻撃力と線の長さで変わります。'},
+ slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた場所を中心に斬撃が出ます。遠くに描いた場合は、同じ方角の最大射程の半分の位置に中心を収めます。威力は攻撃力と線の長さで変わります。'},
  magic:{name:'マジック',rate:.16,cooldown:900,text:'射程内で描いた直線から外向きに太い弾を放ちます。威力は攻撃力と描いた線の長さに依存し、大きく押し戻します。装甲は無視しますが、壁と正面のガードに止められます。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
  cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→中央へ戻る→右上→中央へ戻る→左下。一筆の×で2連続斬撃。'},
@@ -3688,7 +3688,7 @@ window.ArtArts=(()=>{
   for(let i=0;i<16;i++){const a=i*Math.PI*2/16;host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,power:6+attack*.15,radius:10,knockback:100,left:400,end:now+3500,hit:[],pierce:false,passWalls:false,style:'repulse',group:e.id})}
  }
  if(shape.type==='guard'){p.guard=now+1000;p.guardAngle=aim;p.guardWidth=R.clamp(shape.length/160,.4,1.55);p.guardValue=8+p.stats[2]*.35+power*3;p.guardX=target.x;p.guardY=target.y;p.guardRadius=R.clamp(shape.length/2,30,150);e.r=p.guardRadius;e.end=p.guard}
- if(shape.type==='slash'){e.x=p.x;e.y=p.y;e.tx=p.x;e.ty=p.y;e.angle=Math.hypot(dx,dy)>1?Math.atan2(dy,dx):aim;e.r=Math.min(Math.hypot(dx,dy),R.placementRange('slash',p.stats)*.5);e.power=(5+attack*.28)*power;melee(p,e,now)}
+ if(shape.type==='slash'){const distance=Math.hypot(dx,dy),limit=R.placementRange('slash',p.stats)*.5,scale=distance>limit?limit/distance:1;e.x=p.x+dx*scale;e.y=p.y+dy*scale;e.tx=e.x;e.ty=e.y;e.angle=distance>1?Math.atan2(dy,dx):aim;e.r=R.clamp(shape.radius||30,15,140);e.power=(5+attack*.28)*power;melee(p,e,now)}
  if(shape.type==='magic'){const practice=!!host.players.find(q=>q.id===id)?.bot,range=practice?300:Math.min(260+shape.length*1.8,740),speed=practice?200:224+Math.min(shape.length,500)*.96;host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,vx:Math.cos(aim)*speed,vy:Math.sin(aim)*speed,power:R.magicDamage(p.stats,shape.length,practice,p.auraUntil>now?1.5:1),radius:practice?10:16,knockback:practice?16:60+attack*.8,left:range,end:now+range/speed*1000+100,hit:[],pierce:true})}
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
@@ -3990,7 +3990,7 @@ window.ArtArts=(()=>{
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}if((me?.skills||[me?.skill]).includes('summon')){if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コア配置OK。続けて周りへ描くとペットを召喚します。');return}if(paths.length===1){hint('最初に♡でコアを描きます。');return}}const shape=R.recognize(paths,me?.skills||[me?.skill]);hint(shape?'候補：'+moves[shape.type].name+(shape.type==='slash'?'（描画は射程円全体・斬撃は半分まで）':'')+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}if((me?.skills||[me?.skill]).includes('summon')){if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コア配置OK。続けて周りへ描くとペットを召喚します。');return}if(paths.length===1){hint('最初に♡でコアを描きます。');return}}const shape=R.recognize(paths,me?.skills||[me?.skill]);hint(shape?'候補：'+moves[shape.type].name+(shape.type==='slash'?'（描いた場所に斬撃・中心位置は射程の半分まで）':'')+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
