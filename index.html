@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.0 / 単一HTML版（アートアーツ改良）
+あーとぴあ 1.3.1 / 単一HTML版（アートアーツ改良）
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -2792,7 +2792,7 @@ window.ArtsRules=(()=>{
  reflect:{name:'リフレクトウォール',class:'tank',rate:.085,cooldown:11000,text:'H字を一筆で描くと、6秒間通常弾を反射する盾を設置する。近接・範囲攻撃には無効。'},
  confusion:{name:'コンフュージョン',class:'trickster',rate:.065,cooldown:9000,text:'🌀を描いた範囲の敵は2秒間移動入力が反転する。重ねても延長しない。'},
  charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壊せる壁・破壊不可の壁を貫通する。'},
- newSmoke:{name:'ポイズンミスト',class:'trickster',rate:.065,cooldown:8000,text:'W字で広範囲の毒霧を4秒間展開。範囲内では従来どおり姿が隠れ、敵だけに0.5秒ごとに3HPの毒ダメージ。味方には無害。重ねても毒は増加せず、外に出ると止まる。'}
+ newSmoke:{name:'ポイズンミスト',class:'trickster',rate:.065,cooldown:8000,text:'W字で広範囲の毒霧を4秒間展開。範囲内では従来どおり姿が隠れ、敵だけに0.5秒ごとに基本威力2＋攻撃力×0.05の毒ダメージ。味方には無害。重ねても毒は増加せず、外に出ると止まる。'}
  });
  Object.assign(moves,{
  aura:{name:'バトルオーラ',class:'attacker',fixedCost:20,rate:0,cooldown:16000,text:'開いた王冠形で8秒間、攻撃力1.5倍。赤いオーラを纏う。重ねても倍率は増えない。',effect:'攻撃力1.5倍・8秒。基礎ステータスと職業は変化しない',range:'自分のみ',gesture:'底を閉じず、尖った山を3つ続けて描く王冠形'},
@@ -2803,7 +2803,10 @@ window.ArtsRules=(()=>{
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
  const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP100まで回復","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる補強壁（HP100）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
- Object.assign(moveDetails,{hook:['飛翔フック。命中した敵を引き寄せ、終了後2秒間行動不能','自分から描いたJの位置まで'],summon:['ハートのコアから落書きペットを召喚（HP30 / 20秒）','コアの近く / 索敵半径240'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['敵の移動入力を2秒間反転','中心から半径150'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間の毒霧。敵のみ0.5秒ごとに3HPダメージ','中心から半径140〜240']});
+ Object.assign(moveDetails,{hook:['飛翔フック。命中した敵を引き寄せ、終了後2秒間行動不能','自分から描いたJの位置まで'],summon:['ハートのコアから落書きペットを召喚（HP30 / 20秒）','コアの近く / 索敵半径240'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['敵の移動入力を2秒間反転','中心から半径150'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間の毒霧。敵のみ0.5秒ごとに基本威力2＋攻撃力×0.05のダメージ','中心から半径140〜240']});
+ for(const [key,formula] of Object.entries({star:'22＋攻撃力×0.6',ray:'20＋攻撃力×0.5',nova:'17＋攻撃力×0.4',anchor:'4＋攻撃力×0.2'})){moveDetails[key][0]+='。基本威力（'+formula+'）×描画倍率';moves[key].text+=' 威力は攻撃力と線の長さに応じて増加。'}
+ moveDetails.summon[0]+='。突進威力8＋攻撃力×0.2。発動時の攻撃力を使用';
+ moves.summon.text+=' 突進威力は8＋発動時の攻撃力×0.2。';
  for(const[k,[effect,range]]of Object.entries(moveDetails))Object.assign(moves[k],{effect,range});
  Object.assign(moves.thrust,{distance:220,speed:720});
  const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"直角の曲がりを「同方向2回・逆方向1回」の順で4組作り、太い十字の輪郭を閉じる。","cross":"斜線を進み、折り返し、約90度曲がって別の斜線を往復する。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
@@ -3522,10 +3525,47 @@ window.ArtsRules=(()=>{
   const sides=lower.filter(q=>q.x<b.cx-b.w*.24).length>3&&lower.filter(q=>q.x>b.cx+b.w*.24).length>3;
   return sides&&match([path],'nova')<.19;
  }
+ // Recognize deliberately simple common gestures BEFORE elaborate equipped-arts templates.
+ // Pencil coalesced samples can be dense or slightly noisy; normalize by geometry,
+ // not by the number of raw pointer events.
+ function simpleCommonArt(path){
+  if(!path||path.length<2)return null;
+  const a=path[0],b=path.at(-1),chord=dist(a,b);
+  let total=0;for(let i=1;i<path.length;i++)total+=dist(path[i-1],path[i]);
+  if(total<15||chord<12)return null;
+  const xs=path.map(p=>p.x),ys=path.map(p=>p.y);
+  const diag=Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));
+  if(diag<12||chord<diag*.30)return null; // loops and closed arts are not common gestures
+  const dx=b.x-a.x,dy=b.y-a.y,den=chord*chord;
+  let maxDeviation=0,prevAngle=null,turn=0,changes=0,lastSign=0;
+  for(let i=1;i<path.length-1;i++){
+   const p=path[i],t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/den,0,1);
+   maxDeviation=Math.max(maxDeviation,Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t));
+  }
+  for(let i=1;i<path.length;i++){
+   const u=path[i-1],v=path[i],len=dist(u,v);
+   if(len<2.5)continue;
+   const angle=Math.atan2(v.y-u.y,v.x-u.x);
+   if(prevAngle!==null){let da=Math.atan2(Math.sin(angle-prevAngle),Math.cos(angle-prevAngle));
+    if(Math.abs(da)>.16){turn+=Math.abs(da);const sign=Math.sign(da);if(lastSign&&sign!==lastSign)changes++;lastSign=sign;}}
+   prevAngle=angle;
+  }
+  const ratio=chord/Math.max(total,1);
+  // Strongly straight gestures: only direction relative to the caster determines Guard/Magic.
+  if(ratio>.86&&maxDeviation<Math.max(6,diag*.13)){
+   const cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+   const radial=Math.abs(dx*cx+dy*cy)/(chord*Math.hypot(cx,cy)||1);
+   return radial>.57?'magic':'guard';
+  }
+  // A single open, consistently turning arc is a Slash; zig-zags and closed skills are not.
+  if(ratio>.48&&ratio<.94&&maxDeviation>Math.max(3.5,diag*.075)&&changes<=1&&turn>.20&&turn<2.45)return'slash';
+  return null;
+ }
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
  // Short, simple common arts take precedence over equipped complex skills.
  // Previously the nearest-neighbour skill matcher labelled even a normal Slash arc as Cross/Star/etc.
- let kind=equipped.includes('summon')&&strokes.length>=2&&isHeartCore(strokes[0])?'summon':null;
+ let kind=strokes.length===1?simpleCommonArt(strokes[0]):null;
+ if(!kind&&equipped.includes('summon')&&strokes.length>=2&&isHeartCore(strokes[0]))kind='summon';
  if(kind==='summon'){const heart=strokes[0],b=statBox(heart),body=strokes.slice(1).flat(),near=body.some(p=>Math.hypot(p.x-b.cx,p.y-b.cy)<Math.max(b.w,b.h)*1.25);if(!near)kind=null;}
  if(!kind&&strokes.length===1){for(const k of equipped)if(['aura','drain','recharge','armor','repulse'].includes(k)&&newSkillGesture(strokes[0],k)){kind=k;break}}
  if(!kind&&equipped.includes('nova')&&strokes.length===1&&novaDropGesture(strokes[0]))kind='nova';
@@ -3693,11 +3733,11 @@ window.ArtArts=(()=>{
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
- if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,260):e.r;e.range=440;e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?34:shape.type==='ray'?30:25)*power}
+ if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,260):e.r;e.range=440;e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power}
  if(shape.type==='heal'){e.x=target.x;e.y=target.y;e.r=Math.max(60,e.r);for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(p,q)&&R.dist(q,e)<=e.r+R.R)q.hp=100;e.end=now+750}
  if(shape.type==='iron'){p.iron=now+15000;e.x=p.x;e.y=p.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor')p.reactor=now+6000;
- if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=Math.min(shape.extent+25,170);e.power=8*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
+ if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=Math.min(shape.extent+25,170);e.power=(4+attack*.2)*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
  if(buildBlock){buildBlock.id=++host.seq;host.blocks.push(buildBlock)}
  // TRICKSTER: mobility, illusions, smoke and safe teleport.
  if(shape.type==='mirage'){
@@ -3711,11 +3751,11 @@ window.ArtArts=(()=>{
    host.effects.push({id:++host.seq,type:'decoyBody',owner:id,x:xx,y:yy,vx:Math.cos(a)*65,vy:Math.sin(a)*65,r:25,start:now,end:now+4000});
   }e.x=p.x;e.y=p.y;e.r=60;e.end=now+700;
  }
- if(shape.type==='newSmoke'){e.type='smoke';e.poison=true;e.r=R.clamp(shape.radius+90,140,240);e.end=now+4000;e.x=target.x;e.y=target.y;}
+ if(shape.type==='newSmoke'){e.type='smoke';e.poison=true;e.poisonPower=2+attack*.05;e.r=R.clamp(shape.radius+90,140,240);e.end=now+4000;e.x=target.x;e.y=target.y;}
  if(shape.type==='confusion'){e.r=R.clamp(shape.radius+35,90,155);e.end=now+600;for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&(!q.confused||q.confused<=now))q.confused=now+2000;}
  if(shape.type==='hook'){e.type='hookFlight';e.x=p.x;e.y=p.y;e.tx=target.x;e.ty=target.y;e.r=22;e.power=9+attack*.34;e.speed=540;e.angle=Math.atan2(e.ty-e.y,e.tx-e.x);e.end=now+Math.max(300,R.dist(p,target)/e.speed*1000+100);}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius,55,125);e.end=now+6000;e.hp=5;}
- if(shape.type==='summon'){for(const v of host.effects)if(v.type==='summonBody'&&v.owner===id)v.end=now;e.type='summonBody';e.x=target.x;e.y=target.y;e.r=26;e.hp=30;e.attackAt=now;e.end=now+20000;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
+ if(shape.type==='summon'){for(const v of host.effects)if(v.type==='summonBody'&&v.owner===id)v.end=now;e.type='summonBody';e.power=8+attack*.2;e.x=target.x;e.y=target.y;e.r=26;e.hp=30;e.attackAt=now;e.end=now+20000;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
  if(shape.type==='charge'){e.passWalls=true;e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=45+attack*.65;e.hit=now+1000;e.end=now+1450;}
  if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=40;e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:36,start:now,end:now+600});}
  // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
@@ -3764,7 +3804,7 @@ window.ArtArts=(()=>{
   const cloud=host.effects.find(e=>e.type==='smoke'&&e.poison&&e.start<=now&&e.end>now&&R.dist(p,e)<e.r&&host.fighters.some(owner=>owner.id===e.owner&&!friendly(owner,p)));
   if(!cloud){p.mistExposure=0;continue}
   p.mistExposure=(p.mistExposure||0)+Math.max(0,dt);
-  while(p.mistExposure>=.5-1e-9&&p.hp>0){p.mistExposure=Math.max(0,p.mistExposure-.5);hurt(p,3,now,cloud,true)}
+  while(p.mistExposure>=.5-1e-9&&p.hp>0){p.mistExposure=Math.max(0,p.mistExposure-.5);hurt(p,cloud.poisonPower??3,now,cloud,true)}
  }
  }
  // Homing is computed by the host; clients render the replicated velocity.
@@ -3817,7 +3857,7 @@ window.ArtArts=(()=>{
  if(e.summonPhase==='charge'){
  const moved=move(e.chargeX,e.chargeY,e.chargeSpeed||520);
  const target=host.fighters.find(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(e,q)<R.R+e.r&&lineClear(e,q));
- if(target){hurt(target,12,now,e);e.chargeUntil=now}
+ if(target){hurt(target,e.power??12,now,e);e.chargeUntil=now}
  if(!moved||now>=e.chargeUntil||R.dist(e,{x:e.chargeX,y:e.chargeY})<8){e.summonPhase='recover';e.attackAt=now+1800}
  }else if(now<(e.attackAt||0)){
  e.summonPhase='recover';move(owner.x-owner.facing*45,owner.y+12,240);
@@ -3982,10 +4022,12 @@ window.ArtArts=(()=>{
  // Capture phase works even if a child stops propagation in the bubble phase.
  document.addEventListener('pointermove',e=>{
   if(!enabled()||view?.phase!=='battle'||e.pointerType!=='pen'||gesture?.id!==e.pointerId)return;
+  // Canvas already handles this event; forwarding it a second time scrambles sampled paths.
+  if(e.target===$('#artsArena'))return;
   $('#artsArena')?.onpointermove?.(e);
  },true);
  document.addEventListener('pointerup',e=>{
-  if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointerup?.(e)
+  if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId&&e.target!==$('#artsArena'))$('#artsArena')?.onpointerup?.(e)
  },true);
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointercancel?.(e)
