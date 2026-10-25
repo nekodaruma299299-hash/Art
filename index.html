@@ -3797,7 +3797,7 @@ window.ArtArts=(()=>{
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
  for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){p.ink=Math.min(p.maxInk,p.ink+p.maxInk*.4);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
- if(now>=p.inkLock)p.ink=Math.min(p.maxInk,p.ink+dt*(7+p.stats[3]*.12)/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
+ if(now>=p.inkLock)p.ink=Math.min(p.maxInk,p.ink+dt*(7+p.stats[3]*.12)*2/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+p.stats[0]*4)*(p.slow>now?.5:1),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const vx=mx*speed*dt*(p.confused>now?-1:1),vy=my*speed*dt*(p.confused>now?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
