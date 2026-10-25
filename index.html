@@ -3458,7 +3458,7 @@ window.ArtsRules=(()=>{
  }
  function skillGesture(path,skill){
   if(['aura','drain','recharge','armor','repulse'].includes(skill))return newSkillGesture(path,skill);
-  if(['warp','thrust','build','star'].includes(skill))return artFeatureScore(path,skill)>=.59;
+  if(['warp','thrust','build','star'].includes(skill)){if(skill==='warp')return forgivingWarp(path);if(['thrust','build'].includes(skill)&&!relaxedPolygon(path,skill==='thrust'?3:4))return false;return artFeatureScore(path,skill)>=(skill==='thrust'?.78:.72);}
   const g=strokeGrammar(path),{closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len}=g;
   switch(skill){
    case'build':case'ricochet':return convex(4)||relaxedPolygon(path,4);
@@ -3562,6 +3562,21 @@ window.ArtsRules=(()=>{
   return null;
  }
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
+ // Straight pen traces must NEVER become a circle, triangle, or complex equipped art.
+ // Evaluate the unsimplified spatial footprint before applying permissive skill matching.
+ if(strokes.length===1){
+  const p=strokes[0],a=p[0],b=p.at(-1),chord=dist(a,b),trace=length([p]);
+  if(chord>=13&&chord/Math.max(1,trace)>=.76){
+   const dx=b.x-a.x,dy=b.y-a.y,den=chord*chord;
+   let deviation=0;
+   for(const q of p){const t=clamp(((q.x-a.x)*dx+(q.y-a.y)*dy)/den,0,1);deviation=Math.max(deviation,Math.hypot(q.x-a.x-dx*t,q.y-a.y-dy*t))}
+   if(deviation<=Math.max(7,diag*.145)){
+    const radial=Math.abs(dx*cx+dy*cy)/(chord*Math.hypot(cx,cy)||1);
+    const common=radial>.57?'magic':'guard';
+    return{type:common,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:a,strokes};
+   }
+  }
+ }
  // Short, simple common arts take precedence over equipped complex skills.
  // Previously the nearest-neighbour skill matcher labelled even a normal Slash arc as Cross/Star/etc.
  let kind=strokes.length===1?simpleCommonArt(strokes[0]):null;
@@ -3574,7 +3589,7 @@ window.ArtsRules=(()=>{
  if(!kind&&equipped.includes('reflect')&&strokes.length===1&&skillGesture(strokes[0],'reflect'))kind='reflect';
  if(!kind&&equipped.includes('newSmoke')&&strokes.length===1&&skillGesture(strokes[0],'newSmoke'))kind='newSmoke';
  if(!kind&&equipped.includes('hook')&&strokes.length===1&&skillGesture(strokes[0],'hook'))kind='hook';
- if(!kind&&equipped.includes('warp')&&strokes.length===1&&artFeatureScore(strokes[0],'warp')>=.72)kind='warp';
+ if(!kind&&equipped.includes('warp')&&strokes.length===1&&forgivingWarp(strokes[0])&&artFeatureScore(strokes[0],'warp')>=.80)kind='warp';
  if(!kind&&strokes.length===1&&!((equipped.includes('summon'))&&isHeartCore(strokes[0]))){
   const path=strokes[0],first=path[0],last=path.at(-1),chord=dist(first,last),ratio=chord/Math.max(1,len),closed=chord<diag*.22;
   if(ratio>=.83){
@@ -3602,7 +3617,7 @@ window.ArtsRules=(()=>{
  if(!kind&&strokes.length===1){
   // Soft fallback for difficult arts; safeguard geometrically distinct loop skills.
   const candidates=equipped.filter(k=>k&&moves[k]?.class&&!['summon','nova','warp','confusion','smoke','charge','aura','drain','recharge','armor','repulse'].includes(k));
-  let best=.145;
+  let best=.105;
   for(const k of candidates){
    if(['iron','reactor','build','ricochet','thrust'].includes(k)&&!relaxedPolygon(strokes[0],({iron:6,reactor:5,build:4,ricochet:4,thrust:3})[k]))continue;
    const d=match(strokes,k);if(d<best){best=d;kind=k}
@@ -4003,10 +4018,11 @@ window.ArtArts=(()=>{
  field.addEventListener('touchstart',e=>{e.stopPropagation();if(touchStick!==null||!battleActive())return;const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));if(!t)return;touchStick=t.identifier;if(!origin)place(t);update(t)},{passive:true});
  field.addEventListener('touchmove',e=>{e.stopPropagation();const t=[...e.touches].find(t=>t.identifier===touchStick);if(t)update(t)},{passive:true});
  for(const name of ['touchend','touchcancel'])field.addEventListener(name,e=>{e.stopPropagation();if([...e.changedTouches].some(t=>t.identifier===touchStick))release()},{passive:true});
- c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&inZone(e))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
- c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();const events=e.getCoalescedEvents?.()||[];for(const point of events)drawPoint({...point,pointerId:e.pointerId,clientX:point.clientX,clientY:point.clientY});drawPoint(e)};
- c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;for(const p of e.getCoalescedEvents?.()||[])drawPoint({pointerId:e.pointerId,clientX:p.clientX,clientY:p.clientY});drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コアが出現しました。続けて周りへ描くとペットになります。');sendInput();return}finishPaint(false)};
- c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd){c.onpointerup(e)}else{gesture=null;finishPaint(true)}}};
+ c.style.touchAction='none';field.style.touchAction='none';
+ c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
+ c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
+ c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コアが出現しました。続けて周りへ描くとペットになります。');sendInput();return}finishPaint(false)};
+ c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd&&g.pointerType!=='pen'){c.onpointerup(e)}else{gesture=null;finishPaint(true)}}};
  c.addEventListener('lostpointercapture',e=>{
   // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
   if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
