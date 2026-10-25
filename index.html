@@ -2777,7 +2777,7 @@ window.ArtsRules=(()=>{
  summon:{name:'サモンペイント',class:'magician',rate:.07,cooldown:14000,text:'♡でコアを置き、続けて周りへ落書きするとペットになる。ペットは召喚者について行き、敵を見つけると接近して突進攻撃する。'},
  reflect:{name:'リフレクトウォール',class:'tank',rate:.085,cooldown:11000,text:'H字を一筆で描くと、6秒間通常弾を反射する盾を設置する。近接・範囲攻撃には無効。'},
  confusion:{name:'コンフュージョン',class:'trickster',rate:.065,cooldown:9000,text:'🌀を描いた範囲の敵は2秒間移動入力が反転する。重ねても延長しない。'},
- charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壁で止まる。'},
+ charge:{name:'チャージショット',class:'gunner',rate:.12,cooldown:12000,text:'上下2つの半円状の弧をつないだ＞を描く。1秒間の予告後、画面端まで届く幅90の超高威力ビーム。壊せる壁・破壊不可の壁を貫通する。'},
  newSmoke:{name:'ポイズンミスト',class:'trickster',rate:.065,cooldown:8000,text:'W字で広範囲の毒霧を4秒間展開。範囲内では従来どおり姿が隠れ、敵だけに0.5秒ごとに3HPの毒ダメージ。味方には無害。重ねても毒は増加せず、外に出ると止まる。'}
  });
  Object.assign(moves,{
@@ -3572,7 +3572,7 @@ window.ArtsRules=(()=>{
  return upper.concat(upper.map(([t,x,y,w,h])=>[t,x,H-y-h,w,h])).map(([kind,x,y,w,h],id)=>{const wall=kind==='soft'||kind==='hard',hp=wall?(kind==='soft'?10:100):null;return{id,type:wall?'wall':kind,material:wall?kind:null,x,y,w,h,hp,maxHp:hp}});
  }
  function attackBlocked(x,y,blocks,r=1){return blocks.some(b=>(b.type==='stone'||b.type==='wall'&&b.hp>0)&&intersects(x,y,Math.max(.01,r),b))}
- function beamReach(e,blocks){const range=e.range||440,r=Math.max(1,e.r||1),ux=Math.cos(e.angle||0),uy=Math.sin(e.angle||0);for(let d=0;d<=range;d+=6)if(attackBlocked(e.x+ux*d,e.y+uy*d,blocks,r))return d;return range}
+ function beamReach(e,blocks){if(e.passWalls||e.type==='charge')return e.range||440;const range=e.range||440,r=Math.max(1,e.r||1),ux=Math.cos(e.angle||0),uy=Math.sin(e.angle||0);for(let d=0;d<=range;d+=6)if(attackBlocked(e.x+ux*d,e.y+uy*d,blocks,r))return d;return range}
  function guardBlocks(q,ax,ay,bx,by,r,now){if(!q.active||q.hp<=0||q.guard<=now)return false;const ux=Math.cos(q.guardAngle),uy=Math.sin(q.guardAngle),gx=q.guardX??q.x,gy=q.guardY??q.y,da=(ax-gx)*ux+(ay-gy)*uy,db=(bx-gx)*ux+(by-gy)*uy;if(db>=da||da< -r||db>r)return false;const t=clamp(da/(da-db||1),0,1),x=ax+(bx-ax)*t-gx,y=ay+(by-ay)*t-gy;return Math.abs(-x*uy+y*ux)<=(q.guardRadius||40)+r}
  function intersects(x,y,r,b){return Math.hypot(x-clamp(x,b.x,b.x+b.w),y-clamp(y,b.y,b.y+b.h))<r}
  function solid(b){return b.type!=='bush'&&(b.type!=='wall'||b.hp>0)}
@@ -3700,7 +3700,7 @@ window.ArtArts=(()=>{
  if(shape.type==='hook'){e.type='hookFlight';e.x=p.x;e.y=p.y;e.tx=target.x;e.ty=target.y;e.r=22;e.power=9+attack*.34;e.speed=540;e.angle=Math.atan2(e.ty-e.y,e.tx-e.x);e.end=now+Math.max(300,R.dist(p,target)/e.speed*1000+100);}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius,55,125);e.end=now+6000;e.hp=5;}
  if(shape.type==='summon'){for(const v of host.effects)if(v.type==='summonBody'&&v.owner===id)v.end=now;e.type='summonBody';e.x=target.x;e.y=target.y;e.r=26;e.hp=30;e.attackAt=now;e.end=now+20000;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
- if(shape.type==='charge'){e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=45+attack*.65;e.hit=now+1000;e.end=now+1450;}
+ if(shape.type==='charge'){e.passWalls=true;e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=45+attack*.65;e.hit=now+1000;e.end=now+1450;}
  if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=40;e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:36,start:now,end:now+600});}
  // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
  function fireShot(dir,opts={}){
@@ -3835,7 +3835,7 @@ window.ArtArts=(()=>{
   }
   return true;
  });
- for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}if(e.type==='ghost')continue;if(['ray','charge'].includes(e.type))e.beamReach=R.beamReach(e,host.blocks);for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now);
+ for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}if(e.type==='ghost')continue;if(['ray','charge'].includes(e.type))e.beamReach=R.beamReach(e,host.blocks);for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now);
  if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,610-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}if(remainingSides()<=1)finishBattle()}
 
  function tick(){if(!enabled()||!view)return;const now=Date.now();updateLiveStats(now);if($('#artsClock'))$('#artsClock').textContent=view.deadline?Math.max(0,Math.ceil((view.deadline-now-offset)/1000))+'秒':'';
