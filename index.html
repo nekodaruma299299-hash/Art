@@ -2763,7 +2763,7 @@ window.ArtsRules=(()=>{
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
  guard:{name:'ガード',rate:.035,cooldown:1400,text:'線の位置に1秒の盾。正面から来るマジックの弾を消し、ダメージとノックバックを防ぎます。近接攻撃は盾を貫通します。'},
- slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた位置は斬る方角だけを指定し、斬撃は自分を中心に最大射程の半分まで届きます。威力は攻撃力と線の長さで変わります。'},
+ slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた位置で方角と斬撃の距離を指定します。近くに描けば近くを斬り、距離の上限は最大射程の半分です。威力は攻撃力と線の長さで変わります。'},
  magic:{name:'マジック',rate:.16,cooldown:900,text:'射程内で描いた直線から外向きに太い弾を放ちます。威力は攻撃力と描いた線の長さに依存し、大きく押し戻します。装甲は無視しますが、壁と正面のガードに止められます。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
  cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→中央へ戻る→右上→中央へ戻る→左下。一筆の×で2連続斬撃。'},
@@ -3476,7 +3476,7 @@ window.ArtsRules=(()=>{
    case'mirage':return !closed&&intersections.length===0&&flips>=1&&flips<=3&&abs>1.8&&abs<7.5&&Math.abs(signed)<3&&degrees.every(a=>Math.abs(a)<135);
    case'decoy':return closed&&intersections.length>=1&&intersections.length<=3&&Math.abs(signed)<2.6&&abs>4.5&&abs<14&&degrees.every(a=>Math.abs(a)<145);
    case'confusion':return !closed&&intersections.length===0&&abs>Math.PI*2.6&&abs<Math.PI*9&&Math.abs(signed)/abs>.78&&degrees.every(a=>Math.abs(a)<125);
-   case'hook':return !closed&&(pattern([75,75],88)||(abs>2.1&&abs<4.5&&Math.abs(signed)/abs>.75&&match([path],'hook')<.16));
+   case'hook':{if(closed||abs<1.6||abs>5.2||Math.abs(signed)/abs<.65)return false;const q=resample(path,64);return [q,[...q].reverse()].some(v=>{const stem=v.slice(0,23),rest=v.slice(22);return dist(stem[0],stem.at(-1))/Math.max(1,length([stem]))>.985&&dist(rest[0],rest.at(-1))/Math.max(1,length([rest]))<.85})&&match([path],'hook')<.18;}
    case'reflect':return !closed&&pattern([180,-90,-90,180],68);
    case'charge':{const open=strokeGrammar(path,true),corners=open.degrees.filter(v=>Math.abs(v)>42);return curvedChargeGesture(path)||(!closed&&pattern([95],68))||(dist(path[0],path.at(-1))>open.diag*.28&&corners.length>=1&&corners.length<=3&&open.abs<6.8&&match([path],'charge')<.23);}
    case'newSmoke':return !closed&&pattern([110,-110,110],58);
@@ -3576,7 +3576,7 @@ window.ArtsRules=(()=>{
  function inRange(shape,stats){const range=placementRange(shape?.type,stats);return !!shape?.strokes?.length&&shape.strokes.every(path=>path.length>0&&path.every(p=>Math.hypot(p.x,p.y)<=range+0.001))}
  // Magic's damage scales with Attack (stat 2), not Range (stat 5).
  function magicDamage(stats,strokeLength,practice=false,boost=1){const attack=clamp(Number(stats?.[1])||3,3,85)*boost;const power=clamp(strokeLength/220,.45,2.6);return(12+attack*.65)*power*(practice?.65:1)}
- function cost(shape){const m=moves[shape.type];return m.fixedCost??Math.max(1,Math.ceil(shape.length*m.rate))}
+ function cost(shape){const m=moves[shape.type];return m.fixedCost??Math.max(1,Math.ceil(shape.length*m.rate*1.5))}
  function map(stage='garden'){
  const variants={
  garden:[['stone',260,210,200,40],['stone',90,420,100,45],['stone',530,420,100,45],['soft',80,285,130,35],['soft',510,285,130,35],['hard',295,365,130,35],['hole',225,455,80,65],['hole',415,455,80,65],['bush',60,120,140,100],['bush',520,120,140,100],['bush',280,270,160,65]],
@@ -3688,7 +3688,7 @@ window.ArtArts=(()=>{
   for(let i=0;i<16;i++){const a=i*Math.PI*2/16;host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,power:6+attack*.15,radius:10,knockback:100,left:400,end:now+3500,hit:[],pierce:false,passWalls:false,style:'repulse',group:e.id})}
  }
  if(shape.type==='guard'){p.guard=now+1000;p.guardAngle=aim;p.guardWidth=R.clamp(shape.length/160,.4,1.55);p.guardValue=8+p.stats[2]*.35+power*3;p.guardX=target.x;p.guardY=target.y;p.guardRadius=R.clamp(shape.length/2,30,150);e.r=p.guardRadius;e.end=p.guard}
- if(shape.type==='slash'){e.x=p.x;e.y=p.y;e.tx=p.x;e.ty=p.y;e.angle=Math.hypot(dx,dy)>1?Math.atan2(dy,dx):aim;e.r=R.placementRange('slash',p.stats)*.5;e.power=(5+attack*.28)*power;melee(p,e,now)}
+ if(shape.type==='slash'){e.x=p.x;e.y=p.y;e.tx=p.x;e.ty=p.y;e.angle=Math.hypot(dx,dy)>1?Math.atan2(dy,dx):aim;e.r=Math.min(Math.hypot(dx,dy),R.placementRange('slash',p.stats)*.5);e.power=(5+attack*.28)*power;melee(p,e,now)}
  if(shape.type==='magic'){const practice=!!host.players.find(q=>q.id===id)?.bot,range=practice?300:Math.min(260+shape.length*1.8,740),speed=practice?200:224+Math.min(shape.length,500)*.96;host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,vx:Math.cos(aim)*speed,vy:Math.sin(aim)*speed,power:R.magicDamage(p.stats,shape.length,practice,p.auraUntil>now?1.5:1),radius:practice?10:16,knockback:practice?16:60+attack*.8,left:range,end:now+range/speed*1000+100,hit:[],pierce:true})}
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
@@ -3797,7 +3797,7 @@ window.ArtArts=(()=>{
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
  for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){p.ink=Math.min(p.maxInk,p.ink+p.maxInk*.4);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
- if(now>=p.inkLock)p.ink=Math.min(p.maxInk,p.ink+dt*(7+p.stats[3]*.12));if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
+ if(now>=p.inkLock)p.ink=Math.min(p.maxInk,p.ink+dt*(7+p.stats[3]*.12)/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+p.stats[0]*4)*(p.slow>now?.5:1),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const vx=mx*speed*dt*(p.confused>now?-1:1),vy=my*speed*dt*(p.confused>now?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
