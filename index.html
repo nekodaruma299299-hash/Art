@@ -2185,6 +2185,7 @@ window.ArtGame=(()=>{
 
 
 /* SECTION: game/host-turns.js */
+ async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;host.phase='interrupted';host.deadline=null;await newHost();return true}
  function newHost(){host={id:uid(),settings:R.settings(room.gameSettings),phase:'lobby',round:0,players:[],chains:[],routes:[],assignments:{},ready:{},submitted:{},deadline:null,graceDeadline:null,revealIndex:-1,reactions:{},collectDeadline:null};room.gameSettings=host.settings;sendAll(true)}
  function publicFor(id,privateData=false){if(!host)return null;const assignment=host.assignments[id]||null,c=host.chains.find(c=>c.id===assignment);return{id:host.id,phase:host.phase,round:host.round,total:host.total||0,settings:host.settings,players:host.players.map(p=>({peerId:p.peerId,profile:p.profile,active:p.active})),ready:{...host.ready},assignment,ownReady:!!host.ready[id],deadline:host.deadline,now:Date.now(),revealIndex:host.revealIndex,revealTotal:allEntries().length,reactions:host.reactions,...(privateData?{reference:host.phase==='draw'?c?.entries.at(-1)||null:null,seen:allEntries().slice(0,host.revealIndex+1)}:{})}}
  function deliver(id,m){if(id===localId)receive(m);else sendWire(connections.get(id),m)}
@@ -2333,7 +2334,7 @@ window.ArtGame=(()=>{
 
 
 /* SECTION: game/_close.txt */
- return{watchMember,spectatorFor,enabled,canDraw,localDraw,hostMessage,receive,enter,welcome,welcomeFor,blankSnapshot,initCreate,createConfig,settingsDialog,reset,departed,exportHost,importHost,leaving,promoted,render:renderGame,showAlbum,begin,submit,collect,finishCollection,nextReveal,tick,getHost:()=>host,getView:()=>view,setPhoto:s=>{photo=s},saveAlbum,allEntries};
+ return{abortMatch,watchMember,spectatorFor,enabled,canDraw,localDraw,hostMessage,receive,enter,welcome,welcomeFor,blankSnapshot,initCreate,createConfig,settingsDialog,reset,departed,exportHost,importHost,leaving,promoted,render:renderGame,showAlbum,begin,submit,collect,finishCollection,nextReveal,tick,getHost:()=>host,getView:()=>view,setPhoto:s=>{photo=s},saveAlbum,allEntries};
 })();
 
 
@@ -2380,6 +2381,7 @@ window.ArtWolf=(()=>{
  }
  function deliver(id,m){if(id===localId)receive(m);else sendWire(connections.get(id),m)}
  function sendAll(){if(!isHost||!host)return;for(const id of members.keys())deliver(id,{type:'gameWolfState',state:publicFor(id)})}
+ async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;host.phase='interrupted';host.deadline=null;await newHost();return true}
  function newHost(){host={id:uid(),phase:'lobby',settings:settings(room.wolfSettings),players:[],wolves:[],images:{},history:[],ready:{},votes:{},deadline:null,round:0};room.wolfSettings=host.settings;sendAll()}
  const conditionCategories=()=>[...genres.map(g=>g.name),'ポケモン','ファンアート'];
  function conditionPool(category,generation=0){if(category===-1)return conditionCategories().flatMap((_,i)=>conditionPool(i));if(category===6)return (generation===-1?(window.ArtAnswerPokemonSpecial||[]):(window.ArtAnswerPokemon||[]).filter(g=>!generation||g.generation===generation).flatMap(g=>g.words)).map(label=>({label}));if(category===7)return (window.ArtAnswerFanart||[]).flatMap(g=>g.subgroups.flatMap(sub=>sub.words));return (genres[category]?.groups||[]).flatMap(g=>g.words)}
@@ -2477,7 +2479,7 @@ window.ArtWolf=(()=>{
  function settingsDialog(){const editable=isHost&&host?.phase==='lobby';modal('あーとうるふのゲーム設定',`<form id="wolfSettingsForm"><fieldset ${editable?'':'disabled'}>${configHTML(settings(room.wolfSettings))}</fieldset><p>ゲーム開始前に変更できます。</p>${editable?'<button class="primary">保存</button>':''}<button id="wolfLeave" type="button">退出</button></form>`);bindTimingSettings();$('#wolfLeave').onclick=leaveRoom;$('#wolfSettingsForm').onsubmit=e=>{e.preventDefault();if(!editable||!$('#wolfSettingsForm').reportValidity())return;host.settings=readSettings();room.wolfSettings=host.settings;sendAll();$('#modal').close()}}
  function initCreate(){relay.initCreate();const mode=$('#newMode');mode.add(new Option('あーとうるふ','wolf'));const block=document.createElement('div');block.id='wolfCreate';block.hidden=true;block.innerHTML=configHTML();$('#gameCreate').after(block);bindTimingSettings();const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='wolf';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=true;$('#newWidth').value=$('#newHeight').value=768;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
  const home=document.createElement('button');home.id='wolfHome';home.className='action-card wolf-home';home.innerHTML=icon('wolf')+'<b>あーとうるふ</b><span>絵で探る、秘密のお題とウルフ · 3〜8人</span>';$('.home-actions').append(home);home.onclick=()=>{modal('あーとうるふ','<p>絵と会話で少数派を探そう！難易度（普通・上級）とお題形式（5ワード・形容詞）を自由に組み合わせて遊べます。</p><div class="modal-actions"><button id="wolfCreateRoom" class="primary">部屋を作る</button><button id="wolfJoinRoom">合言葉で入る</button></div>');$('#wolfCreateRoom').onclick=()=>{showCreate();if($('#newMode')){$('#newMode').value='wolf';$('#newMode').onchange()}};$('#wolfJoinRoom').onclick=()=>showJoin('')};
- const api={enabled,canDraw,localDraw,hostMessage,receive,initCreate,createConfig:()=>$('#newMode')?.value==='wolf'?{mode:'wolf',wolfSettings:readSettings(),snapshotInterval:0,protect:false}:relay.createConfig(),settingsDialog,reset,departed,begin,submit,tick,getHost:()=>host,getView:()=>view,blankSnapshot:relay.blankSnapshot,welcomeFor:id=>host?publicFor(id):null,welcome:s=>{if(s)receive({type:'gameWolfState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderWolf()},render:renderWolf,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.peerId===id):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},leaving:()=>departed(localId),promoted:()=>{sendAll();renderWolf()}};
+ const api={abortMatch,enabled,canDraw,localDraw,hostMessage,receive,initCreate,createConfig:()=>$('#newMode')?.value==='wolf'?{mode:'wolf',wolfSettings:readSettings(),snapshotInterval:0,protect:false}:relay.createConfig(),settingsDialog,reset,departed,begin,submit,tick,getHost:()=>host,getView:()=>view,blankSnapshot:relay.blankSnapshot,welcomeFor:id=>host?publicFor(id):null,welcome:s=>{if(s)receive({type:'gameWolfState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderWolf()},render:renderWolf,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.peerId===id):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},leaving:()=>departed(localId),promoted:()=>{sendAll();renderWolf()}};
  const facade={...relay};for(const key of Object.keys(api))facade[key]=(...args)=>enabled()?api[key](...args):relay[key]?.(...args);
  facade.enabled=()=>enabled()||relay.enabled();facade.initCreate=initCreate;facade.createConfig=api.createConfig;facade.reset=()=>{relay.reset();reset()};window.ArtGame=facade;
  setInterval(tick,250);return api;
@@ -2529,6 +2531,7 @@ window.ArtAnswer=(()=>{
   return s;
  }
  function sendAll(){if(!isHost||!host)return;for(const id of members.keys()){const m={type:'gameAnswerState',state:publicFor(id)};if(id===localId)receive(m);else sendWire(connections.get(id),m)}}
+ async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;host.phase='interrupted';host.deadline=null;await newHost();return true}
  function newHost(){host={id:uid(),phase:'lobby',settings:settings(room.answerSettings),players:[],order:[],round:-1,presenter:null,scores:{},correct:[],deadline:null,word:'',result:null};room.answerSettings=host.settings;sendAll()}
  function begin(){if(!isHost||host?.phase!=='lobby')return;const players=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);if(players.length<2||players.length>8){toast('2〜8人で開始してください。');return}host.players=players.map(p=>({peerId:p.peerId,profile:p.profile}));host.order=shuffle(players.map(p=>p.peerId));host.scores=Object.fromEntries(host.order.map(id=>[id,0]));nextRound()}
  function nextRound(){host.round++;host.correct=[];host.word='';host.reading='';host.answerAliases=[];host.result=null;if(host.round>=host.order.length*host.settings.phases){host.phase='finished';host.deadline=null;sendAll();return}host.presenter=host.order[host.round%host.order.length];if(host.settings.promptMode==='random')choosePrompt();host.phase='prompt';host.deadline=Date.now()+host.settings.promptSeconds*1000;room.canvasEpoch=(room.canvasEpoch||0)+1;resetCanvas();sendAll()}
@@ -2601,7 +2604,7 @@ window.ArtAnswer=(()=>{
  function settingsDialog(){const editable=isHost&&host?.phase==='lobby';modal('あーとあんさーのゲーム設定',`<form id="answerSettingsForm"><fieldset ${editable?'':'disabled'}>${configHTML(settings(room.answerSettings))}</fieldset><p>ゲーム開始前に変更できます。</p>${editable?'<button class="primary">保存</button>':''}<button type="button" id="answerLeave">退出</button></form>`);bindRandomSettings($('#answerSettingsForm'));$('#answerLeave').onclick=leaveRoom;$('#answerSettingsForm').onsubmit=e=>{e.preventDefault();if(!editable||!e.target.reportValidity())return;host.settings=readSettings($('#answerSettingsForm'));room.answerSettings=host.settings;sendAll();$('#modal').close()}}
  function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとあんさー','answer'));const block=document.createElement('div');block.id='answerCreate';block.hidden=true;block.innerHTML=configHTML();$('#wolfCreate').after(block);bindRandomSettings(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='answer';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=true;$('#newWidth').value=$('#newHeight').value=768;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
  const home=document.createElement('button');home.id='answerHome';home.className='action-card answer-home';home.innerHTML=icon('question')+'<b>あーとあんさー</b><span>絵を見てお題を当てよう！ · 2〜8人</span>';$('.home-actions').append(home);home.onclick=()=>{modal('あーとあんさー','<p>ひらがなのお題を絵にして、チャットで当てよう。</p><div class="modal-actions"><button id="answerCreateRoom" class="primary">部屋を作る</button><button id="answerJoinRoom">合言葉で入る</button></div>');$('#answerCreateRoom').onclick=()=>{showCreate();$('#newMode').value='answer';$('#newMode').onchange()};$('#answerJoinRoom').onclick=()=>showJoin('')};
- const api={enabled,canDraw,localDraw,hostMessage,receive,initCreate,settingsDialog,reset,departed,begin,tick,submitPrompt,scoreFor,presenterScore,settings,getHost:()=>host,getView:()=>view,sharedCanvas:()=>true,blankSnapshot:()=>engine.snapshot(),welcomeFor:id=>host?publicFor(id):null,welcome:s=>{if(s)receive({type:'gameAnswerState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderAnswer()},render:renderAnswer,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.order.includes(id):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},leaving:()=>departed(localId),promoted:()=>{sendAll();renderAnswer()}};
+ const api={abortMatch,enabled,canDraw,localDraw,hostMessage,receive,initCreate,settingsDialog,reset,departed,begin,tick,submitPrompt,scoreFor,presenterScore,settings,getHost:()=>host,getView:()=>view,sharedCanvas:()=>true,blankSnapshot:()=>engine.snapshot(),welcomeFor:id=>host?publicFor(id):null,welcome:s=>{if(s)receive({type:'gameAnswerState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderAnswer()},render:renderAnswer,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.order.includes(id):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},leaving:()=>departed(localId),promoted:()=>{sendAll();renderAnswer()}};
  const facade={...previous};for(const key of Object.keys(api))facade[key]=(...args)=>enabled()?api[key](...args):previous[key]?.(...args);
  facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='answer'?{mode:'answer',answerSettings:readSettings(),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
  setInterval(tick,250);return api;
@@ -2771,14 +2774,14 @@ window.ArtTransfer=(()=>{
 window.ArtsRules=(()=>{
  const W=720,H=1120,R=20,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const int=(n,d,a,b)=>Number.isFinite(+n)?clamp(Math.round(+n),a,b):d;
- const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,180,30,600),teams:s?.teams==='teams'?'teams':'solo',stage:['garden','ruins','forest','arena'].includes(s?.stage)?s.stage:'garden'});
+ const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,100,30,600),teams:s?.teams==='teams'?'teams':'solo',stage:['garden','ruins','forest','arena'].includes(s?.stage)?s.stage:'garden'});
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
  guard:{name:'ガード',rate:.035,cooldown:1400,text:'線の位置に1秒の盾。正面から来るマジックの弾を消し、ダメージとノックバックを防ぎます。近接攻撃は盾を貫通します。'},
  slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた場所を中心に斬撃が出ます。遠くに描いた場合は、同じ方角の最大射程の半分の位置に中心を収めます。威力は攻撃力と線の長さで変わります。'},
  magic:{name:'マジック',rate:.16,cooldown:900,text:'射程内で描いた直線から外向きに太い弾を放ちます。威力は攻撃力と描いた線の長さに依存し、大きく押し戻します。装甲は無視しますが、壁と正面のガードに止められます。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
- cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'×を描き、その右に縦線を加えた×│を一筆で描くと2連斬撃。'},
+ cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→右上→左下と一筆で描くと2連斬撃。×の右端同士を縦線でつなぐ形。'},
  feint:{name:'フェイントステップ',class:'attacker',rate:.065,cooldown:3000,text:'進路上にZを描き、その線をなぞって移動攻撃。射程外はキャンセル。'},
  inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:7500,text:'右下から左上への斜線→そのまま外側を一周。つながった一筆の🚫で近距離攻撃＋インク回復停止。'},
  star:{name:'スターフォール',class:'magician',rate:.065,cooldown:10000,text:'☆を描くと中心に2秒後、広範囲の星が落下。落下前に範囲外へ回避可能。装甲を無視する大ダメージ。'},
@@ -2821,7 +2824,7 @@ window.ArtsRules=(()=>{
  moves.summon.text+=' 突進威力は8＋発動時の攻撃力×0.2。';
  for(const[k,[effect,range]]of Object.entries(moveDetails))Object.assign(moves[k],{effect,range});
  Object.assign(moves.thrust,{distance:220,speed:720});
- const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"左→中央→上→中央→下→中央→右。一筆で細い＋を描く。","cross":"左上→右下→中央→左下→右上と×を描き、右へ少し伸ばして下へ縦線を引く（×│）。一筆で描く。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
+ const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"左→中央→上→中央→下→中央→右。一筆で細い＋を描く。","cross":"左上→右下→右上→左下。×の右端同士を縦線でつなぎ、3本の線を一筆で描く。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
  Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'上下2つの丸い弧を右の先端でつなぎ、ふくらみのある＞を一筆で描く',newSmoke:'W字を一筆で描く'});
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'ディフェンダー',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
@@ -3357,7 +3360,7 @@ window.ArtsRules=(()=>{
  const oldTemplate=template;
  template=function(k){switch(k){
  case'heal':return[[[-70,0],[0,0],[0,-70],[0,0],[0,70],[0,0],[70,0]].map(([x,y])=>({x,y}))];
- case'cross':return[[[-60,-60],[60,60],[0,0],[-60,60],[60,-60],[95,-60],[95,60]].map(([x,y])=>({x,y}))];
+ case'cross':return[[[-60,-60],[60,60],[60,-60],[-60,60]].map(([x,y])=>({x,y}))];
  case'aura':return[[[-90,55],[-60,-55],[-30,35],[0,-75],[30,35],[60,-55],[90,55]].map(([x,y])=>({x,y}))];
  case'drain':return[[{x:-75,y:0},{x:-30,y:55},{x:85,y:-70}]];
  case'recharge':return[[...Array.from({length:17},(_,i)=>{const t=i/16,u=1-t;return{x:u*u*45+2*u*t*(-45)+t*t*(-45),y:u*u*(-90)+2*u*t*(-75)+t*t*20}}),...Array.from({length:49},(_,i)=>{const a=Math.PI+(i+1)*Math.PI*2/49;return{x:45*Math.cos(a),y:20+45*Math.sin(a)}})]];
@@ -3597,6 +3600,13 @@ window.ArtsRules=(()=>{
  for(let i=10;i<35;i++)for(let j=i+32;j<86;j++)if(dist(points[i],points[j])<diag*.20)return true;
  return false;
  }
+ function crossGesture(path){
+  const q=statSimplify(path,statBox(path).span*.055);if(q.length<4||q.length>5)return false;
+  const side=(a,b,p)=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x);
+  let crossing=false;for(let i=1;i<q.length;i++)for(let j=i+2;j<q.length;j++){
+   const a=q[i-1],b=q[i],c=q[j-1],d=q[j];if(side(a,b,c)*side(a,b,d)<0&&side(c,d,a)*side(c,d,b)<0)crossing=true;
+  }const turn=strokeGrammar(path,true).abs;return crossing&&turn>3.5&&turn<6.5&&match([path],'cross')<.16;
+ }
  function skillGesture(path,skill){
   if(['aura','drain','recharge','armor','repulse'].includes(skill))return newSkillGesture(path,skill);
   if(['warp','thrust','build','star'].includes(skill)){if(skill==='warp')return forgivingWarp(path);if(['thrust','build'].includes(skill)&&!relaxedPolygon(path,skill==='thrust'?3:4))return false;return artFeatureScore(path,skill)>=(skill==='thrust'?.78:.72);}
@@ -3608,7 +3618,7 @@ window.ArtsRules=(()=>{
    case'reactor':return convex(5)||relaxedPolygon(path,5);
    case'star':return closed&&((intersections.length>=4&&pattern([144,144,144,144,144],30))||(intersections.length===0&&pattern([144,-72,144,-72,144,-72,144,-72,144,-72],35)));
    case'heal':return strokeGrammar(path,true).abs>4&&match([path],'heal')<.12;
-   case'cross':return strokeGrammar(path,true).abs>4&&match([path],'cross')<.11&&match([path],'cross')<match([path],'heal')*.85;
+   case'cross':return crossGesture(path);
    case'anchor':return !closed&&pattern([-90,180,-180,90],30);
    case'feint':return !closed&&pattern([135,-135],35);
    case'burst':return zigzagBurst(path);
@@ -3702,7 +3712,7 @@ window.ArtsRules=(()=>{
   if(ratio>.48&&ratio<.94&&maxDeviation>Math.max(3.5,diag*.075)&&changes<=1&&turn>.20&&turn<2.45)return'slash';
   return null;
  }
- function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>2600)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
+ function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
  // Straight pen traces must NEVER become a circle, triangle, or complex equipped art.
  // Evaluate the unsimplified spatial footprint before applying permissive skill matching.
  if(strokes.length===1){
@@ -3815,6 +3825,7 @@ window.ArtArts=(()=>{
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
  function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,ink:p.ink,maxInk:p.maxInk,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
  function sendAll(withImages=false){if(!host||!isHost)return;const state=publicState(withImages);receive({type:'gameArtsState',state:structuredClone(state)});broadcast({type:'gameArtsState',state})}
+ async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;stopInput();host.phase='interrupted';host.deadline=null;host.shots=[];host.effects=[];await newHost();return true}
  async function newHost(){const token=sessionToken,lobbyCanvas=host?.lobbyCanvas||null;if(lobbyCanvas){const packet={type:'canvasRestore',artsLobby:true,epoch:(room.canvasEpoch||0)+1,snapshot:lobbyCanvas};broadcast(packet);await applyCanvasRestore(packet);if(token!==sessionToken||!room||!connected)return}host={lobbyCanvas,id:uid(),phase:'lobby',settings:R.settings(room.artsSettings),players:[],ready:{},equipped:{},art:{},allReadyAt:0,fighters:[],blocks:[],shots:[],effects:[],deadline:null,result:null,inputs:{},seq:0};room.artsSettings=host.settings;sendAll(true)}
  function begin(){if(!isHost||host?.phase!=='lobby')return;const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);if(people.length<(room.offline?1:2)||people.length>8){toast('2〜8人で開始してください。');return}if(stroke)finishStroke();if(selection)$('#applyTransform').click();window.ArtHistory?.flush();host.lobbyCanvas={w:engine.w,h:engine.h,base:engine.layers.map(c=>c.toDataURL('image/png')),ops:[],opacities:[...prefs.opacities],hasArt:!!room.hasArt};host.players=people.map(p=>({id:p.peerId,name:p.profile.name,color:p.profile.color||'#6b8ab3',active:true,bot:false}));if(room.offline&&!room.characterOnly)host.players.push({id:'arts-practice-bot',name:'練習くん',color:'#d68767',active:true,bot:true});host.phase='create';host.deadline=room.characterOnly?null:Date.now()+host.settings.createSeconds*1000;host.ready={};host.art={};host.allReadyAt=0;for(const p of host.players)if(p.bot){host.ready[p.id]=true;host.art[p.id]={image:'',stats:[20,20,20,20,20]}}sendAll(true)}
 
@@ -3972,6 +3983,64 @@ window.ArtArts=(()=>{
   for(const q of host.fighters){if(!q.active||q.hp<=0||friendly(owner,q)||(s.hit||[]).includes(q.id))continue;const d=R.dist(s,q);if(d<best){best=d;target=q}}
   if(target&&best>.001){s.vx=(target.x-s.x)/best*100;s.vy=(target.y-s.y)/best*100}
  }
+ function petClear(a,b){const n=Math.max(1,Math.ceil(R.dist(a,b)/8));for(let i=0;i<=n;i++)if(R.blocked(a.x+(b.x-a.x)*i/n,a.y+(b.y-a.y)*i/n,host.blocks,18))return false;return true}
+ function petRoute(a,b){
+  // A bounded grid search routes around walls and pits; diagonal edges cannot cut corners.
+  const cell=32,cols=Math.ceil(R.W/cell),rows=Math.ceil(R.H/cell),key=(x,y)=>y*cols+x;
+  const point=k=>({x:Math.min(R.W-20,(k%cols)*cell+16),y:Math.min(R.H-20,Math.floor(k/cols)*cell+16)});
+  const start=key(Math.floor(a.x/cell),Math.floor(a.y/cell)),queue=[start],from=new Map([[start,null]]),cost=new Map([[start,0]]);let best=start,bestDistance=R.dist(a,b);
+  for(let visits=0;queue.length&&visits<cols*rows;visits++){
+   queue.sort((u,v)=>(cost.get(u)+R.dist(point(u),b))-(cost.get(v)+R.dist(point(v),b)));
+   const k=queue.shift(),p=k===start?a:point(k),distance=R.dist(p,b);
+   if(distance<bestDistance){best=k;bestDistance=distance}if(distance<cell&&petClear(p,b)){best=k;break}
+   const x=k%cols,y=Math.floor(k/cols);
+   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const nx=x+dx,ny=y+dy;if((!dx&&!dy)||nx<0||ny<0||nx>=cols||ny>=rows)continue;
+    const n=key(nx,ny),q=point(n),g=cost.get(k)+R.dist(p,q);
+    if(g>=(cost.get(n)??Infinity)||!petClear(p,q))continue;
+    cost.set(n,g);from.set(n,k);if(!queue.includes(n))queue.push(n);
+   }
+  }
+  const route=[];for(let k=best;k!==start&&k!==null;k=from.get(k))route.unshift(point(k));
+  if(petClear(route.at(-1)||a,b))route.push({x:b.x,y:b.y});return route;
+ }
+ function movePet(e,target,speed,dt,now,navigate=true){
+  // A newly painted core may overlap scenery. Resolve once to the nearest free spot.
+  if(R.blocked(e.x,e.y,host.blocks,18)){
+   let spot=null;for(let radius=8;radius<=160&&!spot;radius+=8)for(let i=0;i<24;i++){
+    const p={x:e.x+Math.cos(i*Math.PI/12)*radius,y:e.y+Math.sin(i*Math.PI/12)*radius};if(!R.blocked(p.x,p.y,host.blocks,18)){spot=p;break}}
+   if(!spot)return false;e.x=spot.x;e.y=spot.y;e.petRoute=null;
+  }
+  let goal=target;
+  if(navigate&&!petClear(e,target)){
+   if(!e.petRoute||now>=(e.routeAt||0)||R.dist(e.routeTarget||target,target)>48){e.petRoute=petRoute(e,target);e.routeAt=now+650;e.routeTarget={...target}}
+   while(e.petRoute.length&&R.dist(e,e.petRoute[0])<10)e.petRoute.shift();
+   goal=e.petRoute[0];if(!goal)return false;
+  }else e.petRoute=null;
+  const dx=goal.x-e.x,dy=goal.y-e.y,d=Math.hypot(dx,dy);if(d<1)return true;
+  const step=Math.min(d,speed*dt),n=Math.max(1,Math.ceil(step/6));
+  for(let i=0;i<n;i++){const x=e.x+dx/d*step/n,y=e.y+dy/d*step/n;if(R.blocked(x,y,host.blocks,18)){e.routeAt=0;return false}e.x=x;e.y=y}return true;
+ }
+ function tickPet(e,now,dt){
+  const owner=host.fighters.find(q=>q.id===e.owner&&q.active&&q.hp>0);if(!owner){e.end=now;return}
+  const enemy=q=>q.active&&q.hp>0&&!friendly(owner,q);
+  let target=host.fighters.find(q=>q.id===e.targetId&&enemy(q)&&R.dist(e,q)<650);
+  if(!target){target=host.fighters.filter(q=>enemy(q)&&R.dist(e,q)<280&&lineClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b))[0];e.targetId=target?.id||null}
+  if(e.summonPhase==='charge'){
+   const moved=movePet(e,{x:e.chargeX,y:e.chargeY},e.chargeSpeed||520,dt,now,false);
+   const hit=host.fighters.find(q=>enemy(q)&&R.dist(e,q)<R.R+e.r&&lineClear(e,q));
+   if(hit){hurt(hit,e.power??12,now,e);e.chargeUntil=now}
+   if(!moved||now>=e.chargeUntil||R.dist(e,{x:e.chargeX,y:e.chargeY})<8){e.summonPhase='recover';e.attackAt=now+1800}return;
+  }
+  if(!target){e.summonPhase='follow';if(R.dist(e,owner)>60)movePet(e,{x:owner.x-owner.facing*40,y:owner.y+10},230,dt,now);return}
+  const dx=e.x-target.x,dy=e.y-target.y,d=Math.hypot(dx,dy)||1;
+  // Hold a 95px gap between headbutts, continuing to follow the locked enemy.
+  const goal={x:target.x+dx/d*95,y:target.y+dy/d*95};
+  const clear=petClear(e,target);
+  if(now>=(e.attackAt||0)&&d>=65&&d<=170&&clear){e.summonPhase='charge';e.chargeX=target.x;e.chargeY=target.y;e.chargeUntil=now+550;return}
+  e.summonPhase=now<(e.attackAt||0)?'recover':'follow';
+  if(d<80||d>112||!clear)movePet(e,R.blocked(goal.x,goal.y,host.blocks,18)?target:goal,240,dt,now);
+ }
  function finishHookPull(p,now){p.pull=null;p.stunnedUntil=Math.max(p.stunnedUntil||0,now+2000);p.moving=false}
  function advanceHookPull(p,dt,now){
  const pull=p.pull,owner=host.fighters.find(q=>q.id===pull.owner);p.dash=null;p.drawing=false;p.preview=[];p.moving=false;
@@ -4009,22 +4078,7 @@ window.ArtArts=(()=>{
   if(!R.blocked(nx,e.y,host.blocks,15))e.x=nx;else e.vx*=-1;
   if(!R.blocked(e.x,ny,host.blocks,15))e.y=ny;else e.vy*=-1;
  }
- for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0){
- const owner=host.fighters.find(q=>q.id===e.owner);if(!owner||owner.hp<=0){e.end=now;continue}
- const move=(tx,ty,speed)=>{const d=Math.hypot(tx-e.x,ty-e.y)||1,step=Math.min(d,speed*dt),steps=Math.max(1,Math.ceil(step/6));for(let i=0;i<steps;i++){const nx=e.x+(tx-e.x)/d*step/steps,ny=e.y+(ty-e.y)/d*step/steps;if(R.blocked(nx,ny,host.blocks,18))return false;e.x=nx;e.y=ny}return true};
- if(e.summonPhase==='charge'){
- const moved=move(e.chargeX,e.chargeY,e.chargeSpeed||520);
- const target=host.fighters.find(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(e,q)<R.R+e.r&&lineClear(e,q));
- if(target){hurt(target,e.power??12,now,e);e.chargeUntil=now}
- if(!moved||now>=e.chargeUntil||R.dist(e,{x:e.chargeX,y:e.chargeY})<8){e.summonPhase='recover';e.attackAt=now+1800}
- }else if(now<(e.attackAt||0)){
- e.summonPhase='recover';move(owner.x-owner.facing*45,owner.y+12,240);
- }else{
- const enemies=host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(e,q)<240&&lineClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b)),target=enemies[0];
- if(target){const d=R.dist(e,target)||1;if(d<=170){e.summonPhase='charge';e.chargeX=target.x;e.chargeY=target.y;e.chargeUntil=now+550}else move(target.x,target.y,190)}
- else if(R.dist(e,owner)>60)move(owner.x-owner.facing*26,owner.y+8,220);
- }
- }
+ for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0)tickPet(e,now,dt);
  host.shots=host.shots.filter(s=>{
   if(now>=s.end||s.left<=0)return false;
   const owner=host.fighters.find(p=>p.id===s.owner);if(!owner)return false;
@@ -4153,7 +4207,7 @@ window.ArtArts=(()=>{
  function cameraRect(pixelRatio=1){const c=$('#artsArena'),r=c.getBoundingClientRect();const me=cameraFighter(),focus=positions.get(me?.id)||me||{x:R.W/2,y:R.H/2};const zoom=r.height>r.width?2.1:1.35,scale=Math.max(r.width/R.W,r.height/R.H)*zoom*pixelRatio,viewW=(r.width*pixelRatio)/scale,viewH=(r.height*pixelRatio)/scale,left=R.clamp(focus.x-viewW/2,0,Math.max(0,R.W-viewW)),top=R.clamp(focus.y-viewH/2,0,Math.max(0,R.H-viewH));return{scale,left,top,viewW,viewH}}
  function worldPoint(e){const c=$('#artsArena'),r=c.getBoundingClientRect(),cam=cameraRect();return{x:R.clamp((e.clientX-r.left)/cam.scale+cam.left,0,R.W),y:R.clamp((e.clientY-r.top)/cam.scale+cam.top,0,R.H)}}
  function relativePoint(e){const p=worldPoint(e),me=self(),pos=positions.get(localId)||me;return{x:p.x-pos.x,y:p.y-pos.y}}
- function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<(gesture.pointerType==='pen'?.65:1.4))return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900||R.length(all)>=2400){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
+ function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<(gesture.pointerType==='pen'?.65:1.4))return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900){for(const path of all){const compact=R.resample(path,Math.max(2,Math.ceil(path.length/2)));path.splice(0,path.length,...compact)}}if(R.length(all)>=5800){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
  function bindBattle(){const c=$('#artsArena'),joy=$('#artsJoystick'),field=$('#artsField');$('#artsSkillInfo').onclick=showSkills;
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
@@ -4232,7 +4286,7 @@ finishPaint(false)};
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
-  cross:'左上 → 右下 → 中央 → 左下 → 右上 → 右へ少し伸ばす → 下へ縦線（×│）',
+  cross:'左上 → 右下 → 右上 → 左下（3本の線を一筆。なぞり直し不要）',
   heal:'左 → 中央 → 上 → 中央 → 下 → 中央 → 右。一筆で細い＋を描く',
   warp:'一筆で丸を描き、始点まで戻して閉じます',
   nova:'先端を尖らせた水滴の輪郭を一筆で閉じます',
@@ -4554,7 +4608,7 @@ finishPaint(false)};
  function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとあーつ','arts'));const block=document.createElement('div');block.id='artsCreate';block.innerHTML=configHTML();$('#answerCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='arts';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=false;$('#newWidth').value=$('#newHeight').value=512;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
  function departed(id){if(!isHost||!host)return;const p=host.players.find(p=>p.id===id);if(p)p.active=false;const f=host.fighters.find(p=>p.id===id);if(f){f.active=false;f.hp=0;f.drawing=false}delete host.inputs[id];if(host.phase==='battle'&&remainingSides()<=1)finishBattle();else if(['create','collect'].includes(host.phase)&&host.players.filter(p=>p.active).every(p=>host.ready[p.id]))equipPhase();else if(host.phase==='equip'&&host.players.filter(p=>p.active).every(p=>host.equipped[p.id]))startBattle();else sendAll()}
  function reset(){savedCharacterSource=null;stopInput();cancelAnimationFrame(raf);raf=0;host=view=null;uiKey=rosterKey=submitted='';images.clear();positions.clear();walk.clear();damageShakes.clear();guide=null;uploading.clear();previousFx.clear();stage.innerHTML='';bar.innerHTML='';stage.hidden=bar.hidden=true;$('#studio').classList.remove('arts-mode','arts-creating','arts-character-editing');liveStats.hidden=true}
- const api={enabled,canDraw,localDraw,hostMessage,receive,initCreate,settingsDialog,begin,submit,tick,reset,departed,showCharacter,openCharacterStudio,sharedCanvas:()=>false,blankSnapshot:()=>{const c=E.make(room.w,room.h),url=c.toDataURL();c.width=c.height=0;return{w:room.w,h:room.h,base:[url,url,url],ops:[]}},welcomeFor:()=>host?publicState(true):null,welcome:s=>{if(s)receive({type:'gameArtsState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderUI()},render:renderUI,watchMember:()=>false,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id&&p.active):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;const delta=Date.now()-(s.transferTime||Date.now());if(host.deadline)host.deadline+=delta;if(host.stormStart)host.stormStart+=delta;for(const p of host.fighters)for(const key of ['iron','reactor','inkLock','slow','nextSkill','auraUntil','armorUntil','rechargeUntil'])p[key]=(p[key]||0)+delta;host.shots=[];host.effects=[];host.inputs={};for(const p of host.fighters){for(const k of Object.keys(p.artCooldowns||{}))p.artCooldowns[k]+=delta;p.guard=0;p.drawing=false;p.pull=null;p.stunnedUntil=0;p.nextCast=Date.now()+500}lastFrame=Date.now()},leaving:()=>departed(localId),promoted:()=>{uiKey='';sendAll(true)},getHost:()=>host,getView:()=>view};
+ const api={abortMatch,enabled,canDraw,localDraw,hostMessage,receive,initCreate,settingsDialog,begin,submit,tick,reset,departed,showCharacter,openCharacterStudio,sharedCanvas:()=>false,blankSnapshot:()=>{const c=E.make(room.w,room.h),url=c.toDataURL();c.width=c.height=0;return{w:room.w,h:room.h,base:[url,url,url],ops:[]}},welcomeFor:()=>host?publicState(true):null,welcome:s=>{if(s)receive({type:'gameArtsState',state:s})},enter:()=>{if(isHost&&!host)newHost();else renderUI()},render:renderUI,watchMember:()=>false,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id&&p.active):requested,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;const delta=Date.now()-(s.transferTime||Date.now());if(host.deadline)host.deadline+=delta;if(host.stormStart)host.stormStart+=delta;for(const p of host.fighters)for(const key of ['iron','reactor','inkLock','slow','nextSkill','auraUntil','armorUntil','rechargeUntil'])p[key]=(p[key]||0)+delta;host.shots=[];host.effects=[];host.inputs={};for(const p of host.fighters){for(const k of Object.keys(p.artCooldowns||{}))p.artCooldowns[k]+=delta;p.guard=0;p.drawing=false;p.pull=null;p.stunnedUntil=0;p.nextCast=Date.now()+500}lastFrame=Date.now()},leaving:()=>departed(localId),promoted:()=>{uiKey='';sendAll(true)},getHost:()=>host,getView:()=>view};
  const facade={...previous};for(const key of Object.keys(api))facade[key]=(...args)=>enabled()?api[key](...args):previous[key]?.(...args);facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='arts'?{mode:'arts',artsSettings:readSettings(),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
  const home=document.createElement('button');home.id='artsHome';home.className='action-card arts-home';home.innerHTML=icon('swords')+'<b>あーとあーつ</b><span>描いた相棒と、描く技で戦おう · 2〜8人</span>';$('.home-actions').append(home);icons(home);home.onclick=()=>{modal('あーとあーつ','<p>絵がキャラクターに、線が技になるリアルタイム対戦。</p><div class="modal-actions"><button id="artsCreateRoom" class="primary">部屋を作る</button><button id="artsJoinRoom">合言葉で入る</button><button id="artsPractice">1人で練習</button><button id="artsCharacterStudio">キャラ制作だけ</button><button id="artsCharacterLibrary">保存キャラを選ぶ</button></div>');$('#artsCharacterStudio').onclick=()=>openCharacterStudio();$('#artsCharacterLibrary').onclick=characterPicker;$('#artsCreateRoom').onclick=()=>{showCreate();$('#newMode').value='arts';$('#newMode').onchange()};$('#artsJoinRoom').onclick=()=>showJoin('');$('#artsPractice').onclick=async()=>{if(!profile.name){showProfile(true);return}await startRoom({mode:'arts',name:'あーとあーつ 練習',code:'practice',w:512,h:512,history:3,limit:8,spectate:true,protect:false,snapshotInterval:0,artsSettings:R.settings()},null,true);$('#modal').close()}};
  setInterval(tick,50);return api;
@@ -4610,6 +4664,7 @@ window.ArtChimera=(()=>{
   if(assemblySyncTimer){clearTimeout(assemblySyncTimer);assemblySyncTimer=0}
   if(host?.phase==='assemble'&&isHost&&enabled())sendAll(false);
  }
+ async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;host.phase='interrupted';host.deadline=null;await newHost();return true}
  function newHost(){host={id:uid(),phase:'lobby',round:0,revealIndex:0,players:[],partOwners:[],settings:settings(room.chimeraSettings),topic:'自由に描いてください',ready:{},pieces:[],deadline:null,editLocks:{},done:[]};room.chimeraSettings=host.settings;sendAll()}
  function begin(){if(!isHost||host?.phase!=='lobby')return;const players=[...members.values()].filter(p=>!p.spectator&&!p.disconnected),max=host.settings.layout==='body'?6:layouts[host.settings.layout].length;if(players.length<(room.offline?1:2)||players.length>max){toast((room.offline?'1':'2')+'〜'+max+'人で開始してください。人数が多い場合は6パーツか顔モードを選んでください。');return}host.players=players.map(p=>({id:p.peerId,name:p.profile.name}));host.partOwners=assignParts(host.players,host.settings.layout);host.ready={};host.pieces=[];host.round=0;host.revealIndex=0;host.done=[];host.editLocks={};host.routes=routes(host.players.map(p=>p.id));host.chains=host.routes.map((r,i)=>({id:i,owner:r[0],topic:'自由に描いてください',ready:false}));if(host.settings.topicMode==='first'){host.phase='topic';host.deadline=Date.now()+45000;sendAll()}else startDraw()}
  function startDraw(){host.phase='draw';host.ready={};host.deadline=Date.now()+host.settings.drawSeconds*1000;sendAll()}
@@ -4756,7 +4811,7 @@ window.ArtChimera=(()=>{
  async function saveResult(chainId=boardChain){const snapshot=structuredClone(view);if(snapshot?.phase!=='finished')return;const pieces=view.pieces.filter(p=>view.settings.layout!=='body'||p.chain===chainId).map(p=>({...p})),box=bounds(pieces),c=E.make(box.w,box.h),x=c.getContext('2d');try{x.fillStyle='white';x.fillRect(0,0,c.width,c.height);x.translate(-box.x,-box.y);for(const p of pieces.slice().sort((a,b)=>a.z-b.z)){const im=await E.image(p.image);x.save();x.translate(p.x,p.y);x.rotate(p.angle*Math.PI/180);x.scale(p.flip?-p.scale:p.scale,p.scale);x.drawImage(im,-p.w/2,-p.h/2,p.w,p.h);x.restore()}showGamePicture(c.toDataURL('image/png'),'あーときめら · '+(snapshot.settings.layout==='body'?snapshot.chains[chainId]?.topic:snapshot.topic))}catch{toast('完成画像を作れませんでした。')}finally{c.width=c.height=0}}
  function tick(){if(!enabled()||!view)return;const now=Date.now();if($('#chimeraClock'))$('#chimeraClock').textContent=view.deadline?Math.max(0,Math.ceil((view.deadline-now-offset)/1000))+'秒':'';if(!isHost||!host||!connected||migrationOut||!host.deadline||now<host.deadline)return;if(host.phase==='topic')startDraw();else if(host.phase==='draw'){host.phase='collect';host.deadline=now+8000;sendAll()}else if(host.phase==='collect'){receiving.clear();nextRound()}else if(host.phase==='assemble')finish()}
  function reset(){if(assemblySyncTimer){clearTimeout(assemblySyncTimer);assemblySyncTimer=0}host=view=null;canvasTurn=sentTurn=uiKey=selected='';drag=null;referenceToken++;chimeraAlphaCache.clear();receiving.clear();stage.hidden=bar.hidden=reference.hidden=true;stage.innerHTML=bar.innerHTML='';$('#studio').classList.remove('chimera-mode','chimera-drawing')}
- const api={enabled,canDraw,localDraw,hostMessage,receive,render:renderUI,begin,submit,settingsDialog,initCreate,blankSnapshot,sharedCanvas:()=>false,watchMember:()=>false,welcome:s=>{if(s)receive({type:'gameChimeraState',state:s})},welcomeFor:id=>host?publicFor(id,true):null,enter:()=>{if(isHost&&!host)newHost();else renderUI()},getHost:()=>host,getView:()=>view,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id):requested,departed:()=>{if(isHost&&host?.phase==='lobby')sendAll()},exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now());host.editLocks={}},leaving:()=>{},promoted:()=>sendAll(),referenceHit:p=>enabled()&&canDraw()&&view.settings.layout==='body'&&view.round>0&&p[1]<room.h/2};
+ const api={abortMatch,enabled,canDraw,localDraw,hostMessage,receive,render:renderUI,begin,submit,settingsDialog,initCreate,blankSnapshot,sharedCanvas:()=>false,watchMember:()=>false,welcome:s=>{if(s)receive({type:'gameChimeraState',state:s})},welcomeFor:id=>host?publicFor(id,true):null,enter:()=>{if(isHost&&!host)newHost();else renderUI()},getHost:()=>host,getView:()=>view,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id):requested,departed:()=>{if(isHost&&host?.phase==='lobby')sendAll()},exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now());host.editLocks={}},leaving:()=>{},promoted:()=>sendAll(),referenceHit:p=>enabled()&&canDraw()&&view.settings.layout==='body'&&view.round>0&&p[1]<room.h/2};
  const facade={...previous};for(const key of Object.keys(api))facade[key]=(...args)=>enabled()?api[key](...args):previous[key]?.(...args);facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='chimera'?{mode:'chimera',w:512,h:512,chimeraSettings:readSettings(),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
  const home=document.createElement('button');home.id='chimeraHome';home.className='action-card chimera-home';home.innerHTML='<svg class="icon chimera-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v6a3 3 0 1 1 0 6v4h6a3 3 0 1 1 6 0h4v-6a3 3 0 1 0 0-6V4h-5a3 3 0 1 0-6 0Z"/></svg><b>あーときめら</b><span>みんなのパーツで、予想外の一枚を · 2〜6人</span>';$('.home-actions').append(home);home.onclick=()=>{modal('あーときめら',help+'<div class="modal-actions"><button id="chimeraCreateRoom" class="primary">部屋を作る</button><button id="chimeraJoinRoom">合言葉で入る</button></div>');$('#chimeraCreateRoom').onclick=()=>{showCreate();$('#newMode').value='chimera';$('#newMode').onchange()};$('#chimeraJoinRoom').onclick=()=>showJoin('')};setInterval(tick,250);return api;
 })();
@@ -4780,6 +4835,16 @@ window.ArtSessionUI=(()=>{
  let touch=null;document.addEventListener('touchstart',e=>{touch=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(e.target.closest?.('input[type=range]'))return;if(!room||!touch||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;touch={x:t.clientX,y:t.clientY};for(let el=e.target;el&&el!==document.body;el=el.parentElement){if(!(el instanceof Element))continue;const st=getComputedStyle(el);if(Math.abs(dy)>=Math.abs(dx)&&/(auto|scroll)/.test(st.overflowY)&&el.scrollHeight>el.clientHeight+1&&((dy>0&&el.scrollTop>0)||(dy<0&&el.scrollTop+el.clientHeight<el.scrollHeight-1)))return;if(Math.abs(dx)>Math.abs(dy)&&/(auto|scroll)/.test(st.overflowX)&&el.scrollWidth>el.clientWidth+1&&((dx>0&&el.scrollLeft>0)||(dx<0&&el.scrollLeft+el.clientWidth<el.scrollWidth-1)))return;}if(e.cancelable)e.preventDefault()},{passive:false});
  return{lobby,status,active};
+})();
+/* Host-only interruption: preserve the room and use each mode's normal lobby reset. */
+(()=>{
+ const button=document.createElement('button');button.id='abortMatchBtn';button.textContent='試合を中断';button.hidden=true;
+ $('#roomSettingsBtn').before(button);
+ function available(){return isHost&&connected&&!migrationOut&&room&&!room.characterOnly&&window.ArtGame?.enabled()&&!['lobby','finished','interrupted'].includes(window.ArtGame.getView?.()?.phase||'lobby')}
+ let busy=false;button.onclick=async()=>{if(busy||!available())return;
+  if(!confirm('試合を中断して全員を待機室に戻します。試合中の未保存の絵や結果は失われます。中断しますか？'))return;
+  busy=true;button.disabled=true;try{await window.ArtGame.abortMatch();$('#modal').close();toast('試合を中断しました')}finally{busy=false;button.disabled=false}};
+ setInterval(()=>{button.hidden=!available();button.disabled=busy},250);
 })();
 /* Room modes, photo placement and whole-layer transforms. */
 window.ArtRoomTools=(()=>{
