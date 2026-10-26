@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.4 / 単一HTML版（アートアーツ縦画面・サモン描画改善）
+あーとぴあ 1.3.5 / 単一HTML版（アートアーツ防御の局所特徴を追加）
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -517,7 +517,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 @media(max-height:550px){.arts-equip-summary{-webkit-line-clamp:1}.arts-equip-symbol svg{height:28px}.arts-equip-info{font-size:10px;min-height:20px;padding:2px}.arts-equip-heading h2{font-size:16px!important}}
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム", "url": "https://nekodaruma299299-hash.github.io/Art/", "inLanguage": "ja", "primaryImageOfPage": {"@type": "ImageObject", "url": "https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png", "width": 180, "height": 180}}</script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.0</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.5</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -1658,9 +1658,9 @@ function appendStrokeSample(e){
  if(Math.hypot(p[0]-prev[0],p[1]-prev[1])<min&&(!stroke.pressure||Math.abs(p[2]-prev[2])<.02))return;
  if(stroke.points.length>=2999){finishStroke();return}stroke.points.push(p);
 }
-viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if(pan||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={id:uid(),pointerType:e.pointerType,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
+viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if(pan||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={id:uid(),pointerType:e.pointerType,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(room?.mode==='arts'&&window.ArtGame?.getView?.()?.phase==='create')Object.defineProperty(stroke,'_artsStarted',{value:performance.now(),enumerable:false});if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
 viewport.onpointermove=e=>{if(e.target.closest('#artsStage'))return;if(pointers.has(e.pointerId)&&e.pointerType==='mouse'&&e.buttons===0){pointerEnd(e);return}if(pointers.has(e.pointerId))lastCanvasInput=performance.now();moveTwoTouch(e);if(pointers.has(e.pointerId)&&e.cancelable)e.preventDefault();if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(gesture){if(gesture.ids.includes(e.pointerId))gestureMove();return}let p=point(e);if(connected&&Date.now()-lastCursor>70){lastCursor=Date.now();sendHost({type:'cursor',x:p[0],y:p[1]})}if(e.pointerId!==activePointer)return;if(dragSelection&&selection){selection.dx=dragSelection.dx+p[0]-dragSelection.p[0];selection.dy=dragSelection.dy+p[1]-dragSelection.p[1];scheduleEffectPreview();return}if(!stroke)return;const samples=e.getCoalescedEvents?.()||[];for(const sample of samples.length?samples:[e]){if(!stroke)break;appendStrokeSample(sample)}scheduleEffectPreview();if(stroke?.tool==='pen'&&!stroke._clipSource&&Date.now()-draftAt>100){draftAt=Date.now();draftDelta(stroke)}};
-function finishStroke(){if(!stroke)return;let a=stroke;stroke=null;releaseEffectPreview();if(a.tool==='lasso'){if(a.points.length>2){let b=bounds(a);selection={layer:a.layer,points:E.simplifyPoints(a.points),cx:b.x+b.w/2,cy:b.y+b.h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1};$('#transformBar').hidden=false;$('#rotateSelection').value=0;$('#selectionAngle').textContent='0°';$('#selectionAngle').classList.remove('snapped');selectionRotation=null;$('#scaleSelection').value=100;selection.lockId=uid();showSelectionControls();if(room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:b}})}}else if(a.tool!=='warp'||a.points.length>1)commit(a);render()}
+function finishStroke(){if(!stroke)return;let a=stroke;if(Number.isFinite(a._artsStarted))a.artsDuration=Math.max(16,performance.now()-a._artsStarted);stroke=null;releaseEffectPreview();if(a.tool==='lasso'){if(a.points.length>2){let b=bounds(a);selection={layer:a.layer,points:E.simplifyPoints(a.points),cx:b.x+b.w/2,cy:b.y+b.h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1};$('#transformBar').hidden=false;$('#rotateSelection').value=0;$('#selectionAngle').textContent='0°';$('#selectionAngle').classList.remove('snapped');selectionRotation=null;$('#scaleSelection').value=100;selection.lockId=uid();showSelectionControls();if(room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:b}})}}else if(a.tool!=='warp'||a.points.length>1)commit(a);render()}
 function pointerEnd(e,cancel=false){if(!pointers.has(e.pointerId))return;lastCanvasInput=performance.now();const twoTap=endTwoTouch(e,cancel);if(e.pointerType!=='mouse'||cancel)brushPointer=null;pointers.delete(e.pointerId);if(gesture){if(pointers.size)gestureStart();else{gesture=null;updateSnapOutline();if(twoTap){moveUndo=null;changeSetting('pan',twoTap.pan);toast(twoTap.pan?'画面移動 ON：ドラッグ・ピンチで操作':'画面移動 OFF：お絵描きに戻ります')}if(moveUndo){commitSetting('view',moveUndo,prefs.view);moveUndo=null}}return}if(e.pointerId===activePointer){if(cancel){if(stroke&&connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;releaseEffectPreview();renderOverlay()}else finishStroke();dragSelection=null;activePointer=null}updateBrushCursor()}
 viewport.addEventListener('pointerdown',trackBrushPointer);viewport.addEventListener('pointermove',trackBrushPointer);viewport.addEventListener('pointerleave',()=>{brushPointer=null;updateBrushCursor()});
 viewport.onlostpointercapture=e=>{if(pointers.has(e.pointerId))pointerEnd(e,true)};viewport.onpointerup=e=>pointerEnd(e);viewport.onpointercancel=e=>pointerEnd(e,true);viewport.oncontextmenu=e=>e.preventDefault();
@@ -2637,7 +2637,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2767,13 +2767,13 @@ window.ArtsRules=(()=>{
  slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた場所を中心に斬撃が出ます。遠くに描いた場合は、同じ方角の最大射程の半分の位置に中心を収めます。威力は攻撃力と線の長さで変わります。'},
  magic:{name:'マジック',rate:.16,cooldown:900,text:'射程内で描いた直線から外向きに太い弾を放ちます。威力は攻撃力と描いた線の長さに依存し、大きく押し戻します。装甲は無視しますが、壁と正面のガードに止められます。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
- cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→中央へ戻る→右上→中央へ戻る→左下。一筆の×で2連続斬撃。'},
+ cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'×を描き、その右に縦線を加えた×│を一筆で描くと2連斬撃。'},
  feint:{name:'フェイントステップ',class:'attacker',rate:.065,cooldown:3000,text:'進路上にZを描き、その線をなぞって移動攻撃。射程外はキャンセル。'},
  inkcut:{name:'インク切り',class:'attacker',rate:.075,cooldown:7500,text:'右下から左上への斜線→そのまま外側を一周。つながった一筆の🚫で近距離攻撃＋インク回復停止。'},
  star:{name:'スターフォール',class:'magician',rate:.065,cooldown:10000,text:'☆を描くと中心に2秒後、広範囲の星が落下。落下前に範囲外へ回避可能。装甲を無視する大ダメージ。'},
  ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:6200,text:'上の横線→右端をくの字で折り返す→下の横線。右端がつながった一筆の＝で、0.7秒後に貫通光線。'},
  nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:5500,text:'💧しずく形の輪郭を一筆で描くと、その中心で0.8秒後に爆発。装甲を無視する範囲攻撃。丸のワープホールとは別の図形です。'},
- heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:15000,text:'厚みのある➕の輪郭。範囲内の自分・味方のHPを全回復。アンカーショックの細い一筆の＋とは異なります。'},
+ heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:15000,text:'細い＋を一筆で描きます。中央を通って上下左右へ線を伸ばし、範囲内の自分・味方のHPを20回復（最大100）。'},
  build:{name:'ブロックビルド',class:'tank',rate:.08,cooldown:3000,text:'射程内の空いている場所に四角（長方形も可）を描くと、その位置・大きさに壊せる壁。プレイヤーや地形と重なる位置には作れません。'},
  iron:{name:'アイアンコート',class:'tank',rate:.07,cooldown:20000,text:'六角形で15秒間装甲を展開。魔法ダメージを90%、物理ダメージを50%軽減する。再使用20秒。'},
  anchor:{name:'アンカーショック',class:'tank',rate:.10,cooldown:4600,text:'左→中央→上→中央へ戻る→下→中央へ戻る→右。一筆の＋で、周囲に衝撃波を放ち敵を2秒減速。'},
@@ -2803,14 +2803,14 @@ window.ArtsRules=(()=>{
  repulse:{name:'リパルスリング',class:'gunner',fixedCost:25,rate:0,cooldown:10000,text:'丸に尻尾が2本の形を一筆。自分から16方向に遅い弾を放つ。敵ごとに1回命中し強く押し戻す。壁・ガードで停止。',effect:'1発6＋攻撃力×0.15。弾速120、ノックバック100',range:'全方位。弾の移動距離400、弾半径10',gesture:'外から線を引き、丸を一周し、別方向へ尻尾を伸ばす'}
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
- const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP100まで回復","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる補強壁（HP100）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
+ const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP20回復（最大100）","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる補強壁（HP100）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
  Object.assign(moveDetails,{hook:['飛翔フック。命中した敵を引き寄せ、終了後2秒間行動不能','自分から描いたJの位置まで'],summon:['ハートのコアから落書きペットを召喚（HP30 / 20秒）','コアの近く / 索敵半径240'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['敵の移動入力を2秒間反転','中心から半径150'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間の毒霧。敵のみ0.5秒ごとに基本威力2＋攻撃力×0.05のダメージ','中心から半径140〜240']});
  for(const [key,formula] of Object.entries({star:'22＋攻撃力×0.6',ray:'20＋攻撃力×0.5',nova:'17＋攻撃力×0.4',anchor:'4＋攻撃力×0.2'})){moveDetails[key][0]+='。基本威力（'+formula+'）×描画倍率';moves[key].text+=' 威力は攻撃力と線の長さに応じて増加。'}
  moveDetails.summon[0]+='。突進威力8＋攻撃力×0.2。発動時の攻撃力を使用';
  moves.summon.text+=' 突進威力は8＋発動時の攻撃力×0.2。';
  for(const[k,[effect,range]]of Object.entries(moveDetails))Object.assign(moves[k],{effect,range});
  Object.assign(moves.thrust,{distance:220,speed:720});
- const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"直角の曲がりを「同方向2回・逆方向1回」の順で4組作り、太い十字の輪郭を閉じる。","cross":"斜線を進み、折り返し、約90度曲がって別の斜線を往復する。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
+ const gestureRules={"slash":"滑らかな弧を一方向に描く。丸く閉じず、線を折り返さない。","guard":"プレイヤーに対して横切る向きの直線。","magic":"プレイヤーから外側へ向かう直線。","thrust":"同じ方向に大きく3回曲がり、三角形を描く。自分から三角形の中心へ向かって直進する。","build":"同じ方向へ約90度の角を4つ作って閉じる。途中で交差しない。","ricochet":"同じ方向へ約90度の角を4つ作って閉じる（ひし形）。","iron":"同じ方向へ約60度ずつ曲がる6つの角で閉じる。","reactor":"同じ方向へ約72度ずつ曲がる5つの角で閉じる。","star":"鋭く5回折り返して交差する五芒星、または5つの山と谷を持つ星の輪郭。丸は不可。","heal":"左→中央→上→中央→下→中央→右。一筆で細い＋を描く。","cross":"左上→右下→中央→左下→右上と×を描き、右へ少し伸ばして下へ縦線を引く（×│）。一筆で描く。","anchor":"中心で約90度曲がり、上下を折り返して、最後に約90度曲がって抜ける。","feint":"大きな曲がりを左右交互に2回作るZ字。","burst":"大きな曲がりを左右交互に4回作る稲妻。","ghost":"長い直線の先で鋭く曲がり、折り返してから約90度曲がる矢印。","spread":"中心から枝へ進み、同じ線を折り返してもう一方の枝へ進むY字。","ray":"同じ方向に3回曲がり、元の方向と反対に戻る。両端はつながない。","warp":"同じ向きに丸く約4分の3周する。始点と終点は離れていてもよく、楕円や少しの歪みも可。","nova":"滑らかに回り、1つの尖った先端を作ってしずく形を閉じる。","mirage":"滑らかな曲がりの向きを途中で1回切り替えるS字。","decoy":"中央で交差し、左右で曲がる向きを切り替えて2つの輪を閉じる∞。","smoke":"同じ向きに1周半以上巻き込み、交差せず始点と終点が離れた渦巻きを描く。","inkcut":"直線を描いた後、その直線の終点を起点に一周して戻る。"};
  Object.assign(gestureRules,{hook:'J字に曲げる',summon:'最初に♡でコアを描き、続けて周りへ一筆描くと発動',reflect:'一筆でH字を描く',confusion:'内側へ巻く渦巻き🌀',charge:'上下2つの丸い弧を右の先端でつなぎ、ふくらみのある＞を一筆で描く',newSmoke:'W字を一筆で描く'});
  for(const[k,gesture]of Object.entries(gestureRules))moves[k].gesture=gesture;
  const classNames={attacker:'アタッカー',tank:'ディフェンダー',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
@@ -2829,7 +2829,7 @@ window.ArtsRules=(()=>{
  }
  const skills=c=>Object.keys(moves).filter(k=>moves[k].class===c);
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
- function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];out.push(path.map(p=>({x:p.x,y:p.y})))}return out}
+ function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];const copy=path.map(p=>({x:p.x,y:p.y}));if(Number.isFinite(path[0].duration))copy[0].duration=clamp(path[0].duration,16,60000);out.push(copy)}return out}
  // Local geometric features and detached objects have separate score sources.
  function statBox(points){const xs=points.map(p=>p.x),ys=points.map(p=>p.y),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;return{x,y,w,h,span:Math.hypot(w,h),cx:x+w/2,cy:y+h/2}}
  function statPointDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
@@ -2908,8 +2908,32 @@ window.ArtsRules=(()=>{
   }
   return found;
  }
+ // Two visibly nested circular/elliptic contours form one protective shell.
+ // Measure each pair once: ornamental circles cannot multiply defense by count.
+ function statNestedArmor(meta,full){
+  const rings=meta.filter(m=>m.box.span>=full*.15&&m.box.w>full*.055&&m.box.h>full*.055&&
+   m.chord<=m.box.span*.20&&statOvalContour(m.path,m.box));
+  let strongest=0;
+  for(const outer of rings){
+   const a=outer.box,relative=a.span/full;
+   if(relative<.20)continue;
+   for(const inner of rings){
+    if(inner===outer)continue;
+    const b=inner.box,rx=b.w/a.w,ry=b.h/a.h;
+    if(rx<.34||rx>.83||ry<.34||ry>.83||Math.abs(Math.log(rx/ry))>.30)continue;
+    if(Math.abs(b.cx-a.cx)>a.w*.11||Math.abs(b.cy-a.cy)>a.h*.11)continue;
+    if(b.x<a.x+a.w*.055||b.x+b.w>a.x+a.w*.945||b.y<a.y+a.h*.055||b.y+b.h>a.y+a.h*.945)continue;
+    const balanced=clamp(1-Math.abs(rx-ry)*1.7,0,1);
+    const size=clamp((relative-.18)/.18,0,1);
+    strongest=Math.max(strongest,(.95+.52*size)*balanced*clamp((relative-.15)/.10,0,1));
+   }
+  }
+  return strongest;
+ }
+
  // Explicit local archetypes: a crisp shield or spiral overrides the whole-picture
  // score. A dense hairstyle or a swarm of short angles is never sufficient.
+ function statQuickMarks(meta,full){return meta.filter(m=>!m.closed&&m.straight>.88&&m.box.span>=Math.max(1.2,full*.035)&&m.box.span<=full*.30).map(m=>{const ms=m.path[0].duration;if(!Number.isFinite(ms))return .28;return ms<=450&&m.len/(ms/1000)>=12?.95: .18}).sort((a,b)=>b-a)}
  function localClassSignals(raw){
   const result={attacker:0,tank:0,magician:0,trickster:0,gunner:0};
   const paths=cleanDrawingPaths(raw);
@@ -2917,6 +2941,8 @@ window.ArtsRules=(()=>{
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
   if(!meta.length)return result;
    const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
+   const quick=statQuickMarks(meta,full);if(quick.length>=3&&quick[2]>.7)result.trickster=1.38;
+   result.tank=Math.max(result.tank,statNestedArmor(meta,full));
    const longMarks=meta.map(m=>statLongLine(m,full)).filter(n=>n>.15).sort((a,b)=>b-a);
    if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.23,1.27*longMarks[0]+.16*(longMarks[1]||0)));
   for(const m of [...meta,...statJoinedShields(meta,full)]){
@@ -2933,10 +2959,10 @@ window.ArtsRules=(()=>{
     let ix=0;for(let j=1;j<path.length;j++)if(dist(path[j],b)<dist(path[ix],b))ix=j;
     if(bend>1.85&&statSharpTip(path,ix,m.closed,box.span))sharp++;
    }
-   if(sharp)result.attacker=Math.max(result.attacker,(1.08+Math.min(2,sharp-1)*.12)*clamp((size-.09)/.10,0,1));
+   if(sharp&&(sharp>=2&&size>=.20||size>=.32))result.attacker=Math.max(result.attacker,(.90+Math.min(2,sharp-1)*.12)*clamp((size-.16)/.16,0,1));
    // A four-sided / angular closed shield is recognizable even if it occupies
    // only a corner of the character; it need not dominate the overall image.
-   if(m.closed&&size>=.15){
+   if(m.closed&&size>=.13){
     const polygon=statSimplify(path,Math.max(.30,box.span*.032));
     const vertices=dist(polygon[0],polygon.at(-1))<box.span*.16?polygon.slice(0,-1):polygon;
     // Closing a hand-drawn polygon can leave two nearly coincident corners.
@@ -2961,7 +2987,7 @@ window.ArtsRules=(()=>{
        const angular=bends.filter(t=>t>.42&&t<1.9).length;
        if(angular>=vertices.length-1)quality=1.22;
       }
-      if(quality)result.tank=Math.max(result.tank,quality*clamp((size-.09)/.13,.55,1));
+      if(quality)result.tank=Math.max(result.tank,quality*1.08*clamp((size-.07)/.13,.55,1));
      }
     }
    }
@@ -3054,10 +3080,16 @@ window.ArtsRules=(()=>{
   const turn=r=>{const a=sample(-1,r),b=sample(1,r);if(!a||!b)return 0;return Math.acos(clamp(((tip.x-a.x)*(b.x-tip.x)+(tip.y-a.y)*(b.y-tip.y))/(dist(a,tip)*dist(tip,b)||1),-1,1))};
   const near=turn(span*.035),far=turn(span*.09);return near>1.3&&near>=far*.80;
  }
- function drawingStats(raw,fill=0,aspect=1,solidCore=0){
+ function drawingStats(raw,fill=0,aspect=1,solidCore=0,rasterArmor={shell:0,wide:0}){
   const paths=cleanDrawingPaths(raw);if(!paths.length)return null;
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35),allBox=statBox(paths.flat());if(!meta.length)return null;
   const {detached,scores}=statObjects(meta),candidates=[[],[],[],[],scores];
+  // A large enclosed horizontal outline can be a broad torso even if it is thin.
+  const broadTorso=meta.filter(m=>m.closed&&m.box.span/allBox.span>.36&&
+   m.box.h/allBox.span>.13&&m.box.w/m.box.h>1.23&&
+   (statOvalContour(m.path,m.box)||statSimplify(m.path,m.box.span*.04).length<=9))
+   .reduce((best,m)=>Math.max(best,clamp((m.box.w/m.box.h-1.20)/.85,0,1)*
+    clamp((m.box.span/allBox.span-.30)/.30,0,1)),0);
    for(const m of meta){if(detached.has(m))continue;const {path,box,len,straight,winding}=m;
     // Very long uninterrupted lines raise Range. Tiny speed lines still raise
     // Speed, but length alone no longer makes the character faster.
@@ -3069,7 +3101,7 @@ window.ArtsRules=(()=>{
       if(straight>.7)candidates[0].push(.08*straight);
      continue;
     }
-   if(straight>.76){candidates[0].push(straight*clamp((m.chord/allBox.span-.18)/.22,0,1));continue}
+   if(straight>.76){const quick=statQuickMarks([m],allBox.span)[0]||0;candidates[0].push(Math.max(quick,straight*clamp((m.chord/allBox.span-.12)/.22,0,1)));continue}
    if(winding>.04){
     candidates[3].push(clamp(.60+winding*.62,0,1.45));
      // Coils belong to Ink, never Range.
@@ -3091,8 +3123,8 @@ window.ArtsRules=(()=>{
     const rad=p=>Math.hypot(p.x-box.cx,p.y-box.cy),outer=rad(b)>Math.max(rad(a),rad(c))+box.span*.025;
     if(!ovalContour&&bend>1.72&&local>1.5&&outer&&statSharpTip(path,ix,m.closed,box.span))attack+=clamp(Math.min(la,lb)/(box.span*.25),0,1);
     else if(bend>=.70&&bend<=1.72
-       &&box.span>=allBox.span*.22
-       &&Math.min(la,lb)>=allBox.span*.095
+       &&box.span>=allBox.span*.18
+       &&Math.min(la,lb)>=allBox.span*.075
        &&statArmorCorner(path,ix,m.closed,box.span)){
      // Count only corners made from visibly long sides. Decoration detail cannot
      // outscore a deliberate shield/corner motif just by adding more strokes.
@@ -3112,11 +3144,11 @@ window.ArtsRules=(()=>{
    }
    // Tiny face details are weak; a shield occupying part of the body still counts.
    const size=clamp((box.span/allBox.span-.055)/.16,0,1);
-   if(attack>.15)candidates[1].push(clamp(.55+attack*.34,0,1.5)*clamp((box.span/allBox.span-.08)/.20,0,1));
+   if(attack>.15)candidates[1].push(clamp(.35+attack*.30,0,1.4)*clamp((box.span/allBox.span-.14)/.24,0,1));
    if(armor>.33){
     const visible=clamp((box.span/allBox.span-.14)/.34,0,1);
     const clarity=clamp(.22+armor*.22+(m.closed&&armor>1.0?.12:0),0,1.18);
-    if(visible>.20)candidates[2].push(clarity*visible);
+    if(visible>.18)candidates[2].push(clarity*visible*1.15);
    }
    // Smooth continuous curves with alternating bends also add a little Ink.
    if(!attack&&!armor&&m.turn>Math.PI*.7)candidates[3].push(.14*size*clamp(m.turn/(2*Math.PI),0,1)*clamp(1-m.kinks/5,0,1));
@@ -3131,13 +3163,15 @@ window.ArtsRules=(()=>{
   // A single conspicuous local motif should outweigh unrelated ink strokes.
   // Long outlines on detailed characters cannot win purely through line count.
   const motif=Math.max(strengths[1],strengths[2],strengths[3],strengths[4]);
-  if(motif>.35)strengths[0]*=.52;
+  if(motif>.35&&statQuickMarks(meta,allBox.span).filter(v=>v>.7).length<2)strengths[0]*=.85;
   const solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*clamp((2.3-aspect)/1.3,0,1);
-  strengths[2]=Math.max(strengths[2],solid*.40);
+  strengths[2]=Math.max(strengths[2],solid*.40,(rasterArmor.shell||0)*.92);
   strengths[3]=Math.max(strengths[3],solid*1.25);
   const local=localClassSignals(paths);
   strengths[1]=Math.max(strengths[1],local.attacker*.95);
-  strengths[2]=Math.max(strengths[2],local.tank*.90);
+  strengths[2]=Math.max(strengths[2],local.tank*.98);
+  // A broad torso is a small supporting hint, not a forced Tank classification.
+  strengths[2]=Math.min(1.6,strengths[2]+Math.max(rasterArmor.wide||0,broadTorso)*.012);
    strengths[3]=Math.max(strengths[3],local.magician*.95);
    // Keep Ink and Range independent. A spiral cannot earn Range points.
    strengths[4]=Math.max(strengths[4],local.gunner);
@@ -3166,6 +3200,70 @@ window.ArtsRules=(()=>{
   scores.sort((a,b)=>b-a);return Math.min(1.5,(scores[0]||0)+.25*(scores[1]||0)+.12*(scores[2]||0));
  }
 
+ function statRasterArmorBody(data,w,h){
+  const on=i=>data[i*4+3]>45,seen=new Uint8Array(w*h),components=[];
+  const steps=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+  for(let at=0;at<w*h;at++){
+   if(seen[at]||!on(at))continue;
+   const queue=[at];seen[at]=1;let x0=w,y0=h,x1=0,y1=0;
+   for(let z=0;z<queue.length;z++){
+    const i=queue[z],x=i%w,y=(i/w)|0;
+    x0=Math.min(x,x0);y0=Math.min(y,y0);x1=Math.max(x,x1);y1=Math.max(y,y1);
+    for(const [dx,dy] of steps){const nx=x+dx,ny=y+dy,j=ny*w+nx;
+     if(nx>=0&&nx<w&&ny>=0&&ny<h&&!seen[j]&&on(j)){seen[j]=1;queue.push(j)}
+    }
+   }
+   components.push({queue,x0,y0,x1,y1,bw:x1-x0+1,bh:y1-y0+1});
+  }
+  if(!components.length)return{shell:0,wide:0};
+  components.sort((a,b)=>b.bw*b.bh-a.bw*a.bh);
+  const all={x0:Math.min(...components.map(c=>c.x0)),y0:Math.min(...components.map(c=>c.y0)),x1:Math.max(...components.map(c=>c.x1)),y1:Math.max(...components.map(c=>c.y1))};
+  const full=Math.hypot(all.x1-all.x0+1,all.y1-all.y0+1)||1,body=components[0];
+  let shell=0,wide=0;
+  for(const c of components){
+   const span=Math.hypot(c.bw,c.bh),area=c.bw*c.bh;
+   if(span<full*.22||c.bw<8||c.bh<8)continue;
+   // Find sealed empty pockets in a component, with no assumptions about pen width.
+   const bw=c.bw+2,bh=c.bh+2,wall=new Uint8Array(bw*bh),visited=new Uint8Array(bw*bh);
+   for(const i of c.queue){const x=i%w-c.x0+1,y=((i/w)|0)-c.y0+1;wall[y*bw+x]=1}
+   const flood=(start)=>{const q=[start];visited[start]=1;let sx=0,sy=0;
+    for(let k=0;k<q.length;k++){
+     const i=q[k],x=i%bw,y=(i/bw)|0;sx+=x;sy+=y;
+     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=x+dx,ny=y+dy,j=ny*bw+nx;
+      if(nx>=0&&nx<bw&&ny>=0&&ny<bh&&!visited[j]&&!wall[j]){visited[j]=1;q.push(j)}
+     }
+    }
+    return{size:q.length,cx:sx/q.length,cy:sy/q.length};
+   };
+   flood(0);let hole={size:0,cx:0,cy:0};
+   for(let y=1;y<bh-1;y++)for(let x=1;x<bw-1;x++){
+    const k=y*bw+x;if(!wall[k]&&!visited[k]){const h=flood(k);if(h.size>hole.size)hole=h}
+   }
+   const density=c.queue.length/area,voidRatio=hole.size/area;
+   const central=Math.abs(hole.cx-(bw-1)/2)<c.bw*.22&&Math.abs(hole.cy-(bh-1)/2)<c.bh*.22;
+   if(central&&c.bw/c.bh>.38&&c.bw/c.bh<2.65&&density>.18&&density<.81&&voidRatio>.08){
+    shell=Math.max(shell,
+     clamp((density-.17)/.23,0,1)*clamp((voidRatio-.065)/.16,0,1)*clamp((span/full-.20)/.25,0,1));
+   }
+  }
+  // Only the main body's substantial horizontal centre contributes to mass.
+  // Mere long horizontal strokes, detached bullets and tiny faces contribute none.
+  const b=body;
+  if(b.bw>=16&&b.bh>=12&&b.bw/b.bh>1.16){
+   const rows=new Map();for(const i of b.queue){const x=i%w,y=(i/w)|0;
+    if(!rows.has(y))rows.set(y,{lo:x,hi:x});else{const r=rows.get(y);r.lo=Math.min(r.lo,x);r.hi=Math.max(r.hi,x)}
+   }
+   let broad=0,checked=0;
+   for(let y=b.y0+Math.round(b.bh*.32);y<=b.y0+Math.round(b.bh*.73);y++){
+    checked++;const row=rows.get(y);if(row&&row.hi-row.lo+1>=b.bw*.70)broad++;
+   }
+   wide=clamp((b.bw/b.bh-1.14)/.72,0,1)*clamp((broad/Math.max(1,checked)-.36)/.55,0,1)*
+    clamp((Math.hypot(b.bw,b.bh)/full-.28)/.27,0,1);
+  }
+  return{shell,wide};
+ }
+
  function analyze(data,w,h,paths=[]){
   let count=0,minx=w,miny=h,maxx=0,maxy=0,edge=0;
   const filled=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&data[(y*w+x)*4+3]>45;
@@ -3188,7 +3286,7 @@ window.ArtsRules=(()=>{
    if(core)deepInterior++;
   }
   const solidCore=deepInterior/area;
-  if(paths.length){const drawn=drawingStats(paths,fill,aspect,solidCore);if(drawn)return drawn}
+  if(paths.length){const drawn=drawingStats(paths,fill,aspect,solidCore,statRasterArmorBody(data,w,h));if(drawn)return drawn}
   const slender=clamp((aspect-1)/2,0,1),solid=clamp((fill-.65)/.30,0,1)**2*clamp((solidCore-.30)/.45,0,1)**2*(1-slender),airy=1-fill,spiky=clamp((rough-1.45)/1.8,0,1)*clamp((fill-.18)/.35,0,1);
   return allocate([1+40*slender,1,1+24*solid,1+75*solid+8*airy*(1-slender),1+60*statRasterRange(data,w,h)]);
  }
@@ -3218,6 +3316,8 @@ window.ArtsRules=(()=>{
  return[]}
  const oldTemplate=template;
  template=function(k){switch(k){
+ case'heal':return[[[-70,0],[0,0],[0,-70],[0,0],[0,70],[0,0],[70,0]].map(([x,y])=>({x,y}))];
+ case'cross':return[[[-60,-60],[60,60],[0,0],[-60,60],[60,-60],[95,-60],[95,60]].map(([x,y])=>({x,y}))];
  case'aura':return[[[-90,55],[-60,-55],[-30,35],[0,-75],[30,35],[60,-55],[90,55]].map(([x,y])=>({x,y}))];
  case'drain':return[[{x:-75,y:0},{x:-30,y:55},{x:85,y:-70}]];
  case'recharge':return[[...Array.from({length:17},(_,i)=>{const t=i/16,u=1-t;return{x:u*u*45+2*u*t*(-45)+t*t*(-45),y:u*u*(-90)+2*u*t*(-75)+t*t*20}}),...Array.from({length:49},(_,i)=>{const a=Math.PI+(i+1)*Math.PI*2/49;return{x:45*Math.cos(a),y:20+45*Math.sin(a)}})]];
@@ -3446,7 +3546,7 @@ window.ArtsRules=(()=>{
  function newSkillGesture(path,skill){
  const g=strokeGrammar(path,true),{degrees,abs,signed,pattern}=g;
  if(dist(path[0],path.at(-1))<g.diag*.18)return false;
- if(skill==='aura')return degrees.length>=5&&degrees.length<=11&&degrees.filter(v=>Math.abs(v)>30).length>=4&&g.flips>=4&&match([path],skill)<.24;
+ if(skill==='aura')return degrees.length>=3&&degrees.length<=16&&g.flips>=2&&abs>3&&match([path],skill)<.22&&match([path],skill)<match([path],'newSmoke')*.90;
  if(skill==='drain')return degrees.length>=1&&degrees.length<=4&&degrees.some(v=>Math.abs(v)>45&&Math.abs(v)<170)&&abs<4.5&&match([path],skill)<.23;
  if(skill==='armor')return degrees.length>=5&&degrees.length<=15&&degrees.filter(v=>Math.abs(v)>35&&Math.abs(v)<155).length>=5&&Math.abs(signed)/Math.max(abs,.01)>.65&&match([path],skill)<.25;
  if(skill==='repulse'&&degrees.some(v=>Math.abs(v)>155))return false;
@@ -3467,8 +3567,8 @@ window.ArtsRules=(()=>{
    case'iron':return convex(6)||relaxedPolygon(path,6);
    case'reactor':return convex(5)||relaxedPolygon(path,5);
    case'star':return closed&&((intersections.length>=4&&pattern([144,144,144,144,144],30))||(intersections.length===0&&pattern([144,-72,144,-72,144,-72,144,-72,144,-72],35)));
-   case'heal':return closed&&intersections.length===0&&pattern([90,90,-90,90,90,-90,90,90,-90,90,90,-90],28);
-   case'cross':return !closed&&pattern([180,90,180],30);
+   case'heal':return strokeGrammar(path,true).abs>4&&match([path],'heal')<.12;
+   case'cross':return strokeGrammar(path,true).abs>4&&match([path],'cross')<.11&&match([path],'cross')<match([path],'heal')*.85;
    case'anchor':return !closed&&pattern([-90,180,-180,90],30);
    case'feint':return !closed&&pattern([135,-135],35);
    case'burst':return zigzagBurst(path);
@@ -3494,10 +3594,10 @@ window.ArtsRules=(()=>{
  }
 
  function isHeartCore(path){
-  if(!Array.isArray(path)||path.length<12)return false;
+  if(!Array.isArray(path)||path.length<6)return false;
   const p=resample(path,96),b=statBox(p),w=b.w,h=b.h;
-  if(b.span<38||w<28||h<30||w/h<.55||w/h>1.75)return false;
-  if(dist(p[0],p.at(-1))>b.span*.27)return false;
+  if(b.span<22||w<16||h<18||w/h<.4||w/h>2.2)return false;
+  if(dist(p[0],p.at(-1))>b.span*.45)return false;
   // Unlike an ink drop, the TOP of a heart contains two distinct high lobes
   // separated by a visible downward notch around the horizontal centre.
   const topByX=(lo,hi)=>p.filter(q=>q.x>=b.x+w*lo&&q.x<=b.x+w*hi).map(q=>q.y);
@@ -3505,14 +3605,14 @@ window.ArtsRules=(()=>{
   if(!left.length||!middle.length||!right.length)return false;
   const topLeft=Math.min(...left),topMiddle=Math.min(...middle),topRight=Math.min(...right);
   const notch=Math.min(topMiddle-topLeft,topMiddle-topRight);
-  if(notch<h*.075||Math.abs(topLeft-topRight)>h*.22)return false;
+  if(notch<h*.025||Math.abs(topLeft-topRight)>h*.40)return false;
   const bottom=p.reduce((a,q)=>q.y>a.y?q:a,p[0]);
-  if(Math.abs(bottom.x-b.cx)>w*.23||bottom.y<b.y+h*.89)return false;
+  if(Math.abs(bottom.x-b.cx)>w*.38||bottom.y<b.y+h*.80)return false;
   // Require two lobes on both sides and no teardrop's single sharp TOP tip.
   const leftHigh=p.filter(q=>q.x<b.cx-w*.10&&q.y<b.y+h*.36).length;
   const rightHigh=p.filter(q=>q.x>b.cx+w*.10&&q.y<b.y+h*.36).length;
-  if(leftHigh<5||rightHigh<5)return false;
-  return match([path],'summon')<.16;
+  if(leftHigh<3||rightHigh<3)return false;
+  return match([path],'summon')<.22;
  }
  function novaDropGesture(path){
   if(!Array.isArray(path)||path.length<12||isHeartCore(path))return false;
@@ -3617,7 +3717,7 @@ window.ArtsRules=(()=>{
  if(!kind&&strokes.length===1){for(const k of equipped){if(k&&moves[k]?.class&&k!=='summon'&&skillGesture(strokes[0],k)){kind=k;break}}}
  if(!kind&&strokes.length===1){
   // Soft fallback for difficult arts; safeguard geometrically distinct loop skills.
-  const candidates=equipped.filter(k=>k&&moves[k]?.class&&!['summon','nova','warp','confusion','smoke','charge','aura','drain','recharge','armor','repulse'].includes(k));
+  const candidates=equipped.filter(k=>k&&moves[k]?.class&&!['summon','nova','warp','confusion','smoke','charge','heal','cross','aura','drain','recharge','armor','repulse'].includes(k));
   let best=.105;
   for(const k of candidates){
    if(['iron','reactor','build','ricochet','thrust'].includes(k)&&!relaxedPolygon(strokes[0],({iron:6,reactor:5,build:4,ricochet:4,thrust:3})[k]))continue;
@@ -3697,7 +3797,7 @@ window.ArtArts=(()=>{
   const latest=indexed.slice(-Math.min(16,Math.max(0,slots-ranked.length))).filter(p=>!seen.has(p.i));
   for(const p of latest){ranked.push(p);seen.add(p.i)}
   const remaining=indexed.filter(p=>!seen.has(p.i)),extra=Math.min(remaining.length,Math.max(0,slots-ranked.length));
-  for(let j=0;j<extra;j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/extra))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48));return [...characterPaths,...paths].slice(-64)}
+  for(let j=0;j<extra;j++)ranked.push(remaining[Math.min(remaining.length-1,Math.floor((j+.5)*remaining.length/extra))]);const paths=ranked.sort((a,b)=>a.i-b.i).map(({a})=>{const path=R.resample(a.points.map(p=>({x:R.clamp(p[0]/engine.w*64,0,64),y:R.clamp(p[1]/engine.h*64,0,64)})),48),duration=a.artsDuration||(Number.isFinite(a._artsStarted)?performance.now()-a._artsStarted:0);if(duration>0)path[0].duration=Math.max(16,Math.min(60000,duration));return path});return [...characterPaths,...paths].slice(-64)}
  function sampleArtwork(includeCurrent=false){const c=engine.compose(prefs.opacities,false,visibleLayers()),small=E.make(64,64),out=E.make(192,192);try{if(includeCurrent&&stroke?.tool==='pen')E.apply(c,stroke);const x=small.getContext('2d');x.drawImage(c,0,0,64,64);const data=x.getImageData(0,0,64,64).data;let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(data[(y*64+x)*4+3]>45){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}if(x1>=0){const bw=(x1-x0+1)*c.width/64,bh=(y1-y0+1)*c.height/64,z=176/Math.max(bw,bh);out.getContext('2d').drawImage(c,x0*c.width/64,y0*c.height/64,bw,bh,(192-bw*z)/2,(192-bh*z)/2,bw*z,bh*z)}else{return{image:'',drawingPaths:[],artFacing:characterFacing,stats:[0,0,0,0,0],empty:true}}x.clearRect(0,0,64,64);x.drawImage(out,0,0,64,64);
  const drawingPaths=collectDrawingPaths(includeCurrent),stats=R.analyze(x.getImageData(0,0,64,64).data,64,64,drawingPaths);
  return{image:out.toDataURL('image/png'),...(!includeCurrent?{originalImage:c.toDataURL('image/png'),originalW:c.width,originalH:c.height}:{}),drawingPaths,artFacing:characterFacing,stats,empty:false}}finally{c.width=c.height=small.width=small.height=out.width=out.height=0}}
@@ -3752,7 +3852,7 @@ window.ArtArts=(()=>{
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
  if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,260):e.r;e.range=440;e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power}
- if(shape.type==='heal'){e.x=target.x;e.y=target.y;e.r=Math.max(60,e.r);for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(p,q)&&R.dist(q,e)<=e.r+R.R)q.hp=100;e.end=now+750}
+ if(shape.type==='heal'){e.x=target.x;e.y=target.y;e.r=Math.max(60,e.r);for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(p,q)&&R.dist(q,e)<=e.r+R.R)q.hp=Math.min(100,q.hp+20);e.end=now+750}
  if(shape.type==='iron'){p.iron=now+15000;e.x=p.x;e.y=p.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor')p.reactor=now+6000;
  if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=Math.min(shape.extent+25,170);e.power=(4+attack*.2)*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
@@ -3976,7 +4076,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、長くまっすぐな線や周囲のスピード線は素早さになります。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>盾・装甲のような内角90度以上の角で防御力が上がります。塗りつぶしはインク量中心で、防御力にも少し加点します。キャラの一部分でも評価し、鋭いトゲとは分けます。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>最終的に「素早さ＋攻撃力」「防御力＋インク量」「インク量＋射程」「素早さ＋インク量」「射程＋攻撃力」のうち、一番高い組み合わせでジョブが決まります。角を1つ描けば必ずアタッカー、という判定ではありません。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、周囲に3本ほど描くとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>角のある盾のほか、二重の丸・楕円は装甲として防御力が上がります。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -4092,7 +4192,8 @@ finishPaint(false)};
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
-  cross:'左上 → 右下 → 中央に戻る → 右上 → 中央に戻る → 左下',
+  cross:'左上 → 右下 → 中央 → 左下 → 右上 → 右へ少し伸ばす → 下へ縦線（×│）',
+  heal:'左 → 中央 → 上 → 中央 → 下 → 中央 → 右。一筆で細い＋を描く',
   warp:'一筆で丸を描き、始点まで戻して閉じます',
   nova:'先端を尖らせた水滴の輪郭を一筆で閉じます',
   decoy:'左右2つの輪が中央で交差する「∞」を一筆で描きます',
@@ -4407,7 +4508,7 @@ finishPaint(false)};
  const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+R.classNames[me.class]+' / '+(view.settings.teams==='teams'?'チーム'+(me.team+1)+' / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!battleActive();if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';updateSkillIcons(me,now)}}
 
 /* SECTION: arts/settings-lifecycle.js */
- function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'庭園（標準）',ruins:'遺跡（遮蔽物が多い）',forest:'森（茂みが多い）',arena:'闘技場（広く開けた地形）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。奈落は攻撃だけが通り、茂みでは姿を隠せます。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角は防御力、塗りつぶしはインク量、グルグルは射程とインク量、本体から離れた弾・魔法弾は射程に特化します。HPは全員100。2〜8人。チーム戦は参加順で交互に振り分けます。時間切れ後は安全地帯が縮小します。</p>'}
+ function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'庭園（標準）',ruins:'遺跡（遮蔽物が多い）',forest:'森（茂みが多い）',arena:'闘技場（広く開けた地形）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。奈落は攻撃だけが通り、茂みでは姿を隠せます。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角・二重の丸や楕円・太い外殻は防御力、横に広い胴体も防御力に少し加点。塗りつぶし・グルグルはインク量、本体から離れた弾・魔法弾は射程に特化します。HPは全員100。2〜8人。チーム戦は参加順で交互に振り分けます。時間切れ後は安全地帯が縮小します。</p>'}
  function readSettings(){return R.settings({characterWidth:$('#artsCharacterWidth').value,characterHeight:$('#artsCharacterHeight').value,createSeconds:$('#artsCreateSeconds').value,battleSeconds:$('#artsBattleSeconds').value,teams:$('#artsTeamMode').value,stage:$('#artsStageSelect').value})}
  function settingsDialog(){const editable=isHost&&host?.phase==='lobby';modal('あーとあーつのゲーム設定','<form id="artsSettingsForm"><fieldset '+(editable?'':'disabled')+'>'+configHTML(R.settings(room.artsSettings))+'</fieldset>'+(editable?'<button class="primary">保存</button>':'<p>開始前に部屋主が変更できます。</p>')+'</form>');$('#artsSettingsForm').onsubmit=e=>{e.preventDefault();if(!editable||!e.target.reportValidity())return;host.settings=readSettings();room.artsSettings=host.settings;sendAll();$('#modal').close()}}
  function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとあーつ','arts'));const block=document.createElement('div');block.id='artsCreate';block.innerHTML=configHTML();$('#answerCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='arts';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=false;$('#newWidth').value=$('#newHeight').value=512;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
