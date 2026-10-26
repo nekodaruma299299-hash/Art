@@ -2788,7 +2788,7 @@ window.ArtsRules=(()=>{
  ray:{name:'チャージレイ',class:'magician',rate:.12,cooldown:6200,text:'上の横線→右端をくの字で折り返す→下の横線。右端がつながった一筆の＝で、0.7秒後に貫通光線。'},
  nova:{name:'インクノヴァ',class:'magician',rate:.10,cooldown:5500,text:'💧しずく形の輪郭を一筆で描くと、その中心で0.8秒後に爆発。装甲を無視する範囲攻撃。丸のワープホールとは別の図形です。'},
  heal:{name:'ヒーリング',class:'magician',rate:.09,cooldown:15000,text:'細い＋を一筆で描きます。中央を通って上下左右へ線を伸ばし、範囲内の自分・味方のHPを20回復（最大100）。'},
- build:{name:'ブロックビルド',class:'tank',rate:.08,cooldown:3000,text:'射程内の空いている場所に四角（長方形も可）を描くと、その位置・大きさに壊せる壁。プレイヤーや地形と重なる位置には作れません。'},
+ build:{name:'ブロックビルド',class:'tank',rate:.08,cooldown:3000,text:'射程内の空いている場所に四角（長方形も可）を描くと、その位置・大きさにHP50のペイントブロックを生成。時間では消えません。プレイヤーや地形と重なる位置には作れません。'},
  iron:{name:'アイアンコート',class:'tank',rate:.07,cooldown:20000,text:'六角形で15秒間装甲を展開。魔法ダメージを90%、物理ダメージを50%軽減する。再使用20秒。'},
  anchor:{name:'アンカーショック',class:'tank',rate:.10,cooldown:4600,text:'左→中央→上→中央へ戻る→下→中央へ戻る→右。一筆の＋で、周囲に衝撃波を放ち敵を2秒減速。'},
  reactor:{name:'インクリアクター',class:'tank',rate:.07,cooldown:10000,text:'五角形で6秒間、受けた実ダメージの1.5倍をインクに変換。HPダメージは無効化しません。'},
@@ -2817,7 +2817,7 @@ window.ArtsRules=(()=>{
  repulse:{name:'リパルスリング',class:'gunner',fixedCost:25,rate:0,cooldown:10000,text:'丸に尻尾が2本の形を一筆。自分から16方向に遅い弾を放つ。敵ごとに1回命中し強く押し戻す。壁・ガードで停止。',effect:'1発6＋攻撃力×0.15。弾速120、ノックバック100',range:'全方位。弾の移動距離400、弾半径10',gesture:'外から線を引き、丸を一周し、別方向へ尻尾を伸ばす'}
  });
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
- const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP20回復（最大100）","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["15秒間持続。攻撃で壊せる補強壁（HP100）","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
+ const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["範囲内の自分・生存中の味方をHP20回復（最大100）","描いた中心から半径60〜140（キャラ半径20を加味）"],"build":["時間で消えない専用のペイントブロック（HP50）。攻撃で破壊可能","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["S字の始点から終点の方向へ移動し、2秒の残像","移動距離90〜190程度。壁に当たると停止"],"decoy":["2体の分身が4秒間移動する","自分の周囲に生成し、毎秒65の速度で離れる"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.085秒間隔で5連射。1発の威力5＋攻撃力×0.25","弾の移動距離950、弾半径7"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
  Object.assign(moveDetails,{hook:['飛翔フック。命中した敵を引き寄せ、終了後2秒間行動不能','自分から描いたJの位置まで'],summon:['ハートのコアから落書きペットを召喚（HP30 / 20秒）','コアの近く / 索敵半径240'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['敵の移動入力を2秒間反転','中心から半径150'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間の毒霧。敵のみ0.5秒ごとに基本威力2＋攻撃力×0.05のダメージ','中心から半径140〜240']});
  for(const [key,formula] of Object.entries({star:'22＋攻撃力×0.6',ray:'20＋攻撃力×0.5',nova:'17＋攻撃力×0.4',anchor:'4＋攻撃力×0.2'})){moveDetails[key][0]+='。基本威力（'+formula+'）×描画倍率';moves[key].text+=' 威力は攻撃力と線の長さに応じて増加。'}
  moveDetails.summon[0]+='。突進威力8＋攻撃力×0.2。発動時の攻撃力を使用';
@@ -2892,7 +2892,7 @@ window.ArtsRules=(()=>{
  // Reassemble only short, angular outlines for shield recognition. This does
  // not merge combat gestures or change the stored/transmitted drawing strokes.
  function statJoinedShields(meta,full){
-  const gap=Math.max(.45,Math.min(1.5,full*.022)),parts=meta.filter(m=>!m.closed&&m.box.span>=full*.045&&m.winding<.04&&m.turn<Math.PI*1.9&&statSimplify(m.path,m.box.span*.025).length<=6);
+  const gap=Math.max(.65,Math.min(3.5,full*.055)),parts=meta.filter(m=>!m.closed&&m.box.span>=full*.045&&m.winding<.04&&m.turn<Math.PI*1.9&&statSimplify(m.path,m.box.span*.025).length<=6);
   const found=[],seen=new Set();
   for(let seed=0;seed<parts.length;seed++){
    let budget=96;
@@ -2973,6 +2973,25 @@ window.ArtsRules=(()=>{
    base[chosen[0]]=Math.max(2.4,chosen[1]*1.9);}
   return base;
  }
+ // Recognize local armor bends even when the outline is open or overshoots.
+ function statLooseArmor(m,full){
+  const {path,box}=m,size=box.span/full;
+  if(size<.10||statOvalContour(path,box)||m.winding>.12)return 0;
+  const pts=statSimplify(path,box.span*.035);let count=0;
+  for(let i=1;i<pts.length-1;i++){
+   const a=pts[i-1],b=pts[i],c=pts[i+1],la=dist(a,b),lb=dist(b,c);
+   if(Math.min(la,lb)<Math.max(full*.025,box.span*.09))continue;
+   const bend=Math.acos(clamp(((b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y))/(la*lb||1),-1,1));
+   if(bend<.52||bend>2.40)continue;
+   let ix=0;for(let j=1;j<path.length;j++)if(dist(path[j],b)<dist(path[ix],b))ix=j;
+   if(!statArmorCorner(path,ix,false,box.span))continue;
+   // An outward sharp spike still belongs to Attack; broad bent edges are armor.
+   const rad=p=>Math.hypot(p.x-box.cx,p.y-box.cy);
+   if(bend>1.85&&rad(b)>Math.max(rad(a),rad(c))+box.span*.025&&statSharpTip(path,ix,false,box.span))continue;
+   count++;
+  }
+  return count?Math.min(1.72,1.08+(count-1)*.22)*clamp((size-.06)/.11,0,1):0;
+ }
  function baseClassSignals(raw,referenceSpan=0){
   const result={attacker:0,tank:0,magician:0,trickster:0,gunner:0};
   const paths=cleanDrawingPaths(raw);
@@ -2986,6 +3005,7 @@ window.ArtsRules=(()=>{
    if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.23,1.27*longMarks[0]+.16*(longMarks[1]||0)));
   for(const m of [...meta,...statJoinedShields(meta,full)]){
    const {path,box}=m,size=box.span/full;
+   result.tank=Math.max(result.tank,statLooseArmor(m,full));
    if(size<.12)continue; // ignore tiny decorations (eyes, buttons, letters)
    const oval=statOvalContour(path,box);
    const outline=statSimplify(path,box.span*.022),corners=m.closed?outline.slice(0,-1):outline;
@@ -3098,7 +3118,7 @@ window.ArtsRules=(()=>{
   };
   const turn=r=>{const a=sample(-1,r),b=sample(1,r);if(!a||!b)return 0;const la=dist(a,tip),lb=dist(tip,b);return Math.acos(clamp(((tip.x-a.x)*(b.x-tip.x)+(tip.y-a.y)*(b.y-tip.y))/(la*lb||1),-1,1))};
   const near=turn(span*.04),far=turn(span*.10);
-  return near>=.48&&near<=1.72&&near>=far*.72;
+  return near>=.35&&near<=2.40&&near>=far*.72;
  }
  function statOvalContour(path,box){
   // Normalize both axes: even a very narrow oval must not become two spikes.
@@ -3879,7 +3899,7 @@ window.ArtArts=(()=>{
  for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&((q.x-e.x)*ux+(q.y-e.y)*uy)>=-5&&lineClear(e,q)){hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x+ux*e.r*.65,e.y+uy*e.r*.65,e.r*.65,b))damageWall(b,e.power,now)}
  // A completed gesture is an atomic cast request. Do not require the independent
  // drawing=true input packet to have arrived first (multiplayer latency/reordering).
- function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m)return false;if(p.pull||p.stunnedUntil>now){p.castError='引き寄せ・行動不能中は発動できません。';return false;}if(m.class&&(!(p.skills||[]).includes(shape.type)||m.class!==p.class))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';if(p.rechargeUntil>now){p.castError='インクを集中回復しています。';return false}if(shape.type==='recharge'&&(p.inkLock>now||p.ink>=p.maxInk)){p.castError=p.inkLock>now?'インク回復禁止中です。':'インクは満タンです。';return false}let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:100,maxHp:100,material:'hard',temporary:true,expires:now+15000};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>q.temporary&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}if(shape.type==='warp'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R+2)){p.castError='ワープ先に壁や石があります。空いた場所へ描いてください。';return false}
+ function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m)return false;if(p.pull||p.stunnedUntil>now){p.castError='引き寄せ・行動不能中は発動できません。';return false;}if(m.class&&(!(p.skills||[]).includes(shape.type)||m.class!==p.class))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';if(p.rechargeUntil>now){p.castError='インクを集中回復しています。';return false}if(shape.type==='recharge'&&(p.inkLock>now||p.ink>=p.maxInk)){p.castError=p.inkLock>now?'インク回復禁止中です。':'インクは満タンです。';return false}let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:50,maxHp:50,material:'paint',summoned:true};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>(q.summoned||q.temporary)&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}if(shape.type==='warp'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R+2)){p.castError='ワープ先に壁や石があります。空いた場所へ描いてください。';return false}
  if(shape.type==='ricochet'&&host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(p.x+shape.x,p.y+shape.y,11,b))){p.castError='壁の中からは跳弾を撃てません。';return false}
  const cost=R.cost(shape),readyAt=Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;(p.artCooldowns??={})[shape.type]=now+m.cooldown;p.nextCast=now+(m.class?350:150);if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;
  const attack=p.stats[1]*(p.auraUntil>now?1.5:1);
@@ -4170,7 +4190,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。後から描いた明確な盾・トゲ・渦巻き・スピード線・長い線は特に強く反映されます。細部の描き足しでは特化が解除されず、職業は実際の能力値から決まります。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、近くに同じ向き・同程度の長さの線を3本並べるとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きはインク量を大きく増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>角のある盾のほか、二重の丸・楕円は装甲として防御力が上がります。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。後から描いた明確な盾・トゲ・渦巻き・スピード線・長い線は特に強く反映されます。細部の描き足しでは特化が解除されず、職業は実際の能力値から決まります。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、近くに同じ向き・同程度の長さの線を3本並べるとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きはインク量を大きく増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>閉じきらない四角や、描き終わりがはみ出した盾、直角からずれた角でも防御力が上がります。二重の丸・楕円も装甲として評価します。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -4455,7 +4475,7 @@ finishPaint(false)};
  }else if(e.type==='magic'){
   haze(r*.7);ring(r*(.3+.6*t));polygon(6,r*.5,t*2);x.stroke();burst(9,r*.7);
  }else if(e.type==='wallBreak'){
-  x.shadowBlur=0;for(let i=0;i<10;i++){const a=i*2.4,rr=(10+40*t)*(1+i%3*.2);x.save();x.translate(Math.cos(a)*rr,Math.sin(a)*rr+20*t*t);x.rotate(a+t*3);x.fillStyle=e.material==='hard'?'#8b9caa':'#b08866';x.fillRect(-4,-3,8,6);x.restore()}
+  x.shadowBlur=0;for(let i=0;i<10;i++){const a=i*2.4,rr=(10+40*t)*(1+i%3*.2);x.save();x.translate(Math.cos(a)*rr,Math.sin(a)*rr+20*t*t);x.rotate(a+t*3);x.fillStyle=e.material==='paint'?'#aaa2e3':e.material==='hard'?'#8b9caa':'#b08866';x.fillRect(-4,-3,8,6);x.restore()}
  }else if(e.type==='practiceAim'){
   x.rotate(e.angle||0);x.setLineDash([10,8]);segment(0,0,300,0);x.setLineDash([]);
  }
@@ -4469,6 +4489,14 @@ finishPaint(false)};
  }else if(b.type==='bush'){
   x.fillStyle='#456849';x.fillRect(0,5,w,h-5);x.save();x.beginPath();x.rect(0,0,w,h);x.clip();
   for(let row=0;row<h/22+1;row++)for(let col=0;col<w/23+1;col++){const px=col*23+(row%2)*10,py=row*22+6;x.fillStyle=['#64936a','#79a878','#527f5f'][(row+col)%3];x.beginPath();x.ellipse(px,py,17,13,(row+col)%2*.5,0,Math.PI*2);x.fill();x.strokeStyle='#b1ce8b88';x.lineWidth=1;x.beginPath();x.moveTo(px-4,py+4);x.lineTo(px+5,py-5);x.stroke()}x.restore();
+ }else if(b.material==='paint'){
+  const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'#b9f0ef');g.addColorStop(1,'#aaa2e3');
+  x.fillStyle='#33466744';x.fillRect(4,6,w,h);x.fillStyle=g;x.fillRect(0,0,w,h);
+  x.strokeStyle='#526c9e';x.lineWidth=3;x.strokeRect(1.5,1.5,w-3,h-3);
+  x.strokeStyle='#f1ffff';x.lineWidth=2;x.strokeRect(6,6,Math.max(0,w-12),Math.max(0,h-12));
+  x.save();x.beginPath();x.rect(3,3,w-6,h-6);x.clip();x.strokeStyle='#ffffff44';
+  for(let d=-h;d<w;d+=22){x.beginPath();x.moveTo(d,0);x.lineTo(d+h,h);x.stroke()}x.restore();
+  const health=R.clamp(b.hp/(b.maxHp||50),0,1);x.fillStyle='#26374e';x.fillRect(4,h+4,w-8,5);x.fillStyle='#85e7df';x.fillRect(4,h+4,(w-8)*health,5);
  }else{
   const hard=b.type==='stone'||b.material==='hard',stone=b.type==='stone',base=stone?'#646f82':hard?'#8398a6':'#bb8c60';
   x.fillStyle='#202b3a30';x.fillRect(4,6,w,h);x.fillStyle=base;x.fillRect(0,0,w,h);x.fillStyle=stone?'#96a1b1':hard?'#b5cbd4':'#e6bb85';x.fillRect(2,2,w-4,5);x.fillStyle='#27313b44';x.fillRect(2,h-6,w-4,4);x.strokeStyle=stone?'#465368':hard?'#546d7e':'#805c40';x.lineWidth=2;x.strokeRect(0,0,w,h);
