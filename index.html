@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.5 / 単一HTML版（アートアーツ防御の局所特徴を追加）
+あーとぴあ 1.3.6 / 単一HTML版（アートキメラの担当抽選と順番発表）
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -505,6 +505,17 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 
 .arts-result-player{display:flex;align-items:center;gap:16px;text-align:left;padding:12px;border-bottom:1px solid var(--line)}.arts-result-player>img,.arts-result-placeholder{width:112px;height:112px;object-fit:contain;flex-shrink:0;background:#fff;border-radius:12px}.arts-result-player>div{min-width:0}.arts-result-player p{margin:6px 0}#artsClassHelp{border-radius:50%;min-width:36px;min-height:36px;padding:4px;font-size:20px}
 
+
+/* 1.3.6: relay-style, one-at-a-time shared chimera reveal. */
+#chimeraStage.chimera-result .chimera-single-gallery{display:block;width:100%;max-width:900px;margin:8px auto;padding:0 0 max(35px,env(safe-area-inset-bottom))}
+#chimeraStage.chimera-result .chimera-single-card{width:100%;gap:10px;padding:12px;box-shadow:none}
+#chimeraStage.chimera-result .chimera-single-card h3{font-size:clamp(16px,2.7vw,22px)}
+#chimeraStage.chimera-result .chimera-single-canvas{width:min(100%,680px,var(--chimera-width-desktop,58dvh));max-width:100%;max-height:58dvh;margin:0 auto;flex-shrink:0}
+.chimera-reveal-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
+.chimera-reveal-actions button{min-height:40px}
+.chimera-reveal-wait{font-size:13px;color:#687a60;margin:2px 0}
+@media(max-width:650px){#chimeraStage.chimera-result .chimera-single-canvas{width:min(100%,var(--chimera-width-mobile,48dvh));max-height:48dvh}}
+
 /* 1.3.0: all six skills visible together, two columns by three rows. */
 #artsStage.arts-equipping .arts-sheet{max-width:940px;width:100%;height:100%;min-height:310px;box-sizing:border-box;padding:8px 12px;display:flex;flex-direction:column;gap:7px}
 .arts-equip-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none}.arts-sheet .arts-equip-heading h2{font-size:20px;margin:0}.arts-sheet .arts-equip-heading p{font-size:12px;margin:0}
@@ -517,7 +528,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 @media(max-height:550px){.arts-equip-summary{-webkit-line-clamp:1}.arts-equip-symbol svg{height:28px}.arts-equip-info{font-size:10px;min-height:20px;padding:2px}.arts-equip-heading h2{font-size:16px!important}}
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム", "url": "https://nekodaruma299299-hash.github.io/Art/", "inLanguage": "ja", "primaryImageOfPage": {"@type": "ImageObject", "url": "https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png", "width": 180, "height": 180}}</script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.5</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.6</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -2637,7 +2648,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2816,11 +2827,6 @@ window.ArtsRules=(()=>{
  const classNames={attacker:'アタッカー',tank:'ディフェンダー',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー'};
  function type(stats,paths=[]){
   const scores={attacker:stats[1]*1.05+stats[0]*.55,tank:stats[2]*1.20+stats[3]*.28,magician:stats[3]*1.12+stats[2]*.12,trickster:stats[3]*.30+stats[0]*1.10,gunner:stats[4]*1.48+stats[1]*.27};
-  // Distinctive shapes remain authoritative: a shield or spiral should still
-  // change the class even when a character has high Attack and Range.
-  const motifs=localClassSignals(paths);
-  const priority=Object.entries(motifs).filter(([kind,confidence])=>confidence>=.70);
-  if(priority.length){priority.sort((a,b)=>b[1]-a[1]);return priority[0][0]}
   const attack=stats[1],range=stats[4],other=Math.max(stats[0],stats[2],stats[3]);
   // A character specialized in drawing reach may be a Gunner even without
   // equally extreme Attack. Avoid rewarding incidental tiny detail.
@@ -2934,14 +2940,44 @@ window.ArtsRules=(()=>{
  // Explicit local archetypes: a crisp shield or spiral overrides the whole-picture
  // score. A dense hairstyle or a swarm of short angles is never sufficient.
  function statQuickMarks(meta,full){return meta.filter(m=>!m.closed&&m.straight>.88&&m.box.span>=Math.max(1.2,full*.035)&&m.box.span<=full*.30).map(m=>{const ms=m.path[0].duration;if(!Number.isFinite(ms))return .28;return ms<=450&&m.len/(ms/1000)>=12?.95: .18}).sort((a,b)=>b-a)}
+ // Speed accents must form a nearby parallel group, not scattered detail.
+ function statSpeedGroup(meta,full){
+  const marks=meta.filter(m=>(statQuickMarks([m],full)[0]||0)>.7);
+  for(const a of marks){
+   const ax=a.path.at(-1).x-a.path[0].x,ay=a.path.at(-1).y-a.path[0].y;
+   const group=marks.filter(b=>{const bx=b.path.at(-1).x-b.path[0].x,by=b.path.at(-1).y-b.path[0].y;
+    return Math.abs(ax*bx+ay*by)/(a.chord*b.chord||1)>.94&&
+     Math.hypot(a.box.cx-b.box.cx,a.box.cy-b.box.cy)<full*.32&&
+     Math.min(a.chord,b.chord)/Math.max(a.chord,b.chord)>.55});
+   if(group.length>=3)return true;
+  }return false;
+ }
+ // Keep clear, recently added equipment meaningful even on detailed art.
+ // Ordinary finishing strokes do not erase an existing specialization.
  function localClassSignals(raw){
+  const paths=cleanDrawingPaths(raw),base=baseClassSignals(paths);
+  if(!paths.length)return base;
+  const full=Math.max(1,statBox(paths.flat()).span);let chosen=null;
+  for(let i=0;i<paths.length;i++){
+   const signals=baseClassSignals([paths[i]],full);
+   // Adjacent strokes also allow multi-stroke shields, nested circles and speed accents.
+   if(i>=1&&(statBox(paths[i]).span/full>=.12||(statQuickMarks([statMeta(paths[i])],full)[0]||0)>.7)&&Math.max(...Object.values(signals))<.85){const group=paths.slice(Math.max(0,i-3),i+1),combined=baseClassSignals(group,full),previous=baseClassSignals(group.slice(0,-1),full);
+    for(const key of ['tank','trickster'])if(combined[key]>signals[key]&&combined[key]>previous[key]+.15)signals[key]=combined[key];}
+   const best=Object.entries(signals).sort((a,b)=>b[1]-a[1])[0];
+   if(best[1]>=.85)chosen=best;
+  }
+  if(chosen){for(const key of Object.keys(base))base[key]*=.55;
+   base[chosen[0]]=Math.max(2.4,chosen[1]*1.9);}
+  return base;
+ }
+ function baseClassSignals(raw,referenceSpan=0){
   const result={attacker:0,tank:0,magician:0,trickster:0,gunner:0};
   const paths=cleanDrawingPaths(raw);
   if(!paths.length)return result;
   const meta=paths.map(statMeta).filter(m=>m.box.span>.35);
   if(!meta.length)return result;
-   const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,1);
-   const quick=statQuickMarks(meta,full);if(quick.length>=3&&quick[2]>.7)result.trickster=1.38;
+   const whole=statBox(meta.flatMap(m=>m.path)),full=Math.max(whole.span,referenceSpan,1);
+   if(statSpeedGroup(meta,full))result.trickster=1.10;
    result.tank=Math.max(result.tank,statNestedArmor(meta,full));
    const longMarks=meta.map(m=>statLongLine(m,full)).filter(n=>n>.15).sort((a,b)=>b-a);
    if(longMarks.length)result.gunner=Math.max(result.gunner,Math.min(1.23,1.27*longMarks[0]+.16*(longMarks[1]||0)));
@@ -3101,7 +3137,7 @@ window.ArtsRules=(()=>{
       if(straight>.7)candidates[0].push(.08*straight);
      continue;
     }
-   if(straight>.76){const quick=statQuickMarks([m],allBox.span)[0]||0;candidates[0].push(Math.max(quick,straight*clamp((m.chord/allBox.span-.12)/.22,0,1)));continue}
+   if(straight>.76){const quick=statQuickMarks([m],allBox.span)[0]||0;candidates[0].push(Math.max(quick*.45,straight*clamp((m.chord/allBox.span-.12)/.22,0,1)*.55));continue}
    if(winding>.04){
     candidates[3].push(clamp(.60+winding*.62,0,1.45));
      // Coils belong to Ink, never Range.
@@ -3168,13 +3204,17 @@ window.ArtsRules=(()=>{
   strengths[2]=Math.max(strengths[2],solid*.40,(rasterArmor.shell||0)*.92);
   strengths[3]=Math.max(strengths[3],solid*1.25);
   const local=localClassSignals(paths);
+  strengths[0]=Math.max(strengths[0],local.trickster);
   strengths[1]=Math.max(strengths[1],local.attacker*.95);
   strengths[2]=Math.max(strengths[2],local.tank*.98);
   // A broad torso is a small supporting hint, not a forced Tank classification.
-  strengths[2]=Math.min(1.6,strengths[2]+Math.max(rasterArmor.wide||0,broadTorso)*.012);
+  strengths[2]=Math.min(3.4,strengths[2]+Math.max(rasterArmor.wide||0,broadTorso)*.012);
    strengths[3]=Math.max(strengths[3],local.magician*.95);
    // Keep Ink and Range independent. A spiral cannot earn Range points.
    strengths[4]=Math.max(strengths[4],local.gunner);
+  const focus=Object.entries(local).find(([,value])=>value>=2.4);
+  if(focus){const index={trickster:0,attacker:1,tank:2,magician:3,gunner:4}[focus[0]];
+   for(let i=0;i<strengths.length;i++)if(i!==index)strengths[i]*=.75;}
   return allocate(strengths.map(v=>1+60*v));
  }
 
@@ -4076,7 +4116,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、周囲に3本ほど描くとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きは射程を大きく、インク量も増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>角のある盾のほか、二重の丸・楕円は装甲として防御力が上がります。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。後から描いた明確な盾・トゲ・渦巻き・スピード線・長い線は特に強く反映されます。細部の描き足しでは特化が解除されず、職業は実際の能力値から決まります。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、近くに同じ向き・同程度の長さの線を3本並べるとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きはインク量を大きく増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>角のある盾のほか、二重の丸・楕円は装甲として防御力が上がります。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -4528,20 +4568,37 @@ window.ArtChimera=(()=>{
  const chimeraAlphaCache=new Map();
  const enabled=()=>room?.mode==='chimera',participant=()=>!!view?.players.some(p=>p.id===localId),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const settings=s=>({layout:['body','six','face','face3'].includes(s?.layout)?s.layout:'body',topicMode:s?.topicMode==='first'?'first':'free',drawSeconds:clamp(Number(s?.drawSeconds)||60,20,300),assembleSeconds:clamp(Number(s?.assembleSeconds)||90,20,300)});
- function shuffled(a){return a.map(x=>({x,r:Math.random()})).sort((a,b)=>a.r-b.r).map(p=>p.x)}
+ // Fisher–Yates shuffle: every player has an equal chance of an extra part.
+ function shuffled(a){const out=[...a];for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}return out}
+ function assignParts(players,layout){
+  const ids=players.map(p=>p.id),total=layouts[layout].length,owners=[];
+  // Each round gives at most one part to a player. Leftover parts go to
+  // randomly selected players rather than the first (usually the host).
+  while(owners.length<total)owners.push(...shuffled(ids).slice(0,total-owners.length));
+  return owners;
+ }
  function routes(ids){const out=shuffled(ids).map(id=>[id]);for(let round=1;round<3;round++){const assigned=[];function match(i,left){if(i===out.length)return true;for(const id of shuffled(left)){if(ids.length>1&&(ids.length>=3?out[i].includes(id):out[i].at(-1)===id))continue;assigned[i]=id;if(match(i+1,left.filter(x=>x!==id)))return true}return false}match(0,ids);out.forEach((r,i)=>r.push(assigned[i]))}return out}
  function chainFor(s,id){return s.settings.layout==='body'?(s.routes||[]).findIndex(r=>r[s.round]===id):0}
- function slotFor(s,id){const i=s?.players.findIndex(p=>p.id===id)??-1;if(i<0)return -1;const n=s.settings.layout==='body'?(chainFor(s,id)>=0?s.round:-1):s.round*s.players.length+i;return n>=0&&n<layouts[s.settings.layout].length?n:-1}
+ function slotFor(s,id){const i=s?.players.findIndex(p=>p.id===id)??-1;if(i<0)return -1;
+  if(s.settings.layout==='body')return chainFor(s,id)>=0?s.round:-1;
+  const start=s.round*s.players.length;
+  if(Array.isArray(s.partOwners)){
+   const inRound=s.partOwners.slice(start,start+s.players.length).indexOf(id);
+   return inRound<0?-1:start+inRound;
+  }
+  // Compatibility with a room created by an older version.
+  const n=start+i;return n<layouts[s.settings.layout].length?n:-1;
+ }
  function readyKey(s,id){return chainFor(s,id)+'-'+slotFor(s,id)}
  function topicOwner(s,id){return s.settings.layout==='body'?s.chains?.some(c=>c.owner===id&&!c.ready):s.players[0]?.id===id}
  const canDraw=()=>!!(enabled()&&connected&&view?.phase==='draw'&&slotFor(view,localId)>=0&&!view.ready[readyKey(view,localId)]);
  const stage=document.createElement('section'),bar=document.createElement('div'),reference=document.createElement('canvas');stage.id='chimeraStage';bar.id='chimeraBar';reference.id='chimeraReference';stage.hidden=bar.hidden=reference.hidden=true;$('#viewport').append(stage);$('#studio').insertBefore(bar,$('.workspace'));$('#canvasSurface').append(reference);
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel','contextmenu'])stage.addEventListener(ev,e=>{e.stopPropagation();if(ev==='contextmenu')e.preventDefault()});
- const help='<p>パーツを描いて、みんなで1つのキャラクターを作ります。</p><ul><li>頭・胴体・足：人数分のキメラを同時に描き、担当をランダムに交代します。1ターン目は全体に描けます。次からは上に前の絵の下半分を追加した高さ1.5倍のキャンバスになります。自分の描く面積は変わりません。</li><li>6パーツ・顔：担当パーツを透明な背景に描きます。顔は「目と鼻／口と輪郭／髪と眉」の3担当、または6担当を選べます。少人数なら順番に複数パーツを担当します。2〜6人向け。</li><li>最後の福笑いタイムは自分が描いたパーツだけ編集できます。パーツを選び、ドラッグで移動、スライダーで拡大縮小・回転。完成絵も2本指のピンチやホイールで拡大縮小できます。</li><li>お題は自由、または最初の担当者が入力します。つなぎ絵は人数分のお題を作ります。例：初音ミク。</li><li>完成作品はPNGと絵画展に保存できます。</li></ul>';
+ const help='<p>パーツを描いて、みんなで1つのキャラクターを作ります。</p><ul><li>頭・胴体・足：人数分のキメラを同時に描き、担当をランダムに交代します。1ターン目は全体に描けます。次からは上に前の絵の下半分を追加した高さ1.5倍のキャンバスになります。自分の描く面積は変わりません。</li><li>6パーツ・顔：担当パーツを透明な背景に描きます。顔は「目と鼻／口と輪郭／髪と眉」の3担当、または6担当を選べます。人数よりパーツが多い場合、追加の担当者はランダムに決まります。2〜6人向け。</li><li>最後の福笑いタイムは自分が描いたパーツだけ編集できます。パーツを選び、ドラッグで移動、スライダーで拡大縮小・回転。完成絵も2本指のピンチやホイールで拡大縮小できます。</li><li>お題は自由、または最初の担当者が入力します。つなぎ絵は人数分のお題を作ります。例：初音ミク。</li><li>完成作品は1体ずつ部屋主の操作で全員に発表され、PNGと絵画展に保存できます。</li></ul>';
  function blankSnapshot(){const c=E.make(room.w,room.h);try{const image=c.toDataURL();return{w:room.w,h:room.h,base:[image,image,image],ops:[]}}finally{c.width=c.height=0}}
  function resetCanvas(){window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,view?.settings.layout==='body'&&view.round>0?room.h*1.5:room.h);for(const id of ['display','overlay']){const c=$('#'+id);c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();prefs.opacities=[100,100,100];room.hasArt=false;invalidateLocalView();$('#transformBar').hidden=true;render();renderControls();fitView()}
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
- function publicFor(id,full=true){const visible=['assemble','finished'].includes(host.phase),slot=slotFor(host,id);return{id:host.id,phase:host.phase,round:host.round,players:host.players,settings:host.settings,routes:host.routes,chains:host.chains,topic:host.chains?.[chainFor(host,id)]?.topic||host.topic,ready:{...host.ready},deadline:host.deadline,now:Date.now(),done:[...host.done],editLocks:{...host.editLocks},reference:host.settings.layout==='body'&&slot>0&&['draw','collect'].includes(host.phase)?host.pieces.find(p=>p.chain===chainFor(host,id)&&p.slot===slot-1)?.tail||'':'',pieces:visible?host.pieces.map(p=>full?{...p,tail:undefined}:{...p,image:undefined,tail:undefined}):[]}}
+ function publicFor(id,full=true){const visible=['assemble','finished'].includes(host.phase),slot=slotFor(host,id);return{id:host.id,phase:host.phase,round:host.round,players:host.players,settings:host.settings,routes:host.routes,partOwners:host.partOwners,revealIndex:host.revealIndex||0,chains:host.chains,topic:host.chains?.[chainFor(host,id)]?.topic||host.topic,ready:{...host.ready},deadline:host.deadline,now:Date.now(),done:[...host.done],editLocks:{...host.editLocks},reference:host.settings.layout==='body'&&slot>0&&['draw','collect'].includes(host.phase)?host.pieces.find(p=>p.chain===chainFor(host,id)&&p.slot===slot-1)?.tail||'':'',pieces:visible?host.pieces.map(p=>full?{...p,tail:undefined}:{...p,image:undefined,tail:undefined}):[]}}
  function sendAll(full=true){if(!host||!isHost)return;for(const id of members.keys()){const m={type:'gameChimeraState',state:publicFor(id,full)};if(id===localId)receive(m);else sendWire(connections.get(id),m)}}
  // A move used to cause a full multiplayer update for *every* pointer event,
  // often twice (claim + move). Coalesce live movement and flush at release.
@@ -4553,19 +4610,24 @@ window.ArtChimera=(()=>{
   if(assemblySyncTimer){clearTimeout(assemblySyncTimer);assemblySyncTimer=0}
   if(host?.phase==='assemble'&&isHost&&enabled())sendAll(false);
  }
- function newHost(){host={id:uid(),phase:'lobby',round:0,players:[],settings:settings(room.chimeraSettings),topic:'自由に描いてください',ready:{},pieces:[],deadline:null,editLocks:{},done:[]};room.chimeraSettings=host.settings;sendAll()}
- function begin(){if(!isHost||host?.phase!=='lobby')return;const players=[...members.values()].filter(p=>!p.spectator&&!p.disconnected),max=host.settings.layout==='body'?6:layouts[host.settings.layout].length;if(players.length<(room.offline?1:2)||players.length>max){toast((room.offline?'1':'2')+'〜'+max+'人で開始してください。人数が多い場合は6パーツか顔モードを選んでください。');return}host.players=players.map(p=>({id:p.peerId,name:p.profile.name}));host.ready={};host.pieces=[];host.round=0;host.done=[];host.editLocks={};host.routes=routes(host.players.map(p=>p.id));host.chains=host.routes.map((r,i)=>({id:i,owner:r[0],topic:'自由に描いてください',ready:false}));if(host.settings.topicMode==='first'){host.phase='topic';host.deadline=Date.now()+45000;sendAll()}else startDraw()}
+ function newHost(){host={id:uid(),phase:'lobby',round:0,revealIndex:0,players:[],partOwners:[],settings:settings(room.chimeraSettings),topic:'自由に描いてください',ready:{},pieces:[],deadline:null,editLocks:{},done:[]};room.chimeraSettings=host.settings;sendAll()}
+ function begin(){if(!isHost||host?.phase!=='lobby')return;const players=[...members.values()].filter(p=>!p.spectator&&!p.disconnected),max=host.settings.layout==='body'?6:layouts[host.settings.layout].length;if(players.length<(room.offline?1:2)||players.length>max){toast((room.offline?'1':'2')+'〜'+max+'人で開始してください。人数が多い場合は6パーツか顔モードを選んでください。');return}host.players=players.map(p=>({id:p.peerId,name:p.profile.name}));host.partOwners=assignParts(host.players,host.settings.layout);host.ready={};host.pieces=[];host.round=0;host.revealIndex=0;host.done=[];host.editLocks={};host.routes=routes(host.players.map(p=>p.id));host.chains=host.routes.map((r,i)=>({id:i,owner:r[0],topic:'自由に描いてください',ready:false}));if(host.settings.topicMode==='first'){host.phase='topic';host.deadline=Date.now()+45000;sendAll()}else startDraw()}
  function startDraw(){host.phase='draw';host.ready={};host.deadline=Date.now()+host.settings.drawSeconds*1000;sendAll()}
  function partTransform(layout,slot,w,h){if(layout==='body')return{x:256,y:256+slot*512,w:512,h:512,scale:1,angle:0,flip:false};const body=[[384,140,220,200],[384,370,260,290],[180,350,170,280],[588,350,170,280],[300,620,140,250],[468,620,140,250]],face=[[384,400,520,600],[280,330,170,110],[488,330,170,110],[384,430,110,140],[384,530,220,110],[384,200,580,330]],face3=[[384,390,480,320],[384,420,560,600],[384,220,620,400]],box=(layout==='face'?face:layout==='face3'?face3:body)[slot],z=Math.min(box[2]/w,box[3]/h);return{x:box[0],y:box[1],w:w*z,h:h*z,scale:1,angle:0,flip:false}}
- function nextRound(){if(host.phase!=='collect'&&host.phase!=='draw')return;const count=layouts[host.settings.layout].length,total=host.settings.layout==='body'?count:Math.ceil(count/host.players.length);if(++host.round<total){startDraw();return}host.editLocks={};host.done=[];host.phase=host.settings.layout==='body'?'finished':'assemble';host.deadline=host.phase==='assemble'?Date.now()+host.settings.assembleSeconds*1000:null;sendAll()}
+ function nextRound(){if(host.phase!=='collect'&&host.phase!=='draw')return;const count=layouts[host.settings.layout].length,total=host.settings.layout==='body'?count:Math.ceil(count/host.players.length);if(++host.round<total){startDraw();return}host.editLocks={};host.done=[];host.phase=host.settings.layout==='body'?'finished':'assemble';host.revealIndex=0;host.deadline=host.phase==='assemble'?Date.now()+host.settings.assembleSeconds*1000:null;sendAll()}
  function allReady(){return host.players.every(p=>{const slot=slotFor(host,p.id);return slot<0||host.ready[readyKey(host,p.id)]})}
  function capture(){if(stroke)finishStroke();if(selection)$('#applyTransform').click();const source=engine.compose(prefs.opacities,false,visibleLayers());let out;try{if(view.settings.layout==='body'){out=E.make(512,512);out.getContext('2d').drawImage(source,0,view.round>0?256:0,512,512,0,0,512,512)}else{const data=source.getContext('2d').getImageData(0,0,source.width,source.height).data;let x0=source.width,y0=source.height,x1=-1,y1=-1;for(let y=0;y<source.height;y++)for(let x=0;x<source.width;x++)if(data[(y*source.width+x)*4+3]>8){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}if(x1<0){out=E.make(1,1)}else{const w=x1-x0+1,h=y1-y0+1,z=Math.min(1,768/Math.max(w,h));out=E.make(Math.max(1,Math.round(w*z)),Math.max(1,Math.round(h*z)));out.getContext('2d').drawImage(source,x0,y0,w,h,0,0,out.width,out.height)}}return out.toDataURL('image/png')}finally{source.width=source.height=0;if(out)out.width=out.height=0}}
  function submit(){if(!view||!['draw','collect'].includes(view.phase)||!participant())return;const slot=slotFor(view,localId),key=view.id+':'+view.round;if(slot<0||view.ready[readyKey(view,localId)]||sentTurn===key)return;try{const image=capture();sentTurn=key;sendHost({type:'gameChimeraSubmit',gameId:view.id,round:view.round,image})}catch{toast('パーツを送れませんでした。もう一度お試しください。')}}
  async function acceptPart(id,m){const game=host,round=host.round,slot=slotFor(host,id),key=host.id+':'+round+':'+id;if(slot<0||host.ready[readyKey(host,id)]||receiving.has(key)||typeof m.image!=='string'||m.image.length>4200000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(m.image))return;receiving.add(key);try{const im=await E.image(m.image);if(host!==game||host.round!==round||!['draw','collect'].includes(host.phase))return;if(im.width>768||im.height>768)throw Error();let tail='';if(host.settings.layout==='body'){const c=E.make(im.width,Math.max(1,Math.floor(im.height/2)));try{c.getContext('2d').drawImage(im,0,im.height/2,im.width,im.height/2,0,0,c.width,c.height);tail=c.toDataURL('image/png')}finally{c.width=c.height=0}}const piece={id:'part-'+readyKey(host,id),chain:chainFor(host,id),slot,name:layouts[host.settings.layout][slot],author:id,image:m.image,tail,...partTransform(host.settings.layout,slot,im.width,im.height),z:host.settings.layout==='face3'?[1,0,2][slot]:slot};host.pieces=host.pieces.filter(p=>p.id!==piece.id);host.pieces.push(piece);host.ready[readyKey(host,id)]=true;if(allReady())nextRound();else sendAll()}catch{const q={type:'gameChimeraRetry',gameId:game.id,round};if(id===localId)receive(q);else sendWire(connections.get(id),q)}finally{receiving.delete(key)}}
- function finish(){if(!host||host.phase!=='assemble')return;host.phase='finished';host.deadline=null;host.editLocks={};sendAll()}
+ function finish(){if(!host||host.phase!=='assemble')return;host.phase='finished';host.revealIndex=0;host.deadline=null;host.editLocks={};sendAll()}
  function hostMessage(id,m){if(drawTypes.has(m.type))return true;if(!m.type.startsWith('gameChimera'))return false;if(!isHost||!host||m.gameId!==host.id||migrationOut)return true;if(!host.players.some(p=>p.id===id)||members.get(id)?.spectator)return true;
   if(m.type==='gameChimeraTopic'&&host.phase==='topic'&&topicOwner(host,id)){const topic=String(m.topic||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,60)||'自由に描いてください';if(host.settings.layout==='body'){const c=host.chains.find(c=>c.owner===id);c.topic=topic;c.ready=true;if(host.chains.every(c=>c.ready))startDraw();else sendAll()}else{host.topic=topic;startDraw()}}
   if(m.type==='gameChimeraSubmit'&&['draw','collect'].includes(host.phase)&&m.round===host.round)acceptPart(id,m);
+  if(m.type==='gameChimeraReveal'&&host.phase==='finished'&&host.settings.layout==='body'&&id===localId){
+   const max=Math.max(0,(host.chains||[]).length-1),next=clamp((host.revealIndex||0)+(m.direction===-1?-1:1),0,max);
+   if(next!==host.revealIndex){host.revealIndex=next;sendAll()}
+   return true;
+  }
   if(host.phase!=='assemble')return true;const now=Date.now(),p=host.pieces.find(p=>p.id===m.pieceId),lock=p&&host.editLocks[p.id];
   if(m.type==='gameChimeraClaim'&&p&&p.author===id){if(!lock||lock.until<now||lock.owner===id){host.editLocks[p.id]={owner:id,until:now+8000};queueAssemblySync()}}
   if(m.type==='gameChimeraMove'&&p&&p.author===id&&(!lock||lock.until<now||lock.owner===id)&&['x','y','scale','angle'].every(k=>Number.isFinite(m[k]))){p.x=clamp(m.x,0,768);p.y=clamp(m.y,0,768);p.scale=clamp(m.scale,.15,3);p.angle=clamp(m.angle,-180,180);p.flip=!!m.flip;if(m.front)p.z=Math.max(...host.pieces.map(q=>q.z))+1;host.editLocks[p.id]={owner:id,until:now+8000};host.done=[];queueAssemblySync()}
@@ -4587,20 +4649,36 @@ window.ArtChimera=(()=>{
  function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーときめら','chimera'));const block=document.createElement('div');block.id='chimeraCreate';block.innerHTML=configHTML();$('#artsCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='chimera';if($('#createModePanel')&&mode.value!=='free')$('#createModePanel').hidden=false;block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=false;$('#newWidth').value=$('#newHeight').value=512;$('#newLimit').value=6}};mode.onchange()}
  function currentName(){const slot=slotFor(view,localId);return slot>=0?layouts[view.settings.layout][slot]:''}
  function renderUI(){if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view)return;const drawing=canDraw();$('#studio').classList.add('chimera-mode');$('#studio').classList.toggle('chimera-drawing',drawing);$('#snapshotBtn').hidden=true;for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar','artsStage','artsBar'])if($('#'+id))$('#'+id).hidden=true;
-  const key=view.id+':'+view.phase+':'+view.round+':'+JSON.stringify(view.ready)+':'+JSON.stringify(view.chains);if(key===uiKey){if(['assemble','finished'].includes(view.phase))updatePieces();return}uiKey=key;drag=null;bar.hidden=false;bar.innerHTML=(drawing?'<strong class="chimera-role">'+esc(currentName())+'を描こう</strong>':'<b>あーときめら</b>')+'<span class="chimera-topic">'+esc(view.topic)+'</span><strong id="chimeraClock"></strong><button id="chimeraHelp">遊び方</button>'+(drawing?'<button id="chimeraSubmit" class="primary">パーツ完成</button>':'');const actions=document.createElement('div');actions.className='chimera-bar-actions';for(const id of ['chimeraClock','chimeraHelp','chimeraSubmit']){const el=$('#'+id);if(el)actions.append(el)}bar.append(actions);$('#chimeraHelp').onclick=()=>modal('あーときめらの遊び方',help);if($('#chimeraSubmit'))$('#chimeraSubmit').onclick=submit;stage.hidden=drawing;paintReference();if(drawing){stage.innerHTML='';return}
+  const key=view.id+':'+view.phase+':'+view.round+':'+(view.revealIndex||0)+':'+JSON.stringify(view.ready)+':'+JSON.stringify(view.chains);if(key===uiKey){if(['assemble','finished'].includes(view.phase))updatePieces();return}uiKey=key;drag=null;bar.hidden=false;bar.innerHTML=(drawing?'<strong class="chimera-role">'+esc(currentName())+'を描こう</strong>':'<b>あーときめら</b>')+'<span class="chimera-topic">'+esc(view.topic)+'</span><strong id="chimeraClock"></strong><button id="chimeraHelp">遊び方</button>'+(drawing?'<button id="chimeraSubmit" class="primary">パーツ完成</button>':'');const actions=document.createElement('div');actions.className='chimera-bar-actions';for(const id of ['chimeraClock','chimeraHelp','chimeraSubmit']){const el=$('#'+id);if(el)actions.append(el)}bar.append(actions);$('#chimeraHelp').onclick=()=>modal('あーときめらの遊び方',help);if($('#chimeraSubmit'))$('#chimeraSubmit').onclick=submit;stage.hidden=drawing;paintReference();if(drawing){stage.innerHTML='';return}
   let body='';if(view.phase==='lobby')body='<h2>パーツをつないで、予想外の一枚に。</h2>'+help;
   else if(view.phase==='topic')body=participant()&&topicOwner(view,localId)?'<h2>みんなのお題を決めよう</h2><form id="chimeraTopicForm"><input id="chimeraTopic" maxlength="60" placeholder="例：初音ミク" aria-label="共通のお題" required><button class="primary">このお題で始める</button></form>':'<h2>最初の人がお題を決めています</h2>';
   else if(['draw','collect'].includes(view.phase)){const drawingNames=view.players.filter(p=>slotFor(view,p.id)>=0&&!view.ready[readyKey(view,p.id)]).map(p=>p.name);body='<h2>'+ (view.phase==='collect'?'パーツを集めています…':'パーツ制作中')+'</h2><p>'+esc(drawingNames.join('・'))+' さんの提出を待っています。</p><p>ターン '+(view.round+1)+' · '+esc(titles[view.settings.layout])+'</p>'}
   else if(view.phase==='finished'){
+   // Relay-style shared presentation: one completed chimera per slide.
+   // Only the host advances; every client receives the same revealIndex.
    const all=view.settings.layout==='body'?(view.chains||[]):[{id:0,topic:view.topic}];
-   body='<div class="chimera-finished-head"><h2>みんなの完成作品</h2><p>お題ごとのキメラを、みんなで一緒に鑑賞しよう！</p>'+(isHost?'<button id="chimeraAgain">待機室へ戻る</button>':'')+'</div><div class="chimera-finished-gallery">'+all.map((chain,index)=>{
+   if(!all.length)body='<div class="chimera-finished-head"><h2>完成作品を準備しています…</h2></div>';
+   else{
+    const index=clamp(Number(view.revealIndex)||0,0,all.length-1),chain=all[index];
     const pieces=view.pieces.filter(p=>view.settings.layout!=='body'||p.chain===chain.id).slice().sort((a,b)=>a.z-b.z),b=bounds(pieces);
     const picture=pieces.map(p=>'<img alt="'+esc(p.name)+'" draggable="false" src="'+esc(p.image||'')+'" style="left:'+((p.x-b.x)/b.w*100)+'%;top:'+((p.y-b.y)/b.h*100)+'%;width:'+(p.w/b.w*100)+'%;height:'+(p.h/b.h*100)+'%;z-index:'+p.z+';transform:translate(-50%,-50%) rotate('+p.angle+'deg) scale('+(p.flip?-p.scale:p.scale)+','+p.scale+')">').join('');
-    return '<article class="chimera-finished-card"><h3>'+(view.settings.layout==='body'?'お題 '+(index+1)+' · ':'')+esc(chain.topic||'自由に描いてください')+'</h3><div class="chimera-finished-canvas" style="aspect-ratio:'+b.w+'/'+b.h+'">'+picture+'</div><button class="chimera-save-piece primary" data-chimera-save="'+chain.id+'">この作品を保存</button></article>';
-   }).join('')+'</div>';
+    body='<div class="chimera-finished-head"><h2>みんなの完成作品</h2><p>お題 '+(index+1)+' / '+all.length+' — 全員で同じ作品を鑑賞中</p></div>'+
+     '<div class="chimera-finished-gallery chimera-single-gallery"><article class="chimera-finished-card chimera-single-card">'+
+     '<h3>'+(view.settings.layout==='body'?'お題 '+(index+1)+' · ':'')+esc(chain.topic||'自由に描いてください')+'</h3>'+
+     '<div class="chimera-finished-canvas chimera-single-canvas" style="--chimera-aspect:'+(b.w/b.h)+';aspect-ratio:'+b.w+'/'+b.h+'">'+picture+'</div>'+
+     '<div class="chimera-reveal-actions"><button class="chimera-save-piece primary" data-chimera-save="'+chain.id+'">この作品を保存</button>'+
+     (isHost&&all.length>1?'<button id="chimeraPrevious" '+(index===0?'disabled':'')+'>前のお題</button><button id="chimeraNext" class="primary" '+(index===all.length-1?'disabled':'')+'>次のお題へ</button>':'')+
+     (isHost?'<button id="chimeraAgain">待機室へ戻る</button>':'')+'</div>'+
+     (!isHost&&all.length>1?'<p class="chimera-reveal-wait">部屋主が次のお題を表示すると、自動的に切り替わります。</p>':'')+
+     '</article></div>';
+   }
   }
   else{body='<div class="chimera-result-toolbar"><b>'+ (view.phase==='assemble'?'福笑いタイム！':'完成！')+'</b><div id="chimeraViews">'+(view.settings.layout==='body'?'':'<span>'+esc(view.topic)+'</span>')+'</div><button id="chimeraFit">全体表示</button></div><div id="chimeraBoardViewport"><div id="chimeraBoard" aria-label="キメラの組み立てキャンバス"></div></div>'+(view.phase==='assemble'?'<div id="chimeraEdit"><p id="chimeraSelection">自分のパーツを選んで移動できます</p><label>大きさ <output id="chimeraScaleValue">100%</output><input id="chimeraScale" aria-label="パーツの大きさ" type="range" min="15" max="300" value="100"></label><label>回転 <output id="chimeraAngleValue">0°</output><input id="chimeraAngle" aria-label="パーツの回転" type="range" min="-180" max="180" value="0"></label><button id="chimeraFlip">左右反転</button><button id="chimeraFront">手前へ</button><button id="chimeraResetPart">初期位置へ</button></div><p id="chimeraDoneCount"></p><button id="chimeraDone" class="primary">組み立て完了</button>'+(isHost?'<button id="chimeraFinish">全体を完成させる</button>':''):'<button id="chimeraSave" class="primary">完成作品を保存</button>'+(isHost?'<button id="chimeraAgain">待機室へ戻る</button>':''))}
-  stage.innerHTML='<div class="chimera-sheet">'+body+'</div>';stage.classList.toggle('chimera-result',view.phase==='finished');if(view.phase==='finished')bar.hidden=true;if(stage.querySelector('.chimera-result-toolbar')){const tools=document.createElement('div');tools.className='chimera-result-actions';for(const id of ['chimeraFit','chimeraSave','chimeraAgain']){const el=$('#'+id);if(el)tools.append(el)}stage.querySelector('.chimera-result-toolbar').append(tools)}if($('#chimeraTopicForm'))$('#chimeraTopicForm').onsubmit=e=>{e.preventDefault();sendHost({type:'gameChimeraTopic',gameId:view.id,topic:$('#chimeraTopic').value})};if($('#chimeraBoard')){bindBoard();bindAssembly();updatePieces()}for(const b of stage.querySelectorAll('[data-chimera-save]'))b.onclick=()=>saveResult(Number(b.dataset.chimeraSave));if($('#chimeraAgain'))$('#chimeraAgain').onclick=newHost;
+  stage.innerHTML='<div class="chimera-sheet">'+body+'</div>';stage.classList.toggle('chimera-result',view.phase==='finished');if(view.phase==='finished')bar.hidden=true;if(stage.querySelector('.chimera-result-toolbar')){const tools=document.createElement('div');tools.className='chimera-result-actions';for(const id of ['chimeraFit','chimeraSave','chimeraAgain']){const el=$('#'+id);if(el)tools.append(el)}stage.querySelector('.chimera-result-toolbar').append(tools)}if($('#chimeraTopicForm'))$('#chimeraTopicForm').onsubmit=e=>{e.preventDefault();sendHost({type:'gameChimeraTopic',gameId:view.id,topic:$('#chimeraTopic').value})};if($('#chimeraBoard')){bindBoard();bindAssembly();updatePieces()}for(const b of stage.querySelectorAll('[data-chimera-save]'))b.onclick=()=>saveResult(Number(b.dataset.chimeraSave));
+  for(const [id,direction] of [['chimeraPrevious',-1],['chimeraNext',1]]){
+   const button=$('#'+id);if(button)button.onclick=()=>{if(isHost&&host?.phase==='finished')sendHost({type:'gameChimeraReveal',gameId:view.id,direction})};
+  }
+  if($('#chimeraAgain'))$('#chimeraAgain').onclick=newHost;
  }
  function sendEdit(type,extra={}){sendHost({type,gameId:view.id,...extra})}
  function selectPiece(id){if(!editable(view.pieces.find(p=>p.id===id)||{}))return;selected=id;sendEdit('gameChimeraClaim',{pieceId:id});updatePieces()}
