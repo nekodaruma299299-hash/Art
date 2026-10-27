@@ -4522,9 +4522,11 @@ finishPaint(false)};
   return{paths,segments,arrows,tip:moves[key].gesture+'。必ず一筆で描き、離すと発動。番号・矢印は一例で、逆方向も使えます。',closed:R.dist(p[0],p.at(-1))<8};
  }
  function advancedSoundName(e,impact=false){
+  // エクスキューションは発動・命中時とも通常のスラッシュSEを使用する。
+  if(e.type==='execution')return 'artsSlash';
   if(e.type==='nightmare_fall')return impact?'arts_nightmare_impact':'arts_advanced_charge';
   if(!R.advancedMoves[e.type])return null;
-  if((e.type==='execution'||e.type==='judgment')&&!impact)return 'arts_advanced_charge';
+  if(e.type==='judgment'&&!impact)return 'arts_advanced_charge';
   return 'arts_'+e.type;
  }
  function drawOutwardAdvancedCut(x,e,now){
