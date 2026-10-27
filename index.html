@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.6 / 単一HTML版（アートキメラの担当抽選と順番発表）
+あーとぴあ 1.3.8 / 単一HTML版（ナイトメア10秒チャージ／バフ解除・セイント覚醒15秒）
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -529,7 +529,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 @media(max-height:550px){.arts-equip-summary{-webkit-line-clamp:1}.arts-equip-symbol svg{height:28px}.arts-equip-info{font-size:10px;min-height:20px;padding:2px}.arts-equip-heading h2{font-size:16px!important}}
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム", "url": "https://nekodaruma299299-hash.github.io/Art/", "inLanguage": "ja", "primaryImageOfPage": {"@type": "ImageObject", "url": "https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png", "width": 180, "height": 180}}</script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.6</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.7</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -2653,7 +2653,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2838,22 +2838,22 @@ window.ArtsRules=(()=>{
  judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'0.45秒構え、描いた位置へ巨大な金色の斬撃を飛ばす。命中した敵の累計与ダメージ×面積倍率。半径100で1倍、150で2.25倍。累計は発動時点で確定',range:'自分から描いた位置まで。斬撃の半幅45〜170、速度480。壁で停止・敵1人につき1回命中。累計0なら威力0',gesture:'左のU字の皿 → 横棒 → 右のU字の皿。一筆で左から右へ進む'},
  execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'0.5秒の予備動作後、威力35＋攻撃力×0.65の物理攻撃',range:'自分の周囲75。壁越しには当たらない',gesture:'添付図の4本の曲線：赤の大きな外弧、青の右上への弧、緑の内弧、紫の抜ける弧。4本の弧を切れ目なくつなぐ一筆書き'},
  soul_eater:{name:'ソウルイーター',class:'executioner',fixedCost:30,cooldown:15000,effect:'威力14＋攻撃力×0.3。実際に削ったHPの40%を回復、各敵の残量から最大10インクを奪う',range:'図形の中心から半径150。壁で遮られる',gesture:'S字を下まで描き、外側を大きな弧で上へ戻る'},
- nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'2秒の詠唱後、戦場へ6秒間、毎秒3発の予告付き落下攻撃。1発14＋攻撃力×0.25。詠唱中の被弾・移動で中断',range:'戦場全体。各落下の予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
+ nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'10秒間強制停止して詠唱。HPダメージを受けると中断。成功すると壁貫通の全域波動で敵のHPを減少させ、攻撃・防御等の強化バフを解除。その後6秒間、毎秒3発の悪夢の落下攻撃',range:'ステージ全体。衝撃波は壁越しでも敵ごと1回命中し、強化バフを消去。落下攻撃は予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、毎秒HP5・インク15回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自分のみ。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
  deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:15000,effect:'図形に最も近い敵1人を2.5秒眠らせる。被ダメージで解除、解除後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'Z字を3つ、右下へ階段状につなぐ。一筆で同じ線をなぞり直さない'},
  greater_heal:{name:'グレーターヒール',class:'saint',fixedCost:55,cooldown:24000,effect:'図形に最も近い生存中の味方1人のHPを最大まで回復。自分も対象',range:'図形の中心に最も近い味方1人',gesture:'太い＋の外枠を描き、一周したら外側を丸く囲む追加の線をつなぐ'},
  holy_blessing:{name:'ホーリーブレッシング',class:'saint',fixedCost:35,cooldown:20000,effect:'自分の最大HPを毎回1.2倍。増えた最大HP分を回復。重複可能・その試合中持続',range:'自分のみ。次の試合ではHP上限100へ戻る',gesture:'上の光輪を一周し、その下へ支柱を伸ばして三角の台座へつなぐ。横棒・なぞり直しは不要'},
- sacred_ascension:{name:'セイクリッドアセンション',class:'saint',fixedCost:60,cooldown:35000,effect:'4秒間、5能力値を3倍。インク上限も3倍。HP・現在インク・回復量・CDは変化なし。終了後の超過インクは通常上限の1.5倍まで保持',range:'自分のみ。職業と元の能力配分は変化しない',gesture:'6つの頂点を持つ星の外周を一周する。中央で線を交差させない'}
+ sacred_ascension:{name:'セイクリッドアセンション',class:'saint',fixedCost:60,cooldown:35000,effect:'15秒間、5能力値を3倍。インク上限も3倍。HP・現在インク・回復量・CDは変化なし。終了後の超過インクは通常上限の1.5倍まで保持',range:'自分のみ。職業と元の能力配分は変化しない',gesture:'6つの頂点を持つ星の外周を一周する。中央で線を交差させない'}
  };
  for(const m of Object.values(advancedMoves)){m.rate=0;m.text=m.effect+'。'+m.gesture;}
  Object.assign(moves,advancedMoves);
  function advancedType(s){if(!s||s.reduce((a,b)=>a+b,0)!==100)return null;
-  if(s[1]>=30&&s[2]>=30&&s[0]<=12&&s[4]<=12)return'executioner';
-  if(s[0]>=30&&s[4]>=30&&s[2]<=10)return'dreamer';
-  if(s[1]<=5&&s[2]<=5&&s[3]>=35&&s[4]>=35)return'saint';return null;
+  if(s[1]>=35&&s[2]>=35&&s[0]<=10&&s[4]<=10)return'executioner';
+  if(s[0]>=36&&s[4]>=36&&s[2]<=7)return'dreamer';
+  if(s[1]<=5&&s[2]<=5&&s[3]>=39&&s[4]>=39)return'saint';return null;
  }
  function advancedProgress(s){
-  const rules=[['executioner',[[1,30,1],[2,30,1],[0,12,-1],[4,12,-1]]],['dreamer',[[0,30,1],[4,30,1],[2,10,-1]]],['saint',[[1,5,-1],[2,5,-1],[3,35,1],[4,35,1]]]];
+  const rules=[['executioner',[[1,35,1],[2,35,1],[0,10,-1],[4,10,-1]]],['dreamer',[[0,36,1],[4,36,1],[2,7,-1]]],['saint',[[1,5,-1],[2,5,-1],[3,39,1],[4,39,1]]]];
   const names=['素早さ','攻撃','防御','インク','射程'];
   return rules.map(([k,terms])=>({name:advancedJobs[k].name,needs:terms.map(([i,v,d])=>d===1&&s[i]<v?names[i]+'あと'+(v-s[i]):d===-1&&s[i]>v?names[i]+'を'+v+'以下に':null).filter(Boolean)}));
  }
@@ -2899,11 +2899,11 @@ window.ArtsRules=(()=>{
   return best;
  }
  function advancedShapeAllowed(paths,k,score=advancedShapeScore(paths,k)){
-  if(score>=.105||length(paths)/Math.max(1,statBox(paths.flat()).span)<1.35)return false;
+  if(score>=(advancedJobs.dreamer.pool.includes(k)?.152:.115)||length(paths)/Math.max(1,statBox(paths.flat()).span)<1.35)return false;
   if(score<.045)return true;
   // A plain circle/line/star/crown must still remain its basic art.
   const simple=['slash','warp','thrust','star','aura','heal','confusion','build','cross','burst'];
-  for(const key of simple){const other=advancedShapeScore(paths,key);if(other+.012<score)return false;}
+  for(const key of simple){const other=advancedShapeScore(paths,key);if(other+(advancedJobs.dreamer.pool.includes(k)?.026:.012)<score)return false;}
   return true;
  }
  function advancedGestureScore(path,k){const score=advancedShapeScore([path],k);return advancedShapeAllowed([path],k,score)?score*2:Infinity;}
@@ -3041,21 +3041,17 @@ window.ArtsRules=(()=>{
  function localClassSignals(raw){
   const paths=cleanDrawingPaths(raw),base=baseClassSignals(paths);
   if(!paths.length)return base;
-  const full=Math.max(1,statBox(paths.flat()).span);let chosen=null;const history=[];
+  const full=Math.max(1,statBox(paths.flat()).span),recent={attacker:0,tank:0,trickster:0,gunner:0,magician:0};
   for(let i=0;i<paths.length;i++){
    const signals=baseClassSignals([paths[i]],full);
-   // Adjacent strokes also allow multi-stroke shields, nested circles and speed accents.
-   if(i>=1&&(statBox(paths[i]).span/full>=.12||(statQuickMarks([statMeta(paths[i])],full)[0]||0)>.7)&&Math.max(...Object.values(signals))<.85){const group=paths.slice(Math.max(0,i-3),i+1),combined=baseClassSignals(group,full),previous=baseClassSignals(group.slice(0,-1),full);
-    for(const key of ['tank','trickster'])if(combined[key]>signals[key]&&combined[key]>previous[key]+.15)signals[key]=combined[key];}
-   const best=Object.entries(signals).sort((a,b)=>b[1]-a[1])[0];
-   if(best[1]>=.85){chosen=best;history.push(best)}
+   // Recognize adjacent shield/speed motifs as a group, without instantly forcing
+   // any stat to a fixed value when a threshold is crossed.
+   if(i>=1){const group=paths.slice(Math.max(0,i-3),i+1),combined=baseClassSignals(group,full);
+    for(const key of ['tank','trickster'])signals[key]=Math.max(signals[key],combined[key]*.82);}
+   const recency=.72+.28*(i+1)/paths.length;
+   for(const key of Object.keys(recent))recent[key]=Math.max(recent[key],signals[key]*recency);
   }
-  if(chosen){for(const key of Object.keys(base))base[key]*=.55;
-   base[chosen[0]]=Math.max(2.4,chosen[1]*1.9);
-   const partner={attacker:['tank'],tank:['attacker'],trickster:['gunner'],gunner:['trickster','magician'],magician:['gunner']}[chosen[0]]||[];
-   const earlier=[...history].reverse().find(v=>partner.includes(v[0]));
-   if(earlier){base[chosen[0]]=2.8;base[earlier[0]]=2.8;}
-  }
+  for(const key of Object.keys(base))base[key]=Math.max(base[key],recent[key]*1.12)+recent[key]*.12;
   return base;
  }
  // Recognize local armor bends even when the outline is open or overshoots.
@@ -3320,12 +3316,15 @@ window.ArtsRules=(()=>{
    strengths[3]=Math.max(strengths[3],local.magician*.95);
    // Keep Ink and Range independent. A spiral cannot earn Range points.
    strengths[4]=Math.max(strengths[4],local.gunner);
-  const focus=Object.entries(local).find(([,value])=>value>=2.4);
-  if(focus){const index={trickster:0,attacker:1,tank:2,magician:3,gunner:4}[focus[0]];
-   for(let i=0;i<strengths.length;i++)if(i!==index)strengths[i]*=.75;}
-  const paired=Object.entries(local).filter(([,v])=>v>=2.8);
-  if(paired.length===2){const index={trickster:0,attacker:1,tank:2,magician:3,gunner:4},keep=paired.map(([k])=>index[k]);
-   for(let i=0;i<strengths.length;i++)strengths[i]=keep.includes(i)?2.8:Math.min(.10,strengths[i]*.1);}
+   // Smooth competition between strong features; never snap two attributes to
+   // 2.8 or erase the other three when an individual stroke crosses a threshold.
+   const dominant=Math.max(...Object.values(local),.001);
+   const influence=clamp((dominant-.9)/2.2,0,1);
+   for(let i=0;i<strengths.length;i++){
+    const key=['trickster','attacker','tank','magician','gunner'][i];
+    const relative=clamp((local[key]||0)/dominant,0,1);
+    strengths[i]*=1-.10*influence*(1-relative);
+   }
   return allocate(strengths.map(v=>1+60*v));
  }
 
@@ -3823,7 +3822,7 @@ window.ArtsRules=(()=>{
  }
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
  // Advanced symbols compare final geometry, independent of stroke order.
- {let best=.105,chosen=null;for(const key of equipped){if(!advancedMoves[key])continue;const score=advancedShapeScore(strokes,key);if(score<best&&advancedShapeAllowed(strokes,key,score)){best=score;chosen=key}}
+ {let best=Infinity,chosen=null;for(const key of equipped){if(!advancedMoves[key])continue;const score=advancedShapeScore(strokes,key);if(score<best&&advancedShapeAllowed(strokes,key,score)){best=score;chosen=key}}
   if(chosen)return{type:chosen,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:Math.max(...points.map(p=>Math.hypot(p.x,p.y))),angle:Math.atan2(cy,cx),tip:points[0],strokes};
  }
  // Straight pen traces must NEVER become a circle, triangle, or complex equipped art.
@@ -3894,7 +3893,7 @@ window.ArtsRules=(()=>{
  function placementRange(type,stats){return clamp(175+5*clamp(Number(stats?.[4])||3,3,255),190,1450)}
  function inRange(shape,stats){const range=placementRange(shape?.type,stats);return !!shape?.strokes?.length&&shape.strokes.every(path=>path.length>0&&path.every(p=>Math.hypot(p.x,p.y)<=range+0.001))}
  // Magic's damage scales with Attack (stat 2), not Range (stat 5).
- function magicDamage(stats,strokeLength,practice=false,boost=1){const attack=clamp(Number(stats?.[1])||3,3,255)*boost;const power=clamp(strokeLength/220,.45,2.6);return(12+attack*.65)*power*(practice?.65:1)}
+ function magicDamage(stats,strokeLength,practice=false,boost=1){const attack=clamp(Number(stats?.[1])||3,3,255)*boost;const power=clamp(strokeLength/220,.45,2.6);return(18+attack*.80)*power*(practice?.65:1)}
  function cost(shape){const m=moves[shape.type];return m.fixedCost??Math.max(1,Math.ceil(shape.length*m.rate*1.5))}
  function map(stage='garden'){
  const variants={
@@ -3982,7 +3981,7 @@ window.ArtArts=(()=>{
  const dealer=host.fighters.find(p=>p.id===(source?.owner||source?.id));
  if(actual>0&&dealer&&dealer.id!==target.id&&!friendly(dealer,target))dealer.damageDealt=(dealer.damageDealt||0)+actual;
  if(target.hp<=0&&actual>0)target.killedBy=source?.owner||source?.id||null;
- if(impact>0){if(target.sleepUntil>now)target.sleepImmuneUntil=now+3000;target.sleepUntil=0;target.daydreamUntil=0;target.nightmareUntil=0;target.rechargeUntil=0;target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=impact;
+ if(impact>0){if(target.sleepUntil>now)target.sleepImmuneUntil=now+3000;target.sleepUntil=0;target.daydreamUntil=0;if(actual>0)target.nightmareUntil=0;target.rechargeUntil=0;target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=impact;
  if(knockback>0&&source){const dx=target.x-source.x,dy=target.y-source.y,d=Math.hypot(dx,dy)||1,total=knockback*Math.min(1,impact/Math.max(1,raw)),steps=Math.ceil(total/6);for(let i=0;i<steps;i++){const nx=target.x+dx/d*total/steps,ny=target.y+dy/d*total/steps;if(R.blocked(nx,ny,host.blocks))break;target.x=nx;target.y=ny}target.dash=null}
  target.flash=now+1000;if(target.reactor>now)target.ink=Math.min(Math.max(target.ink,target.maxInk),target.ink+actual*1.5)}return actual;
  }
@@ -3995,8 +3994,19 @@ window.ArtArts=(()=>{
  // A completed gesture is an atomic cast request. Do not require the independent
  // drawing=true input packet to have arrived first (multiplayer latency/reordering).
  function setAwakening(p,on,now){
-  if(on){p.baseStats??=[...p.stats];p.baseMaxInk??=p.maxInk;p.stats=p.baseStats.map(v=>v*3);p.maxInk=p.baseMaxInk*3;p.ascensionUntil=now+4000;}
+  if(on){p.baseStats??=[...p.stats];p.baseMaxInk??=p.maxInk;p.stats=p.baseStats.map(v=>v*3);p.maxInk=p.baseMaxInk*3;p.ascensionUntil=now+15000;}
   else{if(p.baseStats)p.stats=[...p.baseStats];if(p.baseMaxInk)p.maxInk=p.baseMaxInk;p.ink=Math.min(p.ink,p.maxInk*1.5);p.ascensionUntil=0;}
+ }
+ // Nightmare shockwave removes positive buffs but never removes harmful statuses.
+ // The HP reduction is applied separately by hurt(), and all enemies are hit through walls.
+ function removePositiveBuffs(target,now){
+  const hadAscension=target.ascensionUntil>now;
+  const hadBlessing=(target.blessingStacks||0)>0;
+  const hadOther=target.auraUntil>now||target.iron>now||target.reactor>now||target.armorUntil>now||target.armorHP>0;
+  if(hadAscension)setAwakening(target,false,now);
+  if(hadBlessing){target.blessingStacks=0;target.maxHp=100;target.hp=Math.min(target.hp,target.maxHp);}
+  target.auraUntil=0;target.iron=0;target.reactor=0;target.armorUntil=0;target.armorHP=0;
+  return hadAscension||hadBlessing||hadOther;
  }
  function castAdvanced(p,e,shape,attack,now){
   const k=shape.type;if(!R.advancedMoves[k])return false;
@@ -4014,12 +4024,19 @@ window.ArtArts=(()=>{
     const damage=hurt(q,e.power,now,e);if(damage>0){healed+=damage*.4;const drained=Math.min(10,Math.max(0,q.ink||0));q.ink-=drained;ink+=drained;}}
    p.hp=Math.min(p.maxHp||100,p.hp+healed);p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+ink);e.healed=healed;
   }
-  if(k==='nightmare'){p.nightmareUntil=now+2000;p.nightmareOrigin={x:p.x,y:p.y};e.x=p.x;e.y=p.y;e.r=80;e.power=14+attack*.25;e.nextWave=now+2000;e.waves=0;e.end=now+8500;e.channel=true;}
+  if(k==='nightmare'){
+   // Ten-second, fully immobilized channel; only HP damage or hard control cancels it.
+   // A hit that merely consumes a temporary shield does not interrupt the channel.
+   p.nightmareUntil=now+10000;p.nightmareOrigin={x:p.x,y:p.y};
+   p.dash=null;p.guard=0;p.moving=false;
+   e.x=p.x;e.y=p.y;e.r=80;e.power=18+attack*.32;
+   e.channelEndAt=now+10000;e.nextWave=e.channelEndAt;e.waves=0;e.end=e.channelEndAt+8000;e.channel=true;
+  }
   if(k==='daydream'){p.daydreamUntil=now+4000;p.daydreamOrigin={x:p.x,y:p.y};e.x=p.x;e.y=p.y;e.r=50;e.end=now+4000;}
   if(k==='deep_sleep'){const q=nearestEnemy(180);e.r=70;e.end=now+750;if(q&&!(q.sleepImmuneUntil>now)){q.sleepUntil=now+2500;q.sleepImmuneUntil=q.sleepUntil+3000;q.dash=null;q.drawing=false;q.preview=[];q.guard=0;q.daydreamUntil=0;q.nightmareUntil=0;delete host.inputs[q.id];e.x=q.x;e.y=q.y;e.targetId=q.id;}}
   if(k==='greater_heal'){const q=nearestSupportTarget(p,shape);q.hp=q.maxHp||100;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
   if(k==='holy_blessing'){const old=p.maxHp||100;p.maxHp=old*1.2;p.hp=Math.min(p.maxHp,p.hp+p.maxHp-old);p.blessingStacks=(p.blessingStacks||0)+1;e.x=p.x;e.y=p.y;e.r=55;e.end=now+1000;}
-  if(k==='sacred_ascension'){setAwakening(p,true,now);e.x=p.x;e.y=p.y;e.r=70;e.end=now+4000;}
+  if(k==='sacred_ascension'){setAwakening(p,true,now);e.x=p.x;e.y=p.y;e.r=70;e.end=now+15000;}
   return true;
  }
  function updateAdvanced(dt,now){
@@ -4027,9 +4044,12 @@ window.ArtArts=(()=>{
    if(p.ascensionUntil&&(!(p.ascensionUntil>now)||p.hp<=0||!p.active))setAwakening(p,false,now);
    if(p.sleepUntil&&p.sleepUntil<=now)p.sleepUntil=0;
    const input=host.inputs[p.id],moving=input&&now-input.at<450&&Math.hypot(input.x,input.y)>.01;
-   for(const kind of ['daydream','nightmare'])if(p[kind+'Until']){
-    const origin=p[kind+'Origin'];if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.sleepUntil>now||moving||origin&&R.dist(p,origin)>2)p[kind+'Until']=0;
+   if(p.daydreamUntil){
+    const origin=p.daydreamOrigin;
+    if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.sleepUntil>now||moving||origin&&R.dist(p,origin)>2)p.daydreamUntil=0;
    }
+   // Damage interruption happens in hurt(); held joystick input does not cancel.
+   if(p.nightmareUntil&&(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.sleepUntil>now))p.nightmareUntil=0;
    if(p.daydreamUntil){
     if(now>=p.daydreamUntil)p.daydreamUntil=0;
     else{p.hp=Math.min(p.maxHp||100,p.hp+5*dt);if(!(p.inkLock>now))p.ink=Math.min(p.maxInk*1.5,p.ink+15*dt);}
@@ -4040,7 +4060,16 @@ window.ArtArts=(()=>{
    if(['daydream','sacred_ascension'].includes(e.type)){const until=e.type==='daydream'?owner.daydreamUntil:owner.ascensionUntil;if(!until)e.end=now;e.x=owner.x;e.y=owner.y;}
    if(e.type==='execution'&&!e.resolved){e.x=owner.x;e.y=owner.y;}
    if(e.type==='nightmare'&&e.end>now){
-    if(e.channel){if(!owner.nightmareUntil){e.end=now;continue}if(now>=e.nextWave){e.channel=false;owner.nightmareUntil=0}}
+    if(e.channel){
+     if(!owner.nightmareUntil||owner.hp<=0||!owner.active){e.end=now;continue;}
+     if(now>=e.nextWave){
+      e.channel=false;owner.nightmareUntil=0;
+      e.nextWave=now+950;e.end=now+7500;
+      host.effects.push({id:++host.seq,type:'nightmare_shockwave',owner:owner.id,
+       x:e.x,y:e.y,r:Math.hypot(R.W,R.H)+R.R*2,power:16+((owner.stats||[])[1]||0)*.32,
+       damageType:'magic',start:now,end:now+1750,hitIds:[]});
+     }
+    }
     if(!e.channel&&e.waves<6&&now>=e.nextWave){
      const wave=e.id+':'+e.waves;e.waves++;e.nextWave+=1000;
      const enemies=host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q));
@@ -4048,6 +4077,19 @@ window.ArtArts=(()=>{
       host.effects.push({id:++host.seq,type:'nightmare_fall',owner:owner.id,x,y,r:95,power:e.power,damageType:'magic',wave,start:now,resolveAt:now+1000,end:now+1550});}
     }
    }
+    if(e.type==='nightmare_shockwave'){
+     if(now<e.start)continue;
+     const fraction=R.clamp((now-e.start)/Math.max(1,e.end-e.start),0,1);
+     const radius=e.r*fraction;
+     e.hitIds??=[];
+     for(const q of host.fighters){
+      if(!q.active||q.hp<=0||friendly(owner,q)||e.hitIds.includes(q.id))continue;
+      if(R.dist(q,e)>radius+R.R)continue;
+      e.hitIds.push(q.id);hurt(q,e.power,now,e,true);
+      if(removePositiveBuffs(q,now))host.effects.push({id:++host.seq,type:'nightmare_dispel',owner:owner.id,x:q.x,y:q.y,r:76,start:now,end:now+900});
+     }
+     continue;
+    }
    if(e.type==='judgment'&&e.projectile){
     if(now<e.launchAt)continue;
     const travel=Math.min(e.distance,Math.max(0,(now-e.launchAt)/1000)*e.speed),previous=e.travel||0,steps=Math.max(1,Math.ceil((travel-previous)/8));
@@ -4083,7 +4125,7 @@ window.ArtArts=(()=>{
   const centre={x:caster.x+shape.x,y:caster.y+shape.y};
   return host.fighters.filter(q=>q.active&&q.hp>0&&friendly(caster,q)).sort((a,b)=>R.dist(a,centre)-R.dist(b,centre)||String(a.id).localeCompare(String(b.id)))[0]||caster;
  }
- function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m)return false;if(p.pull||p.stunnedUntil>now||p.sleepUntil>now){p.castError='引き寄せ・行動不能中は発動できません。';return false;}if(m.class&&(!(p.skills||[]).includes(shape.type)||!R.skills(p.class).includes(shape.type)))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';if(p.nightmareUntil>now){p.castError='ナイトメアを詠唱中です。移動すると中断します。';return false}if(p.rechargeUntil>now){p.castError='インクを集中回復しています。';return false}if(shape.type==='recharge'&&(p.inkLock>now||p.ink>=p.maxInk)){p.castError=p.inkLock>now?'インク回復禁止中です。':'インクは満タンです。';return false}let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:50,maxHp:50,material:'paint',summoned:true};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>(q.summoned||q.temporary)&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}if(shape.type==='warp'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R+2)){p.castError='ワープ先に壁や石があります。空いた場所へ描いてください。';return false}
+ function cast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id),m=shape&&moves[shape.type];if(!p||!p.active||p.hp<=0||!m)return false;if(p.pull||p.stunnedUntil>now||p.sleepUntil>now){p.castError='引き寄せ・行動不能中は発動できません。';return false;}if(m.class&&(!(p.skills||[]).includes(shape.type)||!R.skills(p.class).includes(shape.type)))return false;if(!R.inRange(shape,p.stats))return false;p.castError='';if(p.nightmareUntil>now){p.castError='ナイトメアの詠唱中は移動できません。ダメージを受けると中断します。';return false}if(p.rechargeUntil>now){p.castError='インクを集中回復しています。';return false}if(shape.type==='recharge'&&(p.inkLock>now||p.ink>=p.maxInk)){p.castError=p.inkLock>now?'インク回復禁止中です。':'インクは満タンです。';return false}let buildBlock=null;if(shape.type==='build'){buildBlock={type:'wall',x:p.x+shape.x-shape.w/2,y:p.y+shape.y-shape.h/2,w:shape.w,h:shape.h,hp:50,maxHp:50,material:'paint',summoned:true};const b=buildBlock;if(b.x<0||b.y<0||b.x+b.w>R.W||b.y+b.h>R.H)p.castError='壁がマップの外にはみ出しています。';else if(host.blocks.some(q=>q.type!=='bush'&&(q.type!=='wall'||q.hp>0)&&b.x<q.x+q.w&&b.x+b.w>q.x&&b.y<q.y+q.h&&b.y+b.h>q.y))p.castError='地形や別の壁と重なっています。空いている場所に描いてください。';else if(host.fighters.some(q=>q.active&&q.hp>0&&R.intersects(q.x,q.y,R.R+6,b)))p.castError='キャラと重なっています。自分から少し離れた場所に描いてください。';else if(host.blocks.filter(q=>(q.summoned||q.temporary)&&q.hp>0).length>=12)p.castError='設置できる壁は同時に12個までです。';if(p.castError)return false}if(shape.type==='warp'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R+2)){p.castError='ワープ先に壁や石があります。空いた場所へ描いてください。';return false}
  if(shape.type==='ricochet'&&host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(p.x+shape.x,p.y+shape.y,11,b))){p.castError='壁の中からは跳弾を撃てません。';return false}
  if(shape.type==='summon'&&host.effects.filter(v=>v.type==='summonBody'&&v.owner===id&&v.hp>0&&v.end>now).length>=2){p.castError='ペットは同時に2体まで召喚できます。';return false}
  const cost=R.cost(shape),readyAt=Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;(p.artCooldowns??={})[shape.type]=now+m.cooldown;p.nextCast=now+(m.class?350:150);if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
@@ -4103,7 +4145,7 @@ window.ArtArts=(()=>{
   for(let i=0;i<16;i++){const a=i*Math.PI*2/16;host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,power:6+attack*.15,radius:10,knockback:100,left:400,end:now+3500,hit:[],pierce:false,passWalls:false,style:'repulse',group:e.id})}
  }
  if(shape.type==='guard'){p.guard=now+1000;p.guardAngle=aim;p.guardWidth=R.clamp(shape.length/160,.4,1.55);p.guardValue=8+p.stats[2]*.35+power*3;p.guardX=target.x;p.guardY=target.y;p.guardRadius=R.clamp(shape.length/2,30,150);e.r=p.guardRadius;e.end=p.guard}
- if(shape.type==='slash'){const distance=Math.hypot(dx,dy),limit=R.placementRange('slash',p.stats)*.5,scale=distance>limit?limit/distance:1;e.x=p.x+dx*scale;e.y=p.y+dy*scale;e.tx=e.x;e.ty=e.y;e.angle=distance>1?Math.atan2(dy,dx):aim;e.r=R.clamp(shape.radius||30,15,140);e.power=(5+attack*.28)*power;melee(p,e,now)}
+ if(shape.type==='slash'){const distance=Math.hypot(dx,dy),limit=R.placementRange('slash',p.stats)*.5,scale=distance>limit?limit/distance:1;e.x=p.x+dx*scale;e.y=p.y+dy*scale;e.tx=e.x;e.ty=e.y;e.angle=distance>1?Math.atan2(dy,dx):aim;e.r=R.clamp(shape.radius||30,15,140);e.power=(11+attack*.46)*power;melee(p,e,now)}
  if(shape.type==='magic'){const practice=!!host.players.find(q=>q.id===id)?.bot,range=practice?300:Math.min(260+shape.length*1.8,740),speed=practice?200:224+Math.min(shape.length,500)*.96;host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,vx:Math.cos(aim)*speed,vy:Math.sin(aim)*speed,power:R.magicDamage(p.stats,shape.length,practice,p.auraUntil>now?1.5:1),radius:practice?10:16,knockback:practice?16:60+attack*.8,left:range,end:now+range/speed*1000+100,hit:[],pierce:true})}
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
@@ -4272,6 +4314,7 @@ window.ArtArts=(()=>{
  for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
  if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(7+(p.baseStats||p.stats)[3]*.12)*2/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
+ if(p.nightmareUntil>now){p.dash=null;p.moving=false;continue;}
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+p.stats[0]*4)*(p.slow>now?.5:1),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const vx=mx*speed*dt*(p.confused>now?-1:1),vy=my*speed*dt*(p.confused>now?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
@@ -4377,7 +4420,7 @@ window.ArtArts=(()=>{
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'固有スキルを選ぼう',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
- $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>上級職は条件達成時に優先：エクスキューショナー＝攻撃・防御各30以上、素早さ・射程各12以下。ドリーマー＝素早さ・射程各30以上、防御10以下。セイント＝攻撃・防御各5以下、インク・射程各35以上。武器と盾など2つの明確な特徴は両方を評価します。絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。後から描いた明確な盾・トゲ・渦巻き・スピード線・長い線は特に強く反映されます。細部の描き足しでは特化が解除されず、職業は実際の能力値から決まります。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、近くに同じ向き・同程度の長さの線を3本並べるとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きはインク量を大きく増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>閉じきらない四角や、描き終わりがはみ出した盾、直角からずれた角でも防御力が上がります。二重の丸・楕円も装甲として評価します。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
+ $('#artsClassHelp').onclick=()=>modal('ジョブの決まり方','<p>上級職は条件達成時に優先：エクスキューショナー＝攻撃・防御各35以上、素早さ・射程各10以下。ドリーマー＝素早さ・射程各36以上、防御7以下。セイント＝攻撃・防御各5以下、インク・射程各39以上。武器と盾など2つの明確な特徴は両方を評価します。絵の形から5つの能力を合計100ポイントに配分します。各能力は最低3ポイント。一本の線は原則として一つの能力だけに分類し、細かな目・口・模様の影響は抑え、特徴は強いもの上位3つを中心に評価します。後から描いた明確な盾・トゲ・渦巻き・スピード線・長い線は特に強く反映されます。細部の描き足しでは特化が解除されず、職業は実際の能力値から決まります。</p><ul><li><b>アタッカー：</b>キャラの外側へ大きく突き出す鋭いトゲは攻撃力、短い直線を素早く引くと素早さが上がります。目安は0.45秒以内で、近くに同じ向き・同程度の長さの線を3本並べるとトリッカーを狙えます。長い線は射程に反映されます。</li><li><b>マジシャン：</b>グルグルした渦巻きはインク量を大きく増やすためマジシャン向きです。塗りつぶしはインク量を大きく増やします。本体から離れた弾・魔法弾でも射程が上がります。小さな渦巻きもその部分の大きさで評価します。</li><li><b>ディフェンダー：</b>閉じきらない四角や、描き終わりがはみ出した盾、直角からずれた角でも防御力が上がります。二重の丸・楕円も装甲として評価します。太く閉じた外殻も評価し、横に広い大きな胴体には少し加点します。小さな目や装飾を大量に描くだけでは防御力は伸びません。</li><li><b>トリッカー：</b>素早さ＋インク量が高いと出現。短い直線を0.45秒以内に3本ほど描くと狙えます。幻影・煙・ワープで相手を翻弄します。</li><li><b>ガンナー：</b>一筆で長く伸びる線や、本体から離れた弾丸を描くと射程が大きく上がり、ガンナーを狙いやすくなります。小さな線の数やグルグルした落書きだけでは射程が伸びません。連射・壁貫通・散弾・跳弾が得意です。</li></ul><p>各ステータスの組み合わせに加え、はっきりした盾・二重の輪・渦巻きなどの局所特徴でもジョブが決まります。単に描き込みを増やしただけで特定ジョブになることは避けています。</p><p>射程は、一筆で長く続く直線的な線や分離した弾丸の特徴で伸ばせます。長い渦巻きはインク量に、短い直線の装飾は主に素早さに反映されます。射程は全アーツ共通の描画可能な円の半径です。射程が低いと狭く、高いと広くなります。マジックの威力は攻撃力と線の長さに依存します。ガードは正面のマジック弾を防ぎ、近接攻撃はガードを貫通します。マジックはノックバックで近接攻撃を遠ざけられます。</p>');
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
@@ -4525,6 +4568,7 @@ finishPaint(false)};
   // エクスキューションは発動・命中時とも通常のスラッシュSEを使用する。
   if(e.type==='execution')return 'artsSlash';
   if(e.type==='nightmare_fall')return impact?'arts_nightmare_impact':'arts_advanced_charge';
+  if(e.type==='nightmare_shockwave')return 'arts_nightmare_impact';
   if(!R.advancedMoves[e.type])return null;
   if(e.type==='judgment'&&!impact)return 'arts_advanced_charge';
   return 'arts_'+e.type;
@@ -4556,7 +4600,7 @@ finishPaint(false)};
  }
  function drawAdvancedEffect(x,e,now){
   if(drawOutwardAdvancedCut(x,e,now))return true;
-  const key=e.type==='judgment_mark'?'judgment':e.type==='nightmare_fall'?'nightmare':e.type,m=R.advancedMoves[key];if(!m)return false;
+  const key=e.type==='judgment_mark'?'judgment':['nightmare_fall','nightmare_shockwave','nightmare_dispel'].includes(e.type)?'nightmare':e.type,m=R.advancedMoves[key];if(!m)return false;
   const age=Math.max(0,now-e.start),duration=Math.max(1,e.end-e.start),t=R.clamp(age/duration,0,1),warning=!!e.resolveAt&&now<e.resolveAt,hit=e.resolveAt?R.clamp((now-e.resolveAt)/850,0,1):t,r=e.r||60;
   const palette={judgment:['#733647','#ffd481','#fff7da'],execution:['#74273d','#ff577d','#fff0e2'],soul_eater:['#125853','#45efbf','#d8fff5'],nightmare:['#34244e','#a56eff','#dfceff'],daydream:['#386b8a','#96dff2','#f3ffff'],deep_sleep:['#493769','#a88ae7','#e4daff'],greater_heal:['#26796b','#9ef5c6','#ffffe6'],holy_blessing:['#8c632d','#ffd977','#fffde3'],sacred_ascension:['#66418a','#efc275','#fff5fc']}[key];
   const [dark,bright,white]=palette;
@@ -4616,10 +4660,69 @@ finishPaint(false)};
    for(let i=0;i<12;i++){const a=i*Math.PI/6,startX=Math.cos(a)*r,startY=Math.sin(a)*r,p=(t+i*.047)%1,px=startX*(1-p)+tx*p,py=startY*(1-p)+ty*p-Math.sin(p*Math.PI)*55;
     x.strokeStyle=bright;x.lineWidth=2;x.beginPath();x.moveTo(startX,startY);x.quadraticCurveTo((startX+tx)/2,(startY+ty)/2-55,px,py);x.stroke();x.fillStyle=white;x.beginPath();x.ellipse(px,py,5,9,a,0,Math.PI*2);x.fill()}
   }else if(key==='nightmare'){
-   if(e.type==='nightmare_fall'){
+   if(e.type==='nightmare_shockwave'){
+     // A full-stage ripple visible to every player. Draw in stage/world space.
+     const p=R.clamp((now-e.start)/Math.max(1,e.end-e.start),0,1);
+     const radius=r*p,fade=Math.max(.06,1-p*.76);
+     x.globalAlpha=.12*(1-p);
+     x.fillStyle='#27143d';x.fillRect(-e.x,-e.y,R.W,R.H);
+     x.globalAlpha=fade;x.shadowColor='#c39bff';x.shadowBlur=30;
+     for(let i=0;i<3;i++){
+      const rr=Math.max(1,radius-i*34);
+      x.strokeStyle=i===0?'#e7d6ff':i===1?'#af79fc':'#5c3899';
+      x.lineWidth=i===0?19:13;x.beginPath();x.arc(0,0,rr,0,Math.PI*2);x.stroke();
+     }
+     x.shadowBlur=0;
+     for(let i=0;i<32;i++){
+      const a=i*Math.PI*2/32+(e.id||0)*.12;
+      const inner=Math.max(0,radius-85-(i%3)*14),outer=radius+(i%4)*22;
+      x.globalAlpha=fade*(.30+(i%4)*.12);x.strokeStyle=i%3===0?'#f0dfff':'#9f67ec';
+      x.lineWidth=i%5===0?6:3;x.beginPath();
+      x.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);
+      x.lineTo(Math.cos(a+.018)*outer,Math.sin(a+.018)*outer);x.stroke();
+     }
+    }else if(e.type==='nightmare_fall'){
     if(warning){x.globalAlpha=.8;glow(r,dark);sigil(r,-now/1900);x.strokeStyle=bright;x.lineWidth=3;x.beginPath();x.ellipse(0,0,r*.42,r*.15,0,0,Math.PI*2);x.stroke();x.fillStyle=white;x.beginPath();x.ellipse(0,0,5,r*.13,0,0,Math.PI*2);x.fill()}
     else{x.globalAlpha=1-hit;line([-55,-280*(1-hit)],[0,0],dark,32);line([-55,-280*(1-hit)],[0,0],bright,17);line([-55,-280*(1-hit)],[0,0],white,4);glow(r*1.6,bright);ring(r*(.3+hit),bright,6);for(let i=0;i<9;i++){const a=i*2.4;line([0,0],[Math.cos(a)*r*hit,Math.sin(a)*r*hit],dark,3)}particles(20,hit)}
-   }else{x.globalAlpha=e.channel?.9:.6;glow(130,dark);sigil(80+Math.sin(now/220)*5,now/1800);x.fillStyle=dark;x.beginPath();x.ellipse(0,-50,50,40,0,0,Math.PI*2);x.fill();x.strokeStyle=bright;x.lineWidth=4;x.beginPath();x.ellipse(0,-50,38,17,0,0,Math.PI*2);x.stroke();x.fillStyle=white;x.beginPath();x.ellipse(0,-50,5,14,0,0,Math.PI*2);x.fill();for(let i=0;i<12;i++){const a=i*Math.PI/6+now/2000;star(Math.cos(a)*115,Math.sin(a)*75,3,bright)}}
+   }else if(e.type==='nightmare_dispel'){
+    // Distinct shattered halo tells players that a positive buff was removed.
+    const fade=Math.max(0,1-t);
+    x.globalAlpha=fade;x.shadowColor='#e2c9ff';x.shadowBlur=24;
+    for(let i=0;i<12;i++){const a=i*Math.PI/6+(e.id||0)*.17,rr=18+t*105;
+     line([Math.cos(a)*rr,Math.sin(a)*rr],[Math.cos(a+.16)*(rr+22),Math.sin(a+.16)*(rr+22)],i%2?white:bright,4)}
+    x.font='bold 17px sans-serif';x.textAlign='center';x.fillStyle=white;x.strokeStyle=dark;x.lineWidth=4;
+    x.strokeText('強化解除',0,-84-t*22);x.fillText('強化解除',0,-84-t*22);
+   }else if(e.channel){
+    // Ten-second channel: dramatic stage-darkening, growing runes and a readable timer.
+    const channelMs=Math.max(1,(e.channelEndAt||e.nextWave)-(e.start||now));
+    const progress=R.clamp(age/channelMs,0,1),remaining=Math.max(0,(channelMs-age)/1000);
+    x.globalAlpha=.065+progress*.17+Math.sin(now/200)*.015;
+    x.fillStyle='#241339';x.fillRect(-e.x,-e.y,R.W,R.H);
+    x.globalAlpha=.7+progress*.3;glow(100+progress*130,dark);
+    x.shadowColor='#bc8fff';x.shadowBlur=18+progress*34;
+    for(let i=0;i<3;i++){
+     x.save();x.rotate((i%2?1:-1)*age/(1300-i*180));
+     const rr=74+i*22+progress*31;
+     ring(rr,i===0?white:i===1?bright:'#6553ae',i===0?3.5:2.5);
+     for(let j=0;j<12;j++){const a=j*Math.PI/6;
+      line([Math.cos(a)*(rr-9),Math.sin(a)*(rr-9)],[Math.cos(a)*(rr+6),Math.sin(a)*(rr+6)],i===0?white:bright,2.5)}
+     x.restore();
+    }
+    x.strokeStyle=white;x.lineWidth=9;x.beginPath();
+    x.arc(0,0,122+progress*30,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);x.stroke();
+    const throb=1+.10*Math.sin(now/190);
+    x.fillStyle='#20112b';x.beginPath();x.ellipse(0,-49,59*throb,50*throb,0,0,Math.PI*2);x.fill();
+    x.strokeStyle=bright;x.lineWidth=5;x.beginPath();x.ellipse(0,-54,40,19,0,0,Math.PI*2);x.stroke();
+    x.fillStyle=white;x.beginPath();x.ellipse(0,-54,8,18,0,0,Math.PI*2);x.fill();
+    for(let i=0;i<18;i++){const a=i*Math.PI/9+now/1750,d=115+progress*62+(i%3)*13;
+     star(Math.cos(a)*d,Math.sin(a)*d-20,2+i%3,i%4?bright:white)}
+    x.shadowBlur=0;x.textAlign='center';x.font='bold 18px sans-serif';
+    x.strokeStyle='#1c0d2a';x.lineWidth=6;x.fillStyle='#fff5ff';
+    x.strokeText('NIGHTMARE',0,-187);x.fillText('NIGHTMARE',0,-187);
+    x.font='bold 24px sans-serif';const label=remaining.toFixed(1)+'秒';
+    x.strokeText(label,0,200);x.fillText(label,0,200);
+    x.fillStyle='#100b20';x.fillRect(-96,212,192,12);x.fillStyle='#b88cff';x.fillRect(-94,214,188*progress,8);
+   }else{x.globalAlpha=.6;glow(130,dark);sigil(80+Math.sin(now/220)*5,now/1800);}
   }else if(key==='daydream'){
    const pulse=.8+Math.sin(now/280)*.1;x.globalAlpha=pulse;glow(90,bright);ring(54,bright,3,.35);
    for(let i=0;i<6;i++){const a=i*Math.PI/3+now/2000,xx=Math.cos(a)*45,yy=-55+Math.sin(a)*12;x.fillStyle=bright+'77';x.beginPath();x.ellipse(xx,yy,22,12,0,0,Math.PI*2);x.fill()}
@@ -4639,7 +4742,7 @@ finishPaint(false)};
   x.restore();return true;
  }
  function drawAdvancedStatus(x,p,pos,now){
-  const labels=[];if(p.sleepUntil>now)labels.push('睡眠');if(p.daydreamUntil>now)labels.push('夢想・回復中');if(p.nightmareUntil>now)labels.push('悪夢を詠唱中');if(p.ascensionUntil>now)labels.push('覚醒 ×3');
+  const labels=[];if(p.sleepUntil>now)labels.push('睡眠');if(p.daydreamUntil>now)labels.push('夢想・回復中');if(p.nightmareUntil>now)labels.push('悪夢を詠唱中 '+Math.ceil((p.nightmareUntil-now)/1000)+'秒');if(p.ascensionUntil>now)labels.push('覚醒 ×3');
   if(!labels.length&&!p.blessingStacks)return;x.save();x.textAlign='center';x.font='bold 12px sans-serif';x.fillStyle=p.sleepUntil>now?'#685da4':'#a47720';x.fillText(labels.join(' / '),pos.x,pos.y-68);
   if(p.blessingStacks){x.font='11px sans-serif';x.fillText('祝福 ×'+p.blessingStacks,pos.x,pos.y+80)}
   if(p.ascensionUntil>now){x.strokeStyle='#edc568';x.shadowColor='#fff1ae';x.shadowBlur=14;x.lineWidth=3;x.beginPath();x.arc(pos.x,pos.y,46+Math.sin(now/100)*3,0,Math.PI*2);x.stroke()}x.restore();
