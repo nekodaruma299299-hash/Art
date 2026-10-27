@@ -2874,8 +2874,8 @@ window.ArtsRules=(()=>{
  };
  const advancedMoves={
  judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'0.45秒構え、描いた位置へ巨大な金色の斬撃を飛ばす。命中した敵の累計与ダメージ×面積倍率。半径100で1倍、150で2.25倍。累計は発動時点で確定',range:'自分から描いた位置まで。斬撃の半幅45〜170、速度480。壁で停止・敵1人につき1回命中。累計0なら威力0',gesture:'左のU字の皿 → 横棒 → 右のU字の皿。一筆で左から右へ進む'},
- execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'0.5秒の予備動作後、威力35＋攻撃力×0.65の物理攻撃',range:'自分の周囲75。壁越しには当たらない',gesture:'添付図の4本の曲線：赤の大きな外弧、青の右上への弧、緑の内弧、紫の抜ける弧。4本の弧を切れ目なくつなぐ一筆書き'},
- soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'威力14＋攻撃力×0.3。実際に削ったHPの40%を回復し、各敵の残量から最大10インクを奪う',range:'図形の中心から半径150。壁で遮られる',gesture:'上が尖った炎・魂の輪郭を大きく回り、右の小さな炎の先から内側へ入り、中央に約1.5周の渦を描く。一筆書き'},
+ execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'0.5秒の予備動作後、威力35＋攻撃力×0.65の物理攻撃',range:'自分の周囲75。壁越しには当たらない',gesture:'大きな鎌の弧を下へ回り、内側を右上へ折り返し、小さな鎌の弧を下へ抜ける。C案の3つの弧を一筆でつなぐ'},
+ soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'威力14＋攻撃力×0.3。実際に削ったHPの40%を回復し、各敵の残量から最大10インクを奪う',range:'図形の中心から半径150。壁で遮られる',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
  nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'10秒間強制停止して詠唱。HPダメージを受けると中断。成功すると壁貫通の全域波動で敵のHPを減少させ、攻撃・防御等の強化バフを解除。その後6秒間、毎秒3発の悪夢の落下攻撃',range:'ステージ全体。衝撃波は壁越しでも敵ごと1回命中し、強化バフを消去。落下攻撃は予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、毎秒HP5・インク15回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自分のみ。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
  deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:15000,effect:'図形に最も近い敵1人を2.5秒眠らせる。被ダメージで解除、解除後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'Z字を3つ、右下へ階段状につなぐ。一筆で同じ線をなぞり直さない'},
@@ -2901,28 +2901,29 @@ window.ArtsRules=(()=>{
   const bez=(a,b,c,d,n=32)=>Array.from({length:n+1},(_,i)=>{const t=i/n,u=1-t;return{x:u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],y:u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]}});
   if(k==='judgment')return[[...arc(-70,-20,35,55,Math.PI,0),{x:35,y:-20},...arc(70,-20,35,55,Math.PI,0).slice(1)]];
   if(k==='execution')return[[
-   [...bez([618,338],[530,136],[270,279],[206,470],20),...bez([206,470],[170,592],[198,650],[280,681],12).slice(1)],
-   [...bez([280,681],[310,555],[439,409],[550,352],24),...bez([550,352],[598,325],[642,340],[680,367],8).slice(1)],
-   [...bez([680,367],[545,395],[337,472],[362,674],24),...bez([362,674],[368,720],[393,754],[411,774],8).slice(1)],
-   bez([411,774],[413,665],[604,521],[711,448])
-  ].flatMap((p,i)=>i?p.slice(1):p).map(v=>({x:(v.x-450)*.36,y:(v.y-520)*.36}))];
+   ...bez([30,-90],[-82,-85],[-112,48],[-40,78]),
+   ...bez([-40,78],[-55,8],[25,-55],[78,-42]).slice(1),
+   ...bez([78,-42],[2,-15],[-15,50],[12,92]).slice(1)
+  ]];
   if(k==='soul_eater'){
-   // One uninterrupted flame/soul-shaped outer contour followed by a spiral.
-   // Matches the submitted sketch: sharp upper tip, broad round lower body,
-   // curled right flame-tongue, and a smaller whirl in the centre.
-   const contour=[
-    ...bez([-2,-105],[-15,-69],[-96,-68],[-92,-5],22),
-    ...bez([-92,-5],[-92,61],[-47,101],[11,96],22).slice(1),
-    ...bez([11,96],[73,92],[102,40],[75,-9],22).slice(1),
-    ...bez([75,-9],[62,-33],[33,-49],[21,-26],15).slice(1),
-    ...bez([21,-26],[10,-8],[40,6],[37,28],12).slice(1)
+   // Reference: small flame tip -> tall flame -> rounded body -> inward spiral.
+   const curves=[
+    [[699,393],[680,400],[688,360],[681,329]],
+    [[681,329],[671,270],[641,342],[615,388]],
+    [[615,388],[603,306],[537,80],[500,90]],
+    [[500,90],[476,91],[477,176],[435,275]],
+    [[435,275],[406,366],[286,391],[226,544]],
+    [[226,544],[209,590],[200,650],[201,716]],
+    [[201,716],[194,840],[293,932],[405,940]],
+    [[405,940],[464,946],[510,926],[563,906]],
+    [[563,906],[660,865],[715,776],[695,688]],
+    [[695,688],[675,599],[639,558],[580,547]],
+    [[580,547],[483,520],[430,537],[398,570]],
+    [[398,570],[348,615],[359,700],[399,737]],
+    [[399,737],[431,765],[478,754],[495,731]],
+    [[495,731],[510,709],[489,686],[475,686]]
    ];
-   // Follow naturally from the inward hook into a steadily shrinking whirl.
-   const spiral=Array.from({length:65},(_,i)=>{
-    const t=i/64,a=.10+t*Math.PI*3.3,rr=27*(1-t)+3;
-    return{x:11+rr*Math.cos(a),y:25+rr*Math.sin(a)};
-   });
-   return[[...contour,...spiral.slice(1)]];
+   return[[...curves.flatMap((c,i)=>{const p=bez(...c,16);return i?p.slice(1):p})].map(p=>({x:(p.x-450)*.23,y:(p.y-510)*.23}))];
   }
   if(k==='nightmare')return[[...arc(0,0,70,90,-Math.PI/2,Math.PI/2),...arc(0,0,22,90,Math.PI/2,-Math.PI/3).slice(1),...bez([11,-78],[-3,-59],[-21,-45],[-28,-45],16).slice(1),...Array.from({length:61},(_,i)=>{const a=-Math.PI/2+i/60*Math.PI*3.5,r=40*(1-i/60)+5;return{x:-28+r*Math.cos(a),y:r*Math.sin(a)}}).slice(1)]];
   if(k==='daydream')return[[{x:-90,y:42},...arc(-60,0,30,40,Math.PI,2*Math.PI),...arc(0,0,30,58,Math.PI,2*Math.PI).slice(1),...arc(60,0,30,40,Math.PI,2*Math.PI).slice(1),{x:90,y:42},{x:-90,y:42}]];
