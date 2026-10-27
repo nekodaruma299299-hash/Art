@@ -2833,14 +2833,14 @@ window.ArtsRules=(()=>{
   saint:{name:'セイント',color:'#b58a34',pool:['heal','reflect','aura','greater_heal','holy_blessing','sacred_ascension']}
  };
  const advancedMoves={
- judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'敵全員の足元へ予告。1.5秒後、威力20＋攻撃力×0.35。移動で回避可能',range:'戦場の敵全員。予告円の半径70',gesture:'天秤：支柱を上下し、横棒から左右の三角皿を一筆で描く'},
+ judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'敵全員の足元へ予告。1.5秒後、威力20＋攻撃力×0.35。移動で回避可能',range:'戦場の敵全員。予告円の半径70',gesture:'左の皿を描き、横棒で右へつないで右の皿を描く。支柱・なぞり直しは不要'},
  execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'0.5秒の予備動作後、威力35＋攻撃力×0.65の物理攻撃',range:'自分の周囲75。壁越しには当たらない',gesture:'重なった二つの三日月を一筆。最初の月を閉じ、重なる位置でもう一つ描く'},
  soul_eater:{name:'ソウルイーター',class:'executioner',fixedCost:30,cooldown:15000,effect:'威力14＋攻撃力×0.3。実際に削ったHPの40%を回復、各敵の残量から最大10インクを奪う',range:'図形の中心から半径150。壁で遮られる',gesture:'S字を下まで描き、外側を大きな弧で上へ戻る'},
- nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'2秒の詠唱後、戦場へ6秒間、毎秒3発の予告付き落下攻撃。1発14＋攻撃力×0.25。詠唱中の被弾・移動で中断',range:'戦場全体。各落下の予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月を閉じ、内側へ線をつなげて渦巻きを約2周する'},
+ nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'2秒の詠唱後、戦場へ6秒間、毎秒3発の予告付き落下攻撃。1発14＋攻撃力×0.25。詠唱中の被弾・移動で中断',range:'戦場全体。各落下の予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、毎秒HP5・インク15回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自分のみ。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
  deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:15000,effect:'図形に最も近い敵1人を2.5秒眠らせる。被ダメージで解除、解除後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'小さなZ字を3つ、上から下につなげて一筆で描く'},
  greater_heal:{name:'グレーターヒール',class:'saint',fixedCost:55,cooldown:24000,effect:'図形に最も近い生存中の味方1人のHPを最大まで回復。自分も対象',range:'図形の中心に最も近い味方1人',gesture:'太い＋の外枠を描き、一周したら外側を丸く囲む追加の線をつなぐ'},
- holy_blessing:{name:'ホーリーブレッシング',class:'saint',fixedCost:35,cooldown:20000,effect:'自分の最大HPを毎回1.2倍。増えた最大HP分を回復。重複可能・その試合中持続',range:'自分のみ。次の試合ではHP上限100へ戻る',gesture:'上の光輪を一周し、下へ支柱を伸ばして横棒と台座を描く聖印'},
+ holy_blessing:{name:'ホーリーブレッシング',class:'saint',fixedCost:35,cooldown:20000,effect:'自分の最大HPを毎回1.2倍。増えた最大HP分を回復。重複可能・その試合中持続',range:'自分のみ。次の試合ではHP上限100へ戻る',gesture:'上の光輪を一周し、その下へ支柱を伸ばして三角の台座へつなぐ。横棒・なぞり直しは不要'},
  sacred_ascension:{name:'セイクリッドアセンション',class:'saint',fixedCost:60,cooldown:35000,effect:'4秒間、5能力値を3倍。インク上限も3倍。HP・現在インク・回復量・CDは変化なし。終了後の超過インクは通常上限の1.5倍まで保持',range:'自分のみ。職業と元の能力配分は変化しない',gesture:'上向き三角形を閉じ、線をつないで下向き三角形を重ねる六芒星'}
  };
  for(const m of Object.values(advancedMoves)){m.rate=0;m.text=m.effect+'。'+m.gesture;}
@@ -2859,14 +2859,14 @@ window.ArtsRules=(()=>{
   const xy=a=>a.map(([x,y])=>({x,y}));
   const arc=(cx,cy,rx,ry,a,b,n=24)=>Array.from({length:n+1},(_,i)=>({x:cx+rx*Math.cos(a+(b-a)*i/n),y:cy+ry*Math.sin(a+(b-a)*i/n)}));
   const moon=cx=>[...arc(cx,0,55,85,-Math.PI/2,Math.PI/2),...arc(cx,0,22,85,Math.PI/2,-Math.PI/2).slice(1)];
-  if(k==='judgment')return[xy([[0,85],[0,-75],[0,-25],[-80,-25],[-110,35],[-50,35],[-80,-25],[80,-25],[50,35],[110,35],[80,-25]])];
+  if(k==='judgment')return[xy([[-95,-25],[-115,35],[-55,35],[-75,-25],[75,-25],[55,35],[115,35],[95,-25]])];
   if(k==='execution')return[[...moon(-30),...moon(5)]];
   if(k==='soul_eater'){const p=Array.from({length:49},(_,i)=>({x:-48*Math.sin(i/48*Math.PI*2),y:-80+i/48*160}));return[[...p,...arc(0,0,95,80,Math.PI/2,-Math.PI/2).slice(1)]]}
-  if(k==='nightmare')return[[...moon(-25),...Array.from({length:61},(_,i)=>{const a=-Math.PI/2+i/60*Math.PI*4,r=42*(1-i/60)+5;return{x:5+r*Math.cos(a),y:r*Math.sin(a)}})]];
+  if(k==='nightmare')return[[...arc(0,0,70,90,-Math.PI/2,Math.PI/2),...arc(0,0,22,90,Math.PI/2,-Math.PI/3).slice(1),...Array.from({length:61},(_,i)=>{const a=-Math.PI/2+i/60*Math.PI*3.5,r=40*(1-i/60)+5;return{x:-28+r*Math.cos(a),y:r*Math.sin(a)}})]];
   if(k==='daydream')return[[{x:-90,y:45},...arc(-60,0,30,42,Math.PI,2*Math.PI),...arc(0,0,30,70,Math.PI,2*Math.PI).slice(1),...arc(60,0,30,42,Math.PI,2*Math.PI).slice(1),{x:90,y:45},{x:-90,y:45}]];
   if(k==='deep_sleep')return[xy([[-60,-90],[60,-90],[-60,-35],[60,-35],[-60,-10],[60,-10],[-60,45],[60,45],[-60,65],[60,65],[-60,110],[60,110]])];
   if(k==='greater_heal')return[[...xy([[-18,-55],[18,-55],[18,-18],[55,-18],[55,18],[18,18],[18,55],[-18,55],[-18,18],[-55,18],[-55,-18],[-18,-18],[-18,-55],[0,-90]]),...arc(0,0,90,90,-Math.PI/2,Math.PI*1.5).slice(1)]];
-  if(k==='holy_blessing')return[[...arc(0,-55,40,25,Math.PI/2,Math.PI*2.5),...xy([[0,0],[-60,0],[60,0],[0,0],[0,70],[-40,70],[40,70]])]];
+  if(k==='holy_blessing')return[[...arc(0,-55,40,25,Math.PI/2,Math.PI*2.5),...xy([[0,45],[-40,75],[40,75]])]];
   if(k==='sacred_ascension')return[xy([[0,-90],[78,45],[-78,45],[0,-90],[-78,-45],[78,-45],[0,90],[-78,-45]])];
   return null;
  }
@@ -2874,15 +2874,39 @@ window.ArtsRules=(()=>{
  function advancedGestureScore(path,k){
   const model=advancedTemplate(k);if(!model||path.length<4)return Infinity;
   const norm=p=>{const q=resample(p,96),box=statBox(q),cx=q.reduce((s,v)=>s+v.x,0)/96,cy=q.reduce((s,v)=>s+v.y,0)/96,scale=Math.sqrt(q.reduce((s,v)=>s+(v.x-cx)**2+(v.y-cy)**2,0)/96)||1;return q.map(v=>({x:(v.x-cx)/scale,y:(v.y-cy)/scale}))};
-  const a=norm(path),b=norm(model[0]);let best=Infinity;
+  const modelBox=statBox(model[0]),inputBox=statBox(path);
+  if(inputBox.span<15)return Infinity;
+  const a=norm(path),b=norm(model[0]);let best=Infinity,bestTrace=null;
   const closed=dist(model[0][0],model[0].at(-1))<statBox(model[0]).span*.10;
   for(const reverse of [false,true])for(const mirror of [1,-1])for(let shift=0;shift<(closed?96:1);shift+=closed?8:1){
    const q=b.map((_,i)=>b[(reverse?95-i+shift:i+shift)%96]);let dot=0,cross=0;
    for(let i=0;i<96;i++){dot+=a[i].x*q[i].x*mirror+a[i].y*q[i].y;cross+=a[i].y*q[i].x*mirror-a[i].x*q[i].y}
    const theta=Math.atan2(cross,dot),co=Math.cos(theta),si=Math.sin(theta);let sum=0;
    for(let i=0;i<96;i++)sum+=Math.hypot(a[i].x-(q[i].x*mirror*co-q[i].y*si),a[i].y-(q[i].x*mirror*si+q[i].y*co));
-   best=Math.min(best,sum/96);
-  }return best;
+   if(sum/96<best){best=sum/96;bestTrace=q.map(p=>({x:p.x*mirror*co-p.y*si,y:p.x*mirror*si+p.y*co}));}
+  }
+  // Dynamic alignment avoids rejecting a correctly ordered drawing just because
+  // one lobe/side is longer than its counterpart in the example.
+  if(bestTrace){
+   const dp=Array.from({length:97},()=>new Float64Array(97).fill(Infinity));dp[0][0]=0;
+   for(let i=1;i<=96;i++)for(let j=Math.max(1,i-24);j<=Math.min(96,i+24);j++){
+    const d=dist(a[i-1],bestTrace[j-1]);dp[i][j]=d+Math.min(dp[i-1][j-1],dp[i-1][j]+.025,dp[i][j-1]+.025);
+   }
+   best=Math.min(best,dp[96][96]/120);
+  }
+  // Prevent a short basic stroke or a plain circle from winning by a loose fit.
+  const complexity=length([path])/Math.max(inputBox.span,1),expected=length(model)/Math.max(modelBox.span,1);
+  if(complexity<expected*.58||strokeGrammar(path,true).abs<strokeGrammar(model[0],true).abs*.48)return Infinity;
+  const simple=statSimplify(path,inputBox.span*.045),turns=[];
+  for(let i=1;i<simple.length-1;i++){const a=simple[i-1],b=simple[i],c=simple[i+1];const turn=Math.atan2((b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x),(b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y));if(Math.abs(turn)>.25)turns.push(turn);}
+  if(k==='judgment'&&!turns.some((v,i)=>i&&v*turns[i-1]>0))return Infinity;
+  if(k==='soul_eater'&&!(turns.some(v=>v>.3)&&turns.some(v=>v<-.3)))return Infinity;
+  if(k==='greater_heal'){
+   if(turns.filter(v=>v>.4).length<2||turns.filter(v=>v<-.4).length<2)return Infinity;
+   let corners=0;for(const p of simple.slice(1,-1)){let index=0;for(let i=1;i<path.length;i++)if(dist(path[i],p)<dist(path[index],p))index=i;if(statArmorCorner(path,index,false,inputBox.span))corners++;}
+   if(corners<4)return Infinity;
+  }
+  return best;
  }
  const classNames={attacker:'アタッカー',tank:'ディフェンダー',magician:'マジシャン',trickster:'トリッカー',gunner:'ガンナー',executioner:'エクスキューショナー',dreamer:'ドリーマー',saint:'セイント'};
  function type(stats,paths=[]){
@@ -3693,7 +3717,7 @@ window.ArtsRules=(()=>{
   }const turn=strokeGrammar(path,true).abs;return crossing&&turn>3.5&&turn<6.5&&match([path],'cross')<.16;
  }
  function skillGesture(path,skill){
-  if(advancedMoves[skill])return advancedGestureScore(path,skill)<.22;
+  if(advancedMoves[skill])return advancedGestureScore(path,skill)<.32;
   if(['aura','drain','recharge','armor','repulse'].includes(skill))return newSkillGesture(path,skill);
   if(['warp','thrust','build','star'].includes(skill)){if(skill==='warp')return forgivingWarp(path);if(['thrust','build'].includes(skill)&&!relaxedPolygon(path,skill==='thrust'?3:4))return false;return artFeatureScore(path,skill)>=(skill==='thrust'?.78:.72);}
   const g=strokeGrammar(path),{closed,degrees,abs,signed,intersections,pattern,convex,flips,diag,len}=g;
@@ -3800,7 +3824,7 @@ window.ArtsRules=(()=>{
  }
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
  // Advanced symbols are matched by ordered pen travel, before common-art fallbacks.
- if(strokes.length===1){let best=.22,chosen=null;for(const key of equipped){if(!advancedMoves[key])continue;const score=advancedGestureScore(strokes[0],key);if(score<best){best=score;chosen=key}}
+ if(strokes.length===1){let best=.32,chosen=null;for(const key of equipped){if(!advancedMoves[key])continue;const score=advancedGestureScore(strokes[0],key);if(score<best){best=score;chosen=key}}
   if(chosen)return{type:chosen,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:Math.max(...points.map(p=>Math.hypot(p.x,p.y))),angle:Math.atan2(cy,cx),tip:points[0],strokes};
  }
  // Straight pen traces must NEVER become a circle, triangle, or complex equipped art.
@@ -3906,9 +3930,9 @@ window.ArtArts=(()=>{
  const bar=document.createElement('div');bar.id='artsBar';bar.hidden=true;$('#studio').insertBefore(bar,$('.workspace'));
  const stage=document.createElement('section');stage.id='artsStage';stage.hidden=true;$('#viewport').append(stage);
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel','contextmenu'])stage.addEventListener(ev,e=>{e.stopPropagation();if(ev==='contextmenu')e.preventDefault()});
- const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<small id="artsAdvancedProgress"></small><h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">—</output><progress id="artsLiveBar'+i+'" max="100" value="0" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
+ const liveStats=document.createElement('section');liveStats.id='artsLiveStats';liveStats.hidden=true;liveStats.innerHTML='<h3>キャラのパラメーター</h3><b id="artsLiveClass">描いてみよう</b><p>合計100ポイント · 描画中も更新</p>'+names.map((name,i)=>'<label>'+name+'<output id="artsLiveValue'+i+'">—</output><progress id="artsLiveBar'+i+'" max="100" value="0" aria-label="'+name+'"></progress></label>').join('');$('#memberPanel .member-bottom').prepend(liveStats);
  function syncLiveStats(){const editing=!!(enabled()&&view?.phase==='create'&&participant()&&!view.ready[localId]);$('#studio').classList.toggle('arts-character-editing',editing);liveStats.hidden=!editing;return editing}
- function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats,art.drawingPaths)]+' 寄り';if($('#artsAdvancedProgress'))$('#artsAdvancedProgress').textContent=art.empty?'':R.advancedProgress(stats).map(v=>v.name+'：'+(v.needs.join('・')||'条件達成')).join(' ／ ');stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
+ function updateLiveStats(now){if(!syncLiveStats()||now-lastPreview<400)return;lastPreview=now;try{const art=sampleArtwork(true),stats=art.stats;$('#artsLiveClass').textContent=art.empty?'未判定 · 描いてみよう':R.classNames[R.type(stats,art.drawingPaths)]+' 寄り';stats.forEach((n,i)=>{$('#artsLiveValue'+i).textContent=art.empty?'—':n;$('#artsLiveBar'+i).value=art.empty?0:n})}catch{}}
  let savedCharacterSource=null;
  function sizeArtsCanvas(){for(const id of ['display','overlay']){const c=$('#'+id);c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';$('#canvasSize').textContent=engine.w+' × '+engine.h+' px'}
  function clearCanvas(){room.hasArt=false;characterPaths=[];characterFacing=1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value='1';window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);sizeArtsCanvas();pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();prefs.opacities=[100,100,100];$('#transformBar').hidden=true;render();renderControls();fitView()}
