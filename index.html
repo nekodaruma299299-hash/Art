@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.16 / 単一HTML版（処刑技・ソウルハーベスト・設置範囲改善）
+あーとぴあ 1.3.18 / 単一HTML版（エクスキューション双刃回転の描画・判定統一）
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -533,7 +533,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 @media(max-height:550px){.arts-equip-summary{-webkit-line-clamp:1}.arts-equip-symbol svg{height:28px}.arts-equip-info{font-size:10px;min-height:20px;padding:2px}.arts-equip-heading h2{font-size:16px!important}}
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム", "url": "https://nekodaruma299299-hash.github.io/Art/", "inLanguage": "ja", "primaryImageOfPage": {"@type": "ImageObject", "url": "https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png", "width": 180, "height": 180}}</script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.16</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.18</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -2699,7 +2699,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -4125,6 +4125,34 @@ window.ArtArts=(()=>{
   target.auraUntil=0;target.iron=0;target.reactor=0;target.armorUntil=0;target.armorHP=0;target.regenUntil=0;target.regenNextAt=0;
   return hadAscension||hadBlessing||hadOther;
  }
+ // Execution: a single geometric model drives BOTH the host hit detection
+ // and the on-screen animated twin blades. Local +X always points at the drawn gesture.
+ function executionBladePose(e,side,progress){
+  const pivotX=-12,pivotY=side*(e.sideDist||54),focusX=e.focusDist||90;
+  const reach=Math.hypot(focusX-pivotX,pivotY);
+  const closed=Math.atan2(-pivotY,focusX-pivotX);
+  const t=R.clamp(progress,0,1),ease=t*t*(3-2*t);
+  const angle=closed+side*1.04*(1-ease);
+  return{pivotX,pivotY,angle,reach,tipX:pivotX+Math.cos(angle)*reach,tipY:pivotY+Math.sin(angle)*reach};
+ }
+ function executionLocalPoint(e,world){
+  const ang=e.angle||0,dx=world.x-e.x,dy=world.y-e.y;
+  return{x:dx*Math.cos(ang)+dy*Math.sin(ang),y:-dx*Math.sin(ang)+dy*Math.cos(ang)};
+ }
+ function executionSegmentDistance(px,py,ax,ay,bx,by){
+  const vx=bx-ax,vy=by-ay,len=vx*vx+vy*vy||1;
+  const t=R.clamp(((px-ax)*vx+(py-ay)*vy)/len,0,1);
+  return Math.hypot(px-(ax+t*vx),py-(ay+t*vy));
+ }
+ function executionBladeHits(e,q,side){
+  // The whole rotation is dangerous, not just a static final line segment.
+  const local=executionLocalPoint(e,q);
+  for(let i=0;i<=20;i++){
+   const b=executionBladePose(e,side,i/20);
+   if(executionSegmentDistance(local.x,local.y,b.pivotX,b.pivotY,b.tipX,b.tipY)<=R.R+(e.bladeWidth||12))return true;
+  }
+  return false;
+ }
  function castAdvanced(p,e,shape,attack,now){
   const k=shape.type;if(!R.advancedMoves[k])return false;
   const nearestEnemy=radius=>host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(p,q)&&R.dist(q,e)<=radius&&lineClear(e,q)).sort((a,b)=>R.dist(a,e)-R.dist(b,e))[0];
@@ -4138,9 +4166,11 @@ window.ArtArts=(()=>{
    // The drawn point now controls direction only. The blades appear around the caster,
    // then close toward a short forward focus point near the caster.
    const aim=Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):(p.facing>=0?0:Math.PI);
-   e.x=p.x;e.y=p.y;e.angle=aim;e.tx=p.x+Math.cos(aim)*92;e.ty=p.y+Math.sin(aim)*92;
-   e.r=75;e.power=150;e.ignoreDefense=true;e.focusDist=92;e.sideDist=48;e.bladeWidth=22;e.burstR=34;
-   e.resolveAt=now+500;e.end=now+1450;e.damageType='physical';
+   e.x=p.x;e.y=p.y;e.angle=aim;
+   e.focusDist=90;e.sideDist=54;e.bladeWidth=13;e.burstR=30;
+   e.tx=p.x+Math.cos(aim)*e.focusDist;e.ty=p.y+Math.sin(aim)*e.focusDist;
+   e.r=75;e.power=150;e.ignoreDefense=true;
+   e.swingAt=now+210;e.resolveAt=now+550;e.end=now+1450;e.damageType='physical';
   }
   if(k==='soul_eater'){
    // Smaller size range so tiny drawings no longer become gigantic.
@@ -4247,30 +4277,23 @@ window.ArtArts=(()=>{
    if(e.type==='execution'&&!e.resolved&&now>=e.resolveAt){
     e.resolved=true;
     if(!owner.active||owner.hp<=0||owner.sleepUntil>now||owner.stunnedUntil>now)continue;
-    const ang=e.angle||0,dirX=Math.cos(ang),dirY=Math.sin(ang),perpX=-dirY,perpY=dirX;
-    const focus={x:e.x+dirX*(e.focusDist||92),y:e.y+dirY*(e.focusDist||92)};
-    const starts=[
-     {x:e.x+perpX*(e.sideDist||48)-dirX*12,y:e.y+perpY*(e.sideDist||48)-dirY*12},
-     {x:e.x-perpX*(e.sideDist||48)-dirX*12,y:e.y-perpY*(e.sideDist||48)-dirY*12}
-    ];
-    const segDist=(p,a,b)=>{const vx=b.x-a.x,vy=b.y-a.y,wx=p.x-a.x,wy=p.y-a.y,len=vx*vx+vy*vy||1,t=R.clamp((wx*vx+wy*vy)/len,0,1),cx=a.x+vx*t,cy=a.y+vy*t;return Math.hypot(p.x-cx,p.y-cy)};
-    let burstSpawned=false;
+    const ang=e.angle||0,focus={x:e.x+Math.cos(ang)*(e.focusDist||90),y:e.y+Math.sin(ang)*(e.focusDist||90)};
+    let hitAnyone=false;
+    // Distinct 50-HP components per blade, plus a separate 50-HP collision burst.
+    // All are applied atomically so defeat and shield handling are consistent.
     for(const q of host.fighters){
-     if(!q.active||q.hp<=0||friendly(owner,q))continue;
-     let slashHits=0;
-     for(const start of starts){
-      if(segDist(q,start,focus)<=((e.bladeWidth||22)+R.R) && lineClear(start,q))slashHits++;
-     }
-     const burstHit=R.dist(q,focus)<=((e.burstR||34)+R.R) && lineClear(focus,q);
-     const total=slashHits*50+(burstHit?50:0);
-     if(total<=0)continue;
+     if(!q.active||q.hp<=0||friendly(owner,q)||R.dist(q,e)>170||!lineClear(e,q))continue;
+     const left=executionBladeHits(e,q,-1),right=executionBladeHits(e,q,1);
+     const inBurst=R.dist(q,focus)<=((e.burstR||30)+R.R)&&lineClear(focus,q);
+     const total=(left?50:0)+(right?50:0)+(inBurst?50:0);
+     if(!total)continue;
      const dealt=hurt(q,total,now,e,true);
      if(dealt>0){
-      host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:q.x,y:q.y,r:42,start:now,end:now+820});
-      burstSpawned=true;
+      hitAnyone=true;
+      host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:q.x,y:q.y,r:38,start:now,end:now+750});
      }
     }
-    if(burstSpawned)host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:focus.x,y:focus.y,r:64,start:now,end:now+940});
+    if(hitAnyone)host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:focus.x,y:focus.y,r:55,start:now,end:now+870});
     continue;
    }
    if(!e.resolveAt||e.resolved||now<e.resolveAt)continue;e.resolved=true;
@@ -4839,61 +4862,69 @@ finishPaint(false)};
   return 'arts_'+k;
  }
   function drawExecutionClash(x,e,now){
-   const impact=e.resolveAt||e.start+500,warning=now<impact,
-    prep=R.clamp((now-e.start)/Math.max(1,impact-e.start),0,1),
-    elapsed=Math.max(0,now-impact),closing=R.clamp(elapsed/185,0,1),
-    after=R.clamp((elapsed-180)/800,0,1),fade=warning?1:Math.max(0,1-after);
-   const r=e.r||75,focusLead=(e.focusDist||92)*.42;
-   x.save();x.translate(e.x+Math.cos(e.angle||0)*focusLead,e.y+Math.sin(e.angle||0)*focusLead);x.rotate(e.angle||0);x.lineCap='round';x.lineJoin='round';
-   // Dark ornamental seal is fixed at the targeted position, not at the caster.
-   const halo=x.createRadialGradient(0,0,0,0,0,r*1.85);
-   halo.addColorStop(0,`rgba(120,6,43,${.25*fade})`);halo.addColorStop(.65,`rgba(69,7,28,${.12*fade})`);halo.addColorStop(1,'rgba(10,1,8,0)');
-   x.fillStyle=halo;x.beginPath();x.arc(0,0,r*1.85,0,Math.PI*2);x.fill();
-   x.globalAlpha=warning?.35+.4*prep:.3*fade;
-   x.strokeStyle='#ee9da9';x.lineWidth=1.7;x.setLineDash([5,8]);x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.stroke();x.setLineDash([]);
-   const drawBlade=(side,index)=>{
-    x.save();
-    const travel=warning?1:Math.pow(1-closing,2),outer=side*(r*1.75*travel+3),height=(index-.5)*8;
-    x.translate(outer,height);x.scale(side,1);
-    x.globalAlpha=(warning?.26+.34*prep:fade)*(index===0?1:.53);
-    x.shadowColor='#f32c5b';x.shadowBlur=warning?10:24;
-    // Razor-shaped single blade with a long sweep, not a pile of crescents.
-    x.beginPath();x.moveTo(-r*.08,-r*1.23);
-    x.bezierCurveTo(r*.90,-r*1.04,r*1.29,-r*.29,r*1.13,r*.34);
-    x.bezierCurveTo(r*.98,r*.73,r*.43,r*1.10,-r*.18,r*1.19);
-    x.bezierCurveTo(r*.61,r*.39,r*.64,-r*.38,-r*.08,-r*1.23);
+   const impact=e.resolveAt||e.start+550,swingAt=e.swingAt||e.start+210;
+   const preparing=now<swingAt,swiping=now>=swingAt&&now<impact;
+   const raw=R.clamp((now-swingAt)/Math.max(1,impact-swingAt),0,1);
+   const progress=raw*raw*(3-2*raw),after=Math.max(0,now-impact);
+   const fade=now<impact?1:Math.max(0,1-R.clamp((after-250)/570,0,1));
+   const focusX=e.focusDist||90,core=e.burstR||30;
+   x.save();x.translate(e.x,e.y);x.rotate(e.angle||0);
+   x.lineCap='round';x.lineJoin='round';
+   const screen=(draw,alpha=1)=>{x.save();x.globalCompositeOperation='screen';x.globalAlpha=alpha;draw();x.restore()};
+   const blade=(side,t,alpha=1,ghost=false)=>{
+    const b=executionBladePose(e,side,t);
+    x.save();x.translate(b.pivotX,b.pivotY);x.rotate(b.angle);x.scale(1,side);
+    x.globalAlpha=alpha;x.shadowColor=ghost?'#f03665':'#ff477c';x.shadowBlur=ghost?8:22;
+    const L=b.reach;
+    // A large, visibly curving dark-silver scythe: one on each side of the caster.
+    x.beginPath();x.moveTo(-13,-9);
+    x.bezierCurveTo(L*.19,-27,L*.68,-38,L,-3);
+    x.bezierCurveTo(L*.77,7,L*.37,24,-6,14);
+    x.bezierCurveTo(L*.14,3,L*.19,-3,-13,-9);
     x.closePath();
-    const edge=x.createLinearGradient(0,-r,r*.85,r*.7);
-    edge.addColorStop(0,'#220815');edge.addColorStop(.40,'#580d2a');edge.addColorStop(.82,'#e62b5e');edge.addColorStop(1,'#ffbdba');
-    x.fillStyle=edge;x.fill();x.strokeStyle='#fe476d';x.lineWidth=4.5;x.stroke();
-    x.shadowBlur=0;x.strokeStyle='#fff4e9';x.lineWidth=1.8;
-    x.beginPath();x.moveTo(-r*.06,-r*1.19);x.bezierCurveTo(r*.84,-r*.95,r*1.24,-r*.26,r*1.08,r*.34);x.stroke();
+    const g=x.createLinearGradient(0,-35,L,15);
+    g.addColorStop(0,'#19060e');g.addColorStop(.3,'#3a0b1e');g.addColorStop(.62,'#9f244a');g.addColorStop(.91,'#ff6384');g.addColorStop(1,'#ffe4db');
+    x.fillStyle=g;x.fill();x.strokeStyle=ghost?'#fb7c98':'#ff335e';x.lineWidth=ghost?2:4;x.stroke();
+    x.shadowBlur=0;
+    if(!ghost){x.strokeStyle='#fff7ef';x.lineWidth=2.3;x.beginPath();x.moveTo(-2,-10);x.bezierCurveTo(L*.26,-25,L*.69,-29,L-3,-3);x.stroke();
+     x.strokeStyle='#f5b8bf';x.lineWidth=1.6;x.beginPath();x.moveTo(0,11);x.quadraticCurveTo(L*.44,16,L*.77,7);x.stroke();}
     x.restore();
    };
-   for(const side of [-1,1])for(let i=1;i>=0;i--)drawBlade(side,i);
-   if(!warning){
-    const flash=Math.max(0,1-elapsed/330),shock=R.clamp(elapsed/250,0,1);
-    // Two opposing white impact streaks and a clean red elliptical shock ring.
-    x.save();x.globalCompositeOperation='lighter';x.globalAlpha=flash;
-    x.shadowColor='#ff638a';x.shadowBlur=25;
+   // A precise targeting direction, not a long-distance teleporter attack.
+   if(preparing){
+    const charge=R.clamp((now-e.start)/Math.max(1,swingAt-e.start),0,1);
+    x.globalAlpha=.25+.33*charge;x.strokeStyle='#e75977';x.lineWidth=2;x.setLineDash([4,7]);
+    x.beginPath();x.moveTo(12,0);x.lineTo(focusX+core+14,0);x.stroke();x.setLineDash([]);
+    x.strokeStyle='#f4b4c0';x.lineWidth=1.6;x.beginPath();x.arc(focusX,0,core+8,0,Math.PI*2);x.stroke();
     for(const side of [-1,1]){
-     x.strokeStyle='#fff4f1';x.lineWidth=7;
-     x.beginPath();x.moveTo(side*r*1.36,-r*.9);x.quadraticCurveTo(side*r*.28,0,side*r*1.36,r*.9);x.stroke();
-    }
-    x.restore();
-    x.globalAlpha=flash*.7;x.strokeStyle='#ff426c';x.lineWidth=7*(1-shock)+1;
-    x.beginPath();x.ellipse(0,0,r*(.35+shock*1.6),r*(.17+shock*1.05),0,0,Math.PI*2);x.stroke();
-    for(let i=0;i<28;i++){
-     const a=i*2.39996+(e.id||0)*.2,spread=20+shock*(65+(i%6)*14),px=Math.cos(a)*spread,py=Math.sin(a)*spread;
-     x.globalAlpha=flash*(.25+(i%5)*.11);x.fillStyle=i%4?'#eb3862':'#fff1e9';
-     x.beginPath();x.ellipse(px,py,1.5+i%3,3+i%4,a,0,Math.PI*2);x.fill();
+     const pose=executionBladePose(e,side,0);
+     screen(()=>{x.strokeStyle='#ff476f';x.lineWidth=4;x.shadowColor='#ff557e';x.shadowBlur=18;x.beginPath();x.arc(pose.pivotX,pose.pivotY,12+charge*6,0,Math.PI*2);x.stroke()},.5+charge*.25);
+     blade(side,0,.75+charge*.25);
     }
    }else{
-    // Closing light rays make the half-second tell easy to understand.
-    x.globalAlpha=.22+.47*prep;x.strokeStyle='#ffb3c4';x.lineWidth=3;
-    for(let i=0;i<10;i++){
-     const a=i*Math.PI/5+prep*.24,rr=r*(1.05+.15*(i%2));
-     x.beginPath();x.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);x.lineTo(Math.cos(a)*(rr+13+prep*18),Math.sin(a)*(rr+13+prep*18));x.stroke();
+    for(const side of [-1,1]){
+     // Curved afterimages make the inward ROTATION readable at a glance.
+     if(swiping)for(let j=5;j>=1;j--){const ghostT=R.clamp(raw-j*.07,0,1);if(raw<=j*.07)continue;blade(side,ghostT,Math.max(.02,.10+(5-j)*.035),true);}
+     blade(side,raw,fade);
+     if(swiping){const b=executionBladePose(e,side,raw);
+      screen(()=>{x.strokeStyle='#ffd2df';x.shadowColor='#ff3a6b';x.shadowBlur=14;x.lineWidth=2.4;
+       x.beginPath();for(let j=0;j<=12;j++){const pos=executionBladePose(e,side,raw*j/12),xx=pos.tipX,yy=pos.tipY;if(j)x.lineTo(xx,yy);else x.moveTo(xx,yy)}x.stroke()},.23+.45*raw);
+     }
+    }
+    if(!swiping){
+     const burst=R.clamp(after/220,0,1),flash=Math.max(0,1-after/360);
+     screen(()=>{const glow=x.createRadialGradient(focusX,0,1,focusX,0,core*2.3);
+      glow.addColorStop(0,'#fff6f1');glow.addColorStop(.2,'#ff8898');glow.addColorStop(.55,'#b31845a8');glow.addColorStop(1,'#4d0a2100');
+      x.fillStyle=glow;x.beginPath();x.arc(focusX,0,core*2.3,0,Math.PI*2);x.fill();
+      x.strokeStyle='#fff1e7';x.lineWidth=5*(1-burst)+1;x.beginPath();x.arc(focusX,0,core*(.35+burst*1.45),0,Math.PI*2);x.stroke();},flash);
+     // Stylized blood spray and jagged streaks, centred at the blade collision point.
+     for(let i=0;i<35;i++){
+      const a=i*2.39996+(e.id||0)*.22,spread=(13+burst*(28+i%6*9)),rx=focusX+Math.cos(a)*spread,ry=Math.sin(a)*spread;
+      x.globalAlpha=flash*(.25+(i%4)*.18);x.fillStyle=i%4?'#b50b33':'#ff9aaa';
+      x.beginPath();x.ellipse(rx,ry,2+(i%3),4+(i%4),a,0,Math.PI*2);x.fill();
+      if(i%5===0){x.lineWidth=2;x.strokeStyle='#ff557b';x.beginPath();x.moveTo(focusX,0);x.lineTo(rx,ry);x.stroke()}
+     }
+     x.globalAlpha=flash;x.strokeStyle='#f7285a';x.lineWidth=6*(1-burst)+1;x.beginPath();x.ellipse(focusX,0,core*(.6+burst*1.55),core*(.3+burst*.95),0,0,Math.PI*2);x.stroke();
     }
    }
    x.restore();return true;
