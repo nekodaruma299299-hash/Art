@@ -2882,8 +2882,8 @@ window.ArtsRules=(()=>{
  };
  const advancedMoves={
  judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'0.45秒構え、描いた位置へ巨大な金色の斬撃を飛ばす。命中した敵の累計与ダメージ×面積倍率。半径100で1倍、150で2.25倍。累計は発動時点で確定',range:'自分から描いた位置まで。斬撃の半幅45〜170、速度480。壁で停止・敵1人につき1回命中。累計0なら威力0',gesture:'左のU字の皿 → 横棒 → 右のU字の皿。一筆で左から右へ進む'},
- execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'描いた位置に左右から魔刃が迫り、0.5秒後に防御力を無視した150ダメージ。追加装甲HPは先に消費する',range:'描いた位置（最大射程の半分まで）を中心とする半径75。壁越しには当たらない',gesture:'大きな鎌の弧を下へ回り、内側を右上へ折り返し、小さな鎌の弧を下へ抜ける。C案の3つの弧を一筆でつなぐ'},
- soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'描いた位置に5秒間の魂の渦を設置。敵を中心へ引き寄せ、中心ほど吸引が強い。中心に入ると脱出不能。中心で5秒間、HP100とインク100を継続吸収し、術者に還元する',range:'描画サイズに応じた半径125〜315。障害物越しには吸引しない',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
+ execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'図形の向きに合わせ、術者の両脇から2枚の魔刃が回転して斬り込む。片刃50、両刃100、さらに血飛沫爆発で+50ダメージ',range:'入力位置までの距離ではなく向きだけを使用。術者の近距離で発動し、前方の収束点までを攻撃する',gesture:'大きな鎌の弧を下へ回り、内側を右上へ折り返し、小さな鎌の弧を下へ抜ける。C案の3つの弧を一筆でつなぐ'},
+ soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'描いた位置に5秒間の魂の渦を設置。敵を中心へ引き寄せ、中心ほど吸引が強い。中心に入ると脱出不能。中心で5秒間、HP100とインク100を継続吸収し、術者に還元する',range:'描画サイズに応じた半径55〜165。障害物越しには吸引しない',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
  nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'10秒間強制停止して詠唱。HPダメージを受けると中断。成功すると壁貫通の全域波動で敵のHPを減少させ、攻撃・防御等の強化バフを解除。その後6秒間、毎秒3発の悪夢の落下攻撃',range:'ステージ全体。衝撃波は壁越しでも敵ごと1回命中し、強化バフを消去。落下攻撃は予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、毎秒HP5・インク15回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自分のみ。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
  deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:15000,effect:'図形に最も近い敵1人を2.5秒眠らせる。被ダメージで解除、解除後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'Z字を3つ、右下へ階段状につなぐ。一筆で同じ線をなぞり直さない'},
@@ -4135,17 +4135,16 @@ window.ArtArts=(()=>{
    e.projectile=true;e.damageType='magic';e.hitIds=[];e.travel=0;e.launchAt=now+450;e.end=e.launchAt+e.distance/e.speed*1000+180;
   }
   if(k==='execution'){
-   // Same placement principle as Slash: the user draws the attack in front/around them.
-   // The 75px hit radius and 150 pure damage are unchanged.
-   const d=Math.hypot(shape.x,shape.y),limit=R.placementRange('execution',p.stats)*.5,scale=d>limit?limit/d:1;
-   e.x=R.clamp(p.x+shape.x*scale,R.R,R.W-R.R);e.y=R.clamp(p.y+shape.y*scale,R.R,R.H-R.R);
-   e.tx=e.x;e.ty=e.y;e.r=75;e.power=150;e.ignoreDefense=true;
-   e.resolveAt=now+500;e.end=now+1550;e.damageType='physical';
+   // The drawn point now controls direction only. The blades appear around the caster,
+   // then close toward a short forward focus point near the caster.
+   const aim=Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):(p.facing>=0?0:Math.PI);
+   e.x=p.x;e.y=p.y;e.angle=aim;e.tx=p.x+Math.cos(aim)*92;e.ty=p.y+Math.sin(aim)*92;
+   e.r=75;e.power=150;e.ignoreDefense=true;e.focusDist=92;e.sideDist=48;e.bladeWidth=22;e.burstR=34;
+   e.resolveAt=now+500;e.end=now+1450;e.damageType='physical';
   }
   if(k==='soul_eater'){
-   // Five-second vacuum field. A perfectly centered victim loses 20 HP and
-   // 20 ink per second: 100 of each over the full 5s (before resource depletion).
-   e.r=R.clamp((shape.radius||45)*1.85+44,125,315);
+   // Smaller size range so tiny drawings no longer become gigantic.
+   e.r=R.clamp((shape.radius||45)*.95+18,55,165);
    e.start=now;e.end=now+5000;e.damageType='magic';e.trappedIds=[];
    e.drainedHp=0;e.drainedInk=0;
   }
@@ -4195,7 +4194,7 @@ window.ArtArts=(()=>{
   for(const e of [...host.effects]){
    const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;
    if(['daydream','sacred_ascension'].includes(e.type)){const recipient=e.type==='sacred_ascension'&&e.targetId?host.fighters.find(q=>q.id===e.targetId)||owner:owner;const until=e.type==='daydream'?recipient.daydreamUntil:recipient.ascensionUntil;if(!until)e.end=now;e.x=recipient.x;e.y=recipient.y;}
-   // Execution's placement is fixed at its drawn target, never owner-following.
+   // Execution stays at the caster's cast position; only its angle comes from the drawn point.
    if(e.type==='nightmare'&&e.end>now){
     if(e.channel){
      if(!owner.nightmareUntil||owner.hp<=0||!owner.active){e.end=now;continue;}
@@ -4245,15 +4244,41 @@ window.ArtArts=(()=>{
     e.travel=travel;if(travel>=e.distance){e.stopped=true;e.end=Math.min(e.end,now+180)}
     continue;
    }
+   if(e.type==='execution'&&!e.resolved&&now>=e.resolveAt){
+    e.resolved=true;
+    if(!owner.active||owner.hp<=0||owner.sleepUntil>now||owner.stunnedUntil>now)continue;
+    const ang=e.angle||0,dirX=Math.cos(ang),dirY=Math.sin(ang),perpX=-dirY,perpY=dirX;
+    const focus={x:e.x+dirX*(e.focusDist||92),y:e.y+dirY*(e.focusDist||92)};
+    const starts=[
+     {x:e.x+perpX*(e.sideDist||48)-dirX*12,y:e.y+perpY*(e.sideDist||48)-dirY*12},
+     {x:e.x-perpX*(e.sideDist||48)-dirX*12,y:e.y-perpY*(e.sideDist||48)-dirY*12}
+    ];
+    const segDist=(p,a,b)=>{const vx=b.x-a.x,vy=b.y-a.y,wx=p.x-a.x,wy=p.y-a.y,len=vx*vx+vy*vy||1,t=R.clamp((wx*vx+wy*vy)/len,0,1),cx=a.x+vx*t,cy=a.y+vy*t;return Math.hypot(p.x-cx,p.y-cy)};
+    let burstSpawned=false;
+    for(const q of host.fighters){
+     if(!q.active||q.hp<=0||friendly(owner,q))continue;
+     let slashHits=0;
+     for(const start of starts){
+      if(segDist(q,start,focus)<=((e.bladeWidth||22)+R.R) && lineClear(start,q))slashHits++;
+     }
+     const burstHit=R.dist(q,focus)<=((e.burstR||34)+R.R) && lineClear(focus,q);
+     const total=slashHits*50+(burstHit?50:0);
+     if(total<=0)continue;
+     const dealt=hurt(q,total,now,e,true);
+     if(dealt>0){
+      host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:q.x,y:q.y,r:42,start:now,end:now+820});
+      burstSpawned=true;
+     }
+    }
+    if(burstSpawned)host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:focus.x,y:focus.y,r:64,start:now,end:now+940});
+    continue;
+   }
    if(!e.resolveAt||e.resolved||now<e.resolveAt)continue;e.resolved=true;
-   if(e.type==='execution'&&(!owner.active||owner.hp<=0||owner.sleepUntil>now||owner.stunnedUntil>now))continue;
    for(const q of host.fighters){
     if(!q.active||q.hp<=0||friendly(owner,q)||R.dist(q,e)>e.r+R.R)continue;
     if(e.type==='judgment_mark'&&q.id!==e.targetId)continue;
-    if(e.type==='execution'&&!lineClear(e,q))continue;
     if(e.wave){host.nightmareHits??={};const entry=host.nightmareHits[e.wave]??={ids:[],end:now+2000};if(entry.ids.includes(q.id))continue;entry.ids.push(q.id);}
     const dealt=hurt(q,e.power,now,e,e.damageType==='magic'||!!e.ignoreDefense);
-    if(e.type==='execution'&&dealt>0)host.effects.push({id:++host.seq,type:'executionBlood',owner:e.owner,x:q.x,y:q.y,r:50,start:now,end:now+850});
    }
    if(e.type!=='judgment_mark')for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x,e.y,e.r,b))damageWall(b,e.power,now);
   }
@@ -4818,8 +4843,8 @@ finishPaint(false)};
     prep=R.clamp((now-e.start)/Math.max(1,impact-e.start),0,1),
     elapsed=Math.max(0,now-impact),closing=R.clamp(elapsed/185,0,1),
     after=R.clamp((elapsed-180)/800,0,1),fade=warning?1:Math.max(0,1-after);
-   const r=e.r||75;
-   x.save();x.translate(e.x,e.y);x.rotate(e.angle||0);x.lineCap='round';x.lineJoin='round';
+   const r=e.r||75,focusLead=(e.focusDist||92)*.42;
+   x.save();x.translate(e.x+Math.cos(e.angle||0)*focusLead,e.y+Math.sin(e.angle||0)*focusLead);x.rotate(e.angle||0);x.lineCap='round';x.lineJoin='round';
    // Dark ornamental seal is fixed at the targeted position, not at the caster.
    const halo=x.createRadialGradient(0,0,0,0,0,r*1.85);
    halo.addColorStop(0,`rgba(120,6,43,${.25*fade})`);halo.addColorStop(.65,`rgba(69,7,28,${.12*fade})`);halo.addColorStop(1,'rgba(10,1,8,0)');
@@ -4994,17 +5019,16 @@ finishPaint(false)};
     particles(28,hit,white);for(let i=0;i<10;i++){const a=i*2.4,rr=35+hit*110;line([Math.cos(a)*rr,Math.sin(a)*rr],[Math.cos(a)*(rr+20),Math.sin(a)*(rr+20)],bright,3)}
    }
    }else if(key==='soul_eater'){
-    const fadeIn=R.clamp(age/270,0,1),fadeOut=R.clamp((e.end-now)/500,0,1),alpha=fadeIn*fadeOut;
-    x.globalAlpha=.66*alpha;glow(r*.98,'#6a35a2');
-    x.globalAlpha=.73*alpha;sigil(r*.94,-now/800);
-    x.globalAlpha=.82*alpha;x.strokeStyle='#bca0ff';x.lineWidth=3;
-    for(let i=0;i<3;i++){x.beginPath();x.arc(0,0,r*(.74-i*.25),-now/900+i*1.7,-now/900+i*1.7+Math.PI*1.35);x.stroke()}
-    // White-green spirits spin inward toward the unavoidable vortex core.
-    for(let i=0;i<20;i++){
-     const p=(age/1900+i/20)%1,a=i*2.39996+age/550,
-      rr=r*Math.pow(1-p,1.1),px=Math.cos(a)*rr,py=Math.sin(a)*rr;
-     x.globalAlpha=alpha*(.38+.55*p);x.fillStyle=i%3?'#8bfde2':'#f6ffff';
-     x.shadowColor='#34ffc6';x.shadowBlur=7;x.beginPath();x.ellipse(px,py,3+i%3,6+i%4,a,0,Math.PI*2);x.fill();
+    const fadeIn=R.clamp(age/240,0,1),fadeOut=R.clamp((e.end-now)/500,0,1),alpha=fadeIn*fadeOut;
+    x.globalAlpha=.42*alpha;glow(r*.88,'#4f2d87');
+    x.globalAlpha=.52*alpha;sigil(r*.76,-now/1100);
+    x.globalAlpha=.74*alpha;x.strokeStyle='#bca0ff';x.lineWidth=2.4;
+    for(let i=0;i<3;i++){x.beginPath();x.arc(0,0,r*(.68-i*.22),-now/1100+i*1.75,-now/1100+i*1.75+Math.PI*1.18);x.stroke()}
+    for(let i=0;i<16;i++){
+     const p=(age/1700+i/16)%1,a=i*2.39996+age/650,
+      rr=r*Math.pow(1-p,1.12),px=Math.cos(a)*rr,py=Math.sin(a)*rr;
+     x.globalAlpha=alpha*(.28+.46*p);x.fillStyle=i%3?'#8bfde2':'#f6ffff';
+     x.shadowColor='#34ffc6';x.shadowBlur=5;x.beginPath();x.ellipse(px,py,2.2+i%2,4.5+i%3,a,0,Math.PI*2);x.fill();
     }
     x.shadowBlur=0;x.globalAlpha=.85*alpha;glow(Math.max(20,r*.17),'#54ffdf');
     x.strokeStyle='#ffffff';x.lineWidth=4;x.beginPath();for(let i=0;i<68;i++){
@@ -5400,10 +5424,17 @@ finishPaint(false)};
   x.restore();return true;
  }
 
+ function drawArtsUnderlay(x,now){
+ for(const e of view.effects){
+  if(e.end<=now)continue;
+  if(e.type==='soul_eater')drawAdvancedEffect(x,e,now);
+ }
+ }
  function drawArtsEffects(x,now){
  for(const e of view.effects){
   if(drawExecutionBlood(x,e,now))continue;
   if(e.end<=now)continue;
+  if(e.type==='soul_eater')continue;
   if(drawSaintEffect(x,e,now))continue;
   if(drawAdvancedEffect(x,e,now))continue;
   drawArtAccents(x,e,now);
@@ -5469,7 +5500,7 @@ finishPaint(false)};
   x.restore();
  }
  function drawArena(time){const c=$('#artsArena');if(!c)return;const r=c.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);const cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch}for(const p of view.fighters){const pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos)}const x=c.getContext('2d'),cam=cameraRect(dpr),scale=cam.scale,left=cam.left,top=cam.top;x.setTransform(1,0,0,1,0,0);const theme={garden:['#dce7d7','#f4ecd6','#d6ccae'],ruins:['#bfc3ce','#e3e0e7','#c7bfce'],forest:['#adbea8','#dce8ce','#b7c9a8'],arena:['#c7d3de','#edf0f5','#d2dae3']}[view.settings.stage]||['#dce7d7','#f4ecd6','#d6ccae'];x.fillStyle=theme[0];x.fillRect(0,0,cw,ch);x.setTransform(scale,0,0,scale,-left*scale,-top*scale);x.fillStyle=theme[1];x.fillRect(0,0,R.W,R.H);x.strokeStyle=theme[2];x.lineWidth=1;for(let i=0;i<=R.W;i+=50){x.beginPath();x.moveTo(i,0);x.lineTo(i,R.H);x.stroke()}for(let i=0;i<=R.H;i+=50){x.beginPath();x.moveTo(0,i);x.lineTo(R.W,i);x.stroke()}
- const now=Date.now()+offset;for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'artsSlash':'artsBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));for(const b of view.blocks)drawArtTerrain(x,b,now);
+ const now=Date.now()+offset;for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'artsSlash':'artsBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
  const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
