@@ -564,7 +564,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 @media(max-height:550px){.arts-equip-summary{-webkit-line-clamp:1}.arts-equip-symbol svg{height:28px}.arts-equip-info{font-size:10px;min-height:20px;padding:2px}.arts-equip-heading h2{font-size:16px!important}}
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム", "url": "https://nekodaruma299299-hash.github.io/Art/", "inLanguage": "ja", "primaryImageOfPage": {"@type": "ImageObject", "url": "https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png", "width": 180, "height": 180}}</script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.24</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.26</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -2730,7 +2730,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.26',date:'2026-10-29',title:'トリッカー偽装強化と専用状態アイコン',changes:['ミラージュステップ発動後8秒間、本人・味方には半透明、敵には本体と名前・HP・バフ表示が見えなくなるようにしました。','設置完了後のトリックマインは敵には見えず、本人・味方のみ半透明の魔法陣で位置が分かります。','デコイパレードを15秒持続に延長し、移動速度を本体の現在の移動速度に合わせました。','毒と鈍足の絵文字を廃止し、混乱も含めてオリジナルの線画状態アイコンに統一しました。']},{version:'1.3.25',date:'2026-10-29',title:'ソウルハーベスト魂回収演出',changes:['ソウルハーベストでダメージを受けた敵から、青白い魂の粒が術者へ追尾する演出を追加しました。','魂の粒は残像と軌跡を残しながら飛び、術者に到達した時点でHPとインクを回復します。','ソウルハーベスト本体の渦演出も、回収エフェクトと馴染むよう微調整しました。']},{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -2871,7 +2871,7 @@ window.ArtsRules=(()=>{
  iron:{name:'アイアンコート',class:'tank',rate:.07,cooldown:20000,text:'六角形で15秒間装甲を展開。魔法ダメージを90%、物理ダメージを50%軽減する。再使用20秒。'},
  anchor:{name:'アンカーショック',class:'tank',rate:.10,cooldown:4600,text:'左→中央→上→中央へ戻る→下→中央へ戻る→右。一筆の＋で、周囲に衝撃波を放ち敵を2秒減速。'},
  reactor:{name:'インクリアクター',class:'tank',rate:.07,cooldown:10000,text:'五角形で6秒間、受けた実ダメージの1.5倍をインクに変換。HPダメージは無効化しません。'},
- mirage:{name:'ミラージュステップ',class:'trickster',rate:.065,cooldown:4200,text:'軽くグニャっと曲がる線で発動。移動前の地点に本体と同じ姿・HP・バフ外見の分身を8秒残す。敵が分身を攻撃すると鈍足ミストが3秒発生し、触れた敵を10秒間速度1/5にする。'},
+ mirage:{name:'ミラージュステップ',class:'trickster',rate:.065,cooldown:4200,text:'軽くグニャっと曲がる線で発動。移動前の地点に本体と同じ姿・HP・バフ外見の分身を8秒残し、その間本体は敵から見えず、味方には薄く見える。敵が分身を攻撃すると鈍足ミストが3秒発生し、触れた敵を10秒間速度1/5にする。'},
  decoy:{name:'デコイパレード',class:'trickster',rate:.08,cooldown:9000,text:'∞で本体と同じ外見・HP表示・強化エフェクトの分身3体を6秒間召喚。敵の攻撃が当たると爆発し、周囲の敵へ45ダメージ。'},
  smoke:{name:'インクスモーク',class:'trickster',rate:.065,cooldown:8000,text:'渦巻きを一筆で描き、約4秒間の煙幕を展開。煙幕に隠れた味方は敵から見えません。攻撃時は一瞬位置が露見します。'},
  warp:{name:'ワープホール',class:'dreamer',rate:.085,cooldown:5500,text:'ドリーマー向けのワープ。トリッカーはトリックマインを使います。'},
@@ -2916,7 +2916,7 @@ window.ArtsRules=(()=>{
  const advancedMoves={
  judgment:{name:'ジャッジメント',class:'executioner',fixedCost:45,cooldown:22000,effect:'0.45秒構え、描いた位置へ巨大な金色の斬撃を飛ばす。命中した敵の累計与ダメージ×面積倍率。半径100で1倍、150で2.25倍。累計は発動時点で確定',range:'自分から描いた位置まで。斬撃の半幅45〜170、速度480。壁で停止・敵1人につき1回命中。累計0なら威力0',gesture:'左のU字の皿 → 横棒 → 右のU字の皿。一筆で左から右へ進む'},
  execution:{name:'エクスキューション',class:'executioner',fixedCost:35,cooldown:16000,effect:'術者の両脇から魔刃が超高速で回転・交差し、X字の斬撃衝撃波が残る。片刃50、両刃100、血飛沫爆発で+50ダメージ（X字は演出のみ）',range:'入力位置までの距離ではなく向きだけを使用。術者の近距離で発動し、前方の収束点までを攻撃する',gesture:'大きな鎌の弧を下へ回り、内側を右上へ折り返し、小さな鎌の弧を下へ抜ける。C案の3つの弧を一筆でつなぐ'},
- soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'描いた位置に5秒間の魂の渦を設置。敵を中心へ引き寄せ、中心ほど吸引が強い。中心に入ると脱出不能。中心で5秒間、HP約33.3とインク約33.3を継続吸収し、術者に還元する',range:'描画サイズに応じた半径55〜165。障害物越しには吸引しない',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
+ soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'描いた位置に5秒間の魂の渦を設置。敵を中心へ引き寄せ、中心ほど吸引が強い。中心に入ると脱出不能。中心で5秒間、HP約33.3とインク約33.3を吸い取り、青白い魂の粒として術者へ還元する',range:'描画サイズに応じた半径55〜165。障害物越しには吸引しない',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
  nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'10秒間強制停止して詠唱。HPダメージを受けると中断。成功すると壁貫通の全域波動で敵のHPを減少させ、攻撃・防御等の強化バフを解除。その後6秒間、毎秒3発の悪夢の落下攻撃',range:'ステージ全体。衝撃波は壁越しでも敵ごと1回命中し、強化バフを消去。落下攻撃は予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、毎秒HP5・インク15回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自分のみ。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
  deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:15000,effect:'図形に最も近い敵1人を2.5秒眠らせる。被ダメージで解除、解除後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'Z字を3つ、右下へ階段状につなぐ。一筆で同じ線をなぞり直さない'},
@@ -4092,7 +4092,7 @@ window.ArtArts=(()=>{
  function sizeArtsCanvas(){for(const id of ['display','overlay']){const c=$('#'+id);c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';$('#canvasSize').textContent=engine.w+' × '+engine.h+' px'}
  function clearCanvas(){room.hasArt=false;characterPaths=[];characterFacing=1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value='1';window.ArtHistory?.clear();clearClipboard();clearInputState(false,false);selection=null;releaseTransientSurfaces();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}engine=new E.Engine(room.w,room.h);sizeArtsCanvas();pendingOps.clear();pendingLocal.clear();pendingHistory.clear();redoIds=[];locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();prefs.opacities=[100,100,100];$('#transformBar').hidden=true;render();renderControls();fitView()}
  function localDraw(m){if(!drawTypes.has(m.type))return false;if(canDraw()){if(m.type==='op'&&validAction(m.op)){const a={...m.op,author:localId,at:Date.now(),disabled:false};prepareFill(a);for(const old of engine.ops)if(old.author===localId&&old.disabled)old.expiredRedo=true;handleClient({type:'commit',op:a})}else if(m.type==='undo'||m.type==='redo'){const a=engine.ops.find(a=>a.id===m.id&&a.author===localId&&!a.expiredRedo);if(a)handleClient({type:'toggle',id:a.id,disabled:m.type==='undo'})}}else{pendingOps.delete(m.op?.id);pendingLocal.delete(m.op?.id);pendingHistory.delete(m.id)}return true}
- function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,stealUntil:p.stealUntil||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
+ function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,stealUntil:p.stealUntil||0,mirageHiddenUntil:p.mirageHiddenUntil||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active})),blocks:host.blocks,shots:host.shots,effects:host.effects,result:host.result,...(withImages?{art:host.art}:{})}}
  function sendAll(withImages=false){if(!host||!isHost)return;const state=publicState(withImages);receive({type:'gameArtsState',state:structuredClone(state)});broadcast({type:'gameArtsState',state})}
  async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;stopInput();host.phase='interrupted';host.deadline=null;host.shots=[];host.effects=[];await newHost();return true}
  async function newHost(){const token=sessionToken,lobbyCanvas=host?.lobbyCanvas||null;if(lobbyCanvas){const packet={type:'canvasRestore',artsLobby:true,epoch:(room.canvasEpoch||0)+1,snapshot:lobbyCanvas};broadcast(packet);await applyCanvasRestore(packet);if(token!==sessionToken||!room||!connected)return}host={lobbyCanvas,id:uid(),phase:'lobby',settings:R.settings(room.artsSettings),players:[],ready:{},equipped:{},art:{},allReadyAt:0,fighters:[],blocks:[],shots:[],effects:[],celebration:null,teamAssignments:{},deadline:null,result:null,inputs:{},seq:0};room.artsSettings=host.settings;sendAll(true)}
@@ -4467,13 +4467,14 @@ window.ArtArts=(()=>{
   const snap=decoySnapshot(),ux=Math.cos(angle),uy=Math.sin(angle);
   for(let traveled=0;traveled<dist;traveled+=7){const nx=p.x+ux*7,ny=p.y+uy*7;if(R.blocked(nx,ny,host.blocks,R.R))break;p.x=nx;p.y=ny}
   host.effects.push({id:++host.seq,type:'decoyBody',variant:'mirage',owner:id,x:ox,y:oy,vx:0,vy:0,r:25,start:now,end:now+8000,...snap});
+  p.mirageHiddenUntil=now+8000;
   e.x=ox;e.y=oy;e.r=38;e.end=now+450;
  }
  if(shape.type==='decoy'){
   const snap=decoySnapshot();
   for(const direction of [-1,0,1]){
    const a=aim+direction*1.08,xx=p.x+Math.cos(a)*34,yy=p.y+Math.sin(a)*34;
-   host.effects.push({id:++host.seq,type:'decoyBody',variant:'parade',owner:id,x:xx,y:yy,vx:Math.cos(a)*75,vy:Math.sin(a)*75,r:25,start:now,end:now+6000,...snap});
+   host.effects.push({id:++host.seq,type:'decoyBody',variant:'parade',owner:id,x:xx,y:yy,vx:Math.cos(a),vy:Math.sin(a),r:25,start:now,end:now+15000,...snap});
   }e.x=p.x;e.y=p.y;e.r=60;e.end=now+550;
  }
  if(shape.type==='newSmoke'){e.type='smoke';e.poison=true;e.poisonPower=2+attack*.05;e.r=R.clamp(shape.radius*1.7+56,110,325);e.end=now+4000;e.x=target.x;e.y=target.y;}
@@ -4715,10 +4716,21 @@ window.ArtArts=(()=>{
      if(intensity>0){
       const hpTaken=Math.min(q.hp,(20/3)*intensity*lifeDt),inkTaken=Math.min(Math.max(0,q.ink||0),(20/3)*intensity*lifeDt);
       q.hp-=hpTaken;q.ink=Math.max(0,q.ink-inkTaken);
-      owner.hp=Math.min(owner.maxHp||100,owner.hp+hpTaken);
-      owner.ink=Math.min(owner.maxInk*1.5,owner.ink+inkTaken);
       owner.damageDealt=(owner.damageDealt||0)+hpTaken;
       e.drainedHp+=hpTaken;e.drainedInk+=inkTaken;
+      if(hpTaken>0||inkTaken>0){
+       e.pendingSoul??={};e.lastSoulOrbAt??={};
+       const bag=e.pendingSoul[q.id]||(e.pendingSoul[q.id]={hp:0,ink:0});
+       bag.hp+=hpTaken;bag.ink+=inkTaken;
+       const forceFlush=e.end-now<=240,lastOrb=e.lastSoulOrbAt[q.id]||0;
+       if(now-lastOrb>=180||forceFlush){
+        if(bag.hp>0||bag.ink>0){
+         host.effects.push({id:++host.seq,type:'soulHarvestSoul',owner:e.owner,targetId:q.id,x:q.x,y:q.y,tx:owner.x,ty:owner.y,r:20,start:now,end:now+620,healHp:bag.hp,healInk:bag.ink});
+         e.pendingSoul[q.id]={hp:0,ink:0};
+         e.lastSoulOrbAt[q.id]=now;
+        }
+       }
+      }
       if(hpTaken>0){
        if(q.hp<=0)q.killedBy=e.owner;
        if(now-(e.lastFlashAt?.[q.id]||0)>300){
@@ -4731,6 +4743,16 @@ window.ArtArts=(()=>{
     }
    }
   }
+ function updateSoulHarvestSouls(now){
+  for(const e of host.effects){
+   if(e.type!=='soulHarvestSoul'||e.applied||now<e.end)continue;
+   e.applied=true;
+   const owner=host.fighters.find(p=>p.id===e.owner);
+   if(!owner||!owner.active||owner.hp<=0)continue;
+   owner.hp=Math.min(owner.maxHp||100,owner.hp+(e.healHp||0));
+   owner.ink=Math.min(owner.maxInk*1.5,owner.ink+(e.healInk||0));
+  }
+ }
  function updateBattle(dt,now){
  if(host.celebration)return; // Match is frozen during victory/defeat presentation.
  updateAdvanced(dt,now);
@@ -4747,14 +4769,24 @@ window.ArtArts=(()=>{
  }
  updateHooks(dt,now);
  updateSoulHarvest(dt,now);
+ updateSoulHarvestSouls(now);
  updatePoisonMist(dt,now);
  updateTrickster(dt,now);
  // High-speed bullets are stepped in 8px increments. Ghost shots alone pass through stone/walls.
  function shotHitsWallAt(x,y,r){return host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(x,y,r,b))}
  for(const e of host.effects)if(e.type==='decoyBody'&&e.end>now&&(e.vx||e.vy)){
-  const nx=e.x+e.vx*dt,ny=e.y+e.vy*dt;
-  if(!R.blocked(nx,e.y,host.blocks,15))e.x=nx;else e.vx*=-1;
-  if(!R.blocked(e.x,ny,host.blocks,15))e.y=ny;else e.vy*=-1;
+  const maker=host.fighters.find(p=>p.id===e.owner);
+  // Parade decoys travel at their owner's CURRENT movement speed, including slow and speed buffs.
+  const speed=maker?(65+maker.stats[0]*4)*(maker.slowFactorUntil>now?.2:maker.slow>now?.5:1):75;
+  const len=Math.hypot(e.vx,e.vy)||1,dx=e.vx/len*speed*dt,dy=e.vy/len*speed*dt;
+  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/7));
+  for(let step=0;step<steps;step++){
+   const vx=dx/steps,vy=dy/steps;
+   if(e.x+vx>=18&&e.x+vx<=R.W-18&&!R.blocked(e.x+vx,e.y,host.blocks,15))e.x+=vx;
+   else {e.vx*=-1;break;}
+   if(e.y+vy>=18&&e.y+vy<=R.H-18&&!R.blocked(e.x,e.y+vy,host.blocks,15))e.y+=vy;
+   else {e.vy*=-1;break;}
+  }
  }
  for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0)tickPet(e,now,dt);
  host.shots=host.shots.filter(s=>{
@@ -4799,7 +4831,7 @@ window.ArtArts=(()=>{
  for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(['star','nova'].includes(e.type))hitTrickDecoysAt(owner,now,e,e.r);if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}if(e.type==='ghost')continue;if(['ray','charge'].includes(e.type)){e.beamReach=R.beamReach(e,host.blocks);
     const ux=Math.cos(e.angle||0),uy=Math.sin(e.angle||0),reach=e.beamReach??e.range??440;
     for(let d=0;d<=reach;d+=18)hitTrickDecoysAt(owner,now,{x:e.x+ux*d,y:e.y+uy*d},e.r||16);
-   }for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now);
+   }for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now||(e.type==='soulHarvestSoul'&&!e.applied));
  if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,Math.hypot(R.W,R.H)/2-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}if(remainingSides()<=1)finishBattle()}
 
  function tick(){if(!enabled()||!view)return;const now=Date.now();updateLiveStats(now);if($('#artsClock'))$('#artsClock').textContent=view.deadline?Math.max(0,Math.ceil((view.deadline-now-offset)/1000))+'秒':'';
@@ -4841,7 +4873,7 @@ window.ArtArts=(()=>{
  if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){submitted='';savedCharacterSource=null;room.w=view.settings.characterWidth||512;room.h=view.settings.characterHeight||512;clearCanvas();loadInstalledCharacter()}
  if(old?.phase!==view.phase){stopInput();uiKey='';if(view.phase==='equip')equipChoice=[];if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null;heardBuffWaves.clear();heardGunRounds.clear()}}renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){
     // The main decoy effect is the spawn cue, not every individual decoy body.
-    if(!['decoyBody','trickAbsorb'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
+    if(!['decoyBody','trickAbsorb','soulHarvestSoul'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
       window.ArtSound?.play(advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
@@ -5765,6 +5797,25 @@ finishPaint(false)};
   if(e.type==='soul_eater')drawAdvancedEffect(x,e,now);
  }
  }
+ function drawSoulHarvestParticle(x,e,now){
+ if(e.type!=='soulHarvestSoul')return false;
+ const owner=view.fighters.find(v=>v.id===e.owner),age=Math.max(0,now-e.start),duration=Math.max(1,e.end-e.start),q=R.clamp(age/duration,0,1),ease=1-Math.pow(1-q,2.2);
+ const tx=(owner?.x??e.tx),ty=(owner?.y??e.ty),cx=(tx-e.x)*ease,cy=(ty-e.y)*ease-24*Math.sin(q*Math.PI);
+ x.save();x.translate(e.x,e.y);x.lineCap='round';x.lineJoin='round';
+ const alpha=Math.min(1,(1-q)*1.15);
+ for(let i=0;i<6;i++){
+  const t=Math.max(0,q-i*.08),te=1-Math.pow(1-t,2.1),ix=(tx-e.x)*te,iy=(ty-e.y)*te-24*Math.sin(t*Math.PI),size=Math.max(2.2,6-i*.65);
+  x.globalAlpha=alpha*(.12+.08*(6-i));x.fillStyle=i<2?'#f7ffff':'#9fefff';
+  x.beginPath();x.ellipse(ix,iy,size*.55,size,0,0,Math.PI*2);x.fill();
+ }
+ x.globalAlpha=alpha*.95;x.strokeStyle='#baf7ff';x.lineWidth=2.2;x.beginPath();x.moveTo(0,0);x.quadraticCurveTo((tx-e.x)*.36,(ty-e.y)*.36-34,cx,cy);x.stroke();
+ x.globalAlpha=alpha*.75;x.strokeStyle='#73dff8';x.lineWidth=1.1;x.beginPath();x.moveTo((tx-e.x)*Math.max(0,ease-.1),(ty-e.y)*Math.max(0,ease-.1)-24*Math.sin(Math.max(0,q-.1)*Math.PI));x.quadraticCurveTo((tx-e.x)*.56,(ty-e.y)*.56-16,cx,cy);x.stroke();
+ const glow=x.createRadialGradient(cx,cy,1,cx,cy,18);glow.addColorStop(0,'#ffffffee');glow.addColorStop(.4,'#b7f4ffbb');glow.addColorStop(1,'#59d8ff00');
+ x.globalAlpha=alpha;x.fillStyle=glow;x.beginPath();x.arc(cx,cy,18,0,Math.PI*2);x.fill();
+ x.fillStyle='#ffffff';x.beginPath();x.ellipse(cx,cy,4.2,7,0,0,Math.PI*2);x.fill();
+ x.fillStyle='#9cecff';for(let k=0;k<4;k++){const a=k*Math.PI/2+now/180,xo=Math.cos(a)*8,yo=Math.sin(a)*8;x.beginPath();x.arc(cx+xo,cy+yo,1.3,0,Math.PI*2);x.fill();}
+ x.restore();return true;
+ }
  function drawTricksterEffect(x,e,now){
   const age=Math.max(0,now-e.start),duration=Math.max(1,e.end-e.start),p=R.clamp(age/duration,0,1);
   if(e.type==='decoyBody'){
@@ -5785,7 +5836,19 @@ finishPaint(false)};
   x.save();x.translate(e.x,e.y);x.lineCap='round';x.lineJoin='round';
   const aura=(col,r,opacity)=>{const g=x.createRadialGradient(0,0,1,0,0,r);g.addColorStop(0,col+'80');g.addColorStop(.5,col+'35');g.addColorStop(1,col+'00');x.globalAlpha=opacity;x.fillStyle=g;x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.fill();x.globalAlpha=1};
   if(e.type==='trickMine'){
-   if(now>=e.armedAt){x.restore();return true;} // Invisible once armed to both teams.
+   if(now>=e.armedAt){
+    const viewer=view.fighters.find(q=>q.id===localId),maker=view.fighters.find(q=>q.id===e.owner);
+    const ally=e.owner===localId||(view.settings.teams==='teams'&&viewer&&maker&&viewer.team===maker.team);
+    if(ally){
+     const pulse=.22+.045*Math.sin(now/410);x.globalAlpha=pulse;
+     x.shadowColor='#9959dd';x.shadowBlur=6;x.strokeStyle='#8554ca';x.lineWidth=2;
+     x.beginPath();x.ellipse(0,0,24,18,0,0,Math.PI*2);x.stroke();
+     x.shadowBlur=0;x.strokeStyle='#bca1ee';x.lineWidth=1.4;
+     x.beginPath();for(let k=0;k<3;k++){const a=-Math.PI/2+k*Math.PI*2/3;const px=Math.cos(a)*18,py=Math.sin(a)*13;if(k)x.lineTo(px,py);else x.moveTo(px,py)}x.closePath();x.stroke();
+     x.beginPath();x.arc(0,0,4.5,0,Math.PI*2);x.stroke();
+    }
+    x.restore();return true; // Enemies cannot see armed traps.
+   }
    const t=R.clamp(age/2000,0,1),r=27;
    aura('#b15cfa',62,.52+.2*t);x.strokeStyle='#9252cb';x.lineWidth=3;x.setLineDash([5,5]);x.beginPath();x.arc(0,0,r+12,0,Math.PI*2);x.stroke();x.setLineDash([]);
    x.save();x.rotate(now/950);x.strokeStyle='#e9c8ff';x.lineWidth=2;for(let k=0;k<3;k++){const a=k*Math.PI*2/3;x.beginPath();x.moveTo(Math.cos(a)*31,Math.sin(a)*31);x.lineTo(Math.cos(a+2.094)*31,Math.sin(a+2.094)*31);x.stroke()}x.restore();
@@ -5816,6 +5879,7 @@ finishPaint(false)};
   if(drawExecutionBlood(x,e,now))continue;
   if(e.end<=now)continue;
   if(e.type==='soul_eater')continue;
+  if(drawSoulHarvestParticle(x,e,now))continue;
   if(drawTricksterEffect(x,e,now))continue;
   if(drawSaintEffect(x,e,now))continue;
   if(drawAdvancedEffect(x,e,now))continue;
@@ -5858,6 +5922,26 @@ finishPaint(false)};
  x.beginPath();x.arc(0,r*.05,r*.4,0,Math.PI);x.stroke();x.restore();
  }
 
+ function drawTrickStatusMark(x,kind,cx,cy,now){
+  x.save();x.translate(cx,cy);x.lineCap='round';x.lineJoin='round';
+  const poison=kind==='poison',slow=kind==='slow';
+  const edge=poison?'#4f9c74':slow?'#668fc5':'#9b69d3',light=poison?'#d8ffda':slow?'#e6faff':'#f6e6ff';
+  x.fillStyle='#18233cbd';x.strokeStyle=edge;x.lineWidth=1.5;x.beginPath();x.arc(0,0,10,0,Math.PI*2);x.fill();x.stroke();
+  x.strokeStyle=light;x.lineWidth=1.6;
+  if(poison){
+   // Unique poison mark: hooked venom-drop with three small thorn tips, no skull/emoji.
+   x.beginPath();x.moveTo(0,-6.5);x.bezierCurveTo(-3,-3,-5,0,-4,3);x.quadraticCurveTo(-2.5,7,1,5.5);x.quadraticCurveTo(6,3,4,-1);x.quadraticCurveTo(2.5,-4,0,-6.5);x.stroke();
+   x.beginPath();x.moveTo(1,-3);x.lineTo(4,-5.5);x.moveTo(-3,1);x.lineTo(-6,0);x.moveTo(1.5,4);x.lineTo(4,6);x.stroke();
+  }else if(slow){
+   // Mist mark: three curved, tapering wind trails.
+   for(let i=0;i<3;i++){const yy=-4+i*3.5;x.beginPath();x.moveTo(-6,yy);x.bezierCurveTo(-1,yy-4,1,yy+4,6,yy-1);x.stroke()}
+   x.fillStyle='#b9efff';x.beginPath();x.arc(-5,-5.5,1.5,0,Math.PI*2);x.fill();
+  }else{
+   // Confusion mark: a hand-drawn inward spiral.
+   x.beginPath();for(let i=0;i<=24;i++){const t=i/24,a=t*Math.PI*3.2-.3,r=6*(1-t)+.7;if(i)x.lineTo(Math.cos(a)*r,Math.sin(a)*r);else x.moveTo(Math.cos(a)*r,Math.sin(a)*r)}x.stroke();
+  }
+  x.restore();
+ }
  function drawBattleOutcome(x,canvas,now){
   const c=view?.celebration;if(!c)return;
   const elapsed=Math.max(0,now-c.start),duration=Math.max(1,c.end-c.start),t=R.clamp(elapsed/duration,0,1),w=canvas.width,h=canvas.height;
@@ -5887,11 +5971,16 @@ finishPaint(false)};
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
  const ally=me&&(p.id===me.id||(view.settings.teams==='teams'&&p.team===me.team));
- if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=inBush?.5:hidden?.65:1;x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=1;
+ const mirageInvisible=p.mirageHiddenUntil>now&&!view.celebration;
+ if(mirageInvisible&&!ally)continue; // No sprite, label, health bar or buffs for enemies.
+ if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=mirageInvisible?.24:(inBush?.5:hidden?.65:1);x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=mirageInvisible?.24:1;
   if(view.settings.teams==='teams'){
    const tint=p.team===0?'#43aef8':'#ff6686';x.save();x.shadowColor=tint;x.shadowBlur=14;x.strokeStyle=tint;x.lineWidth=p.id===localId?5:4;x.beginPath();x.ellipse(pos.x,pos.y-6,35,40,0,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.fillStyle=tint;x.beginPath();x.roundRect(pos.x-32,pos.y-74,64,18,5);x.fill();x.textAlign='center';x.font='bold 11px sans-serif';x.fillStyle='#fff';x.fillText(p.team===0?'青チーム':'赤チーム',pos.x,pos.y-61);x.restore();
   }
-  if(p.id===localId){x.strokeStyle='#7053a3';x.lineWidth=3;x.beginPath();x.ellipse(pos.x,pos.y+21,29,11,0,0,Math.PI*2);x.stroke()}for(const [buff,color,n]of [[p.reactor,'#55a7cf',5]])if(buff>now){x.strokeStyle=color;x.lineWidth=3;x.beginPath();for(let i=0;i<=n;i++){const a=i*Math.PI*2/n;x.lineTo(pos.x+Math.sin(a)*35,pos.y-Math.cos(a)*35)}x.stroke()}drawFighterStatus(x,p,pos,now);drawAdvancedStatus(x,p,pos,now);if(p.confused>now||p.slowFactorUntil>now||p.trickPoisonUntil>now){x.save();x.font='bold 16px sans-serif';x.textAlign='center';x.fillStyle='#813cc1';x.shadowColor='#eac1ff';x.shadowBlur=9;x.fillText((p.confused>now?'🌀':'')+(p.slowFactorUntil>now?'❄':'')+(p.trickPoisonUntil>now?'☠':''),pos.x,pos.y-96);x.restore();}if(p.inkLock>now){x.fillStyle='#a33a64';x.font='bold 13px sans-serif';x.fillText('回復禁止',pos.x,pos.y+62)}x.fillStyle=view.settings.teams==='teams'?'#1a293e':'#493e53';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(player?.name||'',pos.x,pos.y-(view.settings.teams==='teams'?79:49));x.fillStyle='#27364b';x.fillRect(pos.x-26,pos.y-43,52,6);x.fillStyle=view.settings.teams==='teams'?(p.team===0?'#43aef8':'#ff6686'):'#7ca865';x.fillRect(pos.x-26,pos.y-43,52*R.clamp(p.hp/(p.maxHp||100),0,1),6);if(p.drawing){x.fillStyle='#c16f3c';x.fillText('描画中',pos.x,pos.y+46)}}
+  if(p.id===localId){x.strokeStyle='#7053a3';x.lineWidth=3;x.beginPath();x.ellipse(pos.x,pos.y+21,29,11,0,0,Math.PI*2);x.stroke()}for(const [buff,color,n]of [[p.reactor,'#55a7cf',5]])if(buff>now){x.strokeStyle=color;x.lineWidth=3;x.beginPath();for(let i=0;i<=n;i++){const a=i*Math.PI*2/n;x.lineTo(pos.x+Math.sin(a)*35,pos.y-Math.cos(a)*35)}x.stroke()}drawFighterStatus(x,p,pos,now);drawAdvancedStatus(x,p,pos,now);if(p.confused>now||p.slowFactorUntil>now||p.trickPoisonUntil>now){
+   const status=[...(p.confused>now?['confusion']:[]),...(p.slowFactorUntil>now?['slow']:[]),...(p.trickPoisonUntil>now?['poison']:[])];
+   status.forEach((kind,i)=>drawTrickStatusMark(x,kind,pos.x+(i-(status.length-1)/2)*23,pos.y-100,now));
+  }if(p.inkLock>now){x.fillStyle='#a33a64';x.font='bold 13px sans-serif';x.fillText('回復禁止',pos.x,pos.y+62)}x.fillStyle=view.settings.teams==='teams'?'#1a293e':'#493e53';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(player?.name||'',pos.x,pos.y-(view.settings.teams==='teams'?79:49));x.fillStyle='#27364b';x.fillRect(pos.x-26,pos.y-43,52,6);x.fillStyle=view.settings.teams==='teams'?(p.team===0?'#43aef8':'#ff6686'):'#7ca865';x.fillRect(pos.x-26,pos.y-43,52*R.clamp(p.hp/(p.maxHp||100),0,1),6);if(p.drawing){x.fillStyle='#c16f3c';x.fillText('描画中',pos.x,pos.y+46)}x.globalAlpha=1;}
  // Gunner launch cues are driven by the authoritative projectile fireAt time.
  // A burst sounds on EVERY round; spread and repulse have just one cue per salvo.
  const presentGunRounds=new Set();
@@ -5908,7 +5997,7 @@ finishPaint(false)};
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
  drawArtsEffects(x,now);
- for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||(!p.preview?.length&&!p.summonCore))continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview||[]){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}
+ for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||(!p.preview?.length&&!p.summonCore))continue;if(p.mirageHiddenUntil>now&&!(view.settings.teams==='teams'&&me&&p.team===me.team))continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview||[]){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}
  if(p.summonCore){x.globalAlpha=1;x.font='bold 27px sans-serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#fe8db6';x.shadowBlur=11;x.fillStyle='#ff7fac';x.fillText('♥',pos.x+p.summonCore.x,pos.y+p.summonCore.y)}x.restore()}
 
 
