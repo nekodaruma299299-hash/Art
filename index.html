@@ -622,7 +622,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 
 
 
-/* Art Traitor v1.3.30: visible example at the left and central inventory. */
+/* Art Traitor v1.3.31: visible example at the left and central inventory. */
 .shadow-mode #shadowSkillInfo{left:12px!important;bottom:20px!important;transform:none!important;max-width:135px!important;width:135px!important;min-height:46px!important}
 .shadow-mode #shadowTools{left:50%!important;right:auto!important;transform:translateX(-50%);bottom:12px!important;width:min(490px,calc(100% - 310px))!important;max-width:490px!important}
 .shadow-mode #shadowTools .shadow-items{justify-content:center}
@@ -935,7 +935,7 @@ window.ArtModeLayout=(()=>{
 
 </script>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.30</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.31</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section class="exhibition"><div class="section-head"><h2>あなたの絵画展</h2><button class="quiet" id="importArt">画像を読み込む</button></div><div id="homeGallery" class="gallery"></div></section>
 <!-- CATEGORY: ホームの紹介・遊び方（静的HTML） -->
 <section id="artopia-introduction" aria-labelledby="artopia-help-label"><details><summary id="artopia-help-label"><span aria-hidden="true">ⓘ</span> あーとぴあの紹介・遊び方</summary><div class="introduction-content"><img src="./assets/artopia-icon.png" alt="あーとぴあ（アートピア）のロゴ" width="96" height="96" style="object-fit:contain">
   <h2 id="artopia-introduction-title">あーとぴあとは？ 友だちと遊べる無料お絵描きゲーム</h2>
@@ -3101,7 +3101,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.30',date:'2026-10-30',title:'アートレイター大型ステージ・直接操作改善',changes:['操作対象が光った時に直接タップ／クリックで施設を開けるよう修正。','お手本を左、アイテム欄を中央へ再配置。','部屋・通路・遮蔽物のあるアートレイター専用大型マップを追加し、タスク9種類を分散しました。']},{version:'1.3.29',date:'2026-10-30',title:'アートレイター・準備完了から試合開始までの修正',changes:['アートアーツと同じ全面表示のゲームステージを実装。描画・準備・陣営公開・試合の表示切替を修正。','全員の準備完了後は1.5秒で陣営・職業確認画面へ、12秒後に試合開始。','対戦フィールドと入力エリアを適切に配置。既存のアートアーツ等の画面は変更せず維持。']},{version:'1.3.27',date:'2026-10-29',title:'ディープスリープ強化',changes:['ディープスリープの睡眠時間を2.5秒から6秒へ延長しました。','クールダウンを15秒から12秒へ短縮しました。','通常攻撃・スキル攻撃・ソウルハーベストの継続ダメージでも睡眠が解除されないようにしました。','睡眠終了後の3秒間の再睡眠無効は維持しています。']},{version:'1.3.26',date:'2026-10-29',title:'トリッカー偽装強化と専用状態アイコン',changes:['ミラージュステップ発動後8秒間、本人・味方には半透明、敵には本体と名前・HP・バフ表示が見えなくなるようにしました。','設置完了後のトリックマインは敵には見えず、本人・味方のみ半透明の魔法陣で位置が分かります。','デコイパレードを15秒持続に延長し、移動速度を本体の現在の移動速度に合わせました。','毒と鈍足の絵文字を廃止し、混乱も含めてオリジナルの線画状態アイコンに統一しました。']},{version:'1.3.25',date:'2026-10-29',title:'ソウルハーベスト魂回収演出',changes:['ソウルハーベストでダメージを受けた敵から、青白い魂の粒が術者へ追尾する演出を追加しました。','魂の粒は残像と軌跡を残しながら飛び、術者に到達した時点でHPとインクを回復します。','ソウルハーベスト本体の渦演出も、回収エフェクトと馴染むよう微調整しました。']},{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.31',date:'2026-10-30',title:'アートレイター大型ステージ・直接操作改善',changes:['操作対象が光った時に直接タップ／クリックで施設を開けるよう修正。','お手本を左、アイテム欄を中央へ再配置。','部屋・通路・遮蔽物のあるアートレイター専用大型マップを追加し、タスク9種類を分散しました。']},{version:'1.3.29',date:'2026-10-30',title:'アートレイター・準備完了から試合開始までの修正',changes:['アートアーツと同じ全面表示のゲームステージを実装。描画・準備・陣営公開・試合の表示切替を修正。','全員の準備完了後は1.5秒で陣営・職業確認画面へ、12秒後に試合開始。','対戦フィールドと入力エリアを適切に配置。既存のアートアーツ等の画面は変更せず維持。']},{version:'1.3.27',date:'2026-10-29',title:'ディープスリープ強化',changes:['ディープスリープの睡眠時間を2.5秒から6秒へ延長しました。','クールダウンを15秒から12秒へ短縮しました。','通常攻撃・スキル攻撃・ソウルハーベストの継続ダメージでも睡眠が解除されないようにしました。','睡眠終了後の3秒間の再睡眠無効は維持しています。']},{version:'1.3.26',date:'2026-10-29',title:'トリッカー偽装強化と専用状態アイコン',changes:['ミラージュステップ発動後8秒間、本人・味方には半透明、敵には本体と名前・HP・バフ表示が見えなくなるようにしました。','設置完了後のトリックマインは敵には見えず、本人・味方のみ半透明の魔法陣で位置が分かります。','デコイパレードを15秒持続に延長し、移動速度を本体の現在の移動速度に合わせました。','毒と鈍足の絵文字を廃止し、混乱も含めてオリジナルの線画状態アイコンに統一しました。']},{version:'1.3.25',date:'2026-10-29',title:'ソウルハーベスト魂回収演出',changes:['ソウルハーベストでダメージを受けた敵から、青白い魂の粒が術者へ追尾する演出を追加しました。','魂の粒は残像と軌跡を残しながら飛び、術者に到達した時点でHPとインクを回復します。','ソウルハーベスト本体の渦演出も、回収エフェクトと馴染むよう微調整しました。']},{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -5436,8 +5436,6 @@ window.ArtArts=(()=>{
   const world=worldPoint(e),me=self(),near=q=>R.dist(me,q)<=90;
   const task=view.shadow.tasks.find(t=>t.readyAt<=Date.now()+offset&&near(t)&&R.dist(world,t)<=35);
   if(task){shadowRequest('taskStart',{target:task.id});return true}
-  const crate=view.shadow.crates.find(c=>near(c)&&R.dist(world,c)<=37);
-  if(crate){shadowPanel='crate';shadowPanelTarget=crate.id;shadowPanelKey='';shadowRenderPanel();return true}
   const shop={x:R.W/2,y:R.H/2};
   if(R.dist(me,shop)<=125&&R.dist(world,shop)<=58){shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();return true}
   const down=view.fighters.find(q=>q.state==='down'&&near(q)&&R.dist(world,q)<=35);
@@ -6469,7 +6467,7 @@ const ShadowRules=(()=>{
  function init(h,now,random=Math.random){h.shadow={version:1,phase:'active',started:now,gateAt:now+h.settings.gateMin*60000,graceAt:0,shortened:0,initialArtists:h.players.length-(C.players.killer_counts[h.players.length]||1),sales:{},tasks:[],crates:[],drops:[],logs:[],nextCrate:now+45000};
   const killers=new Set(shuffled(h.players.map(p=>p.id),random).slice(0,C.players.killer_counts[h.players.length]||1));
   h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.downHP=100;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.job==='police'){p.inventory.push({id:'initial-gun-'+p.id,sku:'magic_gun',charges:-1,on:true});p.freeBullet=true}});
-  const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[125,120],[580,120],[1260,360],[160,670],[875,760],[1250,1150],[170,1360],[620,1820],[1240,1800]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
+  const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,1260],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
  }
  function buy(h,p,sku){if(!up(p))return '行動できません';if(sku==='slot'){if(p.slots>=5)return '最大5枠です';const cost=p.slots===3?20:35;if(p.am<cost)return 'AM不足';p.am-=cost;p.slots++;return ''}
   const s=catalog[sku];if(!available(p,s))return '購入できません';if(p.inventory.some(i=>i.sku===sku))return '同じ装備は1枠までです';if(p.inventory.length>=p.slots)return '枠が満杯です';const cost=price(p,s);if(p.am<cost)return 'AM不足';if(['nightmare','holy_blessing','sacred_ascension'].includes(sku)&&h.shadow.sales[sku])return 'この試合の在庫は終了しました';p.am-=cost;p.inventory.push({id:'item-'+(++h.seq),sku,charges:s.charges,on:true});h.shadow.sales[sku]=(h.shadow.sales[sku]||0)+1;return '';
@@ -6493,25 +6491,40 @@ window.ArtShadow=(()=>{
  const names=['素早さ','攻撃力','防御力','インク量','射程'];
  // An independent exploration world: 12 themed rooms connected by broad corridors.
  // Avoid changing ArtsRules: only the Shadow-specific shallow copy is enlarged.
- const SHADOW_W=1440,SHADOW_H=2000;
+ const SHADOW_W=1900,SHADOW_H=2600;
  R.W=SHADOW_W;R.H=SHADOW_H;
+ // Asymmetric research complex. Broken wings and free corridors, not a rectangular grid.
+ const SHADOW_ROOMS=[
+  {name:'管制室',x:110,y:100,w:430,h:350},{name:'観測棟',x:1060,y:95,w:560,h:360},
+  {name:'医務室',x:95,y:630,w:380,h:430},{name:'研究区画',x:620,y:520,w:520,h:385},
+  {name:'電力室',x:1420,y:705,w:370,h:510},{name:'倉庫',x:170,y:1260,w:490,h:580},
+  {name:'中央ホール',x:790,y:1090,w:510,h:460},{name:'貨物庫',x:1370,y:1550,w:390,h:455},
+  {name:'整備工房',x:750,y:1850,w:470,h:400},{name:'通信室',x:170,y:2160,w:370,h:300},
+  {name:'動力棟',x:1390,y:2260,w:370,h:260}
+ ];
  const shadowWalls=()=>{
   const walls=[];let id=0;
-  const add=(x,y,w,h,type='stone')=>walls.push({id:'shadow-wall-'+(++id),type,x,y,w,h,hp:null,maxHp:null});
-  // Four columns / three rows. Each partition has substantial door gaps for traversal.
-  for(const x of [355,715,1075])for(const [a,b] of [[35,180],[330,485],[635,790],[950,1105],[1270,1425],[1590,1745],[1900,1970]]){
-   if(a>=SHADOW_H-20)continue;add(x,a,24,Math.min(b-a,SHADOW_H-a-25));
-  }
-  for(const y of [515,1010,1505])for(const [a,b] of [[30,155],[295,440],[580,725],[865,1010],[1150,1285],[1400,1410]]){
-   if(a>=SHADOW_W-20)continue;add(a,y,Math.min(b-a,SHADOW_W-a-25),24);
-  }
-  // Room furnishings, pillars and cover. Navigation lanes remain clear.
-  for(const [x,y,w,h] of [[105,220,90,55],[475,180,100,65],[850,220,105,55],[1180,200,110,60],
-   [165,725,105,60],[515,810,95,60],[825,695,100,65],[1210,815,95,70],
-   [110,1220,105,65],[475,1280,100,60],[855,1240,100,65],[1190,1300,115,55],
-   [160,1770,100,60],[490,1780,95,65],[850,1760,90,55],[1195,1790,105,55],
-   [665,400,65,55],[680,1130,70,55],[690,1610,60,65]])add(x,y,w,h);
-  return walls.filter(b=>Math.hypot((b.x+b.w/2)-SHADOW_W/2,(b.y+b.h/2)-SHADOW_H/2)>125);
+  const add=(x,y,w,h)=>walls.push({id:'shadow-wall-'+(++id),type:'stone',x,y,w,h,hp:null,maxHp:null});
+  const roomWalls=(a,doors)=>{
+   const thick=22;
+   // At least two open edges for each room; layouts vary in width and direction.
+   const sx=a.x+a.w*.43,sy=a.y+a.h*.42;
+   if(!doors.includes('N'))add(a.x,a.y,a.w,thick);else{add(a.x,a.y,sx-a.x-70,thick);add(sx+70,a.y,a.x+a.w-(sx+70),thick)}
+   if(!doors.includes('S'))add(a.x,a.y+a.h-thick,a.w,thick);else{add(a.x,a.y+a.h-thick,sx-a.x-70,thick);add(sx+70,a.y+a.h-thick,a.x+a.w-(sx+70),thick)}
+   if(!doors.includes('W'))add(a.x,a.y,thick,a.h);else{add(a.x,a.y,thick,sy-a.y-70);add(a.x,sy+70,thick,a.y+a.h-(sy+70))}
+   if(!doors.includes('E'))add(a.x+a.w-thick,a.y,thick,a.h);else{add(a.x+a.w-thick,a.y,thick,sy-a.y-70);add(a.x+a.w-thick,sy+70,thick,a.y+a.h-(sy+70))}
+  };
+  const openings=['ES','SW','NSE','EW','WS','NES','EW','NW','NS','NE','NW'];
+  SHADOW_ROOMS.forEach((r,i)=>roomWalls(r,openings[i]));
+  // Varied cover: crates, labs, machinery. Wide walkable links are left between rooms.
+  for(const [x,y,w,h] of [[205,188,83,42],[385,325,60,90],[1170,195,145,48],[1510,355,75,54],
+   [205,735,106,72],[368,914,40,80],[785,635,75,65],[1010,785,86,40],
+   [1530,825,88,105],[1670,1075,82,52],[265,1390,94,75],[470,1555,100,82],
+   [280,1690,84,58],[1010,1215,100,54],[935,1405,105,60],[1500,1670,90,95],
+   [1680,1855,65,92],[825,1980,90,58],[1085,2160,65,55],[230,2290,100,64],
+   [1490,2355,86,64],[415,106,40,48],[1260,510,50,90],[550,1135,76,45],
+   [1290,1330,72,95],[590,2020,85,50]])add(x,y,w,h);
+  return walls.filter(b=>Math.hypot(b.x+b.w/2-SHADOW_W/2,b.y+b.h/2-SHADOW_H/2)>140);
  };
  R.map=()=>shadowWalls();
  R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b));
@@ -6535,7 +6548,7 @@ window.ArtShadow=(()=>{
  // Adapter for the existing combat implementation, scoped to this closure.
  function shadowSyncSkills(p){p.skills=ShadowRules.enabledSkills(p);p.skill=p.skills[0]||''}
  function shadowPublic(id,images){const s=publicState(images),me=host.fighters.find(p=>p.id===id),ghost=me&&!ShadowRules.living(me);s.testMode=!!(room.offline&&room.shadowTest);s.testBotsMove=!!host.testBotsMove;s.shadowSettings=host.settings;s.privateRole=host.shadowRoles?.[id]||null;s.killerFriends=s.privateRole==='killer'?Object.keys(host.shadowRoles).filter(k=>host.shadowRoles[k]==='killer'):[];
-  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:t.readyAt,rev:t.rev})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,opened:c.opened,odd:!!c.poison,loot:c.opened?c.loot.map(i=>({id:i.id,sku:i.sku})):[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,action:me.action,notice:me.notice||'',freeBullet:me.freeBullet,logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
+  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:t.readyAt,rev:t.rev})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,odd:!!c.poison,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,action:me.action,notice:me.notice||'',freeBullet:me.freeBullet,logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
   s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.state=q.state;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
@@ -6547,13 +6560,39 @@ window.ArtShadow=(()=>{
   const mult=owner?.alignment==='killer'&&['slash','magic'].includes(source?.castType||source?.type)?1.1:1;const actual=originalHurt(target,damage*mult,now,source,armorPierce,knockback);if(actual>0)target.action=null;
   if(target.hp<=0&&actual>0){target.state='down';target.downUsed=true;target.downBlocked=[key];target.hp=.0001;target.dash=null;target.guard=0;target.drawing=false;target.preview=[];target.action=null;delete host.inputs[target.id]}return actual;
  }
+ function shadowCrateArtsHit(p,shape,now){
+  const type=shape.type;if(!['slash','magic','cross','thrust','feint','inkcut','star','nova','ray','charge','execution','judgment','rapid','burst'].includes(type))return;
+  const x=p.x+Number(shape.x||0),y=p.y+Number(shape.y||0),isProjectile=['magic','ray','charge','rapid','burst'].includes(type),isArea=['star','nova','execution','judgment','cross'].includes(type);
+  const power=type==='magic'?25:isArea?38:22;
+  for(const c of host.shadow.crates){if(c.hp<=0)continue;
+   // Match the major arts family: short front arcs, projectiles, and area attacks.
+   const dx=c.x-p.x,dy=c.y-p.y,reach=Math.hypot(shape.x||0,shape.y||0),dir=Math.atan2(shape.y||0,shape.x||0),along=dx*Math.cos(dir)+dy*Math.sin(dir),across=Math.abs(-dx*Math.sin(dir)+dy*Math.cos(dir));
+   const hit=isProjectile?(along>0&&along<Math.max(170,reach+250)&&across<38):isArea?Math.hypot(c.x-x,c.y-y)<Math.max(55,shape.radius||75):Math.hypot(c.x-p.x,c.y-p.y)<Math.max(95,Math.min(250,reach+60))&&along>-25;
+   if(!hit)continue;
+   // An obstacle must not let a cast damage a crate through solid walls.
+   let clear=true;for(let t=0.12;t<1;t+=.12){const ox=p.x+(c.x-p.x)*t,oy=p.y+(c.y-p.y)*t;if(R.blocked(ox,oy,host.blocks,6)){clear=false;break}}
+   if(clear)shadowDamageCrate(c,power,now,p.id);
+  }
+ }
+ function shadowDamageCrate(c,damage,now,owner){
+  if(!c||c.hp<=0)return;c.hp=Math.max(0,c.hp-damage);c.lastHitAt=now;
+  host.effects.push({id:++host.seq,type:'shadowCrateHit',owner,x:c.x,y:c.y,r:35,start:now,end:now+320});
+  if(c.hp>0)return;
+  c.respawnAt=now+45000;c.opened=true;
+  host.effects.push({id:++host.seq,type:'shadowCrateBreak',owner,x:c.x,y:c.y,r:65,start:now,end:now+1050});
+  c.loot.forEach((item,i)=>{
+   const a=(i*2.39996)+(.6+(c.x%7)*.17),radius=32+12*(i%2),px=R.clamp(c.x+Math.cos(a)*radius,32,R.W-32),py=R.clamp(c.y+Math.sin(a)*radius,32,R.H-32);
+   host.shadow.drops.push({id:'drop-'+(++host.seq),sku:item.sku,x:px,y:py,charges:ShadowRules.catalog[item.sku]?.charges||1});
+  });c.loot=[];
+ }
  function shadowCast(id,shape,now=Date.now()){const p=host.fighters.find(p=>p.id===id);if(!ShadowRules.up(p)||p.action||!shape)return false;const basic=['guard','slash','magic'].includes(shape.type),item=p.inventory.find(i=>i.sku===shape.type&&i.on&&i.charges!==0);if(!basic&&!item)return false;shadowSyncSkills(p);const beforeShot=host.shots.length,beforeFx=host.effects.length;p.shadowCast='cast-'+(++host.seq);p.shadowCastType=shape.type;const ok=originalCast(id,shape,now);if(!ok)return false;
   for(const e of [...host.shots.slice(beforeShot),...host.effects.slice(beforeFx)]){e.castId=p.shadowCast;e.castType=shape.type}if(p.dash)p.dash.castId=p.shadowCast;
   if(item){ShadowRules.consume(p,item);p.lastSpecial=now;if(item.poison&&['heal','greater_heal'].includes(shape.type))p.poison={from:now+3000,to:now+11000};shadowSyncSkills(p)}
+  shadowCrateArtsHit(p,shape,now);
   if(shape.type==='magic'&&p.inventory.some(i=>i.sku==='magic_gun'&&i.on)&&(p.freeBullet||p.am>=8)){if(p.freeBullet)p.freeBullet=false;else p.am-=8;for(const shot of host.shots.slice(beforeShot)){shot.power*=1.6;shot.pierce=false}}
   return true;
  }
- function shadowSpawnCrate(now){const h=host.shadow;if(h.crates.length>=2)return;let pos;for(let n=0;n<30;n++){const p={x:80+Math.random()*(R.W-160),y:80+Math.random()*(R.H-160)};if(!R.blocked(p.x,p.y,host.blocks,35)){pos=p;break}}if(!pos)return;const loot=[];for(let n=0;n<1+Math.floor(Math.random()*3);n++){const roll=Math.random(),rarity=roll<.55?'common':roll<.85?'rare':roll<.97?'epic':'legendary',pool=ShadowRules.goods.filter(s=>s.faction==='both'&&s.rarity===rarity&&!['holy_blessing','sacred_ascension'].includes(s.id));const sku=Math.random()<.35?(Math.random()<.5?'pickup_hp':'pickup_ink'):(pool[Math.floor(Math.random()*pool.length)]?.id||'heal');loot.push({id:'loot-'+(++host.seq),sku})}h.crates.push({id:'crate-'+(++host.seq),...pos,opened:false,loot,trap:false,poison:false,created:now});}
+ function shadowSpawnCrate(now){const h=host.shadow;if(h.crates.length>=2)return;let pos;for(let n=0;n<30;n++){const p={x:80+Math.random()*(R.W-160),y:80+Math.random()*(R.H-160)};if(!R.blocked(p.x,p.y,host.blocks,35)){pos=p;break}}if(!pos)return;const loot=[];for(let n=0;n<1+Math.floor(Math.random()*3);n++){const roll=Math.random(),rarity=roll<.55?'common':roll<.85?'rare':roll<.97?'epic':'legendary',pool=ShadowRules.goods.filter(s=>s.faction==='both'&&s.rarity===rarity&&!['holy_blessing','sacred_ascension'].includes(s.id));const sku=Math.random()<.35?(Math.random()<.5?'pickup_hp':'pickup_ink'):(pool[Math.floor(Math.random()*pool.length)]?.id||'heal');loot.push({id:'loot-'+(++host.seq),sku})}h.crates.push({id:'crate-'+(++host.seq),...pos,opened:false,hp:60,maxHp:60,respawnAt:0,loot,trap:false,poison:false,created:now});}
  function shadowNear(p,q,r=90){return q&&R.dist(p,q)<=r}
  function shadowReply(p,text){p.notice=text;shadowSend()}
  function shadowAction(id,m){if(!host||host.phase!=='battle'||!host.shadow)return true;const p=host.fighters.find(p=>p.id===id),h=host.shadow,now=Date.now();if(!p)return true;
@@ -6565,7 +6604,12 @@ window.ArtShadow=(()=>{
   if(m.action==='buy'){if(!shadowNear(p,center,125))return true;const err=ShadowRules.buy(host,p,m.sku);shadowSyncSkills(p);shadowReply(p,err||'購入しました');return true}
   if(m.action==='toggle'){const i=p.inventory.find(i=>i.id===m.itemId);if(i)i.on=!i.on;shadowSyncSkills(p)}
   if(m.action==='drop'){const i=p.inventory.find(i=>i.id===m.itemId);if(i){h.drops.push({...i,id:'drop-'+(++host.seq),x:p.x,y:p.y});p.inventory=p.inventory.filter(q=>q!==i);shadowSyncSkills(p)}}
-  if(m.action==='pickup'){const d=h.drops.find(d=>d.id===m.target);if(shadowNear(p,d)&&p.inventory.length<p.slots&&!p.inventory.some(i=>i.sku===d.sku)){p.inventory.push({id:'item-'+(++host.seq),sku:d.sku,charges:d.charges,on:true,poison:d.poison});h.drops=h.drops.filter(q=>q!==d);shadowSyncSkills(p)}}
+  if(m.action==='pickup'){const d=h.drops.find(d=>d.id===m.target);if(shadowNear(p,d,100)){
+   if(d.sku==='pickup_hp')p.hp=Math.min(p.maxHp,p.hp+30);
+   else if(d.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+40);
+   else{if(p.inventory.length>=p.slots||p.inventory.some(i=>i.sku===d.sku))return shadowReply(p,'アイテム枠がいっぱいです');p.inventory.push({id:'item-'+(++host.seq),sku:d.sku,charges:d.charges,on:true,poison:d.poison});shadowSyncSkills(p)}
+   h.drops=h.drops.filter(q=>q!==d);
+  }}
   if(m.action==='clock'){if(!host.settings.accelerate||!shadowNear(p,center,125)||p.am<15||h.graceAt||h.gateAt-now<180000||h.shortened+60000>host.settings.gateMin*60000*.2)return true;p.am-=15;h.gateAt-=60000;h.shortened+=60000;host.deadline=h.gateAt}
   if(m.action==='treat'){const cost=p.job==='doctor'?12:15;if(!shadowNear(p,center,125)||p.downTreats>=2||p.downHP>=100||p.am<cost)return true;p.am-=cost;p.downTreats++;p.downHP=Math.min(100,p.downHP+20)}
   if(m.action==='revive'){const target=host.fighters.find(q=>q.id===m.target);if(!shadowNear(p,target)||target.state!=='down'||p.am<12)return true;p.action={kind:'revive',target:target.id,start:now,end:now+(p.job==='doctor'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq}}
@@ -6573,7 +6617,7 @@ window.ArtShadow=(()=>{
   if(m.action==='taskStart'){const t=h.tasks.find(t=>t.id===m.target);if(!shadowNear(p,t)||t.readyAt>now)return true;const model=ShadowRules.taskModel(t.kind,t.rev);p.action={kind:'task',target:t.id,rev:t.rev,start:now,end:now+(model.seconds-(p.job==='engineer'&&['WIR_01','REPAIR_01'].includes(t.kind)?3:0))*1000,x:p.x,y:p.y,hit:p.lastHitSeq}}
   if(m.action==='taskSubmit'){const a=p.action,t=a&&h.tasks.find(t=>t.id===a.target);if(a?.kind!=='task'||!shadowNear(p,t)||a.rev!==t.rev||t.readyAt>now||now<a.end||!ShadowRules.taskCheck(t.kind,t.rev,m.paths))return shadowReply(p,'まだ完成していません。お手本と経過時間を確認してください。');p.am=Math.min(100,p.am+ShadowRules.taskModel(t.kind,t.rev).reward);p.action=null;t.rev++;t.readyAt=now+30000;for(const q of host.fighters)if(q.action?.target===t.id)q.action=null;p.notice='タスク完了！ AMを獲得しました'}
   if(['open','take','steal','inspect','trap','poison','disarm'].includes(m.action)){const c=h.crates.find(c=>c.id===m.target);if(!shadowNear(p,c))return true;
-   if(m.action==='open'&&!c.opened){c.opened=true;if(c.trap){c.trap=false;p.slow=now+2500;shadowHurt(p,18,now,{id:c.id,type:'physical'})}}
+   if(m.action==='open')return true; // Crates open exclusively through Arts damage.
    if(m.action==='inspect'){if(p.job!=='detective'&&!p.inventory.some(i=>i.sku==='evidence_kit'&&i.on))return true;p.notice=c.trap||c.poison||c.stolen||c.forged?'細工または開封の痕跡があります。犯人は特定できません。':'目立った細工の痕跡はありません';const item=p.inventory.find(i=>i.sku==='evidence_kit'&&i.on);if(p.job!=='detective'&&item)ShadowRules.consume(p,item)}
    if(m.action==='trap'){const item=p.inventory.find(i=>i.sku==='trap_kit'&&i.on);if(p.alignment!=='killer'||!item||c.opened)return true;p.action={kind:'trap',target:c.id,start:now,end:now+(p.job==='engineer'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq,itemId:item.id}}
    if(m.action==='poison'){const item=p.inventory.find(i=>i.sku==='poison_vial'&&i.on);if(p.alignment!=='killer'||p.job!=='doctor'||!item||!c.loot.some(i=>['pickup_hp','heal','greater_heal','emergency_medkit'].includes(i.sku)))return true;c.poison=true;ShadowRules.consume(p,item)}
@@ -6599,6 +6643,16 @@ window.ArtShadow=(()=>{
    if(a.kind==='trap'&&q&&!q.opened){const item=p.inventory.find(i=>i.id===a.itemId);if(item){q.trap=true;ShadowRules.consume(p,item)}}
   }
   if(!h.graceAt&&now>=h.gateAt){h.phase='escape_grace';h.graceAt=now+host.settings.graceMin*60000;host.deadline=h.graceAt}
+  for(const c of h.crates)if(c.hp<=0&&c.respawnAt&&now>=c.respawnAt){
+   c.hp=c.maxHp||60;c.opened=false;c.respawnAt=0;c.loot=[];
+   for(let i=0,n=1+Math.floor(Math.random()*2);i<n;i++){
+    const roll=Math.random(),rarity=roll<.55?'common':roll<.85?'rare':roll<.97?'epic':'legendary';
+    const pool=ShadowRules.goods.filter(g=>g.faction==='both'&&g.rarity===rarity);
+    const sku=Math.random()<.35?(Math.random()<.5?'pickup_hp':'pickup_ink'):(pool[Math.floor(Math.random()*pool.length)]?.id||'heal');
+    c.loot.push({id:'loot-'+(++host.seq),sku});
+   }
+   host.effects.push({id:++host.seq,type:'shadowCrateRespawn',owner:null,x:c.x,y:c.y,r:55,start:now,end:now+900});
+  }
   if(now>=h.nextCrate){shadowSpawnCrate(now);h.nextCrate=now+45000+Math.random()*25000}
   const result=ShadowRules.result(host,now);if(result){host.result=result;host.phase='finished';h.phase='ended';host.deadline=null;host.effects=[];host.shots=[];host.inputs={};shadowSend(true)}
  }
@@ -7522,7 +7576,7 @@ window.ArtShadow=(()=>{
   if(shadowPanel==='chat'&&document.activeElement?.id==='shadowChatInput')return;
   const key=shadowPanel+':'+(shadowPanel==='task'?m.action?.target+':'+m.action?.rev:JSON.stringify([m.am,m.inventory,m.state,m.notice,s.crates.map(c=>[c.id,c.opened,c.loot]),s.tasks.map(t=>t.readyAt),m.logs?.length,Math.round(p.x/35),Math.round(p.y/35)]));if(key===shadowPanelKey)return;shadowPanelKey=key;
   const button=(label,action,extra='')=>'<button data-action="'+action+'" '+extra+'>'+label+'</button>';let html='<header><b>'+({actions:'近くの操作',shop:'AMショップ',items:'装備',chat:m.state==='dead'||m.state==='escaped'?'幽霊チャット':'距離チャット',task:'描画タスク'}[shadowPanel]||'')+'</b><button data-close>閉じる</button></header>';
-  if(shadowPanel==='crate'){const c=s.crates.find(v=>v.id===shadowPanelTarget);if(!c||R.dist(p,c)>90){shadowPanel='';panel.hidden=true;return}html+='<p>クレートの中身を確認できます。</p>'+button('開封','open','data-target="'+c.id+'" '+(c.opened?'disabled':''));if(m.job==='thief')html+=button('内緒で抜き取る','steal','data-target="'+c.id+'"');if(m.job==='detective'||m.inventory.some(i=>i.sku==='evidence_kit'&&i.on))html+=button('調査','inspect','data-target="'+c.id+'"');if(m.job==='engineer')html+=button('罠解除','disarm','data-target="'+c.id+'"');for(const [sku,act,label] of [['trap_kit','trap','罠を仕込む'],['poison_vial','poison','毒を混ぜる']])if(m.inventory.some(i=>i.sku===sku&&i.on))html+=button(label,act,'data-target=+c.id+');for(const item of c.loot||[])html+=button('拾う：'+esc(ShadowRules.catalog[item.sku]?.name||item.sku),'take','data-target=+c.id+ data-item-id=+item.id+');}
+  if(shadowPanel==='crate'){shadowPanel='';panel.hidden=true;return}
   else if(shadowPanel==='actions'){
    if(view.testMode)html+='<article><b>テスト専用操作</b>'+button('AMを100にする','testAM')+button('HP・インク回復／復活','testHeal')+button('出口を開く','testGate')+button(view.testBotsMove?'ダミーを停止':'ダミーの移動・攻撃を開始','testBots')+'</article>';
    if(m.state==='down')html+='<p>救助を待っています。</p>'+button('近くに助けを求める','chat','data-text="助けてください！"');else if(m.state!=='alive')html+='<p>観戦中です。生存者へ干渉できません。</p>';else{
@@ -7530,7 +7584,7 @@ window.ArtShadow=(()=>{
     const near=q=>q&&R.dist(p,q)<90;for(const q of view.fighters.filter(q=>q.state==='down'&&near(q)))html+=button(esc(view.players.find(a=>a.id===q.id)?.name||'')+'を救助 · 12AM','revive','data-target="'+q.id+'"');
     for(const t of s.tasks.filter(t=>near(t)))html+=button(esc(ShadowRules.taskNames[t.kind])+' · '+ShadowRules.taskModel(t.kind).reward+'AM','taskStart','data-target="'+t.id+'" '+(t.readyAt>Date.now()+offset?'disabled':''));
     if(R.dist(p,{x:R.W/2,y:R.H/2})<125)html+='<p>中央の準備装置・ショップ</p>'+button('15AM → 出口を60秒短縮','clock')+button('ダウンHPを治療','treat');
-    for(const c of s.crates.filter(near)){html+='<article><b>クレート'+(c.odd?' · 容器に違和感':'')+'</b>'+button('開封','open','data-target="'+c.id+'"');if(m.job==='thief')html+=button('内緒で1つ抜き取る','steal','data-target="'+c.id+'"');if(m.job==='detective'||m.inventory.some(i=>i.sku==='evidence_kit'&&i.on))html+=button('調査','inspect','data-target="'+c.id+'"');if(m.job==='engineer')html+=button('罠解除','disarm','data-target="'+c.id+'"');for(const [sku,act,label]of [['trap_kit','trap','罠を仕込む'],['poison_vial','poison','毒を混ぜる']])if(m.inventory.some(i=>i.sku===sku&&i.on))html+=button(label,act,'data-target="'+c.id+'"');for(const item of c.loot||[])html+=button(esc(ShadowRules.catalog[item.sku]?.name||{pickup_hp:'HP回復物資',pickup_ink:'インク補充'}[item.sku]),'take','data-target="'+c.id+'" data-item-id="'+item.id+'"');html+='</article>'}
+    for(const c of s.crates.filter(c=>near(c)&&c.hp>0))html+='<p>クレート：アーツで破壊するとアイテムがドロップします（HP '+Math.ceil(c.hp)+'）</p>';
     for(const d of s.drops.filter(near))html+=button('拾う：'+esc(ShadowRules.catalog[d.sku]?.name||d.sku),'pickup','data-target="'+d.id+'"');
     if(s.graceAt)for(const [name,x]of [['west',35],['east',R.W-35]])if(near({x,y:R.H/2}))html+=button('出口で脱出する（4秒）','escape','data-target="'+name+'"');
     html+='<p class="muted">近くにある対象が表示されます。タスク・箱・出口は地図上のマークへ。</p>';
@@ -7558,20 +7612,36 @@ window.ArtShadow=(()=>{
   canvas.onpointerdown=e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;try{canvas.setPointerCapture(pointer)}catch{}taskStroke=[point(e)];draw()};canvas.onpointermove=e=>{if(pointer!==e.pointerId)return;e.preventDefault();if(taskStroke.length<1200)taskStroke.push(point(e));draw()};canvas.onpointerup=e=>{if(pointer!==e.pointerId)return;if(taskStroke.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw()};canvas.onpointercancel=()=>{taskStroke=null;pointer=null;draw()};$('#shadowTaskClear').onclick=()=>{taskInk=[];draw()};$('#shadowTaskSend').onclick=()=>shadowRequest('taskSubmit',{paths:taskInk});draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
  }
  function shadowWorld(x,now){if(!view.shadow)return;const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dist(me,q)<=90;
- // Distinct rooms and floor markers, always behind characters and interactables.
- x.save();const names=['管制室','格納庫','研究室','医務室','工房','通信室','食堂','保管庫','動力室','貨物室','観測室','整備区画'];
- for(let row=0;row<3;row++)for(let col=0;col<4;col++){
-  const xx=col*360,yy=row*495;
-  x.fillStyle=(row+col)%2?'#dae8e5':'#e4ede8';x.globalAlpha=.48;x.fillRect(xx+20,yy+24,315,445);
-  x.globalAlpha=.62;x.fillStyle='#607a7a';x.font='bold 17px sans-serif';x.textAlign='center';x.fillText(names[row*4+col],xx+170,yy+65);
-  x.globalAlpha=.13;x.strokeStyle='#7a9d9c';x.lineWidth=2;for(let i=0;i<8;i++){x.beginPath();x.moveTo(xx+35,yy+110+i*40);x.lineTo(xx+290,yy+110+i*40);x.stroke()}
+ // Irregular rooms with visibly varied footprints and no four-column grid.
+ x.save();
+ for(let i=0;i<SHADOW_ROOMS.length;i++){
+  const r=SHADOW_ROOMS[i];x.fillStyle=i%3===0?'#d1e3df':i%3===1?'#e7e2d8':'#dde4e6';x.globalAlpha=.68;
+  x.fillRect(r.x+8,r.y+8,r.w-16,r.h-16);
+  x.globalAlpha=.19;x.strokeStyle='#68868a';x.lineWidth=2;
+  for(let k=0;k<6;k++){const yy=r.y+68+k*(r.h-100)/6;x.beginPath();x.moveTo(r.x+18,yy);x.lineTo(r.x+r.w-18,yy);x.stroke()}
+  x.globalAlpha=.82;x.fillStyle='#4d686b';x.font='bold 20px sans-serif';x.textAlign='center';x.fillText(r.name,r.x+r.w/2,r.y+49);
  }
  x.restore();
  x.save();x.textAlign='center';x.font='bold 13px sans-serif';
  const halo=(q,r)=>{if(!close(q))return;x.save();x.shadowColor='#ffee92';x.shadowBlur=20+Math.sin(now/260)*5;x.strokeStyle='#fff1a1';x.lineWidth=4;x.beginPath();x.arc(q.x,q.y,r,0,Math.PI*2);x.stroke();x.restore()};
  for(const t of s.tasks){const ready=t.readyAt<=now;x.fillStyle=ready?'#bce4ce':'#b9bfc0';x.strokeStyle=ready?'#317562':'#6c8584';x.lineWidth=3;x.beginPath();x.arc(t.x,t.y,23,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#24473b';x.fillText('✎',t.x,t.y+5);x.fillText(ShadowRules.taskNames[t.kind],t.x,t.y+41);if(ready)halo(t,29)}
- for(const c of s.crates){x.fillStyle=c.opened?'#c8bba2':'#b88b58';x.strokeStyle='#624932';x.lineWidth=3;x.fillRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-4,c.y-18,8,36);halo(c,32)}
- const shop={x:R.W/2,y:R.H/2};x.fillStyle='#f1d68e';x.strokeStyle='#765c33';x.lineWidth=3;x.fillRect(shop.x-38,shop.y-31,76,62);x.strokeRect(shop.x-38,shop.y-31,76,62);x.fillStyle='#4a3c29';x.font='bold 15px sans-serif';x.fillText('AM',shop.x,shop.y+6);x.font='bold 13px sans-serif';x.fillText('ショップ',shop.x,shop.y+49);if(me?.state==='alive'&&R.dist(me,shop)<=125)halo(shop,53);
+ for(const e of view.effects||[])if(['shadowCrateHit','shadowCrateBreak','shadowCrateRespawn'].includes(e.type)&&e.end>now){
+  const t=Math.min(1,(now-e.start)/Math.max(1,e.end-e.start)),burst=e.type==='shadowCrateBreak',revive=e.type==='shadowCrateRespawn';
+  x.save();x.globalAlpha=1-t;x.strokeStyle=revive?'#9feaf1':burst?'#e9bf79':'#f6e5b3';x.lineWidth=burst?5:3;
+  x.beginPath();x.arc(e.x,e.y,(burst?12:8)+t*(burst?62:38),0,Math.PI*2);x.stroke();
+  for(let i=0;i<(burst?18:9);i++){const a=i*2.39996,dist=t*(burst?65:32),xx=e.x+Math.cos(a)*dist,yy=e.y+Math.sin(a)*dist;x.fillStyle=revive?'#a8f4fa':i%3?'#d4a16f':'#fff0c8';x.fillRect(xx-3,yy-3,6,6)}x.restore();
+ }
+ for(const c of s.crates){if(c.hp<=0){x.save();x.globalAlpha=.2;x.strokeStyle='#9aafbd';x.setLineDash([5,6]);x.strokeRect(c.x-23,c.y-18,46,36);x.restore();continue}
+  x.fillStyle='#b88b58';x.strokeStyle='#624932';x.lineWidth=3;x.fillRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-4,c.y-18,8,36);
+  if(c.hp<(c.maxHp||60)){x.fillStyle='#4e4040';x.fillRect(c.x-25,c.y-30,50,5);x.fillStyle='#a2e6cf';x.fillRect(c.x-25,c.y-30,50*c.hp/(c.maxHp||60),5)}
+ }
+ for(const d of s.drops){
+  const heal=d.sku==='pickup_hp',ink=d.sku==='pickup_ink';const col=heal?'#55c98c':ink?'#5aade8':'#e6bf66';
+  x.save();x.translate(d.x,d.y);x.shadowColor=col;x.shadowBlur=16;x.fillStyle=col;x.beginPath();x.arc(0,-3+Math.sin(now/280+d.x)*3,13,0,Math.PI*2);x.fill();
+  x.shadowBlur=0;x.strokeStyle='#ffffff';x.lineWidth=2.2;x.beginPath();x.arc(0,-3,13,0,Math.PI*2);x.stroke();
+  x.fillStyle='#ffffff';x.font='bold 15px sans-serif';x.fillText(heal?'+':ink?'◈':'✦',0,2);x.restore();halo(d,21);
+ }
+  const shop={x:R.W/2,y:R.H/2};x.fillStyle='#f1d68e';x.strokeStyle='#765c33';x.lineWidth=3;x.fillRect(shop.x-38,shop.y-31,76,62);x.strokeRect(shop.x-38,shop.y-31,76,62);x.fillStyle='#4a3c29';x.font='bold 15px sans-serif';x.fillText('AM',shop.x,shop.y+6);x.font='bold 13px sans-serif';x.fillText('ショップ',shop.x,shop.y+49);if(me?.state==='alive'&&R.dist(me,shop)<=125)halo(shop,53);
   for(const gx of [35,R.W-35]){x.fillStyle=s.graceAt?'#80d4ab':'#8f9caa';x.fillRect(gx-22,R.H/2-45,44,90);x.fillStyle='#233e3c';x.fillText(s.graceAt?'脱出':'出口',gx,R.H/2-57)}
   for(const p of view.fighters)if(p.state==='down'){x.fillStyle='#b84b57';x.fillText('ダウン · '+Math.ceil(p.downHP),p.x,p.y+45)}
   for(const l of s.me?.logs||[]){if(l.ghost||l.range!=='near'||now-l.at>6000)continue;const p=view.fighters.find(p=>p.id===l.author);if(!p)continue;const text=l.text.slice(0,22);x.fillStyle='#fffffff0';x.fillRect(p.x-92,p.y-90,184,27);x.fillStyle='#24384c';x.fillText(text,p.x,p.y-72)}x.restore();
