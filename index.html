@@ -5429,25 +5429,9 @@ window.ArtArts=(()=>{
   if(stick===e.pointerId&&e.pointerType==='mouse')release();
  },true);
  c.style.touchAction='none';field.style.touchAction='none';
- const shadowInteract=e=>{
-  if(view?.phase!=='battle'||!view.shadow||!self()||self().state!=='alive'||view.shadow.me?.action)return false;
-  // Mouse click and finger tap, but not stylus strokes which are always drawing.
-  if(e.pointerType==='pen'||inZone(e))return false;
-  const world=worldPoint(e),me=self(),near=q=>R.dist(me,q)<=90;
-  const task=view.shadow.tasks.find(t=>t.readyAt<=Date.now()+offset&&near(t)&&R.dist(world,t)<=35);
-  if(task){shadowRequest('taskStart',{target:task.id});return true}
-  const shop={x:R.W/2,y:R.H/2};
-  if(R.dist(me,shop)<=125&&R.dist(world,shop)<=58){shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();return true}
-  const down=view.fighters.find(q=>q.state==='down'&&near(q)&&R.dist(world,q)<=35);
-  if(down){shadowRequest('revive',{target:down.id});return true}
-  const drop=view.shadow.drops.find(d=>near(d)&&R.dist(world,d)<=30);
-  if(drop){shadowRequest('pickup',{target:drop.id});return true}
-  if(view.shadow.graceAt){for(const [id,x] of [['west',35],['east',R.W-35]]){const gate={x,y:R.H/2};if(near(gate)&&R.dist(world,gate)<60){shadowRequest('escape',{target:id});return true}}}
-  return false;
- };
  c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
  c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
- c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;const wasTap=gesture.points.length<4||R.length([gesture.points])<9;if(wasTap&&e.pointerType!=='pen'&&shadowInteract(e)){gesture=null;strokes=[];refreshPaintUI();return}if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){
+ c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){
    const heart=paths[0];let loX=Infinity,hiX=-Infinity,loY=Infinity,hiY=-Infinity;
    for(const p of heart){loX=Math.min(loX,p.x);hiX=Math.max(hiX,p.x);loY=Math.min(loY,p.y);hiY=Math.max(hiY,p.y)}
    summonCore={x:(loX+hiX)/2,y:(loY+hiY)/2};
@@ -6558,7 +6542,8 @@ window.ArtShadow=(()=>{
   return carved.filter(b=>b.w>4&&b.h>4);
  };
  R.map=()=>shadowWalls();
- R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b));
+ const shadowOnFloor=(x,y,r=R.R)=>[...SHADOW_ROOMS,...SHADOW_HALLS].some(a=>x>=a.x+r*.65&&x<=a.x+a.w-r*.65&&y>=a.y+r*.65&&y<=a.y+a.h-r*.65);
+ R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||!shadowOnFloor(x,y,r)||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b));
  const moves=R.moves;
  const drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  let host=null,view=null,offset=0,capturing=false,submitted='',lastFrame=0,lastNet=0,lastMove=0,raf=0,uiKey='',rosterKey='',paintMode=false,gesture=null,strokes=[],summonCore=null,holdSource=null,paintStarted=0,guide=null,stick=null,move={x:0,y:0},keys=new Set(),images=new Map(),positions=new Map(),walk=new Map(),damageShakes=new Map(),uploading=new Set(),imageRev='',lastPreview=0,lastAnimation=0,frameDelta=.016,hudText='',previousFx=new Set(),impactSounds=new Set(),heardBuffWaves=new Set(),heardGunRounds=new Set(),characterPaths=[],characterFacing=1,equipChoice=[];
@@ -7643,15 +7628,11 @@ window.ArtShadow=(()=>{
   canvas.onpointerdown=e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;try{canvas.setPointerCapture(pointer)}catch{}taskStroke=[point(e)];draw()};canvas.onpointermove=e=>{if(pointer!==e.pointerId)return;e.preventDefault();if(taskStroke.length<1200)taskStroke.push(point(e));draw()};canvas.onpointerup=e=>{if(pointer!==e.pointerId)return;if(taskStroke.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw()};canvas.onpointercancel=()=>{taskStroke=null;pointer=null;draw()};$('#shadowTaskClear').onclick=()=>{taskInk=[];draw()};$('#shadowTaskSend').onclick=()=>shadowRequest('taskSubmit',{paths:taskInk});draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
  }
  function shadowWorld(x,now){if(!view.shadow)return;const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dist(me,q)<=90;
- // Irregular rooms with visibly varied footprints and no four-column grid.
+ // The actual floor is painted in drawArena BELOW the walls and characters.
+ // No opaque room/corridor overlays here: corridors must look like walkable floor.
  x.save();
- for(const hall of SHADOW_HALLS){x.fillStyle='#c3d2cf';x.globalAlpha=.95;x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#819d9d';x.globalAlpha=.35;x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
  for(let i=0;i<SHADOW_ROOMS.length;i++){
-  const r=SHADOW_ROOMS[i];x.fillStyle=i%3===0?'#d1e3df':i%3===1?'#e7e2d8':'#dde4e6';x.globalAlpha=.68;
-  x.fillRect(r.x+8,r.y+8,r.w-16,r.h-16);
-  x.globalAlpha=.19;x.strokeStyle='#68868a';x.lineWidth=2;
-  for(let k=0;k<6;k++){const yy=r.y+68+k*(r.h-100)/6;x.beginPath();x.moveTo(r.x+18,yy);x.lineTo(r.x+r.w-18,yy);x.stroke()}
-  x.globalAlpha=.82;x.fillStyle='#4d686b';x.font='bold 20px sans-serif';x.textAlign='center';x.fillText(r.name,r.x+r.w/2,r.y+49);
+  const r=SHADOW_ROOMS[i];x.globalAlpha=.85;x.fillStyle='#40575c';x.font='bold 20px sans-serif';x.textAlign='center';x.fillText(r.name,r.x+r.w/2,r.y+49);
  }
  x.restore();
  x.save();x.textAlign='center';x.font='bold 13px sans-serif';
@@ -7762,9 +7743,29 @@ window.ArtShadow=(()=>{
   if(stick===e.pointerId&&e.pointerType==='mouse')release();
  },true);
  c.style.touchAction='none';field.style.touchAction='none';
- c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale};refreshPaintUI()};
+ // A short release without movement is an interaction; a drag is an Arts stroke.
+ // The Apple Pencil is always an Arts stroke. This handler belongs to SHADOW, not ARTS.
+ const shadowInteract=e=>{
+  if(!battleActive()||e.pointerType==='pen'||inZone(e)||!view?.shadow)return false;
+  const me=self(),w=worldPoint(e),near=(obj,range=92)=>obj&&R.dist(me,obj)<=range;
+  const task=view.shadow.tasks.find(t=>t.readyAt<=Date.now()+offset&&near(t)&&R.dist(w,t)<=46);
+  if(task){shadowRequest('taskStart',{target:task.id});hint('タスクを開始します');return true}
+  const shop={x:R.W/2,y:R.H/2};
+  if(near(shop,130)&&R.dist(w,shop)<=68){shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();hint('ショップを開きました');return true}
+  const down=view.fighters.find(q=>q.state==='down'&&near(q)&&R.dist(w,q)<=46);
+  if(down){shadowRequest('revive',{target:down.id});return true}
+  const drop=view.shadow.drops.find(d=>near(d,105)&&R.dist(w,d)<=42);
+  if(drop){shadowRequest('pickup',{target:drop.id});return true}
+  if(view.shadow.graceAt)for(const [id,gx]of [['west',35],['east',R.W-35]]){
+   const gate={x:gx,y:R.H/2};if(near(gate,100)&&R.dist(w,gate)<=68){shadowRequest('escape',{target:id});return true}
+  }
+  return false;
+ };
+ c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale,startedAt:performance.now()};refreshPaintUI()};
  c.onpointermove=e=>{if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
- c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){
+ c.onpointerup=e=>{if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;const tap=e.pointerType!=='pen'&&performance.now()-gesture.startedAt<420&&Math.hypot(e.clientX-gesture.clientX,e.clientY-gesture.clientY)<13&&R.length([gesture.points])<12;
+  if(tap&&shadowInteract(e)){finishPaint(true);return}
+  if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();if(!(self()?.skills||[self()?.skill]).includes('summon')||!strokes.length||!(strokes.length>1||isSummonCoreStroke(strokes[0]))){finishPaint(false);return}const paths=strokes.filter(s=>s.length>=2);if(paths.length===1&&isSummonCoreStroke(paths[0])){
    const heart=paths[0];let loX=Infinity,hiX=-Infinity,loY=Infinity,hiY=-Infinity;
    for(const p of heart){loX=Math.min(loX,p.x);hiX=Math.max(hiX,p.x);loY=Math.min(loY,p.y);hiY=Math.max(hiY,p.y)}
    summonCore={x:(loX+hiX)/2,y:(loY+hiY)/2};
@@ -8669,7 +8670,11 @@ finishPaint(false)};
   x.font='bold '+Math.round(Math.min(15,w*.03))+'px sans-serif';x.fillStyle='#ffffffbb';x.fillText('結果発表まで '+Math.max(0,Math.ceil((c.end-now)/1000))+'秒',cx,h*.82);
   x.restore();
  }
- function drawArena(time){const c=$('#shadowArena');if(!c)return;const r=c.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);const cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch}for(const p of view.fighters){const pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos)}const x=c.getContext('2d'),cam=cameraRect(dpr),scale=cam.scale,left=cam.left,top=cam.top;x.setTransform(1,0,0,1,0,0);const theme={garden:['#dce7d7','#f4ecd6','#d6ccae'],ruins:['#bfc3ce','#e3e0e7','#c7bfce'],forest:['#adbea8','#dce8ce','#b7c9a8'],arena:['#c7d3de','#edf0f5','#d2dae3']}[view.settings.stage]||['#dce7d7','#f4ecd6','#d6ccae'];x.fillStyle=theme[0];x.fillRect(0,0,cw,ch);x.setTransform(scale,0,0,scale,-left*scale,-top*scale);x.fillStyle=theme[1];x.fillRect(0,0,R.W,R.H);x.strokeStyle=theme[2];x.lineWidth=1;for(let i=0;i<=R.W;i+=50){x.beginPath();x.moveTo(i,0);x.lineTo(i,R.H);x.stroke()}for(let i=0;i<=R.H;i+=50){x.beginPath();x.moveTo(0,i);x.lineTo(R.W,i);x.stroke()}
+ function drawArena(time){const c=$('#shadowArena');if(!c)return;const r=c.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);const cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch}for(const p of view.fighters){const pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos)}const x=c.getContext('2d'),cam=cameraRect(dpr),scale=cam.scale,left=cam.left,top=cam.top;x.setTransform(1,0,0,1,0,0);const theme={garden:['#dce7d7','#f4ecd6','#d6ccae'],ruins:['#bfc3ce','#e3e0e7','#c7bfce'],forest:['#adbea8','#dce8ce','#b7c9a8'],arena:['#c7d3de','#edf0f5','#d2dae3']}[view.settings.stage]||['#dce7d7','#f4ecd6','#d6ccae'];x.fillStyle=theme[0];x.fillRect(0,0,cw,ch);x.setTransform(scale,0,0,scale,-left*scale,-top*scale);x.fillStyle='#182631';x.fillRect(0,0,R.W,R.H);
+ // Floors are ONLY inside rooms and accessible corridors; the rest is deep void.
+ x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
+ for(let j=0;j<SHADOW_ROOMS.length;j++){const a=SHADOW_ROOMS[j];x.fillStyle=['#d8e4e0','#e8e3d8','#d5e1e7'][j%3];x.fillRect(a.x,a.y,a.w,a.h);x.strokeStyle='#8eaaa9';x.lineWidth=2;for(let yy=a.y+45;yy<a.y+a.h;yy+=45){x.beginPath();x.moveTo(a.x+6,yy);x.lineTo(a.x+a.w-6,yy);x.stroke()}}
+ x.restore();
  const now=Date.now()+offset;for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
  const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
@@ -8997,3 +9002,9 @@ window.ArtRoomTools=(()=>{
 
 </script>
 </body></html>
+
+<style>
+/* ART TRAITOR v1.3.33: reachable example button, safely clear of the left joystick */
+.shadow-mode #shadowSkillInfo{left:auto!important;right:12px!important;bottom:14px!important;transform:none!important;width:134px!important;max-width:134px!important;min-height:46px!important;z-index:30!important}
+@media(max-width:720px){.shadow-mode #shadowSkillInfo{left:auto!important;right:8px!important;bottom:8px!important;width:106px!important;max-width:106px!important}}
+</style>
