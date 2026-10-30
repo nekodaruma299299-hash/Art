@@ -4462,7 +4462,7 @@ window.ArtsRules=(()=>{
 })();
 
 
-/* Artopia / Art Arts stage blueprint generator v2.0
+/* Artopia / Art Arts stage blueprint generator v3.0
  * Pure JS, 5 themes × 3 sizes. No DOM, no assets or dependencies.
  * Typical integration: const plan=ArtArtsStageBlueprints.generate(settings.stage,settings.stageSize);
  * Plan blocks are compatible with ArtsRules.map()'s output schema.
@@ -4651,11 +4651,81 @@ window.ArtsRules=(()=>{
    }
   }
 
+  // v3: remove overlapping wall AREA while preserving edge-adjacent pieces.
+  // Earlier scatter, chambers and corridor builders were independent: a wall could
+  // occupy the same rectangle twice. Subtract existing rectangles from each new wall.
+  function subtractRect(part,solid){
+   const ax=part.x,ay=part.y,bx=part.x+part.w,by=part.y+part.h;
+   const lx=Math.max(ax,solid.x),ly=Math.max(ay,solid.y),rx=Math.min(bx,solid.x+solid.w),ry=Math.min(by,solid.y+solid.h);
+   if(rx<=lx||ry<=ly)return [part];
+   const out=[];
+   const add=(x,y,w,h)=>{if(w>0&&h>0)out.push({...part,x,y,w,h});};
+   add(ax,ay,bx-ax,ly-ay);add(ax,ry,bx-ax,by-ry);
+   add(ax,ly,lx-ax,ry-ly);add(rx,ly,bx-rx,ry-ly);
+   return out;
+  }
+  const uniqueWalls=[];
+  for(const b of blocks){
+   let portions=[b];for(const existing of uniqueWalls){
+    portions=portions.flatMap(part=>subtractRect(part,existing));
+    if(!portions.length)break;
+   }
+   for(const piece of portions)if(piece.w>=2&&piece.h>=2)uniqueWalls.push(piece);
+  }
+  blocks.length=0;blocks.push(...uniqueWalls);
+
+  // v3: keep a safe circular clearance around devices, and the inside of buildings
+  // free of inappropriate vegetation and ore. Regenerate nearby ground placements
+  // without overriding the architectural walls.
+  function insideRoom(x,y,margin=0){return rooms.some(r=>x>r.x+margin&&x<r.x+r.w-margin&&y>r.y+margin&&y<r.y+r.h-margin);}
+  function solidAt(x,y,r){return blocks.some(b=>x+r>b.x&&x-r<b.x+b.w&&y+r>b.y&&y-r<b.y+b.h);}
+  function tileAt(x,y){return tiles.some(t=>x>t.x-18&&x<t.x+t.w+18&&y>t.y-18&&y<t.y+t.h+18);}
+  const naturalProps=devices.filter(d=>d.type==='tree'||d.type==='ore');
+  const nonNatural=devices.filter(d=>d.type!=='tree'&&d.type!=='ore');
+  const placedDevices=[...nonNatural];
+  const clearance=clamp(S(38),28,72);
+  const validNatural=(d,x,y)=>{
+   if(theme==='factory'&&d.type==='tree')return false;
+   if(theme==='portal'&&d.type==='tree')return false;
+   if(insideRoom(x,y,Math.min(20,S(18))))return false;
+   if(x<clearance||y<clearance||x>W-clearance||y>H-clearance)return false;
+   if(solidAt(x,y,clearance*.6)||tileAt(x,y))return false;
+   if(placedDevices.some(o=>Math.hypot(x-o.x,y-o.y)<clearance*1.8))return false;
+   return true;
+  };
+  for(const d of naturalProps){
+   let found=false;
+   if(validNatural(d,d.x,d.y))found=true;
+   else for(let ring=1;ring<16&&!found;ring++){
+    for(let k=0;k<28;k++){
+     const angle=k*Math.PI/14+ring*.12,rr=ring*S(37),x=Math.round(d.x+Math.cos(angle)*rr),y=Math.round(d.y+Math.sin(angle)*rr);
+     if(validNatural(d,x,y)){d.x=x;d.y=y;found=true;break;}
+    }
+   }
+   if(found)placedDevices.push(d);
+  }
+  // Architectural rooms may legitimately contain healing stations or teleporters.
+  // Relocate non-natural objects only if they intersect a solid wall.
+  for(const d of nonNatural){
+   if(!solidAt(d.x,d.y,24))continue;
+   const ox=d.x,oy=d.y;
+   outer:for(let ring=1;ring<18;ring++)for(let k=0;k<24;k++){
+    const a=k*Math.PI/12,rr=ring*S(32),x=Math.round(ox+Math.cos(a)*rr),y=Math.round(oy+Math.sin(a)*rr);
+    if(x<35||y<35||x>W-35||y>H-35||solidAt(x,y,28))continue;
+    d.x=x;d.y=y;break outer;
+   }
+  }
+  devices.length=0;devices.push(...placedDevices);
+  // Stage-specific staging: an end-of-corridor teleport may be used tactically,
+  // but its landing side must have clear floor and an escape route.
+  if(theme==='portal')for(const d of devices.filter(v=>v.type==='teleport')){
+   if(solidAt(d.x,d.y,32)){const spot=rooms.find(r=>r.w>130&&r.h>130&&!solidAt(r.x+r.w/2,r.y+r.h/2,38));if(spot){d.x=Math.round(spot.x+spot.w/2);d.y=Math.round(spot.y+spot.h/2);}}
+  }
   // Gameplay handlers should validate that devices do not overlap solid blockers after placement.
   const npcCount={small:1,medium:2,large:4}[size];
   for(let i=0;i<npcCount;i++)obj('npc',W*(.22+(i%2)*.56),H*(.27+Math.floor(i/2)*.42),{variant:'drone',enabledBySetting:true});
   for(const [x,y] of [[.11,.09],[.89,.91],[.89,.09],[.11,.91],[.50,.1],[.5,.9]])spawns.push({x:Math.round(W*x),y:Math.round(H*y)});
-  return {schema:'artarts-stage-plan-v2',theme,name:names[theme],size,width:W,height:H,seed,
+  return {schema:'artarts-stage-plan-v3',theme,name:names[theme],size,width:W,height:H,seed,
     blocks,tiles,devices,paths,spawns,rooms,corridors,doors,
     nightmareChannelMs:{small:5000,medium:10000,large:20000}[size],
     legend:{...colors},notes:['All special tiles are axis-aligned square walkable regions.','blocks use existing ArtsRules.map collision shape.','Visual textures are semantic keys; the client should draw via Canvas.','Set NPC enabled according to game settings.','Verify reachability and collisions after integrating into a playable engine.']};
@@ -4765,8 +4835,8 @@ window.ArtArts=(()=>{
    const picker=host.fighters.find(p=>p.active&&p.hp>0&&Math.hypot(p.x-d.x,p.y-d.y)<R.R+d.r+8);
    if(!picker)continue;
    d.end=now;
-   if(d.type==='berry')picker.hp=Math.min(picker.maxHp||100,picker.hp+22);
-   else{picker.stageBonuses??=[0,0,0,0,0];if(picker.stageBonuses[d.stat]<6){picker.stageBonuses[d.stat]+=2;picker.stats[d.stat]+=2;}}
+   if(d.type==='berry')picker.hp=Math.min(picker.maxHp||100,picker.hp+(d.amount||3));
+   else{picker.stageBonuses??=[0,0,0,0,0];if(picker.stageBonuses[d.stat]<9){const boost=Math.min(d.amount||1,9-picker.stageBonuses[d.stat]);picker.stageBonuses[d.stat]+=boost;picker.stats[d.stat]+=boost;}}
    host.effects.push({id:++host.seq,type:'stageHarvest',x:picker.x,y:picker.y,r:31,start:now,end:now+520,owner:picker.id});
   }
   for(const n of host.stageNPCs||[]){
@@ -4788,7 +4858,7 @@ window.ArtArts=(()=>{
     if(o.type==='slow')p.stageSpeed=.6;
     if(o.type==='damage')p.hp=Math.max(0,p.hp-4*dt);
     if(o.type==='teleport'&&(!p.stageWarpUntil||now>=p.stageWarpUntil)){
-      const pair=g.find(v=>v!==o&&v.type==='teleport');if(pair&&!R.blocked(pair.x,pair.y,host.blocks)){p.x=pair.x;p.y=pair.y;p.stageWarpUntil=now+3000;}
+      const pair=g.find(v=>v!==o&&v.type==='teleport'&&(!o.pair||v.pair===o.pair));if(pair&&!R.blocked(pair.x,pair.y,host.blocks)){p.x=pair.x;p.y=pair.y;p.stageWarpUntil=now+3000;}
     }
    }
   }
@@ -4800,7 +4870,7 @@ window.ArtArts=(()=>{
    // Emit a round collectible. Pickup, not the hit, grants the reward.
    const idx=o.type==='ore'?Math.floor(Math.random()*5):-1;
    host.stageDrops??=[];
-   host.stageDrops.push({id:++host.seq,type:o.type==='tree'?'berry':'mineral',stat:idx,x:o.x+24*Math.cos(now*.013),y:o.y+24*Math.sin(now*.013),born:now,end:now+18000,r:13});
+   host.stageDrops.push({id:++host.seq,type:o.type==='tree'?'berry':'mineral',stat:idx,amount:o.type==='tree'?3+Math.floor(Math.random()*3):1+Math.floor(Math.random()*3),x:o.x+24*Math.cos(now*.013),y:o.y+24*Math.sin(now*.013),born:now,end:now+18000,r:13});
    host.effects.push({id:++host.seq,type:'stageHarvest',x:o.x,y:o.y,r:48,start:now,end:now+700,owner:owner.id});
   }
  }
@@ -4869,7 +4939,7 @@ window.ArtArts=(()=>{
   const result=[];
   const known=new Set(['tree','ore','heal','ink','teleport','speed','slow','damage']);
   for(const d of plan.devices||[]){if(!known.has(d.type))continue;
-   result.push({id:result.length+1,type:d.type,x:d.x,y:d.y,r:d.type==='tree'||d.type==='ore'?37:42,readyAt:0,lastUse:{}});
+   result.push({id:result.length+1,type:d.type,x:d.x,y:d.y,pair:d.pair||null,r:d.type==='tree'||d.type==='ore'?37:42,readyAt:0,lastUse:{}});
   }
   for(const t of plan.tiles||[]){if(!['speed','slow','damage'].includes(t.kind))continue;
    // Preserve the square tile geometry for renderers and step-based effects.
