@@ -4462,7 +4462,7 @@ window.ArtsRules=(()=>{
 })();
 
 
-/* Artopia / Art Arts stage blueprint generator v3.0
+/* Artopia / Art Arts stage blueprint generator v4.0
  * Pure JS, 5 themes × 3 sizes. No DOM, no assets or dependencies.
  * Typical integration: const plan=ArtArtsStageBlueprints.generate(settings.stage,settings.stageSize);
  * Plan blocks are compatible with ArtsRules.map()'s output schema.
@@ -4724,8 +4724,60 @@ window.ArtsRules=(()=>{
   // Gameplay handlers should validate that devices do not overlap solid blockers after placement.
   const npcCount={small:1,medium:2,large:4}[size];
   for(let i=0;i<npcCount;i++)obj('npc',W*(.22+(i%2)*.56),H*(.27+Math.floor(i/2)*.42),{variant:'drone',enabledBySetting:true});
+  // v4: unified collision pass. Walls remain authoritative; no tile or device may
+  // intersect a wall, another device or the wrong kind of floor.
+  const overlap=(a,b,pad=0)=>a.x<b.x+b.w+pad&&a.x+a.w+pad>b.x&&a.y<b.y+b.h+pad&&a.y+a.h+pad>b.y;
+  const inBounds=r=>r.x>=12&&r.y>=12&&r.x+r.w<=W-12&&r.y+r.h<=H-12;
+  const occupied=[...blocks.map(b=>({x:b.x,y:b.y,w:b.w,h:b.h}))];
+  const acceptedTiles=[];
+  const safeRect=(r,pad=0)=>inBounds(r)&&!occupied.some(b=>overlap(r,b,pad));
+  function nearestRect(original,pad=0){
+   if(safeRect(original,pad))return original;
+   const step=Math.max(14,Math.round(Math.min(original.w,original.h)*.35));
+   for(let ring=1;ring<=32;ring++)for(let i=0;i<ring*8;i++){
+    const theta=i*Math.PI*2/(ring*8),candidate={...original,x:Math.round(original.x+Math.cos(theta)*ring*step),y:Math.round(original.y+Math.sin(theta)*ring*step)};
+    if(safeRect(candidate,pad))return candidate;
+   }
+   return null;
+  }
+  // Existing tile shapes remain square. Adjacent tiles may share an edge.
+  // Resolve tile-to-wall and tile-to-tile overlap before placing a device.
+  for(const t of tiles){
+   const side=Math.min(t.w,t.h),original={...t,w:side,h:side};
+   const found=nearestRect(original,0);
+   if(!found)continue;
+   Object.assign(t,{x:found.x,y:found.y,w:side,h:side});
+   acceptedTiles.push(t);occupied.push({x:t.x,y:t.y,w:t.w,h:t.h});
+  }
+  tiles.length=0;tiles.push(...acceptedTiles);
+  const cleanDevices=[];
+  const footprint=d=>{const r=d.type==='npc'?22:d.type==='tree'?32:d.type==='ore'?29:38;return{x:d.x-r,y:d.y-r,w:2*r,h:2*r};};
+  for(const d of devices){
+   // Do not spawn trees in indoor themes, nor natural resources inside rooms.
+   if(d.type==='tree'&&(theme==='factory'||theme==='portal'))continue;
+   const original=footprint(d);
+   const validCandidate=r=>{
+    if(!safeRect(r,5))return false;
+    if((d.type==='tree'||d.type==='ore')&&insideRoom(r.x+r.w/2,r.y+r.h/2,0))return false;
+    return true;
+   };
+   let found=validCandidate(original)?original:null;
+   if(!found){
+    const step=Math.max(22,Math.round(S(32)));
+    outer:for(let ring=1;ring<=38;ring++)for(let i=0;i<32;i++){
+     const a=i*Math.PI*2/32+ring*.12,c={...original,x:Math.round(original.x+Math.cos(a)*ring*step),y:Math.round(original.y+Math.sin(a)*ring*step)};
+     if(validCandidate(c)){found=c;break outer;}
+    }
+   }
+   if(!found)continue;
+   d.x=Math.round(found.x+found.w/2);d.y=Math.round(found.y+found.h/2);
+   cleanDevices.push(d);occupied.push(found);
+  }
+  devices.length=0;devices.push(...cleanDevices);
+  // Keep teleport pairs complete; a lone pad cannot be used safely.
+  for(const d of [...devices])if(d.type==='teleport'&&devices.filter(v=>v.type==='teleport'&&v.pair===d.pair).length!==2)devices.splice(devices.indexOf(d),1);
   for(const [x,y] of [[.11,.09],[.89,.91],[.89,.09],[.11,.91],[.50,.1],[.5,.9]])spawns.push({x:Math.round(W*x),y:Math.round(H*y)});
-  return {schema:'artarts-stage-plan-v3',theme,name:names[theme],size,width:W,height:H,seed,
+  return {schema:'artarts-stage-plan-v4',theme,name:names[theme],size,width:W,height:H,seed,
     blocks,tiles,devices,paths,spawns,rooms,corridors,doors,
     nightmareChannelMs:{small:5000,medium:10000,large:20000}[size],
     legend:{...colors},notes:['All special tiles are axis-aligned square walkable regions.','blocks use existing ArtsRules.map collision shape.','Visual textures are semantic keys; the client should draw via Canvas.','Set NPC enabled according to game settings.','Verify reachability and collisions after integrating into a playable engine.']};
@@ -4947,7 +4999,7 @@ window.ArtArts=(()=>{
   }
   return result;
  }
- function startBattle(){if(!host||host.phase!=='equip')return;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,Math.floor(Math.random()*1000000));host.blocks=plan?.blocks||R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const spots=artsRandomSpawns(host.players.filter(p=>p.active).length,host.blocks,plan,gimmickLayout);host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);picked.splice(2);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||pool[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageNPCs=host.settings.npcEnabled?makeArtsNPCs(host.settings.stageSize||'medium'):[];for(const g of host.gimmicks){if(g.tile)continue;if(R.blocked(g.x,g.y,host.blocks,Math.min(20,g.r))){for(let radius=90;radius<=380;radius+=70){let found=false;for(let i=0;i<16;i++){const a=i*Math.PI/8,nx=Math.round(g.x+Math.cos(a)*radius),ny=Math.round(g.y+Math.sin(a)*radius);if(!R.blocked(nx,ny,host.blocks,Math.min(20,g.r))){g.x=nx;g.y=ny;found=true;break}}if(found)break}}}host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
+ function startBattle(){if(!host||host.phase!=='equip')return;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,Math.floor(Math.random()*1000000));host.blocks=plan?.blocks||R.map(host.settings.stage);host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const spots=artsRandomSpawns(host.players.filter(p=>p.active).length,host.blocks,plan,gimmickLayout);host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<2)picked.push(k);picked.splice(2);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||pool[0],guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageNPCs=host.settings.npcEnabled?(plan?.devices||[]).filter(d=>d.type==='npc').map((d,i)=>({id:i+1,x:d.x,y:d.y,hp:90,maxHp:90,dir:i*2.1,nextFire:0,respawnAt:0})):[];host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(true)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
  const friendly=(a,b)=>R.allies(a,b,host.settings.teams);
  function remainingSides(){return new Set(alive().map(p=>host.settings.teams==='teams'?p.team:p.id)).size}
