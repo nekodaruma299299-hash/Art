@@ -965,11 +965,42 @@ window.ArtModeLayout=(()=>{
 @media(max-width:650px){.public-rooms-section{margin-top:20px}.public-rooms-grid{gap:7px}.public-rooms-heading h2{font-size:17px}.public-rooms-description{font-size:10px}.public-rooms-actions button{font-size:11px;padding:4px 6px}.public-room-card{border-radius:10px}.public-room-info{padding:6px 5px;gap:3px}.public-room-name{font-size:11px}.public-room-mode{font-size:10px}.public-room-footer{flex-direction:column;align-items:flex-start;gap:1px}.public-room-footer>small{font-size:9px}.public-room-tag.is-open{font-size:9px}}
 
 </style>
+
+<style>
+/* Ver.1.3.49: room creation with prominent visibility and visible mode selector. */
+.create-room-form{display:flex;flex-direction:column;gap:13px}
+.create-room-form .form-field{margin:0}
+.create-intro{font-size:13px;color:#70848c;line-height:1.6}
+.create-field-heading{font-size:13px;font-weight:750;color:#203e4a;margin-top:2px}
+.create-mode-slot .form-field{font-weight:700!important;font-size:14px!important}
+.create-mode-slot select{width:100%;margin-top:6px}
+.create-visibility-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.create-visibility-option{position:relative;display:flex;gap:6px;align-items:center;min-width:0;padding:13px 9px;border:1px solid #d3e0e4;border-radius:12px;background:#fafcfc;cursor:pointer}
+.create-visibility-option.selected{background:#edf9f6;border-color:#66aaa6;box-shadow:0 0 0 1px #66aaa6}
+.create-visibility-option input{flex:0 0 auto;accent-color:#178b84;margin:0}
+.create-visibility-option span{min-width:0;display:flex;flex-direction:column;gap:4px}
+.create-visibility-option strong{font-size:13px;line-height:1.3}
+.create-visibility-option small{font-size:10px;line-height:1.4;color:#6a8089}
+.create-public-hint{margin:0;font-size:12px;color:#597981;line-height:1.55}
+.create-room-form .form-row{margin:0;gap:10px}
+.create-room-form .form-row>.form-field{flex:1;min-width:0}
+.create-room-form .create-settings-details{padding:8px 11px;border:1px solid #e2e9eb;border-radius:10px;background:#fbfdfd;margin:0}
+.create-settings-details>summary{font-size:13px;color:#356d75;font-weight:650;padding:4px 2px}
+.create-settings-details[open]>summary{margin-bottom:10px}
+.create-settings-details>div,.create-settings-details>.form-field{margin:8px 0}
+.create-room-form .create-preview-hint{font-size:12px;line-height:1.6;color:#597981;background:#f1f7f7;border-radius:9px;padding:9px 12px;margin:0}
+.create-modal-actions{display:flex;gap:8px;flex-wrap:wrap}
+.create-modal-actions #createSubmit{flex:1;white-space:normal}
+.public-rooms-actions .public-create-quick{color:#177a70;border:1px solid #bad8d3;background:#edf9f6;font-weight:700}
+.studio-public-setting{margin:14px 0;padding:12px;border:1px solid #d6e8e5;border-radius:12px;background:#f4fbf9}
+.studio-public-setting>b{display:block;margin-bottom:9px}
+@media(max-width:650px){.public-rooms-actions .public-create-quick{font-size:11px;padding:5px 7px}.create-visibility-option{padding:10px 7px}.create-visibility-option strong{font-size:12px}.create-visibility-option small{font-size:9px}}
+</style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.31</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.49</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
-    <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
+    <div class="public-rooms-actions"><button type="button" id="createPublicRoom" class="public-create-quick" aria-label="新しい公開ルームを作る">＋ 公開する</button><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
   </div>
   <p id="publicRoomsStatus" role="status" class="public-rooms-status">接続の準備中…</p>
   <div id="publicRoomsGrid" class="public-rooms-grid" aria-live="polite"><div class="public-room-empty">公開ルームを読み込んでいます…</div></div>
@@ -1740,8 +1771,96 @@ $('#myProfile').onclick=()=>showProfile();
 
 
 /* SECTION: app/06-room-dialogs.js */
-function showCreate(){if(room){toast('現在の部屋を退出してから、新しい部屋を作成してください。');return}if(!profile.name){showProfile(true);return}modal('部屋作成',`<form id="createForm"><label class="form-field">部屋名<span class="required">必須</span><input id="newRoomName" maxlength="40" placeholder="のんびりお絵描き" required></label><label class="form-field">合言葉<input id="newCode" maxlength="32" value="${Math.random().toString(36).slice(2,8).toUpperCase()}" required><small>この合言葉を友だちに伝えてください。</small></label><div class="form-row"><label class="form-field">幅（px）<input id="newWidth" type="number" min="128" max="2048" step="1" value="1024" required></label><label class="form-field">高さ（px）<input id="newHeight" type="number" min="128" max="2048" step="1" value="1024" required></label></div><div class="form-row"><label class="form-field">履歴の保持時間<select id="newHistory">${[1,2,3,4,5].map(n=>`<option ${n===3?'selected':''} value="${n}">${n}分</option>`).join('')}</select></label><label class="form-field">人数上限<select id="newLimit">${[2,4,6,8].map(n=>`<option ${n===8?'selected':''}>${n}</option>`).join('')}</select></label></div><label class="form-field">定期スナップショット<select id="newSnapshotInterval">${snapshotOptions()}</select><small>直近30件を保持します。</small></label><label class="form-field">最初のキャンバス<select id="newArt"><option value="">白紙から</option>${gallery.map(a=>`<option value="${a.id}" ${a.id===activeArt?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label><label class="check"><input id="newSpectate" type="checkbox" checked>観戦を許可</label><label class="check public-create-toggle"><input id="newPublic" type="checkbox">公開ルーム一覧に表示する（誰でも参加可能）</label><label class="form-field" id="newPublicPreviewWrap" hidden>公開ルームのサムネイル<select id="newPublicPreview"><option value="">待機中のキャンバス（ゲームの場合はモードのアイコン）</option>${gallery.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select><small>絵画展の作品を選ぶと、その絵が全員に見えるサムネイルになります。</small></label><label class="check"><input id="newProtect" type="checkbox" checked>変形中の作業範囲を保護</label><p class="muted">部屋主が退出すると次の参加者に引き継ぎます。退出時は、絵画展に保存するかどうか選べます。</p><p id="createError" class="error"></p><div class="modal-actions"><button type="button" id="localDraw">ひとりで試す</button><button id="createSubmit" class="primary">完了</button></div></form>`);$('#newPublic').onchange=()=>{$('#newPublicPreviewWrap').hidden=!$('#newPublic').checked};const run=async offline=>{let f=$('#createForm');if(!f.reportValidity())return;let name=$('#newRoomName').value.trim(),code=$('#newCode').value.trim();if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';return}let r={name,code,publicRoom:!offline&&$('#newPublic').checked,publicPreviewId:!offline&&$('#newPublic').checked?$('#newPublicPreview').value:'',snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,protect:$('#newProtect').checked,id:uid(),...window.ArtGame?.createConfig()};if(r.mode==='relay')r.limit=Math.max(r.limit,r.gameSettings.players);const artId=$('#newArt').value;const art=artId&&!['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)?await db('art','readonly',s=>s.get(artId)):null;$('#createSubmit').disabled=true;$('#localDraw').disabled=true;$('#createError').textContent=offline?'準備中…':'部屋を作成しています…';try{if(r.publicRoom)await window.ArtPublicRooms.ensureReady();await startRoom(r,art,offline);$('#modal').close()}catch(e){$('#createError').textContent=errorText(e);$('#createSubmit').disabled=false;$('#localDraw').disabled=false}};const selectArtSize=()=>{const a=gallery.find(a=>a.id===$('#newArt').value);if(a){$('#newWidth').value=a.w;$('#newHeight').value=a.h}};$('#newArt').onchange=selectArtSize;if(activeArt)selectArtSize();$('#createForm').onsubmit=e=>{e.preventDefault();run(false)};$('#localDraw').onclick=()=>run(true);window.ArtGame?.initCreate();const modePanel=document.createElement('div');modePanel.id='createModePanel';modePanel.hidden=true;const field=$('#newMode').closest('label');modePanel.append(field);for(const id of ['gameCreate','wolfCreate','answerCreate','artsCreate','chimeraCreate','shadowCreate'])if($('#'+id))modePanel.append($('#'+id));const gear=document.createElement('button');gear.type='button';gear.id='createModeGear';gear.innerHTML=icon('gear')+'ゲームモード設定';gear.onclick=()=>{modePanel.hidden=!modePanel.hidden};$('#createForm').prepend(gear,modePanel)}
-$('#createMain').onclick=()=>{activeArt='';showCreate()};
+function showCreate(options={}){
+ if(room){toast('現在の部屋を退出してから、新しい部屋を作成してください。');return}
+ if(!profile.name){showProfile(true);return}
+ const defaultPublic=!!options.publicRoom;
+ const generatedCode=Math.random().toString(36).slice(2,10).toUpperCase();
+ const suggestedName=(profile.name+'の部屋').slice(0,40);
+ modal('部屋をつくる',`<form id="createForm" class="create-room-form">
+  <div class="create-intro">遊び方と公開範囲を選んで、みんなの部屋をつくろう。</div>
+  <div id="createModeSlot" class="create-mode-slot"></div>
+  <div class="create-field-heading">公開範囲</div>
+  <div class="create-visibility-choices" role="group" aria-label="部屋の公開範囲">
+   <label class="create-visibility-option"><input type="radio" name="newVisibility" id="newPublic" value="public" ${defaultPublic?'checked':''}><span><strong>🌐 公開ルーム</strong><small>一覧に表示・誰でも参加</small></span></label>
+   <label class="create-visibility-option"><input type="radio" name="newVisibility" id="newPrivate" value="private" ${defaultPublic?'':'checked'}><span><strong>🔒 非公開ルーム</strong><small>招待・合言葉で参加</small></span></label>
+  </div>
+  <p id="createPublicHint" class="create-public-hint" role="status"></p>
+  <label class="form-field">部屋の名前 <span class="required">必須</span><input id="newRoomName" maxlength="40" value="${esc(suggestedName)}" placeholder="のんびりお絵描き" required></label>
+  <div class="form-row"><label class="form-field">人数上限<select id="newLimit">${[2,4,6,8].map(n=>`<option value="${n}" ${n===8?'selected':''}>${n}人</option>`).join('')}</select></label>
+  <label class="form-field">観戦<label class="check"><input id="newSpectate" type="checkbox" checked>許可する</label></label></div>
+  <details id="createGameSettings" class="create-settings-details"><summary>⚙ ゲームモードの詳細設定</summary><div id="createModeDetails"></div></details>
+  <details id="createAdvanced" class="create-settings-details"><summary>キャンバス・招待・その他の設定</summary>
+   <label class="form-field">合言葉（自動発行）<input id="newCode" maxlength="32" value="${generatedCode}" minlength="2" required><small>非公開部屋の友だちへの招待にも利用できます。</small></label>
+   <div class="form-row"><label class="form-field">幅（px）<input id="newWidth" type="number" min="128" max="2048" step="1" value="1024" required></label><label class="form-field">高さ（px）<input id="newHeight" type="number" min="128" max="2048" step="1" value="1024" required></label></div>
+   <label class="form-field">履歴の保持時間<select id="newHistory">${[1,2,3,4,5].map(n=>`<option ${n===3?'selected':''} value="${n}">${n}分</option>`).join('')}</select></label>
+   <label class="form-field">定期スナップショット<select id="newSnapshotInterval">${snapshotOptions()}</select><small>直近30件を保持します。</small></label>
+   <label class="form-field">最初のキャンバス<select id="newArt"><option value="">白紙から</option>${gallery.map(a=>`<option value="${esc(a.id)}" ${a.id===activeArt?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
+   <label class="check"><input id="newProtect" type="checkbox" checked>変形中の作業範囲を保護</label>
+  </details>
+  <p class="create-preview-hint">🖼 公開一覧の画像は自動更新されます。ゲームでは待機場の様子、自由なお絵描きでは現在のキャンバスを表示します。</p>
+  <p id="createError" class="error" role="alert"></p>
+  <div class="modal-actions create-modal-actions"><button type="button" id="localDraw">ひとりで試す</button><button type="submit" id="createSubmit" class="primary">部屋を作成する</button></div>
+ </form>`);
+ // Reuse all existing mode configuration code. Keep the mode selector visible, move only the optional subpanels.
+ window.ArtGame?.initCreate();
+ const modeLabel=$('#newMode')?.closest('label');
+ if(modeLabel)$('#createModeSlot').append(modeLabel);
+ for(const id of ['gameCreate','wolfCreate','answerCreate','artsCreate','chimeraCreate','shadowCreate']){const item=$('#'+id);if(item)$('#createModeDetails').append(item)}
+ const mode=$('#newMode');
+ const updateMode=()=>{
+  const game=mode?.value!=='free';
+  $('#createGameSettings').hidden=!game;
+  if(game)$('#createGameSettings').open=true;
+  $('#createAdvanced').open=false;
+ };
+ if(mode){const previous=mode.onchange;mode.onchange=function(...args){if(previous)previous.apply(this,args);updateMode()};updateMode()}
+ const updateVisibility=()=>{
+  const isPublic=$('#newPublic').checked;
+  document.querySelectorAll('.create-visibility-option').forEach(el=>el.classList.toggle('selected',el.querySelector('input').checked));
+  $('#createPublicHint').textContent=isPublic?'公開した部屋は、ほかのプレイヤーのホーム画面に表示されます。':'一覧には表示されません。合言葉や招待リンクで参加できます。';
+  $('#createSubmit').textContent=isPublic?'🌐 公開ルームを作成':'🔒 非公開ルームを作成';
+ };
+ $('#newPublic').onchange=updateVisibility;$('#newPrivate').onchange=updateVisibility;updateVisibility();
+ const selectArtSize=()=>{const a=gallery.find(a=>a.id===$('#newArt').value);if(a){$('#newWidth').value=a.w;$('#newHeight').value=a.h}};
+ $('#newArt').onchange=selectArtSize;if(activeArt)selectArtSize();
+ const run=async offline=>{
+  const form=$('#createForm');if(!form?.reportValidity())return;
+  const name=$('#newRoomName').value.trim(),code=$('#newCode').value.normalize('NFKC').trim();
+  if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';$('#createAdvanced').open=true;return}
+  const isPublic=!offline&&$('#newPublic').checked;
+  const config=window.ArtGame?.createConfig()||{mode:'free'};
+  const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,protect:$('#newProtect').checked,id:uid(),...config};
+  if(r.mode==='relay')r.limit=Math.max(r.limit,r.gameSettings.players);
+  const artId=$('#newArt').value;
+  $('#createSubmit').disabled=true;$('#localDraw').disabled=true;
+  $('#createError').textContent=isPublic?'Firebase接続を確認しています…':offline?'練習部屋を作っています…':'部屋を作成しています…';
+  try{
+   if(isPublic)await window.ArtPublicRooms.ensureReady();
+   const art=artId&&!['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)?await db('art','readonly',st=>st.get(artId)):null;
+   await startRoom(r,art,offline);
+   $('#modal').close();
+   if(isPublic)toast('公開ルームが一覧に登録されました！');
+  }catch(e){
+   const message=errorText(e);
+   if(room&&connected&&isHost&&isPublic){
+    modal('公開ルームの登録に失敗しました',`<p>部屋自体は作成されましたが、公開一覧への登録には失敗しました。現在は非公開です。</p><p id="publicCreateFailure" class="error" role="alert"></p><p class="muted">Firebaseの「Realtime Database → ルール」、匿名認証、ネットワークを確認してください。</p><div class="modal-actions"><button type="button" id="publicKeepPrivate">非公開のまま使う</button><button type="button" id="publicRetryCreate" class="primary">公開を再試行</button></div>`);
+    $('#publicCreateFailure').textContent=message;
+    $('#publicKeepPrivate').onclick=()=>$('#modal').close();
+    $('#publicRetryCreate').onclick=async()=>{
+     const b=$('#publicRetryCreate');b.disabled=true;$('#publicCreateFailure').textContent='再接続しています…';
+     try{await window.ArtPublicRooms.setVisibility(true);$('#modal').close();toast('公開ルームの登録に成功しました！')}
+     catch(err){$('#publicCreateFailure').textContent=errorText(err);b.disabled=false}
+    };
+   }else{
+    $('#createError').textContent=message;
+    $('#createSubmit').disabled=false;$('#localDraw').disabled=false;
+   }
+  }
+ };
+ $('#createForm').onsubmit=e=>{e.preventDefault();run(false)};
+ $('#localDraw').onclick=()=>run(true);
+}
 function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('部屋に入る',`<form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
 $('#joinMain').onclick=()=>showJoin();
 // Invitation links bypass the passphrase form after the player's name is known.
@@ -1770,7 +1889,7 @@ async function newPeer(id){await ensurePeer();return new Promise((res,rej)=>{let
 /* SECTION: app/08-session.js */
 function resetSession(){window.ArtPublicRooms?.stopHost();if(room)room.ended=true;connected=false;sessionToken++;for(const cancel of [...pendingPeerStarts])cancel();window.ArtClip?.reset();window.ArtHistory?.clear();clearClipboard();window.ArtKeys?.release();window.ArtSound?.reset();window.ArtGame?.reset();checkpointBusy=false;lastCheckpointAt=Date.now();canvasRestoring=false;checkpointTransfer=null;checkpointRestorePending=false;cancelChatRestore();chatFocusState=null;chatPointerOrigin=null;chatComposing=false;clearTimeout(aliasTimer);aliasPeer?.destroy();aliasPeer=null;migrationOut=null;migrationIn=null;clearTimeout(displayRecoveryTimer);touchStarts.clear();twoTouch=null;pointers.clear();gesture=null;activePointer=null;releaseSelectionPreview();releasePreviewWork();releasePenPreview();releaseEffectPreview();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}brushPointer=null;updateBrushCursor();clearTimeout(reconnectTimer);reconnectAttempts=0;for(const c of connections.values())c.close();hostConn?.close();presenceSeen.clear();retiredPeers.clear();guestLeaveAck?.();peer?.destroy();peer=null;hostConn=null;room=null;connected=false;connections.clear();members.clear();resumeKeys.clear();locks.clear();redoIds=[];pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();chat=[];unread=0;remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();remoteCursors.clear();outboundQueue=[];syncing=false;deferredMessages=[];selection=null;stroke=null;$('#transformBar').hidden=true;prefs.opacities=[100,100,100];prefs.layer=0}
 async function createRoomPeer(id){const token=sessionToken;for(let attempt=0;;attempt++){if(token!==sessionToken)throw Error('部屋作成を中止しました。');try{const p=await newPeer(id);if(token!==sessionToken){p.destroy();throw Error('部屋作成を中止しました。')}return p}catch(e){if(token!==sessionToken||e?.type!=='unavailable-id'||attempt>=5)throw e;await new Promise(resolve=>setTimeout(resolve,Math.min(2000,700*(attempt+1))))}}}
-async function startRoom(r,art,offline){resetSession();if(['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)){r={...r,w:Math.min(1024,r.w),h:Math.min(1024,r.h),protect:false,snapshotInterval:0};art=null}const p=offline?null:await createRoomPeer(await roomPeerId(r.code));peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,drawingProtocol:18,id:r.id||uid(),snapshotInterval:r.snapshotInterval??60,snapshotList:[],canvasEpoch:0,offline,hasArt:!!art,opacities:[100,100,100],opacityBase:[100,100,100]};engine=new E.Engine(r.w,r.h);sharedPalette=[];if(art)await loadArtLayers(art);members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:false});if(p)p.on('connection',attachGuest);enterStudio();roomEvent(profile.name+' さんが部屋を作成しました');if(room.publicRoom&&!offline){try{await window.ArtPublicRooms.hostOpened()}catch(e){room.publicRoom=false;toast('公開ルームへの登録に失敗しました。Firebaseのルール・接続を確認してください。');console.warn('Firebase公開ルーム登録失敗',e)}}}
+async function startRoom(r,art,offline){resetSession();if(['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)){r={...r,w:Math.min(1024,r.w),h:Math.min(1024,r.h),protect:false,snapshotInterval:0};art=null}const p=offline?null:await createRoomPeer(await roomPeerId(r.code));peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,drawingProtocol:18,id:r.id||uid(),snapshotInterval:r.snapshotInterval??60,snapshotList:[],canvasEpoch:0,offline,hasArt:!!art,opacities:[100,100,100],opacityBase:[100,100,100]};engine=new E.Engine(r.w,r.h);sharedPalette=[];if(art)await loadArtLayers(art);members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:false});if(p)p.on('connection',attachGuest);enterStudio();roomEvent(profile.name+' さんが部屋を作成しました');if(room.publicRoom&&!offline){try{await window.ArtPublicRooms.hostOpened()}catch(e){room.publicRoom=false;console.warn('Firebase公開ルーム登録失敗',e);throw new Error('公開登録に失敗しました：'+(e?.code||e?.message||'Firebaseのルール・接続を確認してください。'))}}}
 
 
 /* SECTION: app/09-wire.js */
@@ -2366,7 +2485,7 @@ $('#snapshotBtn').onclick=()=>{if(window.ArtGame?.enabled()&&!window.ArtSessionU
  $('#checkpointHistory').onclick=showCheckpointHistory;$('#snapshotDownload').onclick=()=>showArt(captureArtwork($('#snapshotName').value.trim()||room.name),false);
  $('#snapshotSave').onclick=async()=>{try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
 };
-$('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')}};
+$('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div id="roomPublicControls"></div><div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')};window.ArtPublicRooms?.mountRoomSettings()};
 async function finishRoomExit(save){
  const buttons=[$('#confirmLeave'),$('#leaveWithoutSave'),$('#gameConfirmLeave')].filter(Boolean);buttons.forEach(b=>b.disabled=true);
  try{
@@ -10085,7 +10204,7 @@ window.ArtRoomTools=(()=>{
         status(`公開ルーム ${rows.length}件 · 自動更新中`);
       };
       directoryQuery.on('value',directoryListener,error=>{
-        status('一覧を読み込めません。Firebaseのルールを確認してください。');
+        status('一覧を読み込めません：'+(error?.code||error?.message||'Firebaseのルールを確認してください。'));
         setListMessage('公開ルームに接続できませんでした。画面右上の「再読み込み」をお試しください。');
         directoryQuery=null;
       });
@@ -10109,18 +10228,41 @@ window.ArtRoomTools=(()=>{
     const phase=window.ArtGame?.getHost?.()?.phase;
     return !!phase && !['lobby','finished','interrupted'].includes(phase);
   }
-  function imageFromCanvas(canvas){
-    if(!canvas)return '';
-    let image='';const out=document.createElement('canvas');
-    out.width=160;out.height=120;
+  function imageFromCanvas(source,waiting=false){
+    if(!source||!source.width||!source.height)return '';
+    const out=document.createElement('canvas'),w=160,h=120;
+    out.width=w;out.height=h;
     const ctx=out.getContext('2d');if(!ctx)return '';
-    ctx.fillStyle='#f4fafb';ctx.fillRect(0,0,160,120);
-    const scale=Math.min(160/canvas.width,120/canvas.height);
-    ctx.drawImage(canvas,(160-canvas.width*scale)/2,(120-canvas.height*scale)/2,canvas.width*scale,canvas.height*scale);
-    for(const q of [0.55,0.35,0.22]){
-      image=out.toDataURL('image/webp',q);
+    ctx.fillStyle='#f4fafb';ctx.fillRect(0,0,w,h);
+    const playArea=waiting?{x:8,y:27,w:144,h:68}:{x:0,y:0,w:160,h:120};
+    if(waiting){
+      ctx.fillStyle='#e8f5f6';ctx.fillRect(0,0,w,22);
+      ctx.fillStyle='#244c59';ctx.font='bold 10px system-ui,sans-serif';
+      ctx.fillText('待機場',9,15);
+      ctx.font='9px system-ui,sans-serif';ctx.textAlign='right';
+      ctx.fillText(MODES[room?.mode]?.[0]||'ゲーム',151,15);ctx.textAlign='left';
+      ctx.fillStyle='#d5e5e7';ctx.fillRect(7,26,146,70);
+    }
+    const scale=Math.min(playArea.w/source.width,playArea.h/source.height);
+    const iw=source.width*scale,ih=source.height*scale;
+    ctx.fillStyle='#ffffff';ctx.fillRect(playArea.x,playArea.y,playArea.w,playArea.h);
+    ctx.drawImage(source,playArea.x+(playArea.w-iw)/2,playArea.y+(playArea.h-ih)/2,iw,ih);
+    if(waiting){
+      const live=[...members.values()].filter(m=>!m.disconnected).length;
+      ctx.fillStyle='#dcebed';ctx.fillRect(0,103,160,17);
+      ctx.fillStyle='#325765';ctx.font='bold 9px system-ui,sans-serif';
+      ctx.fillText('参加者 '+live+'/'+(room?.limit||8)+'人',9,114);
+      ctx.textAlign='right';ctx.fillText('開始待ち',151,114);ctx.textAlign='left';
+    }
+    let image='';
+    for(const quality of [0.55,0.35,0.22,0.12]){
+      image=out.toDataURL('image/webp',quality);
       if(validImage(image))return image;
     }
+    // Prefer fresh, smaller frames to an oversized image that Firebase rejects.
+    const smaller=document.createElement('canvas');smaller.width=120;smaller.height=90;
+    smaller.getContext('2d')?.drawImage(out,0,0,120,90);
+    for(const quality of [0.3,0.12]){image=smaller.toDataURL('image/webp',quality);if(validImage(image))return image;}
     return '';
   }
   function thumbnailFromUrl(url){
@@ -10139,10 +10281,14 @@ window.ArtRoomTools=(()=>{
     }catch{return ''}
   }
   async function canvasPreview(){
-    if(!room || !engine || room.mode!=='free')return '';
-    try{const canvas=engine.compose(prefs.opacities,true,visibleLayers());
-      try{return imageFromCanvas(canvas)}finally{canvas.width=canvas.height=0}
-    }catch{return ''}
+    if(!room||!engine||isPlaying()||(room.mode!=='free' && !window.ArtSessionUI?.active?.()))return '';
+    try{
+      // Engine compose is the same shared canvas displayed in the studio, not a chosen gallery image.
+      // In game modes we frame the actual waiting-room canvas with its lobby status.
+      const canvas=engine.compose(prefs.opacities,true,visibleLayers());
+      try{return imageFromCanvas(canvas,room.mode!=='free')}
+      finally{canvas.width=canvas.height=0}
+    }catch(e){console.warn('公開ルーム画像作成失敗',e);return ''}
   }
   function dataForHost(){
     const present=[...members.values()].filter(m=>!m.disconnected).length;
@@ -10171,8 +10317,7 @@ window.ArtRoomTools=(()=>{
     await stopHost();
     entryRoomId=room.id;
     entryCreatedAt=Date.now();
-    preview=await choosePreview(room.publicPreviewId);
-    if(!preview)preview=await canvasPreview();
+    preview=await canvasPreview();
     entryRef=database.ref(PATH).push();
     try{
       // Server-side disconnect cleanup also covers lost tabs and lost network.
@@ -10180,11 +10325,12 @@ window.ArtRoomTools=(()=>{
       await publish(true);
       publishTimer=setInterval(()=>{
         if(!room||room.id!==entryRoomId||!room.publicRoom||!isHost){void stopHost();return;}
-        // A free drawing room can update its preview as the shared art changes.
-        if(room.mode==='free'&&!room.publicPreviewId && !publishing){
+        // Shared canvas is updated for both free drawing and game waiting rooms.
+        // Once a match begins, retain the last waiting-room frame.
+        if(!isPlaying() && !publishing){
           canvasPreview().then(image=>{if(image)preview=image;return publish(true)}).catch(()=>{});
         }else publish(true).catch(()=>{});
-      },18000);
+      },12000);
     }catch(e){await stopHost();throw e}
   }
   async function stopHost(){
@@ -10195,10 +10341,32 @@ window.ArtRoomTools=(()=>{
     try{await old.remove()}catch{}
     try{await old.onDisconnect().cancel()}catch{}
   }
-  function hostUpdated(){if(entryRef && room?.publicRoom && isHost)publish().catch(()=>{});}
+  function hostUpdated(){if(entryRef && room?.publicRoom && isHost)publish().catch(e=>console.warn('公開ルーム更新失敗',e));}
   async function hostPromoted(){
     if(!room?.publicRoom || !isHost || room.offline)return;
     try{await hostOpened()}catch(e){console.warn('公開ルームの引き継ぎに失敗しました',e);}
+  }
+  async function setVisibility(wantPublic){
+    if(!room||!isHost||room.offline)throw new Error('オンライン部屋の部屋主だけが変更できます。');
+    if(!wantPublic){room.publicRoom=false;await stopHost();return;}
+    await ensureReady();
+    room.publicRoom=true;
+    try{await hostOpened()}
+    catch(e){room.publicRoom=false;await stopHost();throw e;}
+  }
+  function mountRoomSettings(){
+    const slot=byId('roomPublicControls');if(!slot||!room)return;
+    if(room.offline){slot.innerHTML='<p class="muted">ひとりで試す部屋は公開できません。</p>';return;}
+    slot.innerHTML='<div class="studio-public-setting"><b>公開ルーム</b><label class="check"><input type="checkbox" id="studioPublicToggle">公開ルーム一覧に表示する</label><p class="muted">ゲームの待機場・共同キャンバスが公開一覧のサムネイルになります。</p><p id="studioPublicStatus" class="muted" role="status"></p></div>';
+    const input=byId('studioPublicToggle'),message=byId('studioPublicStatus');
+    input.checked=!!room.publicRoom;input.disabled=!isHost;
+    message.textContent=room.publicRoom?'現在公開中です。':'現在非公開です。';
+    input.onchange=async()=>{
+      input.disabled=true;message.textContent=input.checked?'公開登録中…':'公開を取り消しています…';
+      try{await setVisibility(input.checked);message.textContent=room.publicRoom?'公開ルームとして登録しました。':'公開を取り消しました。';toast(message.textContent)}
+      catch(e){input.checked=!!room.publicRoom;message.textContent='操作できませんでした：'+(e?.code||e?.message||'Firebaseの設定を確認してください。')}
+      finally{input.disabled=!isHost;}
+    };
   }
   async function joinListing(r){
     if(room){toast('現在の部屋を退出してから参加してください。');return;}
@@ -10220,7 +10388,8 @@ window.ArtRoomTools=(()=>{
   // User can open public/private gallery even without Firebase connectivity.
   byId('openHomeGallery')?.addEventListener('click',openGallery);
   byId('publicRoomsRefresh')?.addEventListener('click',refresh);
-  window.ArtPublicRooms = {ensureReady,subscribe,refresh,hostOpened,hostUpdated,hostPromoted,stopHost,choosePreview,openGallery};
+  byId('createPublicRoom')?.addEventListener('click',()=>showCreate({publicRoom:true}));
+  window.ArtPublicRooms = {ensureReady,subscribe,refresh,hostOpened,hostUpdated,hostPromoted,stopHost,setVisibility,mountRoomSettings,canvasPreview,openGallery};
   // Skip remote network requests for local preview environments; keep static UI readable.
   if(location.protocol==='http:' || location.protocol==='https:')subscribe();
   else {status('Firebaseは公開サイト（HTTPS）で接続します。');setListMessage('公開ルームの一覧は、GitHub Pagesに公開すると表示されます。');}
