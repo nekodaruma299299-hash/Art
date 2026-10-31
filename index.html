@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.48 / Firebase公開ルーム一覧・3列カード・絵画展ボタン
+あーとぴあ 1.3.51 / 部屋作成画面の統一・高画質プレビュー
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -996,11 +996,77 @@ window.ArtModeLayout=(()=>{
 .studio-public-setting>b{display:block;margin-bottom:9px}
 @media(max-width:650px){.public-rooms-actions .public-create-quick{font-size:11px;padding:5px 7px}.create-visibility-option{padding:10px 7px}.create-visibility-option strong{font-size:12px}.create-visibility-option small{font-size:9px}}
 </style>
+<style id="artopia-unified-create-styles">
+/* 1.3.51: exactly two entry cards; preserve existing mode logic and related modals. */
+#home .home-actions>.mode-card{display:none!important}
+.public-rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+.public-room-thumb{aspect-ratio:16/9;background:#f0f6f6}
+.public-room-thumb img{object-fit:contain;background:#fff}
+.public-room-info{padding:9px 10px;gap:3px}
+.public-room-mode{color:#6d8390}
+.room-create-screen[hidden],.room-mode-picker[hidden],#createPrivateCode[hidden]{display:none!important}
+.room-create-screen{position:fixed;inset:0;background:#f1f7f8;z-index:150;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.room-create-shell{width:min(800px,100%);min-height:100dvh;margin:0 auto;background:#fff;box-shadow:0 12px 58px #18384414;display:flex;flex-direction:column}
+.room-create-top{position:sticky;top:0;z-index:5;background:#fffefaed;backdrop-filter:blur(14px);border-bottom:1px solid #e1e9eb;padding:13px 22px;display:flex;align-items:center;gap:14px}
+.room-create-back{border:none!important;background:#f0f6f6!important;width:40px;min-height:40px;padding:5px;border-radius:12px}
+.room-create-top h2{font-size:21px;line-height:1.2;margin:0}.room-create-top p{font-size:12px;color:#83939c;margin:5px 0 0}
+.room-create-body{width:100%;padding:24px 30px 35px;flex:1;display:flex;flex-direction:column;gap:22px}
+.room-create-block{display:flex;flex-direction:column;gap:10px}
+.room-create-label{font-size:14px;font-weight:750;color:#304e58}
+.room-create-body .form-field{font-size:14px;font-weight:700;margin:0}
+.room-create-body .form-field>input{margin-top:8px;min-height:46px}
+.room-create-visibility{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.room-create-visibility label{position:relative;display:flex;gap:9px;align-items:center;border:1.5px solid #d6e2e4;background:#fff;border-radius:15px;padding:17px 15px;cursor:pointer}
+.room-create-visibility label.selected{border-color:#6bbeb8;background:#effaf8;box-shadow:0 0 0 1px #79c3be}
+.room-create-visibility input{flex:none;accent-color:#168e87;margin:0}
+.room-create-visibility strong{display:block;font-size:15px}
+.room-create-visibility small{font-size:11px;display:block;color:#768d97;font-weight:400;line-height:1.45;margin-top:4px}
+.room-create-hint{font-size:12px;line-height:1.65;color:#62818b;margin:0}
+.room-create-mode-button{width:100%;display:flex;gap:15px;align-items:center;text-align:left;padding:15px;border:1.5px solid #cfdee1;border-radius:16px;background:#fafdfe}
+.room-create-mode-icon,.room-mode-icon{width:58px;height:58px;min-width:58px;border-radius:14px;background:#eef8f7;display:grid;place-items:center;font-size:29px}
+.room-create-mode-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.room-create-mode-copy strong{font-size:16px}
+.room-create-mode-copy small{font-size:12px;color:#6c828c;line-height:1.55;font-weight:400}
+.room-create-arrow{font-size:24px;color:#6e999e}
+.room-mode-icon svg,.room-create-mode-icon svg{width:34px;height:34px;flex:none}
+.room-create-native{display:none!important}
+.room-create-details{border:1px solid #e2e9ea;border-radius:13px;background:#fbfdfd;padding:12px 16px}
+.room-create-details>summary{cursor:pointer;color:#436e79;font-weight:700;font-size:13px;padding:4px 0}
+.room-create-details[open]>summary{margin-bottom:13px}
+.room-create-details .form-field{margin-bottom:13px}
+.room-create-detail-row{display:flex;flex-wrap:wrap;gap:12px}
+.room-create-detail-row>.form-field{flex:1;min-width:125px}
+.room-create-body .create-preview-hint{color:#6e8790;font-size:12px;line-height:1.6;margin:0}
+.room-create-actions{position:sticky;bottom:0;background:#fffefaed;backdrop-filter:blur(14px);padding:14px 24px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #e1e9eb;display:flex;gap:10px;align-items:center}
+.room-create-actions button{width:100%;min-height:49px;font-size:15px}
+.room-mode-picker{position:fixed;inset:0;background:#f1f7f8;z-index:155;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.room-mode-picker-shell{width:min(800px,100%);min-height:100dvh;margin:auto;background:#fff}
+.room-mode-picker-body{padding:22px 26px 35px;display:flex;flex-direction:column;gap:11px}
+.room-mode-choice{width:100%;display:flex;gap:14px;align-items:center;text-align:left;border:1.5px solid #e0e8ea;background:#fff;border-radius:15px;padding:12px 14px;min-height:78px}
+.room-mode-choice[aria-pressed=true]{border-color:#67bdb8;background:#f1faf8}
+.room-mode-choice .room-mode-copy{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.room-mode-choice .room-mode-copy strong{font-size:15px}
+.room-mode-choice .room-mode-copy small{font-size:12px;color:#748791;line-height:1.5;font-weight:400}
+.room-mode-check{font-size:19px;color:#158d80}
+.room-mode-special{border:1px solid #e2e9ea;border-radius:13px;padding:12px 15px;margin-top:8px;background:#fbfdfd}
+.room-mode-special summary{cursor:pointer;color:#547784;font-size:13px;font-weight:650}
+.room-mode-special>div{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.room-mode-special>div button{font-size:12px}
+@media(max-width:650px){
+  .room-create-top{padding:12px 15px}.room-create-top h2{font-size:19px}
+  .room-create-body{padding:19px 17px 27px;gap:19px}
+  .room-create-visibility{gap:8px}.room-create-visibility label{padding:13px 9px;gap:5px}.room-create-visibility strong{font-size:13px}.room-create-visibility small{font-size:10px}
+  .room-create-actions{padding:11px 15px calc(11px + env(safe-area-inset-bottom))}
+  .room-mode-picker-body{padding:17px 14px 25px}.room-mode-choice{gap:10px;padding:10px;min-height:74px}
+  .room-mode-icon,.room-create-mode-icon{width:48px;height:48px;min-width:48px;font-size:25px}
+  .public-room-info{padding:6px 5px}
+}
+</style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.50</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.51</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
-    <div class="public-rooms-actions"><button type="button" id="createPublicRoom" class="public-create-quick" aria-label="新しい公開ルームを作る">＋ 公開する</button><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
+    <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
   </div>
   <p id="publicRoomsStatus" role="status" class="public-rooms-status">接続の準備中…</p>
   <div id="publicRoomsGrid" class="public-rooms-grid" aria-live="polite"><div class="public-room-empty">公開ルームを読み込んでいます…</div></div>
@@ -1774,60 +1840,113 @@ $('#myProfile').onclick=()=>showProfile();
 function showCreate(options={}){
  if(room){toast('現在の部屋を退出してから、新しい部屋を作成してください。');return}
  if(!profile.name){showProfile(true);return}
- const defaultPublic=!!options.publicRoom;
+ // A dedicated full-screen setup view, rather than the previous small modal.
+ if($('#modal')?.open)$('#modal').close();
+ document.getElementById('roomCreateScreen')?.remove();
  const generatedCode=Math.random().toString(36).slice(2,10).toUpperCase();
  const suggestedName=(profile.name+'の部屋').slice(0,40);
- modal('部屋をつくる',`<form id="createForm" class="create-room-form">
-  <div class="create-intro">遊び方と公開範囲を選んで、みんなの部屋をつくろう。</div>
-  <div id="createModeSlot" class="create-mode-slot"></div>
-  <div class="create-field-heading">公開範囲</div>
-  <div class="create-visibility-choices" role="group" aria-label="部屋の公開範囲">
-   <label class="create-visibility-option"><input type="radio" name="newVisibility" id="newPublic" value="public" ${defaultPublic?'checked':''}><span><strong>🌐 公開ルーム</strong><small>一覧に表示・誰でも参加</small></span></label>
-   <label class="create-visibility-option"><input type="radio" name="newVisibility" id="newPrivate" value="private" ${defaultPublic?'':'checked'}><span><strong>🔒 非公開ルーム</strong><small>招待・合言葉で参加</small></span></label>
-  </div>
-  <p id="createPublicHint" class="create-public-hint" role="status"></p>
-  <label class="form-field">部屋の名前 <span class="required">必須</span><input id="newRoomName" maxlength="40" value="${esc(suggestedName)}" placeholder="のんびりお絵描き" required></label>
-  <div class="form-row"><label class="form-field">人数上限<select id="newLimit">${[2,4,6,8].map(n=>`<option value="${n}" ${n===8?'selected':''}>${n}人</option>`).join('')}</select></label>
-  <label class="form-field">観戦<label class="check"><input id="newSpectate" type="checkbox" checked>許可する</label></label></div>
-  <details id="createGameSettings" class="create-settings-details"><summary>⚙ ゲームモードの詳細設定</summary><div id="createModeDetails"></div></details>
-  <details id="createAdvanced" class="create-settings-details"><summary>キャンバス・招待・その他の設定</summary>
-   <label class="form-field">合言葉（自動発行）<input id="newCode" maxlength="32" value="${generatedCode}" minlength="2" required><small>非公開部屋の友だちへの招待にも利用できます。</small></label>
-   <div class="form-row"><label class="form-field">幅（px）<input id="newWidth" type="number" min="128" max="2048" step="1" value="1024" required></label><label class="form-field">高さ（px）<input id="newHeight" type="number" min="128" max="2048" step="1" value="1024" required></label></div>
-   <label class="form-field">履歴の保持時間<select id="newHistory">${[1,2,3,4,5].map(n=>`<option ${n===3?'selected':''} value="${n}">${n}分</option>`).join('')}</select></label>
-   <label class="form-field">定期スナップショット<select id="newSnapshotInterval">${snapshotOptions()}</select><small>直近30件を保持します。</small></label>
-   <label class="form-field">最初のキャンバス<select id="newArt"><option value="">白紙から</option>${gallery.map(a=>`<option value="${esc(a.id)}" ${a.id===activeArt?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
-   <label class="check"><input id="newProtect" type="checkbox" checked>変形中の作業範囲を保護</label>
-  </details>
-  <p class="create-preview-hint">🖼 公開一覧の画像は自動更新されます。ゲームでは待機場の様子、自由なお絵描きでは現在のキャンバスを表示します。</p>
-  <p id="createError" class="error" role="alert"></p>
-  <div class="modal-actions create-modal-actions"><button type="button" id="localDraw">ひとりで試す</button><button type="submit" id="createSubmit" class="primary">部屋を作成する</button></div>
- </form>`);
- // Reuse all existing mode configuration code. Keep the mode selector visible, move only the optional subpanels.
+ const modes=[
+  {id:'free',name:'おえかき',icon:'🎨',description:'みんなで自由に絵を描く、基本のモード'},
+  {id:'relay',name:'あーてぃっくふぉん',icon:'📞',description:'絵と言葉を交互につないでいく伝言ゲーム'},
+  {id:'wolf',name:'あーとうるふ',icon:'🐺',description:'似たお題を描き、違うお題の人を探す'},
+  {id:'answer',name:'あーとあんさー',icon:'❓',description:'描いた絵のお題をみんなで当てる'},
+  {id:'arts',name:'あーとあーつ',icon:'⚔️',description:'描いたキャラクターとアーツで対戦'},
+  {id:'chimera',name:'あーときめら',icon:'🧩',description:'パーツを分担してキャラクターを完成させる'},
+  {id:'shadow',name:'あーとれいたー',icon:'🎭',description:'その絵の裏に誰がいる？ 正体を隠して生き残る（開発版）'}
+ ];
+ const modeHomeIds={relay:'gameHome',wolf:'wolfHome',answer:'answerHome',arts:'artsHome',chimera:'chimeraHome',shadow:'shadowHome'};
+ const modeIconMarkup=m=>{const source=modeHomeIds[m.id]&&document.getElementById(modeHomeIds[m.id])?.querySelector('.mode-card-icon');return source?.innerHTML||m.icon};
+ const root=document.createElement('section');root.id='roomCreateScreen';root.className='room-create-screen';
+ root.setAttribute('aria-label','部屋を作る');
+ root.innerHTML=`<div class="room-create-shell">
+  <header class="room-create-top"><button type="button" id="createScreenBack" class="room-create-back" aria-label="ホームに戻る">←</button><div><h2>部屋を作る</h2><p>遊び方を選んで、新しい部屋をひらこう。</p></div></header>
+  <form id="createForm" class="room-create-body">
+   <div id="createModeNativeSlot" class="room-create-native" aria-hidden="true"></div>
+   <div class="room-create-block"><div class="room-create-label">公開設定</div>
+    <div class="room-create-visibility" role="group" aria-label="部屋の公開設定">
+     <label class="selected"><input id="newPublic" type="radio" name="newVisibility" value="public" checked><span><strong>🌐 公開</strong><small>公開ルーム一覧に表示</small></span></label>
+     <label><input id="newPrivate" type="radio" name="newVisibility" value="private"><span><strong>🔒 非公開</strong><small>合言葉を知っている人だけ</small></span></label>
+    </div><p id="createPublicHint" class="room-create-hint">誰でも公開ルーム一覧から参加できます。</p>
+   </div>
+   <div class="room-create-block"><label class="form-field">部屋名 <span class="required">必須</span><input id="newRoomName" maxlength="40" value="${esc(suggestedName)}" placeholder="のんびりおえかき" required></label></div>
+   <div id="createPrivateCode" class="room-create-block" hidden><label class="form-field">合言葉 <span class="required">必須</span><input id="newCode" maxlength="32" minlength="2" required value="${generatedCode}" placeholder="合言葉を入力"><small>合言葉を知っている人だけが入室できます。</small></label></div>
+   <div class="room-create-block"><div class="room-create-label">ゲームモード設定</div>
+    <button type="button" id="openCreateModePicker" class="room-create-mode-button" aria-haspopup="dialog"><span class="room-create-mode-icon" id="selectedCreateModeIcon">🎨</span><span class="room-create-mode-copy"><strong id="selectedCreateModeName">おえかき</strong><small id="selectedCreateModeDescription">みんなで自由に絵を描く、基本のモード</small></span><span class="room-create-arrow">›</span></button>
+   </div>
+   <details id="createGameSettings" class="room-create-details" hidden><summary>選んだゲームモードの詳細設定</summary><div id="createModeDetails"></div></details>
+   <details id="createAdvanced" class="room-create-details"><summary>詳細設定（人数・観戦・キャンバスなど）</summary>
+    <div class="room-create-detail-row"><label class="form-field">最大人数<select id="newLimit">${[2,4,6,8].map(n=>`<option value="${n}" ${n===8?'selected':''}>${n}人</option>`).join('')}</select></label>
+    <label class="form-field">観戦<label class="check"><input id="newSpectate" type="checkbox" checked>許可する</label></label></div>
+    <div class="room-create-detail-row"><label class="form-field">幅（px）<input id="newWidth" type="number" min="128" max="2048" value="1024" required></label><label class="form-field">高さ（px）<input id="newHeight" type="number" min="128" max="2048" value="1024" required></label></div>
+    <label class="form-field">履歴の保持時間<select id="newHistory">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${n}分</option>`).join('')}</select></label>
+    <label class="form-field">定期スナップショット<select id="newSnapshotInterval">${snapshotOptions()}</select></label>
+    <label class="form-field">最初のキャンバス<select id="newArt"><option value="">白紙から</option>${gallery.map(a=>`<option value="${esc(a.id)}" ${a.id===activeArt?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
+    <label class="check"><input id="newProtect" type="checkbox" checked>変形中の作業範囲を保護</label>
+    <button id="localDraw" type="button">ひとりで試す</button>
+   </details>
+   <p class="create-preview-hint">公開ルームの画像は自動更新されます。通常のおえかきでは現在の絵、ゲームでは待機場の絵を表示します。</p>
+   <p id="createError" class="error" role="alert" aria-live="polite"></p>
+   <div class="room-create-actions"><button id="createSubmit" type="submit" class="primary">🌐 公開ルームを作成</button></div>
+  </form>
+ </div><div id="createModePicker" class="room-mode-picker" hidden role="dialog" aria-modal="true" aria-label="ゲームモード設定">
+  <div class="room-mode-picker-shell"><header class="room-create-top"><button type="button" id="closeCreateModePicker" class="room-create-back" aria-label="部屋作成画面に戻る">←</button><div><h2>ゲームモード設定</h2><p>遊びたいモードを選んでください。</p></div></header>
+   <div id="createModeChoices" class="room-mode-picker-body"></div></div>
+ </div>`;
+ document.body.append(root);
+ const closeCreate=()=>{root.remove();};
+ $('#createScreenBack').onclick=closeCreate;
+ $('#closeCreateModePicker').onclick=()=>{$('#createModePicker').hidden=true;$('#openCreateModePicker').focus()};
+ $('#openCreateModePicker').onclick=()=>{$('#createModePicker').hidden=false;root.querySelector('.room-mode-choice[aria-pressed="true"]')?.focus()};
+ root.querySelector('#createModeChoices').replaceChildren(...modes.map(m=>{
+  const b=document.createElement('button');b.type='button';b.className='room-mode-choice';b.dataset.mode=m.id;
+  b.innerHTML=`<span class="room-mode-icon" aria-hidden="true">${modeIconMarkup(m)}</span><span class="room-mode-copy"><strong>${m.name}</strong><small>${m.description}</small></span><span class="room-mode-check"></span>`;
+  b.onclick=()=>{$('#newMode').value=m.id;$('#newMode').onchange();$('#createModePicker').hidden=true;$('#openCreateModePicker').focus()};
+  return b;
+ }));
+ // Keep the older standalone arts/traitor tools available, without restoring
+ // their duplicate room-creation entry cards to the home screen.
+ const extras=document.createElement('details');extras.className='room-mode-special';
+ extras.innerHTML='<summary>練習・キャラ制作など、部屋作成以外の機能</summary><div><button type="button" id="createArtsExtras">⚔️ あーとあーつの練習・キャラ制作</button><button type="button" id="createShadowExtras">🎭 あーとれいたーのテスト機能</button></div>';
+ root.querySelector('#createModeChoices').append(extras);
+ const openExtras=(homeId,removeIds)=>{
+  closeCreate();
+  document.getElementById(homeId)?.click();
+  for(const id of removeIds)document.getElementById(id)?.remove();
+ };
+ $('#createArtsExtras').onclick=()=>openExtras('artsHome',['artsCreateRoom','artsJoinRoom']);
+ $('#createShadowExtras').onclick=()=>openExtras('shadowHome',['shadowNewRoom','shadowJoinRoom']);
+ // Existing game-specific config handlers read #newMode and related fields: preserve them.
  window.ArtGame?.initCreate();
  const modeLabel=$('#newMode')?.closest('label');
- if(modeLabel)$('#createModeSlot').append(modeLabel);
- for(const id of ['gameCreate','wolfCreate','answerCreate','artsCreate','chimeraCreate','shadowCreate']){const item=$('#'+id);if(item)$('#createModeDetails').append(item)}
+ if(modeLabel)$('#createModeNativeSlot').append(modeLabel);
+ for(const id of ['gameCreate','wolfCreate','answerCreate','artsCreate','chimeraCreate','shadowCreate']){const el=$('#'+id);if(el)$('#createModeDetails').append(el)}
  const mode=$('#newMode');
  const updateMode=()=>{
-  const game=mode?.value!=='free';
-  $('#createGameSettings').hidden=!game;
-  if(game)$('#createGameSettings').open=true;
-  $('#createAdvanced').open=false;
+  const selected=modes.find(m=>m.id===mode.value)||modes[0];
+  $('#selectedCreateModeIcon').innerHTML=modeIconMarkup(selected);
+  $('#selectedCreateModeName').textContent=selected.name;
+  $('#selectedCreateModeDescription').textContent=selected.description;
+  $('#createGameSettings').hidden=mode.value==='free';
+  root.querySelectorAll('.room-mode-choice').forEach(b=>{const selected=b.dataset.mode===mode.value;b.setAttribute('aria-pressed',String(selected));b.querySelector('.room-mode-check').textContent=selected?'✓':''});
  };
- if(mode){const previous=mode.onchange;mode.onchange=function(...args){if(previous)previous.apply(this,args);updateMode()};updateMode()}
+ if(mode){const earlier=mode.onchange;mode.onchange=function(...args){if(earlier)earlier.apply(this,args);updateMode()};mode.value=options.mode||'free';mode.onchange()}
  const updateVisibility=()=>{
   const isPublic=$('#newPublic').checked;
-  document.querySelectorAll('.create-visibility-option').forEach(el=>el.classList.toggle('selected',el.querySelector('input').checked));
-  $('#createPublicHint').textContent=isPublic?'公開した部屋は、ほかのプレイヤーのホーム画面に表示されます。':'一覧には表示されません。合言葉や招待リンクで参加できます。';
+  $('#createPrivateCode').hidden=isPublic;
+  root.querySelectorAll('.room-create-visibility label').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked));
+  $('#createPublicHint').textContent=isPublic?'公開した部屋は、ほかのプレイヤーのホーム画面に表示されます。':'公開一覧には表示されず、合言葉を知っている人だけが入室できます。';
   $('#createSubmit').textContent=isPublic?'🌐 公開ルームを作成':'🔒 非公開ルームを作成';
  };
- $('#newPublic').onchange=updateVisibility;$('#newPrivate').onchange=updateVisibility;updateVisibility();
+ $('#newPublic').onchange=updateVisibility;$('#newPrivate').onchange=updateVisibility;
+ if(options.publicRoom===false)$('#newPrivate').checked=true;
+ updateVisibility();
  const selectArtSize=()=>{const a=gallery.find(a=>a.id===$('#newArt').value);if(a){$('#newWidth').value=a.w;$('#newHeight').value=a.h}};
  $('#newArt').onchange=selectArtSize;if(activeArt)selectArtSize();
+ root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if(!$('#createModePicker').hidden)$('#closeCreateModePicker').click();else closeCreate()}});
  const run=async offline=>{
   const form=$('#createForm');if(!form?.reportValidity())return;
   const name=$('#newRoomName').value.trim(),code=$('#newCode').value.normalize('NFKC').trim();
-  if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';$('#createAdvanced').open=true;return}
+  if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';$('#createPrivateCode').hidden=false;return}
   const isPublic=!offline&&$('#newPublic').checked;
   const config=window.ArtGame?.createConfig()||{mode:'free'};
   const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,protect:$('#newProtect').checked,id:uid(),...config};
@@ -1839,29 +1958,25 @@ function showCreate(options={}){
    if(isPublic)await window.ArtPublicRooms.ensureReady();
    const art=artId&&!['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)?await db('art','readonly',st=>st.get(artId)):null;
    await startRoom(r,art,offline);
-   $('#modal').close();
+   closeCreate();
    if(isPublic)toast('公開ルームが一覧に登録されました！');
   }catch(e){
    const message=errorText(e);
    if(room&&connected&&isHost&&isPublic){
+    closeCreate();
     modal('公開ルームの登録に失敗しました',`<p>部屋自体は作成されましたが、公開一覧への登録には失敗しました。現在は非公開です。</p><p id="publicCreateFailure" class="error" role="alert"></p><p class="muted">Firebaseの「Realtime Database → ルール」、匿名認証、ネットワークを確認してください。</p><div class="modal-actions"><button type="button" id="publicKeepPrivate">非公開のまま使う</button><button type="button" id="publicRetryCreate" class="primary">公開を再試行</button></div>`);
     $('#publicCreateFailure').textContent=message;
     $('#publicKeepPrivate').onclick=()=>$('#modal').close();
-    $('#publicRetryCreate').onclick=async()=>{
-     const b=$('#publicRetryCreate');b.disabled=true;$('#publicCreateFailure').textContent='再接続しています…';
-     try{await window.ArtPublicRooms.setVisibility(true);$('#modal').close();toast('公開ルームの登録に成功しました！')}
-     catch(err){$('#publicCreateFailure').textContent=errorText(err);b.disabled=false}
-    };
-   }else{
-    $('#createError').textContent=message;
-    $('#createSubmit').disabled=false;$('#localDraw').disabled=false;
-   }
+    $('#publicRetryCreate').onclick=async()=>{const b=$('#publicRetryCreate');b.disabled=true;$('#publicCreateFailure').textContent='再接続しています…';try{await window.ArtPublicRooms.setVisibility(true);$('#modal').close();toast('公開ルームの登録に成功しました！')}catch(err){$('#publicCreateFailure').textContent=errorText(err);b.disabled=false}};
+   }else{$('#createError').textContent=message;$('#createSubmit').disabled=false;$('#localDraw').disabled=false}
   }
  };
  $('#createForm').onsubmit=e=>{e.preventDefault();run(false)};
  $('#localDraw').onclick=()=>run(true);
+ $('#newRoomName').focus({preventScroll:true});
 }
-function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('部屋に入る',`<form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
+$('#createMain').onclick=()=>showCreate();
+function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('合言葉で入る',`<form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
 $('#joinMain').onclick=()=>showJoin();
 // Invitation links bypass the passphrase form after the player's name is known.
 let inviteJoining=false;
@@ -9819,7 +9934,7 @@ finishPaint(false)};
  }
  function settingsDialog(){shadowSettingsDialog()}
 
- function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('アートレイター（開発版）','shadow'));const block=document.createElement('div');block.id='shadowCreate';block.innerHTML=configHTML();$('#answerCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='shadow';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=true;$('#newWidth').value=$('#newHeight').value=512;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
+ function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとれいたー（開発版）','shadow'));const block=document.createElement('div');block.id='shadowCreate';block.innerHTML=configHTML();$('#answerCreate').after(block);const prev=mode.onchange;mode.onchange=()=>{prev();const on=mode.value==='shadow';block.hidden=!on;block.querySelectorAll('input,select').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id).closest('label').hidden=true;$('#localDraw').hidden=true;$('#newWidth').value=$('#newHeight').value=512;$('#newWidth').max=$('#newHeight').max=1024}};mode.onchange()}
  function departed(id){if(!isHost||!host)return;const p=host.fighters.find(p=>p.id===id);if(p&&ShadowRules.living(p)){p.disconnectedAt=Date.now();delete host.inputs[id]}else if(host.phase!=='battle'){const q=host.players.find(q=>q.id===id);if(q)q.active=false}sendAll()}
 
  function reset(){savedCharacterSource=null;stopInput();cancelAnimationFrame(raf);raf=0;host=view=null;uiKey=rosterKey=submitted='';images.clear();positions.clear();walk.clear();damageShakes.clear();guide=null;uploading.clear();previousFx.clear();impactSounds.clear();heardBuffWaves.clear();stage.innerHTML='';bar.innerHTML='';stage.hidden=bar.hidden=true;$('#studio').classList.remove('shadow-mode','shadow-creating','shadow-character-editing');liveStats.hidden=true}
@@ -10069,7 +10184,7 @@ window.ArtSessionUI=(()=>{
 })();
 /* Room modes, photo placement and whole-layer transforms. */
 window.ArtRoomTools=(()=>{
- const modes={free:'自由にお絵描き',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'アートレイター（開発版）'};
+ const modes={free:'自由にお絵描き',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'あーとれいたー（開発版）'};
  const shared=()=>!!(room&&connected&&!members.get(localId)?.spectator&&(!window.ArtGame?.enabled()||window.ArtSessionUI?.active()));
  const canSwitch=()=>isHost&&connected&&!migrationOut&&!checkpointBusy&&(!window.ArtGame?.enabled()||['lobby','finished'].includes(window.ArtGame.getView?.()?.phase));
  function sync(){const photo=$('#photoInsertBtn'),move=$('#moveLayerBtn');if(photo){photo.hidden=!shared();photo.disabled=!shared()}if(move)move.disabled=!shared();}
@@ -10109,10 +10224,10 @@ window.ArtRoomTools=(()=>{
   const TTL = 90 * 1000;
   const MAX_LIST = 60;
   const MODES = {
-    free: ['共同お絵描き','🎨'], relay: ['アーティックフォン','📞'],
-    wolf: ['アートウルフ','🐺'], answer: ['アートアンサー','❔'],
-    arts: ['アートアーツ','⚔️'], chimera: ['アートキメラ','🧩'],
-    shadow: ['アートレイター','🎭']
+    free: ['おえかき','🎨'], relay: ['あーてぃっくふぉん','📞'],
+    wolf: ['あーとうるふ','🐺'], answer: ['あーとあんさー','❔'],
+    arts: ['あーとあーつ','⚔️'], chimera: ['あーときめら','🧩'],
+    shadow: ['あーとれいたー','🎭']
   };
   let ready = null, database = null, user = null;
   let directoryQuery = null, directoryListener = null;
@@ -10120,7 +10235,7 @@ window.ArtRoomTools=(()=>{
   let publishTimer = null, lastPublish = 0, publishing = null;
   let preview = '', activeEntries = [], lastStatus = '';
   const byId = id => document.getElementById(id);
-  const validImage = src => typeof src === 'string' && src.length <= 14000 && /^data:image\/(webp|png);base64,[A-Za-z0-9+/=]+$/.test(src);
+  const validImage = src => typeof src === 'string' && src.length <= 60000 && /^data:image\/(webp|png);base64,[A-Za-z0-9+/=]+$/.test(src);
   const status = text => { const el = byId('publicRoomsStatus'); if (el) el.textContent = text; lastStatus=text; };
 
   function loadScript(file) {
@@ -10230,39 +10345,24 @@ window.ArtRoomTools=(()=>{
   }
   function imageFromCanvas(source,waiting=false){
     if(!source||!source.width||!source.height)return '';
-    const out=document.createElement('canvas'),w=160,h=120;
-    out.width=w;out.height=h;
-    const ctx=out.getContext('2d');if(!ctx)return '';
-    ctx.fillStyle='#f4fafb';ctx.fillRect(0,0,w,h);
-    const playArea=waiting?{x:8,y:27,w:144,h:68}:{x:0,y:0,w:160,h:120};
-    if(waiting){
-      ctx.fillStyle='#e8f5f6';ctx.fillRect(0,0,w,22);
-      ctx.fillStyle='#244c59';ctx.font='bold 10px system-ui,sans-serif';
-      ctx.fillText('待機場',9,15);
-      ctx.font='9px system-ui,sans-serif';ctx.textAlign='right';
-      ctx.fillText(MODES[room?.mode]?.[0]||'ゲーム',151,15);ctx.textAlign='left';
-      ctx.fillStyle='#d5e5e7';ctx.fillRect(7,26,146,70);
+    // The artwork itself is the image. Do not reprint game mode, player count,
+    // "waiting room" or "start waiting" over the preview (already below the card).
+    const sizes=[[480,270],[400,225],[320,180],[240,135]];
+    const qualities=[.86,.74,.62,.48,.34,.22];
+    for(const [w,h] of sizes){
+      const out=document.createElement('canvas');out.width=w;out.height=h;
+      const ctx=out.getContext('2d');if(!ctx)continue;
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
+      const scale=Math.min(w/source.width,h/source.height);
+      const iw=source.width*scale,ih=source.height*scale;
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+      ctx.drawImage(source,(w-iw)/2,(h-ih)/2,iw,ih);
+      for(const q of qualities){
+        const image=out.toDataURL('image/webp',q);
+        if(validImage(image)){out.width=out.height=0;return image;}
+      }
+      out.width=out.height=0;
     }
-    const scale=Math.min(playArea.w/source.width,playArea.h/source.height);
-    const iw=source.width*scale,ih=source.height*scale;
-    ctx.fillStyle='#ffffff';ctx.fillRect(playArea.x,playArea.y,playArea.w,playArea.h);
-    ctx.drawImage(source,playArea.x+(playArea.w-iw)/2,playArea.y+(playArea.h-ih)/2,iw,ih);
-    if(waiting){
-      const live=[...members.values()].filter(m=>!m.disconnected).length;
-      ctx.fillStyle='#dcebed';ctx.fillRect(0,103,160,17);
-      ctx.fillStyle='#325765';ctx.font='bold 9px system-ui,sans-serif';
-      ctx.fillText('参加者 '+live+'/'+(room?.limit||8)+'人',9,114);
-      ctx.textAlign='right';ctx.fillText('開始待ち',151,114);ctx.textAlign='left';
-    }
-    let image='';
-    for(const quality of [0.55,0.35,0.22,0.12]){
-      image=out.toDataURL('image/webp',quality);
-      if(validImage(image))return image;
-    }
-    // Prefer fresh, smaller frames to an oversized image that Firebase rejects.
-    const smaller=document.createElement('canvas');smaller.width=120;smaller.height=90;
-    smaller.getContext('2d')?.drawImage(out,0,0,120,90);
-    for(const quality of [0.3,0.12]){image=smaller.toDataURL('image/webp',quality);if(validImage(image))return image;}
     return '';
   }
   function thumbnailFromUrl(url){
@@ -10391,7 +10491,6 @@ window.ArtRoomTools=(()=>{
   // User can open public/private gallery even without Firebase connectivity.
   byId('openHomeGallery')?.addEventListener('click',openGallery);
   byId('publicRoomsRefresh')?.addEventListener('click',refresh);
-  byId('createPublicRoom')?.addEventListener('click',()=>showCreate({publicRoom:true}));
   window.ArtPublicRooms = {ensureReady,subscribe,refresh,hostOpened,hostUpdated,hostPromoted,stopHost,setVisibility,mountRoomSettings,canvasPreview,openGallery};
   // Skip remote network requests for local preview environments; keep static UI readable.
   if(location.protocol==='http:' || location.protocol==='https:')subscribe();
