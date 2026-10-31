@@ -967,7 +967,7 @@ window.ArtModeLayout=(()=>{
 </style>
 
 <style>
-/* Ver.1.3.49: room creation with prominent visibility and visible mode selector. */
+/* Ver.1.3.50: room creation with prominent visibility and visible mode selector. */
 .create-room-form{display:flex;flex-direction:column;gap:13px}
 .create-room-form .form-field{margin:0}
 .create-intro{font-size:13px;color:#70848c;line-height:1.6}
@@ -997,7 +997,7 @@ window.ArtModeLayout=(()=>{
 @media(max-width:650px){.public-rooms-actions .public-create-quick{font-size:11px;padding:5px 7px}.create-visibility-option{padding:10px 7px}.create-visibility-option strong{font-size:12px}.create-visibility-option small{font-size:9px}}
 </style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.49</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.3.50</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋をつくる</b><span>まっさらなキャンバスから</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>部屋に入る</b><span>合言葉でつながる</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
     <div class="public-rooms-actions"><button type="button" id="createPublicRoom" class="public-create-quick" aria-label="新しい公開ルームを作る">＋ 公開する</button><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
@@ -10321,8 +10321,11 @@ window.ArtRoomTools=(()=>{
     entryRef=database.ref(PATH).push();
     try{
       // Server-side disconnect cleanup also covers lost tabs and lost network.
-      await entryRef.onDisconnect().remove();
+      // Publish before registering onDisconnect. Room ownership checks in RTDB
+      // Security Rules need the record to exist before deletion is authorized.
+      // Stale entries are also hidden by the TTL filter if the connection drops here.
       await publish(true);
+      await entryRef.onDisconnect().remove();
       publishTimer=setInterval(()=>{
         if(!room||room.id!==entryRoomId||!room.publicRoom||!isHost){void stopHost();return;}
         // Shared canvas is updated for both free drawing and game waiting rooms.
