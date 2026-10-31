@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.3.43 / アートアーツ破壊壁の透明当たり判定を修正
+あーとぴあ 1.3.44 / 採集報酬・回復とダメージ数値・地雷サイズ連動
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -3103,7 +3103,7 @@ window.ArtKeys=(()=>{
 /* SECTION: features/home-info.js */
 'use strict';
 window.ArtHomeInfo=(()=>{
- const releases=[{version:'1.3.43',date:'2026-10-31',title:'コンフュージョン・ディープスリープ図形認識改善',changes:['コンフュージョンは🌀の巻き方で判定。始点と終点が一致しなくても発動し、時計回り・反時計回り・外巻きにも対応しました。','ディープスリープは3つのZ字の形と角の並びを判定し、余計な角が1つあっても発動しやすくしました。','ディープスリープがミラージュステップの緩いS字判定に先取りされる問題を修正しました。','ほかのスキルの威力・クールダウン・ステージ設定は変更していません。']},{version:'1.3.42',date:'2026-10-31',title:'破壊済み壁の透明当たり判定を修正',changes:['参加者側が古い壁の当たり判定を残さないよう、破壊HPを壁IDで同期します。','部屋主の正しい地形データを一定間隔で送信し、参加者の壁状態を復元します。','ステージのバージョン差を検知し、古い地形による移動予測を停止します。','移動予測が古い壁に引っかかっても、部屋主が確定した位置へ追いつくよう修正します。']},{version:'1.3.41',date:'2026-10-31',title:'アートアーツ参加者の通信遅延対策',changes:['参加者の移動表示にクライアント側予測とサーバー位置補正を追加しました。','戦闘中はステージの固定壁を毎回送らず、破壊された壁のHP差分と追加の壁だけを同期します。','操作入力・位置更新の間隔を短縮し、対戦中の不要な編集UI更新を抑えました。','当たり判定とダメージの最終決定は部屋主のまま維持します。']},{version:'1.3.40',date:'2026-10-31',title:'古代遺跡・転送研究所の床を強化',changes:['ステージ名「転送遺跡」を「古代遺跡」へ改名しました。','古代遺跡の小・中・大に、鈍足床とダメージ床を大幅に追加しました。','転送研究所の小・中・大に、道として使える広めのスピード床を増設しました。','床の効果が乗っている間だけ発動する仕様に合わせて、面積を広く調整しました。']},{version:'1.3.39',date:'2026-10-31',title:'ステージ資源・転送の効果音',changes:['木の実・鉱石の出現、採集、再出現にそれぞれの効果音を追加しました。','ワープ装置で転送が成功した時に専用の音を鳴らします。','自分と近くのイベントだけ再生し、同じ通信イベントでの二重再生を防ぎます。','既存の音量・ミュート設定を引き継ぎ、他のステージやゲームモードを維持します。']},{version:'1.3.36',date:'2026-10-31',title:'生命の庭園・暴走工場 6ステージ刷新',changes:['生命の庭園に大小別の手作業配置と茂みの隠密ルートを実装しました。','暴走工場に大小別の部屋・通路・部屋内の装置を実装しました。','壁・特殊床・回復・インク・鉱石の座標を設計図と統一しました。','基本アリーナや他のモードは維持しています。']},{version:'1.3.35',date:'2026-10-30',title:'基本アリーナのサイズ別専用設計',changes:['小サイズは障害物を減らしてシンプルな専用配置にしました。','中サイズは現行の基本形を維持しています。','大サイズは細かい壁を追加し、広さに見合う密度へ調整しました。','小・中・大を単純な拡大縮小ではなく、それぞれ別設計に変更しました。']},{version:'1.3.34',date:'2026-10-30',title:'基本アリーナ整理・初期設定更新',changes:['基本アリーナの回復装置を整理し、上下をインク回復、左右をHP回復へ変更しました。','特殊床を加速床4枚に整理し、ステージの見通しを改善しました。','基本アリーナの小・中・大サイズを同じ対称レイアウト思想で統一しました。','アートアーツの初期ステージ設定を生命の庭園から基本アリーナへ変更しました。']},{version:'1.3.33',date:'2026-10-30',title:'基本アリーナ対称設計・破壊壁の追加',changes:['基本アリーナを上下左右・90度回転対称の設計に更新しました。','通常壁12、木の壁8（HP10）、補強壁8（HP100）を配置しました。','加速・減速・ダメージ床各4、回復・インク・転送装置各4を設置しました。','ステージの小・中・大サイズで同じ比率の配置になります。']},{version:'1.3.32',date:'2026-10-30',title:'アートレイター視野・通路・入力復旧',changes:['操作対象が光った時に直接タップ／クリックで施設を開けるよう修正。','お手本を左、アイテム欄を中央へ再配置。','部屋・通路・遮蔽物のあるアートレイター専用大型マップを追加し、タスク9種類を分散しました。']},{version:'1.3.29',date:'2026-10-30',title:'アートレイター・準備完了から試合開始までの修正',changes:['アートアーツと同じ全面表示のゲームステージを実装。描画・準備・陣営公開・試合の表示切替を修正。','全員の準備完了後は1.5秒で陣営・職業確認画面へ、12秒後に試合開始。','対戦フィールドと入力エリアを適切に配置。既存のアートアーツ等の画面は変更せず維持。']},{version:'1.3.27',date:'2026-10-29',title:'ディープスリープ強化',changes:['ディープスリープの睡眠時間を2.5秒から6秒へ延長しました。','クールダウンを15秒から12秒へ短縮しました。','通常攻撃・スキル攻撃・ソウルハーベストの継続ダメージでも睡眠が解除されないようにしました。','睡眠終了後の3秒間の再睡眠無効は維持しています。']},{version:'1.3.26',date:'2026-10-29',title:'トリッカー偽装強化と専用状態アイコン',changes:['ミラージュステップ発動後8秒間、本人・味方には半透明、敵には本体と名前・HP・バフ表示が見えなくなるようにしました。','設置完了後のトリックマインは敵には見えず、本人・味方のみ半透明の魔法陣で位置が分かります。','デコイパレードを15秒持続に延長し、移動速度を本体の現在の移動速度に合わせました。','毒と鈍足の絵文字を廃止し、混乱も含めてオリジナルの線画状態アイコンに統一しました。']},{version:'1.3.25',date:'2026-10-29',title:'ソウルハーベスト魂回収演出',changes:['ソウルハーベストでダメージを受けた敵から、青白い魂の粒が術者へ追尾する演出を追加しました。','魂の粒は残像と軌跡を残しながら飛び、術者に到達した時点でHPとインクを回復します。','ソウルハーベスト本体の渦演出も、回収エフェクトと馴染むよう微調整しました。']},{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
+ const releases=[{version:'1.3.44',date:'2026-10-31',title:'採集報酬・戦闘数値・可変地雷',changes:['鉱石の能力アップを各3〜5ポイントに変更し、インク量の上昇を最大インク・現在のインクへ反映。','果実の回復量を5〜10HPに変更し、取得時に獲得した数値を表示。','回復は緑、通常ダメージは赤、毒ダメージは紫でキャラクター上に表示。','トリックマインの接触・表示・爆発範囲を描いた円の大きさで変化させ、ドリーマーの円形ワープ演出も同じ寸法算出に対応。']},{version:'1.3.43',date:'2026-10-31',title:'コンフュージョン・ディープスリープ図形認識改善',changes:['コンフュージョンは🌀の巻き方で判定。始点と終点が一致しなくても発動し、時計回り・反時計回り・外巻きにも対応しました。','ディープスリープは3つのZ字の形と角の並びを判定し、余計な角が1つあっても発動しやすくしました。','ディープスリープがミラージュステップの緩いS字判定に先取りされる問題を修正しました。','ほかのスキルの威力・クールダウン・ステージ設定は変更していません。']},{version:'1.3.42',date:'2026-10-31',title:'破壊済み壁の透明当たり判定を修正',changes:['参加者側が古い壁の当たり判定を残さないよう、破壊HPを壁IDで同期します。','部屋主の正しい地形データを一定間隔で送信し、参加者の壁状態を復元します。','ステージのバージョン差を検知し、古い地形による移動予測を停止します。','移動予測が古い壁に引っかかっても、部屋主が確定した位置へ追いつくよう修正します。']},{version:'1.3.41',date:'2026-10-31',title:'アートアーツ参加者の通信遅延対策',changes:['参加者の移動表示にクライアント側予測とサーバー位置補正を追加しました。','戦闘中はステージの固定壁を毎回送らず、破壊された壁のHP差分と追加の壁だけを同期します。','操作入力・位置更新の間隔を短縮し、対戦中の不要な編集UI更新を抑えました。','当たり判定とダメージの最終決定は部屋主のまま維持します。']},{version:'1.3.40',date:'2026-10-31',title:'古代遺跡・転送研究所の床を強化',changes:['ステージ名「転送遺跡」を「古代遺跡」へ改名しました。','古代遺跡の小・中・大に、鈍足床とダメージ床を大幅に追加しました。','転送研究所の小・中・大に、道として使える広めのスピード床を増設しました。','床の効果が乗っている間だけ発動する仕様に合わせて、面積を広く調整しました。']},{version:'1.3.39',date:'2026-10-31',title:'ステージ資源・転送の効果音',changes:['木の実・鉱石の出現、採集、再出現にそれぞれの効果音を追加しました。','ワープ装置で転送が成功した時に専用の音を鳴らします。','自分と近くのイベントだけ再生し、同じ通信イベントでの二重再生を防ぎます。','既存の音量・ミュート設定を引き継ぎ、他のステージやゲームモードを維持します。']},{version:'1.3.36',date:'2026-10-31',title:'生命の庭園・暴走工場 6ステージ刷新',changes:['生命の庭園に大小別の手作業配置と茂みの隠密ルートを実装しました。','暴走工場に大小別の部屋・通路・部屋内の装置を実装しました。','壁・特殊床・回復・インク・鉱石の座標を設計図と統一しました。','基本アリーナや他のモードは維持しています。']},{version:'1.3.35',date:'2026-10-30',title:'基本アリーナのサイズ別専用設計',changes:['小サイズは障害物を減らしてシンプルな専用配置にしました。','中サイズは現行の基本形を維持しています。','大サイズは細かい壁を追加し、広さに見合う密度へ調整しました。','小・中・大を単純な拡大縮小ではなく、それぞれ別設計に変更しました。']},{version:'1.3.34',date:'2026-10-30',title:'基本アリーナ整理・初期設定更新',changes:['基本アリーナの回復装置を整理し、上下をインク回復、左右をHP回復へ変更しました。','特殊床を加速床4枚に整理し、ステージの見通しを改善しました。','基本アリーナの小・中・大サイズを同じ対称レイアウト思想で統一しました。','アートアーツの初期ステージ設定を生命の庭園から基本アリーナへ変更しました。']},{version:'1.3.33',date:'2026-10-30',title:'基本アリーナ対称設計・破壊壁の追加',changes:['基本アリーナを上下左右・90度回転対称の設計に更新しました。','通常壁12、木の壁8（HP10）、補強壁8（HP100）を配置しました。','加速・減速・ダメージ床各4、回復・インク・転送装置各4を設置しました。','ステージの小・中・大サイズで同じ比率の配置になります。']},{version:'1.3.32',date:'2026-10-30',title:'アートレイター視野・通路・入力復旧',changes:['操作対象が光った時に直接タップ／クリックで施設を開けるよう修正。','お手本を左、アイテム欄を中央へ再配置。','部屋・通路・遮蔽物のあるアートレイター専用大型マップを追加し、タスク9種類を分散しました。']},{version:'1.3.29',date:'2026-10-30',title:'アートレイター・準備完了から試合開始までの修正',changes:['アートアーツと同じ全面表示のゲームステージを実装。描画・準備・陣営公開・試合の表示切替を修正。','全員の準備完了後は1.5秒で陣営・職業確認画面へ、12秒後に試合開始。','対戦フィールドと入力エリアを適切に配置。既存のアートアーツ等の画面は変更せず維持。']},{version:'1.3.27',date:'2026-10-29',title:'ディープスリープ強化',changes:['ディープスリープの睡眠時間を2.5秒から6秒へ延長しました。','クールダウンを15秒から12秒へ短縮しました。','通常攻撃・スキル攻撃・ソウルハーベストの継続ダメージでも睡眠が解除されないようにしました。','睡眠終了後の3秒間の再睡眠無効は維持しています。']},{version:'1.3.26',date:'2026-10-29',title:'トリッカー偽装強化と専用状態アイコン',changes:['ミラージュステップ発動後8秒間、本人・味方には半透明、敵には本体と名前・HP・バフ表示が見えなくなるようにしました。','設置完了後のトリックマインは敵には見えず、本人・味方のみ半透明の魔法陣で位置が分かります。','デコイパレードを15秒持続に延長し、移動速度を本体の現在の移動速度に合わせました。','毒と鈍足の絵文字を廃止し、混乱も含めてオリジナルの線画状態アイコンに統一しました。']},{version:'1.3.25',date:'2026-10-29',title:'ソウルハーベスト魂回収演出',changes:['ソウルハーベストでダメージを受けた敵から、青白い魂の粒が術者へ追尾する演出を追加しました。','魂の粒は残像と軌跡を残しながら飛び、術者に到達した時点でHPとインクを回復します。','ソウルハーベスト本体の渦演出も、回収エフェクトと馴染むよう微調整しました。']},{version:'1.3.24',date:'2026-10-29',title:'トリッカー全面改修',changes:['ミラージュ：偽装分身を攻撃すると10秒1/5鈍足ミスト。S字判定を大幅に緩和','デコイパレード：3体の本物そっくりの分身が被弾すると爆発','コンフュージョン：10秒間2秒ごとに移動操作が反転・通常切替','ドレインファングをスティールタッチに変更。10秒接触でHP毎秒2・インク毎秒10吸収','トリッカーのワープを2秒設置・透明化するトリックマインに変更。スタンと10秒毒を付与','専用の分身・ミスト・地雷・吸収・爆発エフェクトを追加。ドリーマーのワープとポイズンミストは維持']},{version:'1.3.23',date:'2026-10-29',title:'キャラ作成ヘルプをわかりやすく',changes:['キャラクター作成画面の？ヘルプを、絵の描き方・通常5職・上級3職の3タブに分けました。','5能力の描線例を図で表示し、通常職の特徴と上級職の具体的な条件を別々に確認できるようにしました。','ステータスの計算式・職業選択条件・上級職の不足合計5以内の救済ルールは変更していません。']},{version:'1.3.22',date:'2026-10-29',title:'上級職の判定拡大（ステータス補正なし）',changes:['上級職3種について、Ver.1.3.21の条件に加えて不足ポイントの合計が5以内なら職業候補に入るように変更しました。','絵から算出した5つの能力値は変更せず、上級職になった瞬間に数値が跳ね上がる補正は一切行いません。','通常5職の能力計算・既存スキル・チーム設定は従来どおり維持しています。']},{version:'1.3.21',date:'2026-10-29',title:'チーム編成・上級職・魂の渦を調整',changes:['ゲーム設定画面から青・赤の参加者別割り当てを直接変更できるようにしました。ランダム振り分けも設定画面から選べます。','ソウルハーベストのHP・インク吸収を各秒20から20/3へ弱体化。5秒間中心で各最大約33.3吸収にしました。','ソウルハーベストの大小の炎の尖りをやや厳しく判定するようにしました。','上級3職のステータス判定を各条件5ポイント緩和しました。']},{version:'1.3.20',date:'2026-10-28',title:'エクスキューション超高速クロス斬撃',changes:['エクスキューションの振り抜きを175ミリ秒に短縮し、双刃がより深く交差する軌道へ変更しました。','交差時に赤白のX字衝撃波を表示し、斬撃の残像と余韻を約1秒持続させました。','ダメージは片刃50・両刃100・血飛沫爆発+50を維持し、X字衝撃波に追加判定はありません。']},{version:'1.3.19',date:'2026-10-28',title:'エクスキューション高速交差斬撃',changes:['エクスキューションの双刃をさらに高速化し、前方で交差する軌道へ変更しました。','予備動作を短縮し、斬撃の発生をより素早くしました。','片刃50・両刃100・爆発+50の仕様は維持したまま、見た目と判定の一体感を高めました。']},{version:'1.3.18',date:'2026-10-28',title:'エクスキューションの回転斬撃を完全改修',changes:['古いエフェクトを廃止し、術者の両脇に出る2本の刃が回転して前方を挟むアニメーションを実装しました。','描画位置からは向きのみ取得し、2本の斬撃軌道と命中判定を共通計算に統一しました。','片刃50・両刃100・中心の飛沫爆発でさらに50ダメージにしました。','ソウルハーベストの範囲縮小と地形・プレイヤーの下への表示は維持しています。']},{version:'1.3.16',date:'2026-10-28',title:'処刑技とソウルハーベストを強化',changes:['エクスキューションを描いた位置へ出す仕様へ修正。半径75・固定150ダメージを維持し、左右の斬撃が挟み込むエフェクトに刷新。','ソウルハーベストを5秒間の吸引フィールドへ。中心では脱出不能、最大HP100・インク100を継続吸収。','設置範囲技は図形を大きく描くほど範囲が拡大するよう調整。']},{version:'1.3.15',date:'2026-10-28',title:'チーム戦の振り分け設定',changes:['待機画面でランダムと手動のチーム振り分けに対応。部屋主がプレイヤー別に青・赤を指定できます。','ランダムは人数差が最大1人になるように抽選し、開始時に確定。設定と割り当てを参加者へ同期します。']},{version:'1.3.14',date:'2026-10-28',title:'エクスキューション・勝敗演出・チーム表示を強化',changes:['エクスキューションは防御を貫通する150ダメージ（装甲HPで軽減可能）、左右の挟撃と赤い飛沫演出を追加。','決着時に勝敗演出を約3.8秒表示。勝者には提供いただいた勝利音が鳴り、結果画面への切替に余韻を追加。','チーム戦で青・赤の枠、頭上タグ、HPバーの色分けを強化。','回復や強化は図形の中心に一番近い生存プレイヤーを敵味方関係なく対象にできるようにしました。']},{version:'1.3.13',date:'2026-10-28',title:'セイント上級技：専用音と30秒リジェネ',changes:['セイクリッドアセンションの効果音を「神々しい強化音」に変更しました。ホーリーブレッシングの音は従来のままです。','グレーターヒールの即時全回復に、毎秒最大HPの3%を30秒間回復するリジェネを追加しました。','リジェネは再付与で30秒に更新し、重複はしません。ナイトメアのバフ解除では消去されます。']},{version:'1.3.12',date:'2026-10-28',title:'ガンナー高速連射・銃声更新',changes:['ラピッドバーストを5発から12発へ増やし、発射間隔を85msから55msへ短縮。±9度の小さな射角ばらつきと弾半径拡大で命中しやすくしました。','ラピッドバーストの各弾に強い射出音の短い連射版を付与。ゴーストショット・スプレッドショット・リコシェット・リパルスリングも発射時に強い射出音を再生します。','チャージショットの既存の強い射出音と、ほかの職業の効果音は維持しました。']},{version:'1.3.11',date:'2026-10-28',title:'通常攻撃・防御バランスとソウルハーベスト修正',changes:['スラッシュとマジックの低攻撃力でのダメージを底上げし、高攻撃力と描画サイズの過度な倍率を抑えました。','防御力の固定値減算を割合軽減へ変更し、軽い攻撃が極端に通らない問題を改善しました。','防御力の生成とディフェンダー判定を調整し、装甲の特徴は残しながら偏りを軽減しました。','ソウルハーベストを見本の魂型外輪＋中央渦巻きの一筆書きへ修正しました。']},{version:'1.3.10',date:'2026-10-27',title:'エクスキューショナー演出強化',changes:['ソウルイーターをソウルハーベストへ改名し、図形を魂の外形＋中央の渦巻きへ変更しました。','ジャッジメントとエクスキューションのエフェクトを多重斬撃・後光・粒子を使った豪華演出へ強化しました。','効果音アップデートは維持したまま、視認性と必殺技らしさを高めました。']},{version:'1.3.9',date:'2026-10-27',title:'アートアーツ：新効果音10種を追加',changes:['ジャッジメントの斬撃音を透き通る斬撃音に、エクスキューションの命中音を鈍重な斬撃音に変更しました。','射撃・移動・回復・状態異常・建造・召喚などの技へ専用効果音を追加しました。','ナイトメアのバフ解除音は1回の波動ごとに一度だけ鳴るようにしました。']},{version:'1.3.8',date:'2026-10-27',title:'ナイトメア強化とセイント覚醒時間の調整',changes:['ナイトメアの詠唱時間を10秒に変更し、進捗ゲージ・残り秒数と強まる魔法陣を追加しました。','詠唱成功時の波動は壁を貫通し、ステージ全体の敵の強化バフを解除します。','セイントのセイクリッドアセンションを15秒間に延長しました。']},{version:'1.3.7',date:'2026-10-27',title:'アートアーツ：ナイトメアと職業バランス改善',changes:['ナイトメア詠唱中は移動不能にし、ダメージを受けると詠唱が中断されるようにしました。','詠唱成功後は戦場全体に衝撃波を放ち、悪夢の落下攻撃を展開します。','ドリーマーの図形認識を緩和し、通常攻撃の威力を上げました。','ステータスが急変する固定補正をなくし、上級職の出現条件を厳しくしました。']},{version:'1.3.6',date:'2026-10-26',title:'あーときめら：担当抽選と順番発表',changes:['6パーツを少人数で描く場合、余分な担当をプレイヤーからランダムに選ぶようにしました。','頭・胴体・足モードでは、完成した作品を部屋主が1体ずつ全員に発表します。','作品ごとの保存機能は維持しています。']},{version:'1.3.5',date:'2026-10-26',title:'アートアーツ：防御の特徴を追加',changes:['二重の丸・楕円を盾や装甲として評価し、防御力が上がるようにしました。','太く閉じた外殻を評価し、横に広い胴体にも少し防御力を加点します。','小さな装飾の数だけでディフェンダーに偏らないようにしました。']},{version:'1.3.0',date:'2026-10-25',title:'アートアーツ正式版',changes:['アートアーツを正式版として公開。タンクをディフェンダーに改名。','5ジョブに新スキルを1つずつ追加し、各6種類に。バトルオーラ、ドレインファング、インクリチャージ、アーマークラフト、リパルスリング。','スキル選択を2列×3段に整理。追加HP・強化・集中状態の表示に対応。']},{version:'1.2.4',date:'2026-10-24',title:'チャージショット曲線アーツ',changes:['チャージショットを上下2本の丸い弧で描く＞に変更。認識を曲線・手描きに対応。']},{version:'1.2.3',date:'2026-10-24',title:'サモン判定・アーツ操作改善',changes:['ハートからのみ召喚を開始。2つの装備アーツは切替なしで発動できます。']},{version:'1.2.1',date:'2026-10-24',title:'あーとあーつ新スキル',changes:['各職業に新しいアーツを追加。サモンペイント・フックラッシュ・リフレクトウォール・スモーク・チャージショット。','トリッカーの渦巻きはコンフュージョンへ変更。']},{version:'1.2.0',date:'2026-10-22',title:'あーときめら登場',changes:['頭・胴体・足、6パーツ、顔パーツを分担して描く新モードを追加。','前のパーツを見ながらつなぎ描き。6パーツと顔は最後に全員で移動・拡大縮小・回転して組み立て。','共通のお題指定、完成作品のPNG・絵画展保存に対応。','アートアーツのホームカードを薄い赤に変更。']},{version:'1.1.0',date:'2026-10-20',title:'あーとあーつ登場',changes:['描いたキャラクターとアーツで戦う新モードを追加。3タイプ・各4種類の固有スキル、個人戦・チーム戦、1人練習に対応。','キャラクター作成ボタンとタッチ操作の競合を修正。','ホームのカード表示を整え、あーとあーつのマークを⚔️に変更。']},{version:'1.0.2',date:'2026-10-20',title:'ランダムお題と新カテゴリーを追加',changes:['あーとあんさーにランダムお題モードを追加。従来のお題入力も選べます。','既存6カテゴリーに加え、ポケモン1,025種類を世代別に選べるようになりました。','ファンアート180題を追加。定番100題・2026話題80題と小カテゴリーで絞り込めます。','ホームの紹介・遊び方を説明マークから開く形式に変更しました。']},{version:'1.0.1',date:'2026-10-16',title:'操作しやすい画面へ',changes:['あーとうるふの見た目版を固定ペアから5ワード抽選へ変更。6大カテゴリー×5小カテゴリー×5ワード、合計150ワードから同じ小カテゴリー内の異なる2つを配ります。形容詞版はグループ分けを廃止し、100語全体から異なる2語を抽選する方式へ更新。全6カテゴリーから選ぶ「ランダム」を追加。形容詞版にお題確認カウントと20→60→180秒の段階描画を追加。確認時間と初回描画時間は設定可能。公開前の全員秘密回答は毎回文字数ヒント付き、人狼正解で勝利。保留は全員一致に変更しました。','絵画展の自分のゲーム記録を、確認後に削除できるようにしました。','あーてぃっくふぉんの発表を2枚並ぶ横スクロールに変更しました。観戦者は参加者名から制作中のキャンバスを見られます。','あーてぃっくふぉんにお題提出時間の設定・お題別スクロール発表・描画過程の短い再生を追加しました。','あーとうるふのお題を見やすくし、絵をタップして投票・全員の希望による会議時短に対応しました。','レイヤーの表示透明度を修正し、描画する線の不透明度と分けました。Xの画像共有を分かりやすくし、画像コピーも追加しました。','絵画展の引き継ぎファイルを書き出し・読み込みできるようになりました。','通常お絵描きのX投稿ボタンをキャンバス保存画面へ移動しました。','キャンバス・ゲーム終了画面にX投稿用の画像作成と共有を追加しました。','ゲーム名をひらがな表記に統一しました。','必要ファイルを1つのHTMLに統合し、配布しやすくしました。','Safariのタブ向けに小さいPNGとICO形式のサイトアイコンを追加し、読み込み先を更新しました。','作者オリジナルのサイトアイコンを追加しました。ブラウザのタブとホーム画面への追加に対応しています。','ホームの設定を一番左へ移動し、部屋作成ボタンをひとつにまとめました。','レイヤー設定と範囲設定を横並びの大きなボタンにしました。チャットは全端末で常に表示します。','保存しないで退出できる「退出」を追加しました。','お知らせをメガホン形のオリジナルアイコンにし、あーとあんさーを淡いピーチ色に変更しました。','招待リンクから直接入室できます。初めての方は名前を入力すると入室します。']},{
   version:'1.0.0',date:'2026-10-16',title:'あーとぴあ、正式リリース！',
   changes:['ベータ版を卒業し、正式版1.0.0になりました。','ホーム画面に作者のアイコン付きクレジットを追加しました。質問・バグ報告・改善案は、クレジット内のXリンクからお寄せください。','バージョンごとの更新内容が読める「お知らせ」を追加しました。今後のアップデートもここでお伝えします。']
  }];
@@ -4998,6 +4998,17 @@ window.ArtArts=(()=>{
   host.stageAudioEvents.push({id:++host.seq,type,x,y,owner,at});
   if(host.stageAudioEvents.length>64)host.stageAudioEvents.splice(0,host.stageAudioEvents.length-64);
  }
+ // Host owns all floating number events, preventing duplicates on participants.
+ function showArtsNumber(fighter,kind,value,now,label=''){
+  if(!host||!fighter||!Number.isFinite(value)||value<=.005)return;
+  const same=host.effects.find(e=>e.type==='combatNumber'&&e.targetId===fighter.id&&e.numberKind===kind&&e.label===label&&now-e.start<360);
+  if(same){same.value+=value;same.end=now+820;return;}
+  host.effects.push({id:++host.seq,type:'combatNumber',targetId:fighter.id,numberKind:kind,label,value,x:fighter.x,y:fighter.y,r:0,start:now,end:now+900});
+ }
+ function showArtsPickup(fighter,label,value,now){
+  if(!Number.isFinite(value)||value<=0)return;
+  host.effects.push({id:++host.seq,type:'pickupNumber',targetId:fighter.id,label,value,x:fighter.x,y:fighter.y,r:0,start:now,end:now+1300});
+ }
  function tickArtsDropsAndNPCs(dt,now){
   host.stageAudioEvents=(host.stageAudioEvents||[]).filter(e=>now-e.at<3500);
   host.stageDrops??=[];
@@ -5006,8 +5017,23 @@ window.ArtArts=(()=>{
    const picker=host.fighters.find(p=>p.active&&p.hp>0&&Math.hypot(p.x-d.x,p.y-d.y)<R.R+d.r+8);
    if(!picker)continue;
    d.end=now;
-   if(d.type==='berry')picker.hp=Math.min(picker.maxHp||100,picker.hp+(d.amount||3));
-   else{picker.stageBonuses??=[0,0,0,0,0];if(picker.stageBonuses[d.stat]<9){const boost=Math.min(d.amount||1,9-picker.stageBonuses[d.stat]);picker.stageBonuses[d.stat]+=boost;picker.stats[d.stat]+=boost;}}
+   if(d.type==='berry'){
+    const before=picker.hp;
+    picker.hp=Math.min(picker.maxHp||100,picker.hp+(d.amount||5));
+    const gained=picker.hp-before;
+    if(gained>0){showArtsPickup(picker,'HP',gained,now);picker._artsHpPickupThisTick=(picker._artsHpPickupThisTick||0)+gained;}
+   }else{
+    const stat=Number(d.stat);
+    if(Number.isInteger(stat)&&stat>=0&&stat<5){
+     const boost=Number.isFinite(d.amount)?d.amount:3;
+     picker.stageBonuses??=[0,0,0,0,0];
+     picker.stageBonuses[stat]+=boost;
+     picker.stats[stat]+=boost;
+     // Ink Capacity is a derived value: changing stats[3] alone never changes the gauge.
+     if(stat===3){picker.maxInk+=boost*2;picker.ink=Math.min(picker.maxInk*1.5,picker.ink+boost*2);}
+     showArtsPickup(picker,names[stat],boost,now);
+    }
+   }
    emitArtsStageAudio(d.type==='berry'?'berryPickup':'mineralPickup',picker.x,picker.y,picker.id,now);
    host.effects.push({id:++host.seq,type:'stageHarvest',x:picker.x,y:picker.y,r:31,start:now,end:now+520,owner:picker.id});
   }
@@ -5050,7 +5076,7 @@ window.ArtArts=(()=>{
    // Emit a round collectible. Pickup, not the hit, grants the reward.
    const idx=o.type==='ore'?Math.floor(Math.random()*5):-1;
    host.stageDrops??=[];
-   host.stageDrops.push({id:++host.seq,type:o.type==='tree'?'berry':'mineral',stat:idx,amount:o.type==='tree'?3+Math.floor(Math.random()*3):1+Math.floor(Math.random()*3),x:o.x+24*Math.cos(now*.013),y:o.y+24*Math.sin(now*.013),born:now,end:now+18000,r:13});
+   host.stageDrops.push({id:++host.seq,type:o.type==='tree'?'berry':'mineral',stat:idx,amount:o.type==='tree'?5+Math.floor(Math.random()*6):3+Math.floor(Math.random()*3),x:o.x+24*Math.cos(now*.013),y:o.y+24*Math.sin(now*.013),born:now,end:now+18000,r:13});
    host.effects.push({id:++host.seq,type:'stageHarvest',x:o.x,y:o.y,r:48,start:now,end:now+700,owner:owner.id});
   }
  }
@@ -5160,6 +5186,11 @@ window.ArtArts=(()=>{
  const mitigation=armorPierce?0:Math.min(.48,.62*defense/(defense+48));
  const coat=target.iron>now?(kind==='magic'?.1:.5):1;
  const actual=Math.min(target.hp,Math.max(0,raw-absorbed)*(1-mitigation)*coat),impact=actual+absorbed;target.hp-=actual;
+ if(actual>.001){
+  const poison=!!(source&&(source.poison===true||source.type==='trickMine'&&source.owner===target.trickPoisonOwner));
+  showArtsNumber(target,poison?'poison':'damage',actual,now);
+  if(host._artsHealthTickActive)target._artsAccountedDamage=(target._artsAccountedDamage||0)+actual;
+ }
  const dealer=host.fighters.find(p=>p.id===(source?.owner||source?.id));
  if(actual>0&&dealer&&dealer.id!==target.id&&!friendly(dealer,target))dealer.damageDealt=(dealer.damageDealt||0)+actual;
  if(target.hp<=0&&actual>0)target.killedBy=source?.owner||source?.id||null;
@@ -5283,8 +5314,8 @@ window.ArtArts=(()=>{
   }
   if(k==='daydream'){p.daydreamUntil=now+4000;p.daydreamOrigin={x:p.x,y:p.y};e.x=p.x;e.y=p.y;e.r=50;e.end=now+4000;}
   if(k==='deep_sleep'){const q=nearestEnemy(180);e.r=70;e.end=now+750;if(q&&!(q.sleepImmuneUntil>now)){q.sleepUntil=now+6000;q.sleepImmuneUntil=q.sleepUntil+3000;q.dash=null;q.drawing=false;q.preview=[];q.guard=0;q.daydreamUntil=0;q.nightmareUntil=0;delete host.inputs[q.id];e.x=q.x;e.y=q.y;e.targetId=q.id;}}
-  if(k==='greater_heal'){const q=nearestSupportTarget(p,shape);q.hp=q.maxHp||100;q.regenUntil=now+30000;q.regenNextAt=now+1000;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
-  if(k==='holy_blessing'){const q=nearestSupportTarget(p,shape),old=q.maxHp||100;q.maxHp=old*1.2;q.hp=Math.min(q.maxHp,q.hp+q.maxHp-old);q.blessingStacks=(q.blessingStacks||0)+1;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=55;e.end=now+1000;}
+  if(k==='greater_heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=q.maxHp||100;showArtsNumber(q,'heal',q.hp-before,now);q.regenUntil=now+30000;q.regenNextAt=now+1000;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
+  if(k==='holy_blessing'){const q=nearestSupportTarget(p,shape),old=q.maxHp||100,before=q.hp;q.maxHp=old*1.2;q.hp=Math.min(q.maxHp,q.hp+q.maxHp-old);showArtsNumber(q,'heal',q.hp-before,now);q.blessingStacks=(q.blessingStacks||0)+1;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=55;e.end=now+1000;}
   if(k==='sacred_ascension'){const q=nearestSupportTarget(p,shape);setAwakening(q,true,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=70;e.end=now+15000;}
   return true;
  }
@@ -5431,7 +5462,7 @@ window.ArtArts=(()=>{
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
  if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,290):R.clamp(shape.radius*1.55+35,85,270);e.range=440;e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power}
- if(shape.type==='heal'){const q=nearestSupportTarget(p,shape);q.hp=Math.min(q.maxHp||100,q.hp+20);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
+ if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20);showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
  if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius*1.65+25,90,260);e.power=(4+attack*.2)*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
@@ -5459,17 +5490,17 @@ window.ArtArts=(()=>{
   for(const q of host.fighters)if(q.active&&q.hp>0&&!friendly(p,q)&&R.dist(q,e)<e.r+R.R){q.confusedFrom=now;q.confused=now+10000;e.debuffApplied=true;}
  }
  if(shape.type==='trick_mine'){
-  e.x=target.x;e.y=target.y;e.r=27;
+  e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius*.78,25,118);
   
   const ownMines=host.effects.filter(v=>v.type==='trickMine'&&v.owner===id&&v.end>now);
   if(ownMines.length>=2)ownMines.sort((a,b)=>a.start-b.start)[0].end=now;
-  e.type='trickMine';e.armedAt=now+2000;e.end=now+27000;e.mineRadius=24;
+  e.type='trickMine';e.armedAt=now+2000;e.end=now+27000;e.mineRadius=e.r;
  }
  if(shape.type==='hook'){e.type='hookFlight';e.x=p.x;e.y=p.y;e.tx=target.x;e.ty=target.y;e.r=22;e.power=9+attack*.34;e.speed=540;e.angle=Math.atan2(e.ty-e.y,e.tx-e.x);e.end=now+Math.max(300,R.dist(p,target)/e.speed*1000+100);}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius*1.25+26,65,230);e.end=now+6000;e.hp=5;}
  if(shape.type==='summon'){e.type='summonBody';e.power=8+attack*.2;e.x=target.x;e.y=target.y;e.r=26;e.hp=30;e.attackAt=now;e.end=Number.MAX_SAFE_INTEGER;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
  if(shape.type==='charge'){e.passWalls=true;e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=45+attack*.65;e.hit=now+1000;e.end=now+1450;}
- if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=40;e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:36,start:now,end:now+600});}
+ if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=R.clamp(shape.radius*.78,25,118);e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:e.r,start:now,end:now+600});}
  // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
  function fireShot(dir,opts={}){
   const speed=opts.speed||460,distance=opts.distance||800;
@@ -5538,7 +5569,7 @@ window.ArtArts=(()=>{
      if(!q.active||q.hp<=0||caster&&friendly(caster,q)||R.dist(q,e)>(e.mineRadius||24)+R.R)continue;
      e.end=now;q.stunnedUntil=Math.max(q.stunnedUntil||0,now+1200);q.dash=null;q.drawing=false;q.preview=[];
      q.trickPoisonUntil=now+10000;q.trickPoisonNext=now+1000;q.trickPoisonOwner=e.owner;
-     host.effects.push({id:++host.seq,type:'trickMineBurst',owner:e.owner,x:e.x,y:e.y,r:65,start:now,end:now+950});
+     host.effects.push({id:++host.seq,type:'trickMineBurst',owner:e.owner,x:e.x,y:e.y,r:R.clamp((e.mineRadius||24)*2.2,58,230),start:now,end:now+950});
      break;
     }
    }
@@ -5731,13 +5762,16 @@ window.ArtArts=(()=>{
  }
  function updateBattle(dt,now){
  if(host.celebration)return; // Match is frozen during victory/defeat presentation.
+ const hpBefore=new Map(host.fighters.map(p=>[p.id,p.hp]));
+ host._artsHealthTickActive=true;
+ for(const p of host.fighters){p._artsAccountedDamage=0;p._artsHpPickupThisTick=0;}
  tickArtsGimmicks(dt,now);
  tickArtsDropsAndNPCs(dt,now);
  updateAdvanced(dt,now);
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
  for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
- if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(7+(p.baseStats||p.stats)[3]*.12)*2/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
+ if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(7+p.stats[3]*.12)*2/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  if(p.nightmareUntil>now){p.dash=null;p.moving=false;continue;}
  // Once the soul reaches the vortex core it cannot escape by raw movement speed.
  if(host.effects.some(e=>e.type==='soul_eater'&&e.end>now&&e.trappedIds?.includes(p.id))){p.dash=null;p.moving=false;continue;}
@@ -5810,7 +5844,18 @@ window.ArtArts=(()=>{
     const ux=Math.cos(e.angle||0),uy=Math.sin(e.angle||0),reach=e.beamReach??e.range??440;
     for(let d=0;d<=reach;d+=18)hitTrickDecoysAt(owner,now,{x:e.x+ux*d,y:e.y+uy*d},e.r||16);
    }for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now||(e.type==='soulHarvestSoul'&&!e.applied));
- if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,Math.hypot(R.W,R.H)/2-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}if(remainingSides()<=1)finishBattle()}
+ if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,Math.hypot(R.W,R.H)/2-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}for(const p of host.fighters){
+  const oldHp=hpBefore.get(p.id);
+  if(!Number.isFinite(oldHp))continue;
+  const delta=p.hp-oldHp,handled=p._artsAccountedDamage||0,berries=p._artsHpPickupThisTick||0;
+  // Recover non-hurt damage (stage hazards, NPCs, storm), even when heal happens in same frame.
+  const otherDamage=Math.max(0,-delta-handled+berries);
+  const otherHeal=Math.max(0,delta+handled-berries);
+  if(otherDamage>.001)showArtsNumber(p,'damage',otherDamage,now);
+  if(otherHeal>.001)showArtsNumber(p,'heal',otherHeal,now);
+ }
+ host._artsHealthTickActive=false;
+ if(remainingSides()<=1)finishBattle()}
 
  function tick(){if(!enabled()||!view)return;const now=Date.now();updateLiveStats(now);if($('#artsClock'))$('#artsClock').textContent=view.deadline?Math.max(0,Math.ceil((view.deadline-now-offset)/1000))+'秒':'';
  if(view.phase==='lobby'){const k=[...members.keys()].join(',');if(k!==rosterKey){rosterKey=k;uiKey='';renderUI()}}
@@ -5914,7 +5959,7 @@ window.ArtArts=(()=>{
  if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){submitted='';savedCharacterSource=null;room.w=view.settings.characterWidth||512;room.h=view.settings.characterHeight||512;clearCanvas();loadInstalledCharacter()}
  if(old?.phase!==view.phase){stopInput();uiKey='';if(view.phase==='equip')equipChoice=[];if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null;heardBuffWaves.clear();heardGunRounds.clear()}}if(old?.phase!==view.phase||view.phase!=='battle')renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){
     // The main decoy effect is the spawn cue, not every individual decoy body.
-    if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
+    if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
       window.ArtSound?.play(advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
@@ -6956,19 +7001,19 @@ finishPaint(false)};
     const viewer=view.fighters.find(q=>q.id===localId),maker=view.fighters.find(q=>q.id===e.owner);
     const ally=e.owner===localId||(view.settings.teams==='teams'&&viewer&&maker&&viewer.team===maker.team);
     if(ally){
-     const pulse=.22+.045*Math.sin(now/410);x.globalAlpha=pulse;
+     const pulse=.22+.045*Math.sin(now/410),mineScale=(e.mineRadius||24)/24;x.globalAlpha=pulse;
      x.shadowColor='#9959dd';x.shadowBlur=6;x.strokeStyle='#8554ca';x.lineWidth=2;
-     x.beginPath();x.ellipse(0,0,24,18,0,0,Math.PI*2);x.stroke();
+     x.beginPath();x.ellipse(0,0,e.mineRadius||24,(e.mineRadius||24)*.75,0,0,Math.PI*2);x.stroke();
      x.shadowBlur=0;x.strokeStyle='#bca1ee';x.lineWidth=1.4;
-     x.beginPath();for(let k=0;k<3;k++){const a=-Math.PI/2+k*Math.PI*2/3;const px=Math.cos(a)*18,py=Math.sin(a)*13;if(k)x.lineTo(px,py);else x.moveTo(px,py)}x.closePath();x.stroke();
+     x.beginPath();for(let k=0;k<3;k++){const a=-Math.PI/2+k*Math.PI*2/3;const px=Math.cos(a)*18*mineScale,py=Math.sin(a)*13*mineScale;if(k)x.lineTo(px,py);else x.moveTo(px,py)}x.closePath();x.stroke();
      x.beginPath();x.arc(0,0,4.5,0,Math.PI*2);x.stroke();
     }
     x.restore();return true; // Enemies cannot see armed traps.
    }
-   const t=R.clamp(age/2000,0,1),r=27;
-   aura('#b15cfa',62,.52+.2*t);x.strokeStyle='#9252cb';x.lineWidth=3;x.setLineDash([5,5]);x.beginPath();x.arc(0,0,r+12,0,Math.PI*2);x.stroke();x.setLineDash([]);
-   x.save();x.rotate(now/950);x.strokeStyle='#e9c8ff';x.lineWidth=2;for(let k=0;k<3;k++){const a=k*Math.PI*2/3;x.beginPath();x.moveTo(Math.cos(a)*31,Math.sin(a)*31);x.lineTo(Math.cos(a+2.094)*31,Math.sin(a+2.094)*31);x.stroke()}x.restore();
-   x.fillStyle='#f5d8ff';x.textAlign='center';x.font='bold 12px sans-serif';x.fillText('設置 '+Math.ceil(Math.max(0,e.armedAt-now)/1000)+'秒',0,-51);
+   const t=R.clamp(age/2000,0,1),r=e.mineRadius||e.r||27;
+   aura('#b15cfa',r*2.2,.52+.2*t);x.strokeStyle='#9252cb';x.lineWidth=3;x.setLineDash([5,5]);x.beginPath();x.arc(0,0,r+12,0,Math.PI*2);x.stroke();x.setLineDash([]);
+   x.save();x.rotate(now/950);x.strokeStyle='#e9c8ff';x.lineWidth=2;for(let k=0;k<3;k++){const a=k*Math.PI*2/3;x.beginPath();x.moveTo(Math.cos(a)*(r+4),Math.sin(a)*(r+4));x.lineTo(Math.cos(a+2.094)*(r+4),Math.sin(a+2.094)*(r+4));x.stroke()}x.restore();
+   x.fillStyle='#f5d8ff';x.textAlign='center';x.font='bold 12px sans-serif';x.fillText('設置 '+Math.ceil(Math.max(0,e.armedAt-now)/1000)+'秒',0,-(r+24));
    x.strokeStyle='#f2b4ff';x.lineWidth=4;x.beginPath();x.arc(0,0,r,-Math.PI/2,-Math.PI/2+t*Math.PI*2);x.stroke();
   }else if(e.type==='trickSlowMist'){
    const fade=Math.min(1,age/220,Math.max(0,(e.end-now)/450));aura('#947cf6',e.r,fade*.5);x.fillStyle='#9080ee';x.strokeStyle='#dfd7ff';
@@ -6990,8 +7035,29 @@ finishPaint(false)};
   }
   x.restore();return true;
  }
+ function drawArtsFloatingNumbers(x,now){
+  for(const e of view.effects||[]){
+   if(!['combatNumber','pickupNumber'].includes(e.type)||e.end<=now)continue;
+   const elapsed=Math.max(0,now-e.start),duration=e.type==='pickupNumber'?1300:900;
+   const p=view.fighters.find(q=>q.id===e.targetId),pos=p?(positions.get(p.id)||p):e;
+   const alpha=R.clamp(Math.min(elapsed/95,(e.end-now)/250,1),0,1);
+   if(alpha<=0)continue;
+   const kind=e.numberKind||'pickup';
+   const color=e.type==='pickupNumber'?(e.label==='HP'?'#38b879':e.label==='インク量'?'#31b9e5':'#f4bb48'):kind==='heal'?'#28c66f':kind==='poison'?'#b969f8':'#f14c53';
+   const value=Math.max(1,Math.round(e.value||0));
+   const content=e.type==='pickupNumber'?e.label+' +'+value:(kind==='heal'?'+':'−')+value;
+   const drift=R.clamp(elapsed/duration,0,1),offsetY=e.type==='pickupNumber'?-96:-62;
+   x.save();x.globalAlpha=alpha;x.translate(pos.x,pos.y+offsetY-drift*42);
+   x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+   x.font=(e.type==='pickupNumber'?'bold 22px':'bold 23px')+' sans-serif';
+   x.lineWidth=4;x.strokeStyle='#172330';x.strokeText(content,0,0);
+   x.fillStyle=color;x.fillText(content,0,0);
+   x.restore();
+  }
+ }
  function drawArtsEffects(x,now){
  for(const e of view.effects){
+  if(e.type==='combatNumber'||e.type==='pickupNumber')continue;
   if(drawExecutionBlood(x,e,now))continue;
   if(e.end<=now)continue;
   if(e.type==='soul_eater')continue;
@@ -7200,6 +7266,7 @@ finishPaint(false)};
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
  drawArtsEffects(x,now);
+ drawArtsFloatingNumbers(x,now);
  for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||(!p.preview?.length&&!p.summonCore))continue;if(p.mirageHiddenUntil>now&&!(view.settings.teams==='teams'&&me&&p.team===me.team))continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview||[]){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}
  if(p.summonCore){x.globalAlpha=1;x.font='bold 27px sans-serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#fe8db6';x.shadowBlur=11;x.fillStyle='#ff7fac';x.fillText('♥',pos.x+p.summonCore.x,pos.y+p.summonCore.y)}x.restore()}
 
