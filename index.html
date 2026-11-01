@@ -1228,6 +1228,11 @@ body.as-open{overflow:hidden}
 .as-room-meta button{font-size:12px;padding:8px 9px}
 @media(max-width:640px){.as-launch span{display:none}.as-launch{padding:8px}.as-panel{border-radius:14px;min-height:calc(100vh - 16px)}#artopiaSocial{padding:8px}.as-head{padding:13px}.as-body{padding:12px}.as-tabs{padding:5px}.as-tabs button{padding:10px 3px;font-size:12px}.as-tabs .as-icon{width:16px;height:16px}.as-room-share{grid-template-columns:35% 1fr}.as-room-meta{padding:8px}.as-thread{max-height:55vh}}
 
+
+/* v1.4.17: explicit diagnostics by the composer, independent of remote watches */
+#artopiaSocial #as-send-stage{flex:0 0 auto;font-size:12px;line-height:1.5;color:#326a72;white-space:pre-wrap;border:1px solid #c8e1e2;background:#f3faf9;border-radius:8px;padding:7px 10px;margin:0}
+#artopiaSocial #as-send-stage[hidden]{display:none!important}
+#artopiaSocial #as-send-stage.as-send-error{color:#a63545;border-color:#e9a5af;background:#fff3f5}
 </style>
 <style id="artopia145-style">
 /* Artopia 1.4.5: original canvas visibility icons and social profiles */
@@ -10875,7 +10880,7 @@ window.ArtRoomTools=(()=>{
 
 </script>
 <script data-category="artopia-social-v1.4.js">
-/* ARTOPIA Social 1.4.16 - decouple avatar writes from chat startup.
+/* ARTOPIA Social 1.4.17 - observable send state, deadline and no silent submission stall.
    Social is additive: never replaces PeerJS gameplay transport. */
 (() => {
 'use strict';
@@ -10928,6 +10933,18 @@ const rkey = (a,b) => [a,b].sort().join('_');
 const errors = e => String(e?.code||'').toUpperCase().includes('PERMISSION_DENIED')?'Firebaseのアクセスが拒否されました（PERMISSION_DENIED）。対象データのルールと認証状態を確認してください。':(e?.message||'通信に失敗しました');
 function say(s){notice=clean(s,240); const p=$('as-notice');if(p)p.textContent=notice;}
 function scopedError(where,e){return where+'：'+errors(e)}
+// Do not silently wait forever for Firebase. A timed-out write may still finish
+// later, so never automatically retry a timed-out message (avoids duplicates).
+function sendingState(message,isError=false){
+ const e=$('as-send-stage');if(!e)return;
+ e.hidden=false;e.textContent=message;e.classList.toggle('as-send-error',!!isError);
+}
+function deadline(promise,millis,step){
+ let timer;
+ const stop=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(step+'の応答が'+Math.round(millis/1000)+'秒間ありません。通信状態を確認してください。書き込み中だった場合は、再送前に履歴をご確認ください。')),millis)});
+ return Promise.race([Promise.resolve(promise),stop]).finally(()=>clearTimeout(timer));
+}
+
 function watch(q,fn,where='交流データの読み込み') {q.on('value',fn,e=>say(scopedError(where,e)));watchers.push(()=>q.off('value',fn));}
 function clearWatch(){watchers.forEach(off=>off());watchers=[];}
 // The public timeline MUST NOT depend on profile creation, friend-code assignment,
@@ -11167,30 +11184,37 @@ function renderGlobalMessages(){
 function drawGlobal(){const el=$('as-body');if(!el||activeView!=='global'||activeChat||activeTeam)return;
  el.classList.add('as-global-body');
  const draft=$('as-global-input')?.value??globalDraft;
- el.innerHTML=`<div class="as-subhead"><b>みんなのひろば</b><small id="as-global-count"></small></div><div class="as-global-connect" id="as-global-connect"><span id="as-global-connect-status">接続を確認しています…</span><button type="button" id="as-global-retry">再接続</button></div><div class="as-thread" id="as-global-thread" role="log" aria-live="polite"></div><form class="as-composer as-global-composer" id="as-global-form"><input id="as-global-input" maxlength="200" autocomplete="off" placeholder="メッセージを入力" aria-label="グローバルチャットのメッセージを入力"><button type="submit" aria-label="送信">${icon('send')}</button></form><p class="as-hint as-global-hint">全員に公開されます ・ 200文字まで</p>`;
+ el.innerHTML=`<div class="as-subhead"><b>みんなのひろば</b><small id="as-global-count"></small></div><div class="as-global-connect" id="as-global-connect"><span id="as-global-connect-status">接続を確認しています…</span><button type="button" id="as-global-retry">再接続</button></div><div class="as-thread" id="as-global-thread" role="log" aria-live="polite"></div><form class="as-composer as-global-composer" id="as-global-form"><input id="as-global-input" maxlength="200" autocomplete="off" placeholder="メッセージを入力" aria-label="グローバルチャットのメッセージを入力"><button type="submit" aria-label="送信">${icon('send')}</button></form><p id="as-send-stage" role="status" aria-live="polite" hidden></p><p class="as-hint as-global-hint">全員に公開されます ・ 200文字まで</p>`;
  $('as-global-input').value=draft;
  const form=$('as-global-form'),input=$('as-global-input'),button=form.querySelector('button');
  input.addEventListener('input',()=>{globalDraft=input.value});
  const retry=$('as-global-retry');if(retry)retry.onclick=()=>{say('Firebaseへ再接続しています…');if(globalListener){globalListener.q.off('value',globalListener.onValue);globalListener=null;}globalReadState='idle';if(db&&me)attachGlobalRead();if(!initialized)init();else paintGlobalConnection()};
- form.onsubmit=async e=>{e.preventDefault();if(pending)return;
-   const text=clean(input.value,200);if(!text)return;
-   if(globalReadState!=='ready'){say('全体チャットの読み取りができていません。'+(globalReadError||'Firebaseルールを確認してください。'));return;}
-   // Reading the global timeline and sending a message only require Auth and
-   // an existing verified Firebase profile. Other social initialization (friend
-   // requests, presence, gallery) may fail independently and must not block chat.
-   if(!db||!me){say('送信できません：Firebaseの認証がまだ完了していません。「再接続」を押してください。');return;}
-   if(Date.now()-lastPost<4000){say('連続投稿は4秒以上あけてください。');return}
-   pending=true;button.disabled=true;button.setAttribute('aria-label','送信中');say('送信しています…');
+ form.onsubmit=async e=>{
+   e.preventDefault();
+   const text=clean(input.value,200);
+   if(pending){sendingState('前の送信処理が進行中です。通信の応答を確認しています。',true);return;}
+   if(!text){sendingState('メッセージを入力してください。',true);return;}
+   if(globalReadState!=='ready'){
+     const err='チャット履歴の読み込みが完了していません：'+(globalReadError||'「再接続」を押してください。');
+     sendingState(err,true);say(err);return;
+   }
+   if(!db||!me){const err='Firebase認証が完了していません。「再接続」を押してください。';sendingState(err,true);say(err);return;}
+   if(Date.now()-lastPost<4000){sendingState('連続投稿は4秒以上あけてください。',true);return;}
+   pending=true;button.disabled=true;button.setAttribute('aria-label','送信中');
+   sendingState('1/3 送信要求を受け付けました。プロフィール確認中…');say('送信処理を開始しました…');
    try{
      await postGlobal({type:'text',text});
-     // A profile/connection refresh may have rebuilt the composer while the
-     // asynchronous Firebase write was in flight. Clear the current one too.
      const current=$('as-global-input');
      if(current&&clean(current.value,200)===text)current.value='';
      if(clean(globalDraft,200)===text)globalDraft='';
+     sendingState('送信成功：Firebaseへの書き込みが完了しました。');
      say('メッセージを送信しました。');
-   }catch(err){say(await diagnoseGlobalPostError(err))}
-   finally{pending=false;button.disabled=false;button.setAttribute('aria-label','送信')}
+   }catch(err){
+     const message=await diagnoseGlobalPostError(err);
+     sendingState('送信失敗：'+message,true);say(message);
+   }finally{
+     pending=false;button.disabled=false;button.setAttribute('aria-label','送信');
+   }
  };
  renderGlobalMessages();paintGlobalConnection();
 }
@@ -11198,7 +11222,7 @@ function drawGlobal(){const el=$('as-body');if(!el||activeView!=='global'||activ
 // the potentially newer local drawing profile. Always use the server's value.
 async function verifiedGlobalSenderName(){
  if(!db||!me)throw Error('Firebaseの認証が完了していません。「再接続」を押してください。');
- const p=(await ref('profiles/'+me.uid).once('value')).val();
+ const p=(await deadline(ref('profiles/'+me.uid).once('value'),9000,'投稿用プロフィール取得')).val();
  const n=clean(p?.name||'',20);
  if(!n)throw Error('Firebaseに投稿用プロフィールがありません。フレンドID・プロフィールの初期登録が完了しているか確認してください。');
  canonicalName=n;
@@ -11217,9 +11241,11 @@ async function diagnoseGlobalPostError(err){
 async function postGlobal(data){
  if(!me||!db)throw Error('まだ接続できていません。');
  if(Date.now()-lastPost<4000)throw Error('4秒あけてから投稿してください。');
+ sendingState('2/3 投稿用プロフィールを確認しています…');
  const verifiedName=await verifiedGlobalSenderName();
  const payload={from:me.uid,name:verifiedName,type:data.type,text:data.type==='text'?clean(data.text,200):'',roomKey:data.type==='room'?clean(data.roomKey,80):'',at:ts()};
- await ref('global').push().set(payload);
+ sendingState('3/3 Firebaseへ送信しています…');
+ await deadline(ref('global').push().set(payload),14000,'全体チャットへの書き込み');
  lastPost=Date.now();
 }
 async function shareCurrentRoom(){if(!db)await init();if(!room||!isHost||!room.publicRoom)throw Error('公開ルームの部屋主だけが共有できます。');
@@ -11335,7 +11361,7 @@ async function syncProfile(){
 
 function socialIcon(name){return icon(name)}
 function installUI(){
- const shell=document.createElement('section');shell.id='artopiaSocial';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
+ const shell=document.createElement('section');shell.id='artopiaSocial';shell.dataset.socialVersion='1.4.17';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
  const home=$('home');const head=home?.querySelector('.home-header');if(head){const action=document.createElement('button');action.type='button';action.id='openArtSocial';action.className='as-launch';action.innerHTML=icon('social')+'<span>交流</span>';action.onclick=open;head.append(action)}
  const studioHead=$('studio')?.querySelector('.header-actions');if(studioHead){const share=document.createElement('button');share.id='as-share-room';share.type='button';share.className='quiet';share.title='公開ルームをみんなのひろばで共有';share.innerHTML=icon('share')+'<span>共有</span>';share.onclick=async()=>{try{await shareCurrentRoom();toast('みんなのひろばへ共有しました')}catch(e){toast(errors(e))}};studioHead.append(share)}
  // Replace emoji-derived game choices with proprietary monochrome SVG symbols.
