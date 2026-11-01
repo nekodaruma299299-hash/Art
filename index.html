@@ -1247,6 +1247,17 @@ body.as-open{overflow:hidden}
 #artopiaSocial #as-global-newer{flex:0 0 auto;align-self:center}
 #artopiaSocial #as-global-newer[hidden]{display:none!important}
 
+
+/* Ver.1.4.26: DM server-vs-receiver diagnostics and independent live observers. */
+#artopiaSocial .as-dm-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:0 0 auto;padding:3px 0 7px;border-bottom:1px solid #e4eeed}
+#artopiaSocial #as-dm-sync{font-size:11px;color:#567980;line-height:1.5;flex:1 1 160px;overflow-wrap:anywhere}
+#artopiaSocial #as-dm-refresh{font-size:11px;padding:5px 8px;min-height:32px;flex:none}
+
+/* Ver.1.4.27: independent local DM echo, per-message Firebase status and diagnosis. */
+#artopiaSocial .as-dm-delivery{display:block;font-size:10px;color:#56787d;margin-top:6px;line-height:1.4}
+#artopiaSocial .as-bubble.as-dm-failed{border-color:#e4a4af;background:#fff4f6}
+#artopiaSocial .as-bubble.as-dm-failed .as-dm-delivery{color:#ad344f}
+#artopiaSocial #as-dm-send-note{flex:0 0 auto;font-size:11px;line-height:1.5;overflow-wrap:anywhere;margin:0;padding:0 3px;color:#3d737c}
 </style>
 <style id="artopia145-style">
 /* Artopia 1.4.5: original canvas visibility icons and social profiles */
@@ -11077,7 +11088,7 @@ window.ArtRoomTools=(()=>{
 
 </script>
 <script data-category="artopia-social-v1.4.js">
-/* ARTOPIA Social 1.4.21 - write/readback reconciliation and visible new-message navigation.
+/* ARTOPIA Social 1.4.27 - local echo and per-message delivery diagnostics and visible new-message navigation.
    Social is additive: never replaces PeerJS gameplay transport. */
 (() => {
 'use strict';
@@ -11645,39 +11656,139 @@ function composer(onSend){
   void flush();
  };
 }
-function drawDM(uid){clearDetailWatch();const el=$('as-body');if(!db||!el)return;el.classList.add('as-detail-body');
- el.innerHTML=`<button class="as-textbtn" id="as-detail-back">${icon('back')} チャット一覧へ</button><h3 id="as-detail-title">DM</h3><p id="as-dm-status" class="as-hint" role="status" aria-live="polite">会話を読み込んでいます…</p><div id="as-detail-thread" class="as-thread as-tall"><p class="as-empty">会話を読み込んでいます…</p></div><form id="as-composer-form" class="as-composer"><input id="as-composer-input" maxlength="300" placeholder="メッセージを入力" autocomplete="off"/><button type="submit" aria-label="DMを送信">${icon('send')}</button></form>`;
- const state=$('as-dm-status');
- const report=(message,isError=false)=>{if(!state||!state.isConnected)return;state.textContent=message;state.classList.toggle('as-dm-error',isError);state.hidden=!message;};
- $('as-detail-back').onclick=()=>{clearDetailWatch();activeChat=null;show()};nameOf(uid).then(n=>{const t=$('as-detail-title');if(t)t.textContent=n+'とのDM'});
- const path='dm/'+rkey(me.uid,uid);
- const q=ref(path).orderByKey().limitToLast(60);
- const cb=s=>{messages=[];s.forEach(x=>messages.push(x.val()));const list=$('as-detail-thread');if(!list||activeChat!==uid)return;if(state?.textContent==='会話を読み込んでいます…')report('');list.innerHTML=messages.map(m=>`<article class="as-bubble ${m.from===me.uid?'mine':''}"><small>${m.from===me.uid?'あなた':safe(m.name)} · ${stamp(m.at)}</small><p>${safe(m.text)}</p></article>`).join('')||'<p class="as-empty">最初のメッセージを送ってみましょう。</p>';list.scrollTop=list.scrollHeight};
- const onReadError=e=>{if(activeChat!==uid)return;const error=scopedError('DMの読み取り /artopia_social_v1/'+path,e);say(error);report('DMの読み取りに失敗しました：'+errors(e),true);const list=$('as-detail-thread');if(list){list.innerHTML='<p class="as-empty">会話を表示できません。下の「再接続」で読み直せます。</p><button type="button" class="as-small" id="as-dm-retry">再接続</button>';const retry=$('as-dm-retry');if(retry)retry.onclick=()=>drawDM(uid)}};
- q.on('value',cb,onReadError);detailOff.push(()=>q.off('value',cb));
- composer(async msg=>{
-  report('フレンド関係を確認しています…');
+function drawDM(uid){
+ clearDetailWatch();
+ const el=$('as-body');if(!db||!el||!me)return;
+ el.classList.add('as-detail-body');
+ el.innerHTML=`<button id="as-detail-back" class="as-textbtn" type="button">${icon('back')} チャット一覧へ</button>
+ <h3 id="as-detail-title">DM</h3>
+ <p id="as-dm-status" class="as-hint" role="status" aria-live="polite">履歴を読み込んでいます…</p>
+ <div class="as-dm-tools"><span id="as-dm-sync" role="status">Firebaseに接続しています…</span><button id="as-dm-refresh" type="button" class="as-small">履歴を再取得</button></div>
+ <div id="as-detail-thread" class="as-thread as-tall"><p class="as-empty">読み込み中…</p></div>
+ <form id="as-composer-form" class="as-composer"><input id="as-composer-input" maxlength="300" placeholder="メッセージを入力" autocomplete="off"><button type="submit" aria-label="DMを送信">${icon('send')}</button></form>
+ <p id="as-dm-send-note" class="as-hint" role="status" aria-live="polite"></p>`;
+ const title=$('as-detail-title'),thread=$('as-detail-thread'),state=$('as-dm-status'),sync=$('as-dm-sync'),refresh=$('as-dm-refresh'),form=$('as-composer-form'),input=$('as-composer-input'),note=$('as-dm-send-note');
+ const localUid=me.uid;
+ const path='dm/'+rkey(localUid,uid),q=ref(path).orderByKey().limitToLast(60);
+ const incoming=new Map(),outgoing=new Map(),queue=[];
+ let inFlight=false,readCount=0,lastRead='接続準備中',connected=null,lastError='',readFailure='',latestSnapAt=0;
+ const live=()=>activeChat===uid&&$('as-detail-thread')===thread&&thread.isConnected;
+ const report=(message,error=false)=>{if(!live())return;state.hidden=!message;state.textContent=message;state.classList.toggle('as-dm-error',error)};
+ const shortKey=k=>String(k||'').slice(-6);
+ const render=()=>{
+  if(!live())return;
+  const atBottom=thread.scrollHeight-thread.scrollTop-thread.clientHeight<160;
+  const all=new Map(incoming);
+  outgoing.forEach((record,key)=>{if(!all.has(key))all.set(key,record.payload)});
+  const items=[...all].sort(([x],[y])=>x.localeCompare(y));
+  // Latest 60 confirmed messages plus all unsynchronized local sends.
+  const visibleKeys=new Set(items.slice(-60).map(([key])=>key));
+  outgoing.forEach((_,key)=>visibleKeys.add(key));
+  const rows=items.filter(([key])=>visibleKeys.has(key));
+  messages=rows.map(([,record])=>record);
+  thread.innerHTML=rows.map(([key,record])=>{
+   const own=record.from===localUid;
+   const info=outgoing.get(key);
+   const delivery=info?(info.phase==='rejected'?'送信失敗：'+(info.error||'エラー'):info.phase==='unknown'?'送信結果未確認（再送前に履歴を確認）':info.phase==='queued'?'送信待ち':info.phase==='sending'?'送信中…':info.phase==='accepted'?(incoming.has(key)?'Firebase保存済み・履歴反映済み':'Firebase保存済み・表示確認中'):'保存結果未確認'):(own?'保存済み':'受信');
+   return `<article class="as-bubble ${own?'mine':''} ${info?.phase==='rejected'?'as-dm-failed':''}" data-dm-key="${safe(key)}"><small>${own?'あなた':safe(record.name)} · ${stamp(record.at)}</small><p>${safe(record.text)}</p><small class="as-dm-delivery">${safe(delivery)}</small></article>`;
+  }).join('')||'<p class="as-empty">最初のメッセージを送ってみましょう。</p>';
+  const own=[...incoming.values()].filter(x=>x.from===localUid).length;
+  const connection=connected===false?'オフライン':connected===true?'接続中':'接続確認中';
+  sync.textContent=`Firebase${connection}｜受信履歴${readCount}件（自分${own}件）｜${lastRead}`;
+  if(atBottom)thread.scrollTop=thread.scrollHeight;
+ };
+ const ingest=(snapshot,label)=>{
+  if(!live())return;
+  let cnt=0;
+  snapshot.forEach(child=>{
+   const item=child.val();
+   if(!item||typeof item.text!=='string'||typeof item.from!=='string')return;
+   cnt++;incoming.set(child.key,item);
+   const pending=outgoing.get(child.key);if(pending)pending.observed=true;
+  });
+  readCount=cnt;latestSnapAt=Date.now();lastRead=label;readFailure='';
+  if(state.textContent==='履歴を読み込んでいます…')report('');
+  render();
+ };
+ const onValue=s=>ingest(s,'リアルタイム更新');
+ const onChild=s=>{
+  if(!live())return;
+  const item=s.val();if(!item||typeof item.text!=='string'||typeof item.from!=='string')return;
+  incoming.set(s.key,item);const pending=outgoing.get(s.key);if(pending)pending.observed=true;lastRead='新着を受信';render();
+ };
+ const onReadError=e=>{if(!live())return;readFailure=errors(e);lastRead='読み取りエラー';report('DM履歴の読み取りが失敗しました：'+readFailure,true);render()};
+ q.on('value',onValue,onReadError);detailOff.push(()=>q.off('value',onValue));
+ q.on('child_added',onChild,onReadError);detailOff.push(()=>q.off('child_added',onChild));
+ const online=db.ref('.info/connected'),onOnline=s=>{connected=s.val()===true;render()};
+ online.on('value',onOnline);detailOff.push(()=>online.off('value',onOnline));
+ const load=async(quiet=false)=>{
+  if(!live())return null;
+  refresh.disabled=true;
   try{
-   if(!await deadline(isFriend(uid),9000,'フレンド関係の確認'))throw Error('相手とのフレンド承認が確認できません。交流 → フレンドで申請が承認済みか確認してください。');
-   // Firebase compares this sender name with the stored profile.
-   const verifiedName=await verifiedGlobalSenderName();
-   report('DMを送信しています…');
-   const entry=ref(path).push();
-   await deadline(entry.set({from:me.uid,to:uid,name:verifiedName,text:msg,at:ts()}),14000,'DM送信');
-   // The write ACK means the server accepted the message. Check the exact
-   // rules-authorized query to distinguish a UI refresh problem from failure.
-   report('Firebaseへの保存が完了しました。履歴を確認しています…');
-   try{
-    const snap=await deadline(q.once('value'),9000,'DM履歴の再読込');
-    let found=false;snap.forEach(x=>{if(x.key===entry.key)found=true});
-    if(found){cb(snap);report('送信しました（履歴への反映を確認）。')}
-    else report('Firebaseには保存されましたが最新60件にありません。再接続で履歴を確認してください。',true);
-   }catch(readErr){
-    // Never label a successful write as failed or duplicate it on retry.
-    report('Firebaseへの送信は成功しました。履歴の確認のみ失敗：'+errors(readErr),true);
+   // Firebase SDK .get() prefers the server when reachable. If offline, it may
+   // fall back to cached results: do not call this a guaranteed server receipt.
+   const snap=await deadline(typeof q.get==='function'?q.get():q.once('value'),12000,'DM履歴の再取得');
+   if(live()){
+    ingest(snap,'履歴を再取得');
+    if(!quiet)report('最新履歴を再取得しました（'+readCount+'件）。');
    }
-  }catch(e){const detail=String(e?.message||errors(e));const label=detail.includes('DMの')||detail.includes('フレンド')||detail.includes('送信')?detail:scopedError('DMの送信 /artopia_social_v1/'+path,e);report('送信失敗：'+label,true);throw Error(label)}
- });
+   return snap;
+  }catch(e){if(live()){lastRead='履歴の再取得失敗';report('DM履歴の再取得に失敗：'+errors(e),true);render()}throw e}
+  finally{if(refresh.isConnected)refresh.disabled=false}
+ };
+ refresh.onclick=()=>{void load().catch(()=>{})};
+ $('as-detail-back').onclick=()=>{clearDetailWatch();activeChat=null;show()};
+ nameOf(uid).then(name=>{if(live())title.textContent=name+'とのDM'});
+ const drain=async()=>{
+  if(inFlight)return;inFlight=true;
+  try{
+   while(queue.length&&live()){
+    const job=queue[0],current=outgoing.get(job.key);if(!current){queue.shift();continue}
+    current.phase='sending';render();note.textContent='DMを送信しています…';
+    try{
+     if(!await deadline(isFriend(uid),9000,'フレンド関係の確認'))throw Error('フレンド承認が確認できません。');
+     const validName=await verifiedGlobalSenderName();
+     current.payload.name=validName;
+     const payload={from:localUid,to:uid,name:validName,text:job.text,at:ts()};
+     await deadline(job.entry.set(payload),14000,'DM送信');
+     current.phase='accepted';lastError='';
+     note.textContent='Firebaseへの保存を確認しました（相手の受信は未確認）。';
+     queue.shift();render();
+     // Do not block the next outgoing message on a readback request.
+     // Readback is diagnostic; the server write ACK above is the only save success criterion.
+     void load(true).then(snap=>{
+      if(!live())return;
+      let found=false;snap?.forEach?.(child=>{if(child.key===job.key)found=true});
+      if(!found&&!incoming.has(job.key)){
+       note.textContent='Firebaseが書き込みを受け付けましたが、最新履歴に見つかりません。履歴の再取得で確認してください。';
+       report('履歴照合：送信ID '+shortKey(job.key)+' が最新60件にありません。',true);
+      }
+     }).catch(()=>{});
+    }catch(e){
+     const msg=errors(e);
+     current.phase=/応答が[0-9]+秒間ありません/.test(msg)?'unknown':'rejected';current.error=msg;lastError=msg;render();
+     note.textContent='送信が完了していません：'+msg;
+     report('送信結果未確認：'+msg+'。文章を控え、再送前に履歴を確認してください。',true);
+     queue.shift();
+     // Timeouts may still be committed later. Avoid automatic retry / duplicate writes.
+    }
+   }
+  }finally{inFlight=false}
+ };
+ form.onsubmit=e=>{
+  e.preventDefault();if(!live())return;
+  const msg=clean(input.value,300);if(!msg)return;
+  if(queue.length>=15){note.textContent='送信待ちが15通あります。';return}
+  const entry=ref(path).push();
+  const now=Date.now();
+  outgoing.set(entry.key,{payload:{from:localUid,to:uid,name:canonicalName||'あなた',text:msg,at:now},phase:'queued'});
+  queue.push({entry,key:entry.key,text:msg});input.value='';
+  // Local echo is independent of the database listener. Sending never makes
+  // one's own text invisible merely because the server query does not repaint.
+  render();thread.scrollTop=thread.scrollHeight;
+  note.textContent='送信待ち：'+queue.length+'通';
+  void drain();
+ };
 }
 async function drawCreateTeam(){const el=$('as-body');el.innerHTML=`<button id="as-team-back" class="as-textbtn">${icon('back')} チャット一覧</button><h3>新しいチーム</h3><form id="as-create-team" class="as-form"><label>チーム名<input id="as-team-name" maxlength="32" required placeholder="チーム名"></label><button type="submit">チームを作成</button></form>`;$('as-team-back').onclick=drawChats;
  $('as-create-team').onsubmit=async e=>{e.preventDefault();const name=clean($('as-team-name').value,32);if(!name)return;try{const node=ref('teams').push();await node.child('meta').set({name,ownerUid:me.uid,createdAt:ts()});await node.child('members/'+me.uid).set(true);await ref('teamIndex/'+me.uid+'/'+node.key).set(true);activeTeam=node.key;show();say('チームを作成しました。')}catch(err){say(errors(err))}};
