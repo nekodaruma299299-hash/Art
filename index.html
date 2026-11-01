@@ -43,6 +43,7 @@ Sitesの公開版には変更を加えていません。
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#60cccc"><title>あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム</title><meta name="description" content="あーとぴあは、スマホ・タブレット・PCのブラウザで遊べる無料オンラインお絵描きゲーム。合言葉や招待URLで友だちと集まり、同じキャンバスでお絵描き。お絵描き伝言ゲームや、絵で推理するあーとうるふ、描いたお題を当てるあーとあんさーも楽しめます。"><meta name="apple-mobile-web-app-title" content="あーとぴあ">
 <!-- Artopia Ver.1.4.37 / browser embedded icon fallback + Google and Discord image metadata -->
+<!-- Ver.1.4.38 / 初期公開の維持・公開画像の同期診断と旧作品プレビュー救済 -->
 <!-- CATEGORY: 画面デザイン・端末別レイアウト -->
 <style>
 
@@ -1430,7 +1431,7 @@ dialog:has(#publicGalleryModal){width:min(1080px,96vw)}
 @media(max-width:550px){#artopiaSocial .as-request{gap:6px}#artopiaSocial .as-inline-avatar{width:32px;height:32px;flex-basis:32px}}
 </style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.4.37</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.4.38</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
     <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button></div>
@@ -11153,10 +11154,23 @@ window.ArtRoomTools=(()=>{
   }
   function openGallery(){
     if(typeof window.modal!=='function' && typeof modal!=='function')return;
-    modal('あなたの絵画展','<p class="muted">各作品の下にある公開範囲から直接切り替えられます。画像を押すと保存・ダウンロードなどの詳細画面が開きます。</p><div class="modal-actions"><button type="button" id="publicGalleryPrivacy" class="primary">全体設定</button><button type="button" id="publicGalleryImport">画像を読み込む</button></div><div id="publicGalleryModal" class="gallery gallery-large"></div>');
+    modal('あなたの絵画展','<p class="muted">作品は初期状態で「全員に公開」です。以前に非公開・フレンド限定に変更した作品は、その設定を維持します。画像を押すと詳細を開けます。</p><div class="modal-actions"><button type="button" id="publicGalleryPrivacy" class="primary">全体設定</button><button type="button" id="publicGallerySync">公開画像を再同期</button><button type="button" id="publicGalleryImport">画像を読み込む</button></div><p id="publicGallerySyncStatus" class="muted" role="status" aria-live="polite"></p><div id="publicGalleryModal" class="gallery gallery-large"></div>');
     renderGallery(byId('publicGalleryModal'),gallery,true);
+    const galleryCounts={public:0,friends:0,private:0};
+    gallery.forEach(a=>{const value=window.ArtSocial?.galleryItemVisibility?.(a)||a.visibility||'public';if(value in galleryCounts)galleryCounts[value]++});
+    const syncStatus=byId('publicGallerySyncStatus');
+    syncStatus.textContent=`公開 ${galleryCounts.public}件・フレンド限定 ${galleryCounts.friends}件・非公開 ${galleryCounts.private}件。ほかの人に表示する縮小画像はFirebaseと同期します（各公開範囲で最大6件）。`;
     byId('publicGalleryImport').onclick=()=>byId('importArt')?.click();
     byId('publicGalleryPrivacy').onclick=()=>window.ArtSocial?.openGallerySettings?.();
+    byId('publicGallerySync').onclick=async function(){
+      this.disabled=true;syncStatus.textContent='Firebaseに公開画像を同期しています…';
+      try{
+        if(!window.ArtSocial?.syncGallery)throw Error('交流機能を読み込めていません。');
+        const result=await window.ArtSocial.syncGallery(true);
+        syncStatus.textContent=`同期完了：全員に公開 ${result.public}件、フレンド限定 ${result.friends}件。設定が非公開の作品は送信していません。`;
+      }catch(e){syncStatus.textContent='同期できませんでした：'+(e?.message||String(e))+'。Firebaseのルールと認証状態を確認してください。';}
+      finally{this.disabled=false}
+    };
     
   }
   function isPlaying(){
@@ -11532,7 +11546,7 @@ async function init(background=false){
   if(!background)attachGlobalRead();
   await ensureProfile();
   initStage='フレンド・チーム情報の読込';bindData();initialized=true;
-  syncGallery(true).catch(e=>{if(!background)say(scopedError('公開絵画展の同期',e));else console.warn('[Artopia] 絵画展の公開範囲同期',e)});
+  syncGallery(true).catch(e=>{console.warn('[Artopia] 絵画展の公開範囲同期',e);say(scopedError('公開絵画展の同期',e)+'（絵画展 → 公開画像を再同期で確認できます）')});
  }catch(e){initialized=false;profileError=scopedError(initStage,e);say(profileError);}
  finally{initializing=false;if(!document.getElementById('artopiaSocial')?.hidden)show();paintGlobalConnection();updateAllAlerts()}
 }
@@ -11705,25 +11719,38 @@ function imagePreview(src,maxWidth=180,maxLength=15000){
  });
 }
 async function syncGallery(force=false){
- if(!db||!me)return;
- // Serialize writes so a slow thumbnail conversion cannot overwrite a newer privacy choice.
+ if(!db||!me){
+  if(force)throw Error('交流機能のFirebase認証が完了していません。ページを再読み込みしてから再同期してください。');
+  return {public:0,friends:0,skipped:true};
+ }
+ // Serialize writes so an older thumbnail conversion cannot overwrite a newer privacy choice.
  const job=async()=>{
   const mode=galleryMode();
-  const chosen=(gallery||[]).filter(a=>a&&a.thumb);
-  const signature=mode+'|'+chosen.map(a=>String(a.id)+':'+String(a.at)+':'+artVisibility(a)+':'+String(a.thumb?.length||0)).join('|');
-  if(!force&&signature===lastGallerySignature)return;
-  const payload={};
+  const chosen=(gallery||[]).filter(a=>a&&(a.thumb||a.image));
+  const signature=mode+'|'+chosen.map(a=>String(a.id)+':'+String(a.at)+':'+artVisibility(a)+':'+String(a.thumb?.length||0)+':'+String(a.image?.length||0)).join('|');
+  if(!force&&signature===lastGallerySignature)return {public:0,friends:0,unchanged:true};
+  const payload={},totals={public:0,friends:0};
   for(const audience of ['public','friends']){
-   const items={};const candidates=chosen.filter(a=>artVisibility(a)===audience).slice(0,6);
-   for(let i=0;i<candidates.length;i++){
-    const a=candidates[i];const thumb=await imagePreview(a.thumb,180,15000);
-    if(thumb)items['item'+i]={name:clean(a.name||'作品',40)||'作品',thumb,at:Math.max(0,Math.floor(Number(a.at)||Date.now()))};
+   const items={};const candidates=chosen.filter(a=>artVisibility(a)===audience);
+   for(const a of candidates){
+    if(Object.keys(items).length>=6)break;
+    // Old saved works can lack a valid thumbnail; use their image as a fallback.
+    const thumb=await imagePreview(a.thumb||a.image,180,15000)
+      ||(a.thumb&&a.image?await imagePreview(a.image,180,15000):null);
+    if(!thumb)continue;
+    const slot='item'+Object.keys(items).length;
+    items[slot]={name:clean(a.name||'作品',40)||'作品',thumb,at:Math.max(0,Math.floor(Number(a.at)||Date.now()))};
    }
-   if(Object.keys(items).length)payload[audience]={updatedAt:ts(),items};
+   totals[audience]=Object.keys(items).length;
+   // Do not erase someone's previously published gallery just because one
+   // browser cannot decode a saved image. Surface the failure for repair.
+   if(candidates.length&&!totals[audience])throw Error('公開対象の作品 '+candidates.length+'件から縮小画像を作成できませんでした。作品画像を確認してください。');
+   if(totals[audience])payload[audience]={updatedAt:ts(),items};
   }
   const node=ref('galleryShowcase/'+me.uid);
   if(Object.keys(payload).length)await node.set(payload);else await node.remove();
   lastGallerySignature=signature;
+  return totals;
  };
  galleryWriteChain=galleryWriteChain.catch(()=>{}).then(job);
  return galleryWriteChain;
