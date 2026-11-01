@@ -1240,6 +1240,7 @@ body.as-open{overflow:hidden}
 #artopiaSocial .as-message-content{flex:1;min-width:0}
 #artopiaSocial .as-author-avatar{display:grid;place-items:center;width:38px;height:38px;min-width:38px;border:1px solid #cee3e0;border-radius:12px;background:#e8f6f3;padding:2px;overflow:hidden;cursor:pointer;color:#397e82}
 #artopiaSocial .as-author-avatar>img,#artopiaSocial .as-profile-large-avatar>img{width:100%;height:100%;object-fit:cover;display:block}
+#artopiaSocial .as-avatar-initial{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:19px;color:#286e73;line-height:1}#artopiaSocial .as-profile-large-avatar .as-avatar-initial{font-size:40px}
 #artopiaSocial .as-author-avatar>.as-icon{width:24px;height:24px}
 #artopiaSocial .as-message-top{flex-wrap:wrap}
 #artopiaSocial .as-profile-large-avatar{display:grid;place-items:center;width:80px;height:80px;border:1px solid #c7e4e0;border-radius:20px;background:#eaf7f5;color:#377c80;overflow:hidden}
@@ -1270,7 +1271,7 @@ body.as-open{overflow:hidden}
 .public-room-mode-icon .art-craft-icon{width:40px;height:40px}
 </style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.11 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.13 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
     <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
@@ -10874,7 +10875,7 @@ window.ArtRoomTools=(()=>{
 
 </script>
 <script data-category="artopia-social-v1.4.js">
-/* ARTOPIA Social 1.4.12 - profile update fallback + permission diagnostics.
+/* ARTOPIA Social 1.4.13 - real local avatar fallback + live social avatar refresh.
    Social is additive: never replaces PeerJS gameplay transport. */
 (() => {
 'use strict';
@@ -10918,7 +10919,8 @@ let watchers=[], globalRows=[], friendRows=[], incomingRows=[], sentRows=[], tea
 let notice='', lastPost=0, pending=false, hiddenBlocks=new Set(), canonicalName='', globalDraft='';
 let globalReadState='idle', globalReadError='', globalListener=null, initStage='認証', profileError='';
 let presenceHooks=new Map(), friendOnline=new Map();
-let publicProfiles=new Map(), publicProfileLoading=new Set();
+let publicProfiles=new Map(), publicProfileLoading=new Set(), publicProfileFetched=new Map();
+const PUBLIC_AVATAR_CACHE_MS=45000;
 const GALLERY_SHARING_KEY='artopia-public-gallery-enabled-v1';
 let lastGallerySignature='';
 const ref = path => db.ref(`${P}/${path}`);
@@ -11042,7 +11044,20 @@ async function isFriend(uid){if(!uid||uid===me?.uid)return false;
  const [a,b]=await Promise.all([ref(`requests/${me.uid}/${uid}`).once('value'),ref(`requests/${uid}/${me.uid}`).once('value')]);
  return a.val()?.status==='accepted'||b.val()?.status==='accepted';}
 const isImageData=(v,max=14000)=>typeof v==='string'&&v.length<=max&&/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(v);
-const guestAvatar = p => isImageData(p?.avatar) ? `<img src="${safe(p.avatar)}" alt="">` : icon('portrait');
+// The room profile keeps the original image (PNG/JPEG/WebP, up to 100 KB),
+// whereas Firebase stores a smaller WebP preview. Never reject one's own
+// valid room icon simply because it is larger or uses a different format.
+const localAvatarData=()=>{const v=profile?.avatar;return typeof v==='string'&&v.length<100000&&/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(v)?v:''};
+function guestAvatar(p,uid=''){
+ const remote=isImageData(p?.avatar)?p.avatar:'';
+ const local=(uid&&uid===me?.uid)||p?.localAvatar===true?localAvatarData():'';
+ const image=remote||local;
+ if(image)return `<img src="${safe(image)}" alt="">`;
+ // Unique, lightweight text avatar when no user image has been registered.
+ const name=clean(p?.name||(uid===me?.uid?profile?.name:''),20);
+ if(name)return `<span class="as-avatar-initial" aria-hidden="true">${safe(Array.from(name)[0])}</span>`;
+ return icon('portrait');
+}
 function ownGalleryEnabled(){try{return localStorage.getItem(GALLERY_SHARING_KEY)==='1'}catch{return false}}
 function imagePreview(src,maxWidth=180,maxLength=15000){return new Promise(resolve=>{if(typeof src!=='string'||!/^data:image\/(png|webp|jpeg);base64,/i.test(src))return resolve(null);const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const scale=Math.min(1,maxWidth/Math.max(img.width,img.height));c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);let result=null;for(const quality of [.76,.6,.45,.3]){const out=c.toDataURL('image/webp',quality);if(out.length<=maxLength){result=out;break}}c.width=c.height=0;resolve(result)};img.onerror=()=>resolve(null);img.src=src})}
 async function syncGallery(force=false){if(!db||!me||!ownGalleryEnabled())return;
@@ -11052,8 +11067,16 @@ async function syncGallery(force=false){if(!db||!me||!ownGalleryEnabled())return
  const node=ref('galleryShowcase/'+me.uid);if(Object.keys(items).length)await node.set({updatedAt:ts(),items});else await node.remove();lastGallerySignature=signature;
 }
 async function avatarForFirebase(){const local=profile?.avatar;if(!local)return 'ink';return await imagePreview(local,72,13000)||'ink'}
-async function readPublicProfile(uid){if(!uid)return null;if(publicProfiles.has(uid))return publicProfiles.get(uid);if(publicProfileLoading.has(uid))return null;
- publicProfileLoading.add(uid);try{const s=await ref('profiles/'+uid).once('value');const p=s.val()||{};publicProfiles.set(uid,p);if(activeView==='global')renderGlobalMessages();return p}catch{return null}finally{publicProfileLoading.delete(uid)}}
+async function readPublicProfile(uid){if(!uid)return null;
+ const age=Date.now()-(publicProfileFetched.get(uid)||0);
+ if(publicProfiles.has(uid)&&age<PUBLIC_AVATAR_CACHE_MS)return publicProfiles.get(uid);
+ if(publicProfileLoading.has(uid))return publicProfiles.get(uid)||null;
+ publicProfileLoading.add(uid);
+ try{const s=await ref('profiles/'+uid).once('value');const p=s.val()||{};
+  publicProfiles.set(uid,p);publicProfileFetched.set(uid,Date.now());
+  if(activeView==='global')renderGlobalMessages();return p;
+ }catch{return publicProfiles.get(uid)||null}finally{publicProfileLoading.delete(uid)}
+}
 async function nameOf(uid){try{const s=await ref('profiles/'+uid).once('value');return s.val()?.name||'プレイヤー'}catch{return 'プレイヤー'}}
 function socialHeader(){return `<header class="as-head"><button type="button" id="as-back" class="as-iconbtn" aria-label="戻る">${icon('back')}</button><div><strong>交流</strong><small>アートピアでつながる</small></div><button type="button" class="as-iconbtn" id="as-profile" aria-label="交流プロフィール">${icon('user')}</button></header>`}
 function tabs(){return `<nav class="as-tabs" aria-label="交流メニュー">${[['global','social','みんな'],['friends','people','フレンド'],['chats','chat','チャット']].map(([id,i,t])=>`<button type="button" data-as-tab="${id}" class="${activeView===id?'active':''}">${icon(i)}${t}</button>`).join('')}</nav>`}
@@ -11082,8 +11105,10 @@ function globalItem(m){
 function renderGlobalMessages(){
  const thread=$('as-global-thread');if(!thread||activeView!=='global'||activeChat||activeTeam)return;
  const wasAtBottom=thread.scrollHeight-thread.scrollTop-thread.clientHeight<75;
- thread.innerHTML=globalRows.filter(m=>!hiddenBlocks.has(m.from)).map(m=>{const p=publicProfiles.get(m.from);return `<article class="as-message"><div class="as-message-author"><button type="button" class="as-author-avatar" data-as-person="${safe(m.from)}" aria-label="${safe(p?.name||m.name||'プレイヤー')}のプロフィール">${guestAvatar(p)}</button><div class="as-message-content"><div class="as-message-top"><button type="button" data-as-person="${safe(m.from)}" style="color:${/^#[0-9a-f]{6}$/i.test(p?.color||'')?p.color:'#247a80'}">${safe(p?.name||m.name||'プレイヤー')}</button><time>${stamp(m.at)}</time></div>${globalItem(m)}</div></div></article>`}).join('')||'<p class="as-empty">まだ投稿はありません。最初のメッセージを送ってみましょう。</p>';
- for(const m of globalRows.slice(-50)){if(m.from&&!publicProfiles.has(m.from)&&!publicProfileLoading.has(m.from))readPublicProfile(m.from)}
+ thread.innerHTML=globalRows.filter(m=>!hiddenBlocks.has(m.from)).map(m=>{const p=publicProfiles.get(m.from);return `<article class="as-message"><div class="as-message-author"><button type="button" class="as-author-avatar" data-as-person="${safe(m.from)}" aria-label="${safe(p?.name||m.name||'プレイヤー')}のプロフィール">${guestAvatar(p||{name:m.name},m.from)}</button><div class="as-message-content"><div class="as-message-top"><button type="button" data-as-person="${safe(m.from)}" style="color:${/^#[0-9a-f]{6}$/i.test(p?.color||'')?p.color:'#247a80'}">${safe(p?.name||m.name||'プレイヤー')}</button><time>${stamp(m.at)}</time></div>${globalItem(m)}</div></div></article>`}).join('')||'<p class="as-empty">まだ投稿はありません。最初のメッセージを送ってみましょう。</p>';
+ for(const m of globalRows.slice(-50)){
+  if(m.from&&!publicProfileLoading.has(m.from)&&(!publicProfiles.has(m.from)||Date.now()-(publicProfileFetched.get(m.from)||0)>=PUBLIC_AVATAR_CACHE_MS))readPublicProfile(m.from);
+ }
  thread.querySelectorAll('[data-as-person]').forEach(b=>b.onclick=()=>personCard(b.dataset.asPerson));
  thread.querySelectorAll('[data-as-room]').forEach(b=>b.onclick=()=>window.ArtPublicRooms?.joinKey?.(b.dataset.asRoom));
  const count=$('as-global-count');if(count)count.textContent='最近の投稿 '+globalRows.length+'件';
@@ -11142,7 +11167,7 @@ async function personCard(uid){if(!uid||!db)return;if(uid===me?.uid){drawProfile
   if(!el.isConnected||activeView!=='global'||displayed!==uid)return;
   const p=s.val()||{}, n=clean(p.name||'プレイヤー',20),bio=clean(p.bio||'',160);
   const items=Object.values(g.val()?.items||{}).filter(x=>x&&isImageData(x.thumb,15000)).slice(0,6);
-  el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar(p)}</div><h3 style="color:${/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#245a61'}">${safe(n)}</h3><p class="as-profile-bio">${safe(bio||'自己紹介はまだありません。')}</p><div class="as-buttons"><button id="as-person-add">フレンド申請</button><button id="as-person-block" class="as-quiet">${hiddenBlocks.has(uid)?'ブロック解除':'ブロック'}</button></div></div><section class="as-public-gallery"><div class="as-subhead"><h3>絵画展</h3><small>公開作品プレビュー</small></div><div id="as-person-gallery" class="as-art-grid">${items.length?items.map((x,i)=>`<button class="as-art-card" data-art-index="${i}" type="button"><img alt="${safe(x.name)}" src="${safe(x.thumb)}"><span>${safe(x.name)}</span></button>`).join(''):'<p class="as-hint">公開されている作品はありません。</p>'}</div></section>`;
+  el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar(p,uid)}</div><h3 style="color:${/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#245a61'}">${safe(n)}</h3><p class="as-profile-bio">${safe(bio||'自己紹介はまだありません。')}</p><div class="as-buttons"><button id="as-person-add">フレンド申請</button><button id="as-person-block" class="as-quiet">${hiddenBlocks.has(uid)?'ブロック解除':'ブロック'}</button></div></div><section class="as-public-gallery"><div class="as-subhead"><h3>絵画展</h3><small>公開作品プレビュー</small></div><div id="as-person-gallery" class="as-art-grid">${items.length?items.map((x,i)=>`<button class="as-art-card" data-art-index="${i}" type="button"><img alt="${safe(x.name)}" src="${safe(x.thumb)}"><span>${safe(x.name)}</span></button>`).join(''):'<p class="as-hint">公開されている作品はありません。</p>'}</div></section>`;
   $('as-person-back').onclick=drawGlobal;
   const btn=$('as-person-add');if(await isFriend(uid)){btn.textContent='フレンドです';btn.disabled=true}
   btn.onclick=()=>sendFriendRequest(uid);
@@ -11190,12 +11215,12 @@ function drawTeamInvite(id){const el=$('as-body');el.innerHTML=`<button id="as-t
 }
 async function acceptTeamInvite(id){try{const v=(await ref('invites/'+me.uid+'/'+id).once('value')).val();if(!v)throw Error('招待が見つかりません。');
  await ref('teams/'+id+'/members/'+me.uid).set(true);await ref('teamIndex/'+me.uid+'/'+id).set(true);await ref('invites/'+me.uid+'/'+id).remove();activeTeam=id;activeView='chats';show();say('チームに参加しました。');}catch(e){say(errors(e))}}
-async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar({avatar:profile?.avatar})}</div><h3>${safe(profile?.name||'プレイヤー')}</h3><p class="as-profile-bio">${safe(profile?.bio||'自己紹介はまだありません。')}</p><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><section class="as-sharing-box"><label><input type="checkbox" id="as-gallery-share" ${ownGalleryEnabled()?'checked':''}> 絵画展のプレビューをプロフィールで公開</label><p class="as-hint">オンにすると、絵画展の最新6作品の縮小画像と名前を交流機能の利用者に公開します。元の高画質作品は送信しません。いつでもオフにできます。</p><p id="as-gallery-share-state" class="as-hint"></p></section><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
+async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar({avatar:profile?.avatar,name:profile?.name,localAvatar:true},me?.uid)}</div><h3>${safe(profile?.name||'プレイヤー')}</h3><p class="as-profile-bio">${safe(profile?.bio||'自己紹介はまだありません。')}</p><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><section class="as-sharing-box"><label><input type="checkbox" id="as-gallery-share" ${ownGalleryEnabled()?'checked':''}> 絵画展のプレビューをプロフィールで公開</label><p class="as-hint">オンにすると、絵画展の最新6作品の縮小画像と名前を交流機能の利用者に公開します。元の高画質作品は送信しません。いつでもオフにできます。</p><p id="as-gallery-share-state" class="as-hint"></p></section><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
  $('as-profile-back').onclick=show;$('as-link-google').disabled=!me?.isAnonymous;
  $('as-gallery-share').onchange=async e=>{const checked=e.target.checked;e.target.disabled=true;const state=$('as-gallery-share-state');state.textContent='設定を更新しています…';try{if(checked){localStorage.setItem(GALLERY_SHARING_KEY,'1');lastGallerySignature='';await syncGallery(true)}else{await ref('galleryShowcase/'+me.uid).remove();localStorage.setItem(GALLERY_SHARING_KEY,'0');lastGallerySignature=''}state.textContent=checked?'公開作品を更新しました。':'公開を停止し、作品プレビューを削除しました。'}catch(err){e.target.checked=!checked;if(checked)localStorage.setItem(GALLERY_SHARING_KEY,'0');state.textContent='設定を変更できませんでした：'+errors(err)}finally{e.target.disabled=false}};
  $('as-link-google').onclick=async()=>{try{const provider=new window.firebase.auth.GoogleAuthProvider();const current=auth.currentUser;if(!current?.isAnonymous)return;const res=await current.linkWithPopup(provider);me=res.user;await ensureProfile();show();say('Googleアカウントと連携しました。')}catch(e){say('連携に失敗しました。既存アカウントがある場合はデータの移行が必要です。 '+errors(e))}};
 }
-async function syncProfile(){if(!db||!me)return;try{const nextName=clean(profile.name||'プレイヤー',20)||'プレイヤー';const nextAvatar=await avatarForFirebase();const nextColor=/^#[0-9a-f]{6}$/i.test(profile?.color||'')?profile.color:'#238995';await ref('profiles/'+me.uid).update({name:nextName,bio:clean(profile.bio||'',160),avatar:nextAvatar,color:nextColor,updatedAt:ts()});canonicalName=nextName;publicProfiles.delete(me.uid)}catch(e){say(errors(e))}}
+async function syncProfile(){if(!db||!me)return;try{const nextName=clean(profile.name||'プレイヤー',20)||'プレイヤー';const nextAvatar=await avatarForFirebase();const nextColor=/^#[0-9a-f]{6}$/i.test(profile?.color||'')?profile.color:'#238995';await ref('profiles/'+me.uid).update({name:nextName,bio:clean(profile.bio||'',160),avatar:nextAvatar,color:nextColor,updatedAt:ts()});canonicalName=nextName;publicProfiles.delete(me.uid);publicProfileFetched.delete(me.uid);if(activeView==='global')renderGlobalMessages();say('プロフィールのアイコンと名前を同期しました。')}catch(e){say('プロフィール画像の同期に失敗しました：'+errors(e))}}
 function socialIcon(name){return icon(name)}
 function installUI(){
  const shell=document.createElement('section');shell.id='artopiaSocial';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
