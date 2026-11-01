@@ -22,7 +22,7 @@ Sitesの公開版には変更を加えていません。
 <meta name="twitter:title" content="あーとぴあ｜無料オンラインお絵描きゲーム">
 <meta name="twitter:image" content="https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#60cccc"><title>あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム</title><meta name="description" content="あーとぴあは、スマホ・タブレット・PCのブラウザで遊べる無料オンラインお絵描きゲーム。合言葉や招待URLで友だちと集まり、同じキャンバスでお絵描き。お絵描き伝言ゲームや、絵で推理するあーとうるふ、描いたお題を当てるあーとあんさーも楽しめます。"><meta name="apple-mobile-web-app-title" content="あーとぴあ">
-<!-- Artopia Ver.1.4.30 beta / realtime Arts congestion control, latest-state queue, bandwidth adaptation -->
+<!-- Artopia Ver.1.4.31 beta / detachable tools return to original slots, SVG return controls, native chat selection -->
 <!-- CATEGORY: 画面デザイン・端末別レイアウト -->
 <style>
 
@@ -1308,13 +1308,14 @@ body.as-open{overflow:hidden}
 #artopiaSocial .as-compose-queue>button{min-height:30px;padding:4px 9px;font-size:12px}
 </style>
 <style data-artopia-update="1.4.28">
-/* Ver.1.4.28 — chat selection and detachable tool palettes */
+/* Ver.1.4.31 — original-slot return, lift feedback, native chat selection */
 #studio .recent-comment-row span,#studio .chat-entry div,#artopiaSocial .as-bubble p,#artopiaSocial .as-bubble small,#artopiaSocial .as-message p,#artopiaSocial .as-body p,#artopiaSocial .as-body a{user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important;cursor:text;overflow-wrap:anywhere}
 #studio .recent-comment-row span,#studio .chat-entry div{touch-action:pan-y!important}
-.art-copy-action{display:inline-flex;min-height:25px;min-width:45px;font-size:11px;border-radius:7px;padding:3px 7px;margin-left:6px;color:#267c81;background:#e8f7f6;border:1px solid #b2dcda;vertical-align:middle;touch-action:manipulation!important;user-select:none!important}
-#artopiaSocial .as-bubble .art-copy-action{font-size:11px;padding:2px 7px;min-height:24px}
-#studio .recent-comment-row{position:relative;padding-right:45px}
-#studio .recent-comment-row .art-copy-action{position:absolute;right:0;top:2px}
+/* Match the existing chat-history text selection; no per-message copy labels. */
+#studio .recent-comment-row{position:relative;padding-right:0}
+#studio .recent-comment-row span,#studio .chat-entry div,#artopiaSocial .as-bubble p,#artopiaSocial .as-message-content p,#artopiaSocial .as-body p,#artopiaSocial .as-body a,#modal .chat-entry div{
+  user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important;touch-action:auto!important;cursor:text
+}
 .art-floating-tool{position:fixed;z-index:150;display:flex;flex-direction:column;width:180px;max-height:min(75dvh,510px);min-height:50px;background:#fff;box-shadow:0 8px 25px #17404d44;border:2px solid #64bdbb;border-radius:13px;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
 .art-floating-tool>.art-float-handle{flex:0 0 auto;cursor:grab;display:flex;align-items:center;justify-content:space-between;touch-action:none;min-height:29px;padding:3px 8px;background:#dcf3f0;color:#1d6e73;border-radius:10px 10px 0 0;font-weight:800;font-size:11px;user-select:none;-webkit-user-select:none}
 .art-floating-tool .art-float-handle button{padding:2px 5px;min-width:28px;min-height:23px;font-size:12px;border:0;background:transparent}
@@ -1328,11 +1329,16 @@ body.as-open{overflow:hidden}
 .art-floating-tool>.layer-controls{display:block}
 .studio.artopia-viewer .art-floating-tool{opacity:.42;pointer-events:none}
 .art-floating-tool.art-near-dock{outline:4px solid #18a5a3;outline-offset:0}
+.art-floating-tool{transform:scale(1);transform-origin:center center;transition:transform .13s ease-out,box-shadow .13s ease-out;will-change:transform}
+.art-floating-tool.art-lifted{transform:scale(1.11);box-shadow:0 14px 36px #17404d66;z-index:180}
+.art-floating-tool .art-float-return{display:grid;place-items:center;color:#111;min-width:32px;min-height:28px;padding:3px;border-radius:6px}
+.art-floating-tool .art-float-return svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.art-floating-tool .art-float-return:hover{background:#b7e5e1}
 .toolbox.art-dock-highlight{box-shadow:inset 0 0 0 4px #29b9ae;transition:box-shadow .12s}
 @media(max-width:650px){.art-floating-tool{width:155px;max-height:58dvh}.art-floating-tool>.sort-item{max-height:calc(58dvh - 35px)}}
 </style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.21 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.31 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
     <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
@@ -12191,65 +12197,105 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
  window.ArtRoomHub={confirmShare:openShare,open:openHub,close:closeHub,notice};
 })();
 </script>
-<script data-category="room-tools-v1.4.28.js">
+<script data-category="room-tools-v1.4.31.js">
 (()=>{
 'use strict';
 const studio=document.getElementById('studio'),dock=document.querySelector('.toolbox'),list=document.getElementById('toolButtons');
 if(!studio||!dock||!list)return;
 const storageKey='artopia-floating-tools-v1';
 let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{}}catch{}
-const floating=new Map();
-const save=()=>{try{localStorage.setItem(storageKey,JSON.stringify(Object.fromEntries([...floating].map(([id,f])=>[id,{x:parseFloat(f.style.left)||0,y:parseFloat(f.style.top)||0}]))))}catch{}};
+const floating=new Map(),slots=new Map();
 const bound=(v,a,b)=>Math.min(Math.max(v,a),Math.max(a,b));
 const nearDock=(x,y)=>{const r=dock.getBoundingClientRect();return x>=r.left-30&&x<=r.right+32&&y>=r.top-35&&y<=r.bottom+35};
-function attach(id,item,x,y){
+function save(){
+ try{localStorage.setItem(storageKey,JSON.stringify(Object.fromEntries([...floating].map(([id,wrap])=>[
+  id,{x:parseFloat(wrap.style.left)||0,y:parseFloat(wrap.style.top)||0,...slots.get(id)?.origin}
+ ]))))}catch{}
+}
+function saveOrder(){
+ try{localStorage.setItem('artopia-tool-order',JSON.stringify([...list.children].map(el=>el.dataset.sortId)))}catch{}
+}
+function position(wrap,x,y){const width=wrap.getBoundingClientRect().width||180;wrap.style.left=bound(x,0,window.innerWidth-width-4)+'px';wrap.style.top=bound(y,0,window.innerHeight-52)+'px';}
+function attach(id,item,x,y,previous){
  if(!item||floating.has(id))return;
+ // Keep a precise, zero-width slot at the tool's original location. Unlike a
+ // numeric index this remains correct when other tools are reordered.
+ if(item.parentNode!==list)list.append(item);
+ const siblings=[...list.children],index=siblings.indexOf(item);
+ const origin={index,after:item.previousElementSibling?.dataset.sortId||null,before:item.nextElementSibling?.dataset.sortId||null};
+ if(previous){
+  const before=previous.before&&[...list.children].find(el=>el!==item&&el.dataset.sortId===previous.before);
+  const after=previous.after&&[...list.children].find(el=>el!==item&&el.dataset.sortId===previous.after);
+  if(before)list.insertBefore(item,before);
+  else if(after)list.insertBefore(item,after.nextSibling);
+  else if(Number.isInteger(previous.index))list.insertBefore(item,[...list.children].filter(el=>el!==item)[Math.max(0,previous.index)]||null);
+  origin.index=previous.index??index;origin.after=previous.after??origin.after;origin.before=previous.before??origin.before;
+ }
+ const marker=document.createComment('artopia-tool-original-slot:'+id);list.insertBefore(marker,item);
+ slots.set(id,{marker,origin});
  const wrap=document.createElement('div');wrap.className='art-floating-tool';wrap.dataset.floatId=id;
  const bar=document.createElement('div');bar.className='art-float-handle';bar.setAttribute('role','toolbar');
- const label=document.createElement('span');label.textContent='⠿ 移動 · '+(item.querySelector('.sort-handle')?.textContent||item.textContent||id).replace(/^⠿\s*/, '').trim().slice(0,17);
- const ret=document.createElement('button');ret.type='button';ret.title='左のツール欄に戻す';ret.setAttribute('aria-label','ツール欄に戻す');ret.textContent='↩';ret.onclick=()=>dockBack(id);
+ const label=document.createElement('span');label.textContent='⠿ 移動 · '+(item.querySelector('.sort-handle')?.textContent||item.textContent||id).replace(/^⠿\s*/,'').trim().slice(0,17);
+ const ret=document.createElement('button');ret.type='button';ret.className='art-float-return';ret.title='取り出した位置に戻す';ret.setAttribute('aria-label','取り出した位置に戻す');
+ ret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 6 6"/></svg>';
+ ret.onclick=()=>dockBack(id);
  bar.append(label,ret);wrap.append(bar,item);studio.append(wrap);floating.set(id,wrap);
  position(wrap,x,y);save();
  let pointer=null,hold=null,drag=false;
+ const clearHold=()=>{if(hold!==null){clearTimeout(hold);hold=null}};
+ const cleanup=()=>{clearHold();pointer=null;drag=false;bar.style.cursor='grab';wrap.classList.remove('art-lifted','art-near-dock');dock.classList.remove('art-dock-highlight')};
  bar.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('button'))return;
-  pointer={id:e.pointerId,x:e.clientX,y:e.clientY,left:parseFloat(wrap.style.left),top:parseFloat(wrap.style.top)};
-  hold=setTimeout(()=>{if(pointer){drag=true;bar.setPointerCapture(pointer.id);bar.style.cursor='grabbing'}},280);
+  pointer={id:e.pointerId,x:e.clientX,y:e.clientY,left:parseFloat(wrap.style.left)||0,top:parseFloat(wrap.style.top)||0};
+  clearHold();hold=setTimeout(()=>{
+   hold=null;if(!pointer)return;drag=true;wrap.classList.add('art-lifted');bar.style.cursor='grabbing';
+   try{bar.setPointerCapture(pointer.id)}catch{}
+  },280);
  });
  bar.addEventListener('pointermove',e=>{
   if(!pointer||e.pointerId!==pointer.id)return;
-  if(!drag&&Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>9){clearTimeout(hold);pointer=null;return}
+  if(!drag&&Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>9){cleanup();return}
   if(!drag)return;
   e.preventDefault();position(wrap,pointer.left+e.clientX-pointer.x,pointer.top+e.clientY-pointer.y);
-  wrap.classList.toggle('art-near-dock',nearDock(e.clientX,e.clientY));dock.classList.toggle('art-dock-highlight',nearDock(e.clientX,e.clientY));
+  const near=nearDock(e.clientX,e.clientY);wrap.classList.toggle('art-near-dock',near);dock.classList.toggle('art-dock-highlight',near);
  });
- const finish=e=>{if(!pointer||e.pointerId!==pointer.id)return;clearTimeout(hold);const dockIt=drag&&nearDock(e.clientX,e.clientY);pointer=null;drag=false;bar.style.cursor='grab';dock.classList.remove('art-dock-highlight');wrap.classList.remove('art-near-dock');if(dockIt)dockBack(id,e.clientY);else save()};
- bar.addEventListener('pointerup',finish);bar.addEventListener('pointercancel',()=>{clearTimeout(hold);pointer=null;drag=false;dock.classList.remove('art-dock-highlight')});
+ bar.addEventListener('pointerup',e=>{
+  if(!pointer||e.pointerId!==pointer.id)return;
+  const dockIt=drag&&nearDock(e.clientX,e.clientY);cleanup();
+  if(dockIt)dockBack(id,e.clientY);else save();
+ });
+ bar.addEventListener('pointercancel',cleanup);
 }
-function position(wrap,x,y){const width=wrap.getBoundingClientRect().width||180;wrap.style.left=bound(x,0,window.innerWidth-width-4)+'px';wrap.style.top=bound(y,0,window.innerHeight-52)+'px';}
-function dockBack(id,y){const wrap=floating.get(id);if(!wrap)return;const el=wrap.querySelector('[data-sort-id]');if(!el)return;const others=[...list.children];const target=Number.isFinite(y)?others.find(t=>{const r=t.getBoundingClientRect();return y<r.top+r.height/2}):null;list.insertBefore(el,target||null);wrap.remove();floating.delete(id);save();try{localStorage.setItem('artopia-tool-order',JSON.stringify([...list.children].map(el=>el.dataset.sortId)))}catch{}}
+function dockBack(id,y){
+ const wrap=floating.get(id);if(!wrap)return;
+ const el=wrap.querySelector('[data-sort-id]');if(!el)return;
+ const slot=slots.get(id);
+ if(Number.isFinite(y)){
+  // Explicit drop onto the dock keeps the user's chosen vertical placement.
+  const others=[...list.children],target=others.find(t=>{const r=t.getBoundingClientRect();return y<r.top+r.height/2});
+  list.insertBefore(el,target||null);
+ }else if(slot?.marker?.parentNode===list){
+  // The return icon always restores exactly the original slot.
+  list.insertBefore(el,slot.marker);
+ }else{
+  const {before,after,index}=slot?.origin||{};
+  const next=before&&[...list.children].find(t=>t.dataset.sortId===before);
+  const prev=after&&[...list.children].find(t=>t.dataset.sortId===after);
+  if(next)list.insertBefore(el,next);
+  else if(prev)list.insertBefore(el,prev.nextSibling);
+  else list.insertBefore(el,[...list.children][index]||null);
+ }
+ slot?.marker?.remove();slots.delete(id);wrap.classList.remove('art-lifted');wrap.remove();floating.delete(id);
+ saveOrder();save();
+}
 window.ArtFloatingTools={detach:(item,x,y)=>{const id=item?.dataset?.sortId;if(!id)return;attach(id,item,x-50,y-10)},dock:dockBack,count:()=>floating.size};
 for(const [id,positionValue] of Object.entries(saved)){
  const item=[...list.children].find(el=>el.dataset.sortId===id);
- if(item&&typeof positionValue?.x==='number'&&typeof positionValue?.y==='number')attach(id,item,positionValue.x,positionValue.y);
+ if(item&&typeof positionValue?.x==='number'&&typeof positionValue?.y==='number')attach(id,item,positionValue.x,positionValue.y,positionValue);
 }
 window.addEventListener('resize',()=>{for(const el of floating.values())position(el,parseFloat(el.style.left)||0,parseFloat(el.style.top)||0)});
-// One-tap copy available directly in room chat and DM / global chat (long-press to select text also supported).
-const notify=msg=>{const to=document.getElementById('toast');if(to){to.textContent=msg;to.classList.add('show');setTimeout(()=>to.classList.remove('show'),2100)}};
-const copy=async value=>{try{await navigator.clipboard.writeText(value);notify('文章をコピーしました')}catch{window.prompt('文章をコピー',value)}};
-function decorateChat(container){
- if(!container||!container.isConnected)return;
- const rows=container.matches?.('.as-bubble,.as-message,.recent-comment-row,.chat-entry')?[container]:[...container.querySelectorAll('.as-bubble,.as-message,.recent-comment-row,.chat-entry')];
- for(const row of rows){if(row.querySelector('.art-copy-action'))continue;
-  const text=row.matches('.recent-comment-row')?row.querySelector('span')?.textContent:row.matches('.chat-entry')?row.querySelector('div')?.textContent:row.matches('.as-message')?row.querySelector('.as-message-content p')?.textContent:row.querySelector('p')?.textContent;
-  if(!text)continue;
-  const btn=document.createElement('button');btn.type='button';btn.className='art-copy-action';btn.textContent='コピー';btn.title='このメッセージをコピー';btn.onclick=e=>{e.preventDefault();e.stopPropagation();void copy(text)};
-  (row.matches('.as-message')?row.querySelector('.as-message-top'):row.querySelector('small')||row.querySelector('header')||row).append(btn);
- }
-}
-const observer=new MutationObserver(records=>{for(const record of records){for(const node of record.addedNodes){if(node.nodeType===1){decorateChat(node)}}}});
-for(const parent of [document.getElementById('artopiaSocial'),document.getElementById('recentComment'),document.getElementById('modal')])if(parent)observer.observe(parent,{subtree:true,childList:true});
-for(const node of document.querySelectorAll('.as-thread,.recent-comment-row,.chat-entry'))decorateChat(node);
+// Chat text uses the same native long-press selection / Copy controls as
+// the comment history. Do not add "コピー" buttons to message rows.
 })();
 </script>
 
@@ -12280,4 +12326,4 @@ for(const node of document.querySelectorAll('.as-thread,.recent-comment-row,.cha
 @media(max-width:720px){.shadow-mode #shadowSkillInfo{left:auto!important;right:8px!important;bottom:8px!important;width:106px!important;max-width:106px!important}}
 </style>
 
-<!-- Artopia 1.4.29: drawing/wolf/answer game-mode icons use black strokes. Menu icon samples are not yet installed. -->
+<!-- Artopia 1.4.31: detached tool return, drag lift feedback, native chat selection. -->
