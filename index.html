@@ -10874,7 +10874,7 @@ window.ArtRoomTools=(()=>{
 
 </script>
 <script data-category="artopia-social-v1.4.js">
-/* ARTOPIA Social 1.4.11 - independently initialized global chat + permission diagnostics.
+/* ARTOPIA Social 1.4.12 - profile update fallback + permission diagnostics.
    Social is additive: never replaces PeerJS gameplay transport. */
 (() => {
 'use strict';
@@ -10990,9 +10990,17 @@ async function ensureProfile(){
  const p=await mine.once('value');const data=p.val()||{};
  if(data.name!==rawName||data.bio!==clean(profile?.bio||'',160)||data.avatar!==avatarValue||data.color!==colorValue){
   initStage='プロフィール情報の更新';
-  await mine.update({name:rawName,bio:clean(profile?.bio||'',160),avatar:avatarValue,color:colorValue,updatedAt:ts()});
- }
- canonicalName=rawName;
+  try{
+   await mine.update({name:rawName,bio:clean(profile?.bio||'',160),avatar:avatarValue,color:colorValue,updatedAt:ts()});
+   canonicalName=rawName;
+  }catch(e){
+   // Keep global chat usable using the existing verified profile; the server
+   // validates chat author names against the stored profile, not local settings.
+   canonicalName=clean(data.name||'',20)||rawName;
+   profileError=scopedError(initStage,e)+'。既存プロフィールでチャットを継続します。';
+   say(profileError);
+  }
+ }else canonicalName=rawName;
  initStage='オンライン状態の保存';
  const pRef=ref('presence/'+me.uid);await pRef.onDisconnect().set({online:false,at:ts()});await pRef.set({online:true,at:ts()});
 }
