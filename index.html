@@ -22,7 +22,7 @@ Sitesの公開版には変更を加えていません。
 <meta name="twitter:title" content="あーとぴあ｜無料オンラインお絵描きゲーム">
 <meta name="twitter:image" content="https://nekodaruma299299-hash.github.io/Art/assets/artopia-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#60cccc"><title>あーとぴあ（アートピア）｜無料オンラインお絵描きゲーム</title><meta name="description" content="あーとぴあは、スマホ・タブレット・PCのブラウザで遊べる無料オンラインお絵描きゲーム。合言葉や招待URLで友だちと集まり、同じキャンバスでお絵描き。お絵描き伝言ゲームや、絵で推理するあーとうるふ、描いたお題を当てるあーとあんさーも楽しめます。"><meta name="apple-mobile-web-app-title" content="あーとぴあ">
-<!-- Artopia Ver.1.4.20 beta / realtime Arts congestion control, latest-state queue, bandwidth adaptation -->
+<!-- Artopia Ver.1.4.30 beta / realtime Arts congestion control, latest-state queue, bandwidth adaptation -->
 <!-- CATEGORY: 画面デザイン・端末別レイアウト -->
 <style>
 
@@ -1307,6 +1307,30 @@ body.as-open{overflow:hidden}
 #artopiaSocial .as-compose-queue>span{flex:1 1 100%;min-width:0}
 #artopiaSocial .as-compose-queue>button{min-height:30px;padding:4px 9px;font-size:12px}
 </style>
+<style data-artopia-update="1.4.28">
+/* Ver.1.4.28 — chat selection and detachable tool palettes */
+#studio .recent-comment-row span,#studio .chat-entry div,#artopiaSocial .as-bubble p,#artopiaSocial .as-bubble small,#artopiaSocial .as-message p,#artopiaSocial .as-body p,#artopiaSocial .as-body a{user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important;cursor:text;overflow-wrap:anywhere}
+#studio .recent-comment-row span,#studio .chat-entry div{touch-action:pan-y!important}
+.art-copy-action{display:inline-flex;min-height:25px;min-width:45px;font-size:11px;border-radius:7px;padding:3px 7px;margin-left:6px;color:#267c81;background:#e8f7f6;border:1px solid #b2dcda;vertical-align:middle;touch-action:manipulation!important;user-select:none!important}
+#artopiaSocial .as-bubble .art-copy-action{font-size:11px;padding:2px 7px;min-height:24px}
+#studio .recent-comment-row{position:relative;padding-right:45px}
+#studio .recent-comment-row .art-copy-action{position:absolute;right:0;top:2px}
+.art-floating-tool{position:fixed;z-index:150;display:flex;flex-direction:column;width:180px;max-height:min(75dvh,510px);min-height:50px;background:#fff;box-shadow:0 8px 25px #17404d44;border:2px solid #64bdbb;border-radius:13px;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+.art-floating-tool>.art-float-handle{flex:0 0 auto;cursor:grab;display:flex;align-items:center;justify-content:space-between;touch-action:none;min-height:29px;padding:3px 8px;background:#dcf3f0;color:#1d6e73;border-radius:10px 10px 0 0;font-weight:800;font-size:11px;user-select:none;-webkit-user-select:none}
+.art-floating-tool .art-float-handle button{padding:2px 5px;min-width:28px;min-height:23px;font-size:12px;border:0;background:transparent}
+.art-floating-tool>.sort-item{width:100%;margin:0;padding:4px 8px;overflow:auto;max-height:calc(75dvh - 35px);min-height:0;flex:0 1 auto}
+.art-floating-tool>button.sort-item{display:flex;justify-content:flex-start;min-height:43px;font-size:13px;flex:1 0 auto;overflow:visible;padding:7px 8px}
+.art-floating-tool>.sort-item .sort-handle{display:none!important}
+.art-floating-tool>.undo-row{display:flex;flex-wrap:wrap;gap:2px}
+.art-floating-tool>.view-controls{display:flex;flex-wrap:wrap;gap:2px}
+.art-floating-tool>.palette{display:block}
+.art-floating-tool>.tool-settings{display:block}
+.art-floating-tool>.layer-controls{display:block}
+.studio.artopia-viewer .art-floating-tool{opacity:.42;pointer-events:none}
+.art-floating-tool.art-near-dock{outline:4px solid #18a5a3;outline-offset:0}
+.toolbox.art-dock-highlight{box-shadow:inset 0 0 0 4px #29b9ae;transition:box-shadow .12s}
+@media(max-width:650px){.art-floating-tool{width:155px;max-height:58dvh}.art-floating-tool>.sort-item{max-height:calc(58dvh - 35px)}}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.21 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -1991,14 +2015,14 @@ const paths={folderUpload:'M3 8V5h6l2 3h10v12H3Z M12 17V10 M8.5 13.5 12 10l3.5 3
 
 /* Artopia 1.4.9 — minimal single-color marks: drawn for Artopia, not emoji. */
 const ART_CRAFTED_MARKS = Object.freeze({
- drawMark: `<g stroke="#248b94" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="28" height="28" rx="5"/>
+ drawMark: `<g stroke="#000000" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="28" height="28" rx="5"/>
  <path d="M15 30c5-11 9 4 18-9"/></g>`,
- wolfMark: `<g stroke="#7d5c9b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11l9 7 5-2.5 5 2.5 9-7-3.3 19L24 38 13.3 30Z"/>
+ wolfMark: `<g stroke="#000000" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11l9 7 5-2.5 5 2.5 9-7-3.3 19L24 38 13.3 30Z"/>
  <path d="m17 26 4 1m10-1-4 1"/>
  <path d="m22 32 2 2 2-2"/></g>`,
- answerMark: `<g stroke="#cf7756" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="15"/>
+ answerMark: `<g stroke="#000000" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="15"/>
  <path d="M19.5 19a5 5 0 0 1 9 3c0 3.6-4.5 4-4.5 7"/>
- <circle cx="24" cy="34" r="1.4" fill="currentColor" stroke="none"/></g>`,
+ <circle cx="24" cy="34" r="1.4" fill="#000000" stroke="none"/></g>`,
  inviteMark: `<g stroke="#258a91" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="18" r="7"/>
  <path d="m22.2 23.2 14 14m-4.7-4.7 3.1-3.1"/></g>`
 });
@@ -2233,7 +2257,7 @@ function showCreate(options={}){
   if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';$('#createPrivateCode').hidden=false;return}
   const isPublic=!offline&&$('#newPublic').checked;
   const config=window.ArtGame?.createConfig()||{mode:'free'};
-  const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,approvalRequired:$('#newApprovalRequired').checked,viewerChat:$('#newViewerChat').checked,protect:$('#newProtect').checked,id:uid(),...config};
+  const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,history:+$('#newHistory').value,limit:+$('#newLimit').value,spectate:$('#newSpectate').checked,approvalRequired:$('#newApprovalRequired').checked,autoJoin:!$('#newApprovalRequired').checked,viewerChat:$('#newViewerChat').checked,protect:$('#newProtect').checked,id:uid(),...config};
   if(r.mode==='relay')r.limit=Math.max(r.limit,r.gameSettings.players);
   const artId=$('#newArt').value;
   $('#createSubmit').disabled=true;$('#localDraw').disabled=true;
@@ -2260,7 +2284,7 @@ function showCreate(options={}){
  $('#newRoomName').focus({preventScroll:true});
 }
 $('#createMain').onclick=()=>showCreate();
-function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('合言葉で入る',`<div class="art-join-mark" aria-hidden="true">${icon('inviteMark')}</div><form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
+function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('合言葉で入る',`<div class="art-join-mark" aria-hidden="true">${icon('inviteMark')}</div><form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦を希望する</label><p class="muted">初めて入室した人はまず観戦になります。参加したいときだけ入室後に「参加」を押してください。一度許可された人は再入室時に参加できます。</p><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
 $('#joinMain').onclick=()=>showJoin();
 // Invitation links bypass the passphrase form after the player's name is known.
 let inviteJoining=false;
@@ -2290,7 +2314,7 @@ async function newPeer(id){await ensurePeer();return new Promise((res,rej)=>{let
 
 
 /* SECTION: app/08-session.js */
-function resetSession(){if(room&&!localViewer&&members.has(localId))window.ArtSocial?.recordRoom?.(room);window.ArtPublicRooms?.stopHost();if(room)room.ended=true;connected=false;sessionToken++;for(const cancel of [...pendingPeerStarts])cancel();window.ArtClip?.reset();window.ArtHistory?.clear();clearClipboard();window.ArtKeys?.release();window.ArtSound?.reset();window.ArtGame?.reset();checkpointBusy=false;lastCheckpointAt=Date.now();canvasRestoring=false;checkpointTransfer=null;checkpointRestorePending=false;cancelChatRestore();chatFocusState=null;chatPointerOrigin=null;chatComposing=false;clearTimeout(aliasTimer);aliasPeer?.destroy();aliasPeer=null;migrationOut=null;migrationIn=null;clearTimeout(displayRecoveryTimer);touchStarts.clear();twoTouch=null;pointers.clear();gesture=null;activePointer=null;releaseSelectionPreview();releasePreviewWork();releasePenPreview();releaseEffectPreview();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}brushPointer=null;updateBrushCursor();clearTimeout(reconnectTimer);reconnectAttempts=0;for(const c of connections.values())c.close();hostConn?.close();presenceSeen.clear();retiredPeers.clear();guestLeaveAck?.();peer?.destroy();peer=null;hostConn=null;room=null;connected=false;connections.clear();members.clear();viewers.clear();viewerRoster=[];viewerCount=0;viewerCount=0;localViewer=false;localViewerRequested=false;resumeKeys.clear();locks.clear();redoIds=[];pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();chat=[];unread=0;remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();remoteCursors.clear();outboundQueue=[];syncing=false;deferredMessages=[];selection=null;stroke=null;$('#transformBar').hidden=true;prefs.opacities=[100,100,100];prefs.layer=0}
+function resetSession(){approvedRoomKeys.clear();preferredHandoffPeer='';if(room&&!localViewer&&members.has(localId))window.ArtSocial?.recordRoom?.(room);window.ArtPublicRooms?.stopHost();if(room)room.ended=true;connected=false;sessionToken++;for(const cancel of [...pendingPeerStarts])cancel();window.ArtClip?.reset();window.ArtHistory?.clear();clearClipboard();window.ArtKeys?.release();window.ArtSound?.reset();window.ArtGame?.reset();checkpointBusy=false;lastCheckpointAt=Date.now();canvasRestoring=false;checkpointTransfer=null;checkpointRestorePending=false;cancelChatRestore();chatFocusState=null;chatPointerOrigin=null;chatComposing=false;clearTimeout(aliasTimer);aliasPeer?.destroy();aliasPeer=null;migrationOut=null;migrationIn=null;clearTimeout(displayRecoveryTimer);touchStarts.clear();twoTouch=null;pointers.clear();gesture=null;activePointer=null;releaseSelectionPreview();releasePreviewWork();releasePenPreview();releaseEffectPreview();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}brushPointer=null;updateBrushCursor();clearTimeout(reconnectTimer);reconnectAttempts=0;for(const c of connections.values())c.close();hostConn?.close();presenceSeen.clear();retiredPeers.clear();guestLeaveAck?.();peer?.destroy();peer=null;hostConn=null;room=null;connected=false;connections.clear();members.clear();viewers.clear();viewerRoster=[];viewerCount=0;viewerCount=0;localViewer=false;localViewerRequested=false;resumeKeys.clear();locks.clear();redoIds=[];pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();chat=[];unread=0;remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();remoteCursors.clear();outboundQueue=[];syncing=false;deferredMessages=[];selection=null;stroke=null;$('#transformBar').hidden=true;prefs.opacities=[100,100,100];prefs.layer=0}
 async function createRoomPeer(id){const token=sessionToken;for(let attempt=0;;attempt++){if(token!==sessionToken)throw Error('部屋作成を中止しました。');try{const p=await newPeer(id);if(token!==sessionToken){p.destroy();throw Error('部屋作成を中止しました。')}return p}catch(e){if(token!==sessionToken||e?.type!=='unavailable-id'||attempt>=5)throw e;await new Promise(resolve=>setTimeout(resolve,Math.min(2000,700*(attempt+1))))}}}
 async function startRoom(r,art,offline){resetSession();if(['relay','wolf','answer','arts','chimera','shadow'].includes(r.mode)){r={...r,w:Math.min(1024,r.w),h:Math.min(1024,r.h),protect:false,snapshotInterval:0};art=null}const p=offline?null:await createRoomPeer(await roomPeerId(r.code));peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,drawingProtocol:18,id:r.id||uid(),snapshotInterval:r.snapshotInterval??60,snapshotList:[],canvasEpoch:0,offline,hasArt:!!art,opacities:[100,100,100],opacityBase:[100,100,100]};engine=new E.Engine(r.w,r.h);sharedPalette=[];if(art)await loadArtLayers(art);if(p)await Promise.race([window.ArtSocial?.registerRoomIdentity?.(localId)||Promise.resolve(),new Promise(r=>setTimeout(r,3500))]);
  const ownerProfile=validProfile(profile);ownerProfile.socialPeerId=localId;
@@ -2363,6 +2387,13 @@ function sendHost(msg){if(localViewer && !['chat','heartbeat','leave','viewerJoi
 /* SECTION: app/10-presence.js */
 const presenceSeen=new Map(),retiredPeers=new Set();let guestLeaveAck=null;
 const resumeKeys=new Map();
+const approvedRoomKeys=new Map(); // Host-only: persistent permission for this room's lifetime.
+let preferredHandoffPeer='';
+function approvalForKey(key){return typeof key==='string'&&key.length>=25&&approvedRoomKeys.has(key)}
+function approveRoomKey(key,profile){if(typeof key==='string'&&key.length>=25){approvedRoomKeys.set(key,{name:String(profile?.name||'').slice(0,20),at:Date.now()});}}
+function revokeRoomKey(id){const key=resumeKeys.get(id);if(key)approvedRoomKeys.delete(key);resumeKeys.delete(id);}
+function sessionAutoAdmit(){return room?.autoJoin!==undefined?room.autoJoin===true:room?.approvalRequired!==true;}
+
 const resumeKey=(()=>{let key=load('artopia-resume-key','');if(typeof key!=='string'||!key){try{key=sessionStorage.getItem('artopia-resume-key')||''}catch{}}if(!key)key=uid()+uid();persist('artopia-resume-key',key);try{sessionStorage.setItem('artopia-resume-key',key)}catch{}return key})();
 function findResumeMember(key){if(!key)return null;for(const [id,m]of members)if(id!==localId&&resumeKeys.get(id)===key)return m;return null;}
 function gameInProgress(){const g=window.ArtGame?.getHost?.();return !!(window.ArtGame?.enabled()&&g&&!['lobby','finished'].includes(g.phase))}
@@ -2395,7 +2426,7 @@ function acceptViewer(id){
  if([...members.values()].filter(m=>!m.spectator&&!m.disconnected).length>=room.limit&&!playing){toast('参加人数が上限に達しています');return}
  viewers.delete(id);
  const member={peerId:id,profile:v.profile,disconnected:false,spectator:playing||window.ArtGame?.spectatorFor?.(id,false)||false};
- members.set(id,member);if(v.resumeKey)resumeKeys.set(id,v.resumeKey);
+ members.set(id,member);if(v.resumeKey){resumeKeys.set(id,v.resumeKey);approveRoomKey(v.resumeKey,v.profile);}
  sendWire(c,{type:'viewerApproved',member,room,game:window.ArtGame?.enabled()?window.ArtGame.welcomeFor(id):null});
  broadcast({type:'roster',members:[...members.values()]});
  publishViewerRoster();roomEvent(member.profile.name+' さんの参加を承認しました');
@@ -2433,6 +2464,12 @@ function handleViewerMessage(id,m){
   if(v.requested){sendWire(connections.get(id),{type:'viewerRequestReceived'});return}
   if(v.lastRequestAt&&Date.now()-v.lastRequestAt<15000){sendWire(connections.get(id),{type:'viewerRequestCooldown'});return}
   v.requested=true;v.lastRequestAt=Date.now();
+  if(sessionAutoAdmit()||approvalForKey(v.resumeKey)){
+   if([...members.values()].filter(m=>!m.spectator&&!m.disconnected).length>=room.limit && !gameInProgress()){
+    v.requested=false;sendWire(connections.get(id),{type:'viewerRequestFull'});return;
+   }
+   acceptViewer(id);return;
+  }
   sendWire(connections.get(id),{type:'viewerRequestReceived'});
   announceViewerRequest(id);renderMembers();return;
  }
@@ -2452,26 +2489,26 @@ function viewerStateUI(){
  studio.classList.toggle('artopia-viewer',!!localViewer);
  const saveButton=$('#snapshotBtn');if(saveButton){saveButton.disabled=!canSaveCurrentRoom();saveButton.title=canSaveCurrentRoom()?'キャンバス保存':'閲覧者は作品を保存できません';}
  const panel=$('#viewerAccessNotice');
- if(panel){panel.hidden=!localViewer;panel.textContent=localViewer?(localViewerRequested?'参加申請を送信しました。部屋主の判断を待っています。':room?.viewerChat===false?'閲覧中です。参加したい場合のみ「参加申請」を押してください。閲覧者のチャットは無効です。':'閲覧中です。見ているだけでも大丈夫です。参加したい場合のみ申請してください。'):''}
+ if(panel){panel.hidden=!localViewer;panel.textContent=localViewer?(localViewerRequested?(sessionAutoAdmit()?'参加処理中です…':'参加申請を送信しました。部屋主の判断を待っています。'):room?.viewerChat===false?'観戦中です。参加したいときだけ「参加」を押してください。観戦中のチャットは無効です。':'観戦中です。見ているだけでも大丈夫です。参加したいときに「参加」を押してください。'):''}
  let btn=$('#viewerApplyBtn');if(!btn&&panel){btn=document.createElement('button');btn.type='button';btn.id='viewerApplyBtn';btn.className='primary';btn.addEventListener('click',()=>localViewerRequested?cancelParticipationRequest():requestToParticipate());panel.after(btn)}
- if(btn){btn.hidden=!localViewer;btn.disabled=!connected;btn.classList.toggle('primary',!localViewerRequested);btn.textContent=localViewerRequested?'申請を取り消す':'参加申請'}
+ if(btn){btn.hidden=!localViewer;btn.disabled=!connected;btn.classList.toggle('primary',!localViewerRequested);btn.textContent=localViewerRequested?'申請を取り消す':(sessionAutoAdmit()?'参加':'参加申請')}
  let floating=$('#viewerFloatingApply');if(!floating){floating=document.createElement('button');floating.id='viewerFloatingApply';floating.type='button';floating.className='primary';floating.addEventListener('click',()=>localViewerRequested?cancelParticipationRequest():requestToParticipate());studio.append(floating)}
- floating.hidden=!localViewer;floating.disabled=!connected;floating.classList.toggle('primary',!localViewerRequested);floating.textContent=localViewerRequested?'申請を取り消す':'参加申請';
+ floating.hidden=!localViewer;floating.disabled=!connected;floating.classList.toggle('primary',!localViewerRequested);floating.textContent=localViewerRequested?'申請を取り消す':(sessionAutoAdmit()?'参加':'参加申請');
  const inline=$('#inlineChatInput');if(inline)inline.disabled=!!localViewer&&room?.viewerChat===false;
  const input=$('#chatInput');if(input)input.disabled=!!localViewer&&room?.viewerChat===false;
  const submit=$('#inlineChatForm button[type=submit]');if(submit)submit.disabled=!!localViewer&&room?.viewerChat===false;
- if(localViewer&&room)$('#connectionState').textContent=localViewerRequested?'閲覧中 · 参加申請中':'閲覧中';
+ if(localViewer&&room)$('#connectionState').textContent=localViewerRequested?'観戦中 · 参加手続き中':'観戦中';
 }
 
 /* SECTION: app/11-join.js */
 function attachGuest(c){if(!room||room.ended){c.close();return}const token=sessionToken;connections.set(c.peer,c);let accepted=false;const seat=()=>c.memberId||c.peer;c.on('data',m=>decodeWire(c,m,x=>{if(token!==sessionToken||!isHost||!room||connections.get(seat())!==c)return;presenceSeen.set(seat(),Date.now());if(migrationOut&&!accepted){sendWire(c,{type:'reject',message:'部屋主を引き継いでいます。少し待って入室してください。'});return}if(x.type==='hello'&&!accepted){if(x.drawingProtocol!==18){sendWire(c,{type:'reject',message:'全員で最新版を開いてください。'});return}const incoming=validProfile(x.profile);incoming.socialPeerId=c.peer;const key=typeof x.resumeKey==='string'?x.resumeKey.slice(0,160):'';const restored=findResumeMember(key);if(restored){const id=restored.peerId,old=connections.get(id);connections.delete(c.peer);c.memberId=id;connections.set(id,c);if(old&&old!==c){sendWire(old,{type:'superseded'});old.close()}}const id=seat();
- if(room.approvalRequired&&!restored){
+ if(!restored&&!approvalForKey(key)){
   if(viewers.size>=24){sendWire(c,{type:'reject',message:'閲覧者の定員に達しています。'});return}
   accepted=true;const v={profile:incoming,alias:anonymousViewerName(),resumeKey:key,lastChat:0,requested:false,lastRequestAt:0};viewers.set(id,v);presenceSeen.set(id,Date.now());
   sendWire(c,{type:'welcome',viewer:true,memberId:id,room,game:window.ArtGame?.enabled()?window.ArtGame.welcomeFor(id):null,engine:window.ArtGame?.enabled()?window.ArtGame.blankSnapshot():engine.snapshot(),members:[...members.values()],sharedPalette,chat:chat.filter(m=>!m.hostOnly),locks:[...locks.values()],viewers:room?.viewerChat!==false?[...viewers.entries()].map(([id,v])=>({id,alias:v.alias})):[],viewerCount:viewers.size});
   publishViewerRoster();return;
  }
- if(!members.has(id)&&members.size>=room.limit){sendWire(c,{type:'reject',message:'この部屋は満員です。'});return}if(!restored&&x.spectator&&!room.spectate){sendWire(c,{type:'reject',message:'この部屋では観戦を受け付けていません。'});return}accepted=true;members.set(id,{peerId:id,profile:incoming,disconnected:false,spectator:restored?restored.spectator:window.ArtGame?.enabled()?window.ArtGame.spectatorFor(id,!!x.spectator):!!x.spectator});if(key)resumeKeys.set(id,key);presenceSeen.set(id,Date.now());sendWire(c,{type:'welcome',memberId:id,room,game:window.ArtGame?.enabled()?window.ArtGame.welcomeFor(id):null,engine:window.ArtGame?.enabled()?window.ArtGame.blankSnapshot():engine.snapshot(),members:[...members.values()],sharedPalette,chat:chat.filter(m=>!m.hostOnly),locks:[...locks.values()]});broadcast({type:'roster',members:[...members.values()]});renderMembers();roomEvent(incoming.name+(restored?' さんが復帰しました':' さんが入室しました'));return}if(accepted){if(viewers.has(seat()))handleViewerMessage(seat(),x);else handleHost(seat(),x)}}));c.on('close',()=>{if(token!==sessionToken||connections.get(seat())!==c)return;if(viewers.has(seat()))removeViewer(seat());else removeMember(seat())});c.on('error',()=>{})}
+ if(!members.has(id)&&members.size>=room.limit){sendWire(c,{type:'reject',message:'この部屋は満員です。'});return}if(!restored&&x.spectator&&!room.spectate){sendWire(c,{type:'reject',message:'この部屋では観戦を受け付けていません。'});return}accepted=true;members.set(id,{peerId:id,profile:incoming,disconnected:false,spectator:restored?restored.spectator:window.ArtGame?.enabled()?window.ArtGame.spectatorFor(id,false):false});if(key){resumeKeys.set(id,key);approveRoomKey(key,incoming);}presenceSeen.set(id,Date.now());sendWire(c,{type:'welcome',memberId:id,room,game:window.ArtGame?.enabled()?window.ArtGame.welcomeFor(id):null,engine:window.ArtGame?.enabled()?window.ArtGame.blankSnapshot():engine.snapshot(),members:[...members.values()],sharedPalette,chat:chat.filter(m=>!m.hostOnly),locks:[...locks.values()]});broadcast({type:'roster',members:[...members.values()]});renderMembers();roomEvent(incoming.name+(restored?' さんが復帰しました':' さんが入室しました'));return}if(accepted){if(viewers.has(seat()))handleViewerMessage(seat(),x);else handleHost(seat(),x)}}));c.on('close',()=>{if(token!==sessionToken||connections.get(seat())!==c)return;if(viewers.has(seat()))removeViewer(seat());else removeMember(seat())});c.on('error',()=>{})}
 async function joinRoom(code,spectator){if(code.length<2)throw Error('合言葉を入力してください。');resetSession();isHost=false;peer=await newPeer();localId=peer.id;const token=sessionToken;return new Promise(async(res,rej)=>{let done=false;let timer=setTimeout(()=>{if(!done){done=true;peer?.destroy();rej(Error('部屋に接続できませんでした。合言葉・部屋主の接続を確認してください。'))}},18000);const fail=e=>{if(!done){done=true;clearTimeout(timer);rej(e)}};peer.on('error',fail);const connectTo=id=>{hostConn=peer.connect(id,{reliable:true,serialization:'json'});const thisConn=hostConn;hostConn.on('open',async()=>{
   try{await Promise.race([window.ArtSocial?.registerRoomIdentity?.(localId)||Promise.resolve(),new Promise(r=>setTimeout(r,3500))]);}catch{}
   if(hostConn!==thisConn||token!==sessionToken)return;
@@ -2485,14 +2522,14 @@ let migrationOut=null,migrationIn=null,aliasPeer=null,aliasTimer=null;
 const pauseHandoff=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function waitHandoff(check,ms=12000){const token=sessionToken,end=Date.now()+ms;while(!check()){if(token!==sessionToken||!room||room.ended)throw Error('部屋が終了したため引き継ぎを中止しました。');if(Date.now()>end)throw Error('部屋主の引き継ぎを確認できませんでした。接続を確認してもう一度退出してください。');await pauseHandoff(50)}}
 async function handoffHost(){if(!room||room.ended)return;window.ArtHistory?.flush();
- const target=[...members.keys()].find(id=>id!==localId&&connections.get(id)?.open);
+ const target=(preferredHandoffPeer!==localId&&connections.get(preferredHandoffPeer)?.open&&!members.get(preferredHandoffPeer)?.spectator?preferredHandoffPeer:null)||[...members.keys()].find(id=>id!==localId&&connections.get(id)?.open&&!members.get(id)?.spectator)||[...members.keys()].find(id=>id!==localId&&connections.get(id)?.open);
  if(!target){broadcast({type:'closing'});return}
  if(migrationOut)throw Error('部屋主を引き継いでいます。');
  await waitHandoff(()=>!checkpointBusy);clearInputState(true);cancelSelection();const gameBackup=window.ArtGame?.enabled()?structuredClone(window.ArtGame.exportHost()):null;const state=migrationOut={id:uid(),target,flushed:new Set(),joined:new Set(),ready:false,sealed:false};const guests=[...connections.keys()].filter(id=>members.has(id)&&connections.get(id).open);for(const [id] of viewers){sendWire(connections.get(id),{type:'closing'});setTimeout(()=>connections.get(id)?.close(),200)}viewers.clear();viewerRoster=[];viewerCount=0;
  broadcast({type:'handoffFreeze',migrationId:state.id,target});connected=false;renderControls();$('#connectionState').textContent='部屋主を引き継いでいます…';
  try{
   await waitHandoff(()=>guests.every(id=>state.flushed.has(id)));
-  state.sealed=true;window.ArtGame?.leaving();await ensureCheckpointReplica(target);sendWire(connections.get(target),{type:'handoffPrepare',migrationId:state.id,target,room,gameArchive:window.ArtGame?.exportHost(),engine:window.ArtGame?.enabled()?window.ArtGame.blankSnapshot():engine.snapshot(),members:[...members.values()].filter(m=>m.peerId!==localId),sharedPalette,chat:chat.filter(m=>!m.hostOnly)});
+  state.sealed=true;window.ArtGame?.leaving();await ensureCheckpointReplica(target);sendWire(connections.get(target),{type:'handoffPrepare',migrationId:state.id,target,room,gameArchive:window.ArtGame?.exportHost(),approvedRoomKeys:[...approvedRoomKeys.entries()],resumeKeys:[...resumeKeys.entries()],engine:window.ArtGame?.enabled()?window.ArtGame.blankSnapshot():engine.snapshot(),members:[...members.values()].filter(m=>m.peerId!==localId),sharedPalette,chat:chat.filter(m=>!m.hostOnly)});
   await waitHandoff(()=>state.ready);roomEvent(profile.name+' さんが退出しました（部屋主を引き継ぎ）');
  }catch(e){if(!room||room.ended)return;broadcast({type:'handoffCancel',migrationId:state.id,members:[...members.values()]});migrationOut=null;connected=true;if(gameBackup){window.ArtGame.importHost(gameBackup);window.ArtGame.promoted()}renderControls();$('#connectionState').textContent='部屋主として接続中';throw e}
  broadcast({type:'handoffSwitch',migrationId:state.id,target});
@@ -2525,7 +2562,7 @@ async function handleHandoff(m){
  const state=migrationIn;if(!state||state.id!==m.migrationId)return;
  if(m.type==='handoffCancel'){if(m.members)members=new Map(m.members.map(x=>[x.peerId,x]));migrationIn=null;connected=true;renderMembers();renderControls();$('#connectionState').textContent='接続中';return}
  if(m.type==='handoffPrepare'&&m.target===localId){
-  const token=sessionToken;try{if(!window.ArtGame?.enabled()||window.ArtGame?.sharedCanvas?.())await engine.restore(m.engine);if(token!==sessionToken||!room||room.ended||migrationIn!==state)return;room={...m.room};if(m.gameArchive)window.ArtGame.importHost(m.gameArchive);members=new Map(m.members.map(x=>[x.peerId,x]));sharedPalette=m.sharedPalette;chat=m.chat;locks.clear();pendingOps.clear();pendingHistory.clear();pendingLocal.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();syncLayerOpacity();state.prepared=true;sendWire(state.old,{type:'handoffReady',migrationId:state.id})}catch{toast('引き継ぎデータを読み込めませんでした。')};return
+  const token=sessionToken;try{if(!window.ArtGame?.enabled()||window.ArtGame?.sharedCanvas?.())await engine.restore(m.engine);if(token!==sessionToken||!room||room.ended||migrationIn!==state)return;room={...m.room};approvedRoomKeys.clear();for(const [k,v] of m.approvedRoomKeys||[])if(typeof k==='string'&&k.length>=25)approvedRoomKeys.set(k,v);resumeKeys.clear();for(const [id,k] of m.resumeKeys||[])if(typeof id==='string'&&typeof k==='string')resumeKeys.set(id,k);if(m.gameArchive)window.ArtGame.importHost(m.gameArchive);members=new Map(m.members.map(x=>[x.peerId,x]));sharedPalette=m.sharedPalette;chat=m.chat;locks.clear();pendingOps.clear();pendingHistory.clear();pendingLocal.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();syncLayerOpacity();state.prepared=true;sendWire(state.old,{type:'handoffReady',migrationId:state.id})}catch{toast('引き継ぎデータを読み込めませんでした。')};return
  }
  if(m.type==='handoffSwitch'){
   if(state.target===localId){
@@ -2589,7 +2626,7 @@ function checkSelectionHistory(changes){if(!selection||selection.mode==='paste')
 let sceneFrame=0;
 function scheduleSceneRender(){if(sceneFrame)return;sceneFrame=requestAnimationFrame(()=>{sceneFrame=0;if(engine){render();renderControls()}})}
 function broadcastLocks(){const q={type:'locks',locks:[...locks.values()]};handleClient(q);broadcast(q)}
-function handleClient(m){if(m.type==='closing'){if(room&&(!m.roomId||m.roomId===room.id))endRoomConnection();return}if(room?.ended)return;if(m.type==='roomModeChange'){if(!isHost&&room&&m.roomId===room.id&&Number.isInteger(m.epoch)&&m.epoch>(room.canvasEpoch||0))window.ArtRoomTools?.applyMode(m.config,m.epoch);return}if(m.type==='superseded'){if(room)room.ended=true;connected=false;clearTimeout(reconnectTimer);hostConn?.close();toast('別の接続で入室したため、この接続を終了しました');return}if(m.type==='heartbeatAck')return;if(m.type==='viewerRoster'){viewerRoster=m.viewers||[];viewerCount=m.count??viewerRoster.length;if(room)room.viewerChat=m.chatAllowed!==false;renderMembers();viewerStateUI();return}if(m.type==='viewerApproved'){localViewer=false;localViewerRequested=false;room={...room,...m.room};members.set(localId,m.member);window.ArtGame?.welcome(m.game);viewerStateUI();renderMembers();renderControls();toast('参加が承認されました！');return}if(m.type==='viewerRequestReceived'){localViewerRequested=true;viewerStateUI();return}if(m.type==='viewerRequestCancelled'){localViewerRequested=false;viewerStateUI();return}if(m.type==='viewerRequestCooldown'){localViewerRequested=false;viewerStateUI();toast('続けて申請できません。少し時間をおいてから再申請してください。');return}if(m.type==='viewerRequestDeclined'){localViewerRequested=false;viewerStateUI();toast('今回は参加が許可されませんでした。閲覧はそのまま続けられます。');return}if(m.type==='viewerRejected'){localViewerRequested=false;toast('部屋主が入室申請を拒否しました');leaveRoom();return}if(m.type==='accessSettings'){room.approvalRequired=!!m.approvalRequired;room.viewerChat=m.viewerChat!==false;viewerStateUI();renderMembers();return}if(m.type==='sessionGameSync'){if(room&&m.roomId===room.id&&m.state&&window.ArtGame?.enabled())window.ArtGame.welcome(m.state);return;}if(m.type==='leaveAck'){guestLeaveAck?.();return}if(!engine)return;if(window.ArtHistory?.receive(m))return;if(window.ArtGame?.enabled()&&m.type.startsWith('game')){window.ArtGame.receive(m);return}if(m.type==='canvasRestore'){applyCanvasRestore(m);return}if(canvasRestoring){deferredMessages.push(m);return}if(m.type.startsWith('checkpoint')){checkpointMessage(m).catch(()=>toast('スナップショットを読み書きできませんでした。'));return}if(m.type==='snapshotSettings'){room.snapshotInterval=m.interval;room.snapshotList=m.list||room.snapshotList;return}if(m.type.startsWith('handoff')){handleHandoff(m);return}if(m.type==='commit'){if(engine.ops.some(a=>a.id===m.op.id)){pendingOps.delete(m.op.id);pendingLocal.delete(m.op.id);invalidateLocalView();scheduleSceneRender();return}pendingOps.delete(m.op.id);pendingLocal.delete(m.op.id);invalidateLocalView();remoteDrafts.delete(m.op.author);incomingDrafts.delete(m.op.author);dropRemoteInk(m.op.author);engine.add(m.op);if(opacityLayer(m.op.key)>=0)syncLayerOpacity();if(m.op.kind!=='setting')room.hasArt=true;if(m.op.author===localId){/* Local settings were applied before sending; an older acknowledgement must not overwrite them. */}scheduleSceneRender();return}if(m.type==='toggle'){checkSelectionHistory([m]);pendingHistory.delete(m.id);let a=engine.ops.find(a=>a.id===m.id);if(!a)return;if(!!a.disabled===!!m.disabled){renderControls();return}a.disabled=m.disabled;if(a.author===localId){if(m.disabled){redoIds.push(a.id);if(a.kind==='setting')assignSetting(a.key,a.before)}else{redoIds=redoIds.filter(id=>id!==a.id);if(a.kind==='setting')assignSetting(a.key,a.after)}}engine.refreshToggle(a);if(opacityLayer(a.key)>=0)syncLayerOpacity();scheduleSceneRender();return}if(m.type==='compact'){compactHistory(m.cutoff);redoIds=redoIds.filter(id=>engine.ops.some(a=>a.id===id));renderControls();return}if(m.type==='roster'){members=new Map(m.members.map(x=>[x.peerId,x]));if(localViewer)members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:true,viewer:true});if(members.get(localId)?.spectator){stroke=null;if(selection)cancelSelection()}renderControls();for(const id of remoteCursors.keys())if(!members.has(id))remoteCursors.delete(id);for(const id of remoteDrafts.keys())if(!members.has(id)){remoteDrafts.delete(id);dropRemoteInk(id)}renderMembers();renderCursors();return}if(m.type==='draftEnd'){if(remoteDrafts.get(m.author)?.id===m.id){remoteDrafts.delete(m.author);dropRemoteInk(m.author);scheduleEffectPreview()}return}if(m.type==='draftPatch'){if(appendDraft(remoteDrafts,m.author,m))scheduleEffectPreview();return}if(m.type==='draft'){if(m.author===localId||engine.ops.some(a=>a.id===m.op.id))return;remoteDrafts.set(m.author,{...m.op,points:m.op.points.map(p=>p.slice()),author:m.author,received:Date.now()});scheduleEffectPreview();return}if(m.type==='cursor'){remoteCursors.set(m.author,{x:m.x,y:m.y,at:Date.now()});renderCursors();return}if(m.type==='locks'){locks=new Map(m.locks.map(l=>[l.id,l]));renderOverlay();return}if(m.type==='notice'){if(m.opId){pendingOps.delete(m.opId);pendingLocal.delete(m.opId);invalidateLocalView();render();pendingHistory.delete(m.opId)}toast(m.text);renderControls();return}if(m.type==='chatMessage'){addChat(m.message);return}if(m.type==='palette'){sharedPalette=m.colors;renderPalette();return}if(m.type==='kicked'){room.ended=true;connected=false;hostConn?.close();toast('部屋主によって退出されました');$('#connectionState').textContent='退出済み・保存できます';return}if(m.type==='galleryRequest'){sendHost({type:'galleryResponse',target:m.requester,arts:gallery.slice(0,30).map(a=>({id:a.id,name:a.name,at:a.at,thumb:a.thumb}))});return}if(m.type==='galleryResponse'){let el=$('#remoteGallery');if(el&&el.dataset.owner===m.owner)renderGallery(el,m.arts.map(a=>({...a,owner:m.owner})),false);return}if(m.type==='artRequest'){const token=sessionToken;db('art','readonly',s=>s.get(m.artId)).then(a=>{if(a&&token===sessionToken)sendHost({type:'artResponse',target:m.requester,art:a})}).catch(()=>{});return}if(m.type==='artResponse'){showArt(m.art,false);return}}
+function handleClient(m){if(m.type==='closing'){if(room&&(!m.roomId||m.roomId===room.id))endRoomConnection();return}if(room?.ended)return;if(m.type==='roomModeChange'){if(!isHost&&room&&m.roomId===room.id&&Number.isInteger(m.epoch)&&m.epoch>(room.canvasEpoch||0))window.ArtRoomTools?.applyMode(m.config,m.epoch);return}if(m.type==='superseded'){if(room)room.ended=true;connected=false;clearTimeout(reconnectTimer);hostConn?.close();toast('別の接続で入室したため、この接続を終了しました');return}if(m.type==='heartbeatAck')return;if(m.type==='viewerRoster'){viewerRoster=m.viewers||[];viewerCount=m.count??viewerRoster.length;if(room)room.viewerChat=m.chatAllowed!==false;renderMembers();viewerStateUI();return}if(m.type==='viewerApproved'){localViewer=false;localViewerRequested=false;room={...room,...m.room};members.set(localId,m.member);window.ArtGame?.welcome(m.game);viewerStateUI();renderMembers();renderControls();toast('参加が承認されました！');return}if(m.type==='viewerRequestReceived'){localViewerRequested=true;viewerStateUI();return}if(m.type==='viewerRequestFull'){localViewerRequested=false;viewerStateUI();toast('参加枠が満員です。観戦は続けられます。');return}if(m.type==='viewerRequestCancelled'){localViewerRequested=false;viewerStateUI();return}if(m.type==='viewerRequestCooldown'){localViewerRequested=false;viewerStateUI();toast('続けて申請できません。少し時間をおいてから再申請してください。');return}if(m.type==='viewerRequestDeclined'){localViewerRequested=false;viewerStateUI();toast('今回は参加が許可されませんでした。閲覧はそのまま続けられます。');return}if(m.type==='viewerRejected'){localViewerRequested=false;toast('部屋主が入室申請を拒否しました');leaveRoom();return}if(m.type==='accessSettings'){room.approvalRequired=!!m.approvalRequired;room.viewerChat=m.viewerChat!==false;room.autoJoin=m.autoJoin===true;viewerStateUI();renderMembers();return}if(m.type==='sessionGameSync'){if(room&&m.roomId===room.id&&m.state&&window.ArtGame?.enabled())window.ArtGame.welcome(m.state);return;}if(m.type==='leaveAck'){guestLeaveAck?.();return}if(!engine)return;if(window.ArtHistory?.receive(m))return;if(window.ArtGame?.enabled()&&m.type.startsWith('game')){window.ArtGame.receive(m);return}if(m.type==='canvasRestore'){applyCanvasRestore(m);return}if(canvasRestoring){deferredMessages.push(m);return}if(m.type.startsWith('checkpoint')){checkpointMessage(m).catch(()=>toast('スナップショットを読み書きできませんでした。'));return}if(m.type==='snapshotSettings'){room.snapshotInterval=m.interval;room.snapshotList=m.list||room.snapshotList;return}if(m.type.startsWith('handoff')){handleHandoff(m);return}if(m.type==='commit'){if(engine.ops.some(a=>a.id===m.op.id)){pendingOps.delete(m.op.id);pendingLocal.delete(m.op.id);invalidateLocalView();scheduleSceneRender();return}pendingOps.delete(m.op.id);pendingLocal.delete(m.op.id);invalidateLocalView();remoteDrafts.delete(m.op.author);incomingDrafts.delete(m.op.author);dropRemoteInk(m.op.author);engine.add(m.op);if(opacityLayer(m.op.key)>=0)syncLayerOpacity();if(m.op.kind!=='setting')room.hasArt=true;if(m.op.author===localId){/* Local settings were applied before sending; an older acknowledgement must not overwrite them. */}scheduleSceneRender();return}if(m.type==='toggle'){checkSelectionHistory([m]);pendingHistory.delete(m.id);let a=engine.ops.find(a=>a.id===m.id);if(!a)return;if(!!a.disabled===!!m.disabled){renderControls();return}a.disabled=m.disabled;if(a.author===localId){if(m.disabled){redoIds.push(a.id);if(a.kind==='setting')assignSetting(a.key,a.before)}else{redoIds=redoIds.filter(id=>id!==a.id);if(a.kind==='setting')assignSetting(a.key,a.after)}}engine.refreshToggle(a);if(opacityLayer(a.key)>=0)syncLayerOpacity();scheduleSceneRender();return}if(m.type==='compact'){compactHistory(m.cutoff);redoIds=redoIds.filter(id=>engine.ops.some(a=>a.id===id));renderControls();return}if(m.type==='roster'){members=new Map(m.members.map(x=>[x.peerId,x]));if(localViewer)members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:true,viewer:true});if(members.get(localId)?.spectator){stroke=null;if(selection)cancelSelection()}renderControls();for(const id of remoteCursors.keys())if(!members.has(id))remoteCursors.delete(id);for(const id of remoteDrafts.keys())if(!members.has(id)){remoteDrafts.delete(id);dropRemoteInk(id)}renderMembers();renderCursors();return}if(m.type==='draftEnd'){if(remoteDrafts.get(m.author)?.id===m.id){remoteDrafts.delete(m.author);dropRemoteInk(m.author);scheduleEffectPreview()}return}if(m.type==='draftPatch'){if(appendDraft(remoteDrafts,m.author,m))scheduleEffectPreview();return}if(m.type==='draft'){if(m.author===localId||engine.ops.some(a=>a.id===m.op.id))return;remoteDrafts.set(m.author,{...m.op,points:m.op.points.map(p=>p.slice()),author:m.author,received:Date.now()});scheduleEffectPreview();return}if(m.type==='cursor'){remoteCursors.set(m.author,{x:m.x,y:m.y,at:Date.now()});renderCursors();return}if(m.type==='locks'){locks=new Map(m.locks.map(l=>[l.id,l]));renderOverlay();return}if(m.type==='notice'){if(m.opId){pendingOps.delete(m.opId);pendingLocal.delete(m.opId);invalidateLocalView();render();pendingHistory.delete(m.opId)}toast(m.text);renderControls();return}if(m.type==='chatMessage'){addChat(m.message);return}if(m.type==='palette'){sharedPalette=m.colors;renderPalette();return}if(m.type==='kicked'){room.ended=true;connected=false;hostConn?.close();toast('部屋主によって退出されました');$('#connectionState').textContent='退出済み・保存できます';return}if(m.type==='galleryRequest'){sendHost({type:'galleryResponse',target:m.requester,arts:gallery.slice(0,30).map(a=>({id:a.id,name:a.name,at:a.at,thumb:a.thumb}))});return}if(m.type==='galleryResponse'){let el=$('#remoteGallery');if(el&&el.dataset.owner===m.owner)renderGallery(el,m.arts.map(a=>({...a,owner:m.owner})),false);return}if(m.type==='artRequest'){const token=sessionToken;db('art','readonly',s=>s.get(m.artId)).then(a=>{if(a&&token===sessionToken)sendHost({type:'artResponse',target:m.requester,art:a})}).catch(()=>{});return}if(m.type==='artResponse'){showArt(m.art,false);return}}
 
 
 /* SECTION: app/16-members.js */
@@ -2606,7 +2643,7 @@ function renderMembers(){
  if(!list.hidden){for(const v of viewerRoster){const item=document.createElement('div');item.className='member';const span=document.createElement('span');span.className='viewer-anon';span.textContent='◌ '+v.alias+' · 閲覧中';item.append(span);list.append(item)}}
  viewerStateUI();window.ArtGame?.render();if(isHost&&room?.publicRoom)window.ArtPublicRooms?.hostUpdated()
 }
-function showMember(id){let m=members.get(id);if(!m)return;modal(m.profile.name,`<div class="profile-preview"><span class="avatar">${avatar(m.profile)}</span><b style="color:${m.profile.color}">${esc(m.profile.name)}</b></div><p class="profile-bio">${esc(m.profile.bio||'自己紹介はまだありません。')}</p>${id!==localId?'<div id="roomSocialActions" class="room-social-actions"><button type="button" id="roomFriendAdd" disabled>フレンド申請</button><button type="button" id="roomBlockPerson" disabled>ブロック</button><p id="roomSocialStatus" class="muted" role="status">アカウントを確認しています…</p></div>':''}<h3>絵画展</h3><div class="gallery" id="remoteGallery" data-owner="${esc(id)}"><p class="muted">作品を読み込んでいます…</p></div>${isHost&&id!==localId?'<div class="modal-actions"><button id="spectateMember">描画・観戦を切替</button><button id="kickMember">退室させる</button></div>':''}`);if(id===localId)renderGallery($('#remoteGallery'),gallery,true);else sendHost({type:'galleryRequest',target:id});if(id!==localId)setupRoomSocialActions(id);if($('#spectateMember')&&window.ArtGame?.enabled()&&window.ArtGame.getView()?.phase!=='lobby')$('#spectateMember').hidden=true;if($('#kickMember')){$('#kickMember').onclick=()=>{if(confirm(`${m.profile.name}さんを退室させますか？`)){sendWire(connections.get(id),{type:'kicked'});setTimeout(()=>connections.get(id)?.close(),200);$('#modal').close()}};$('#spectateMember').onclick=()=>{m.spectator=!m.spectator;broadcast({type:'roster',members:[...members.values()]});renderMembers();toast(m.spectator?'観戦に切り替えました':'描画を許可しました')}}}
+function showMember(id){let m=members.get(id);if(!m)return;modal(m.profile.name,`<div class="profile-preview"><span class="avatar">${avatar(m.profile)}</span><b style="color:${m.profile.color}">${esc(m.profile.name)}</b></div><p class="profile-bio">${esc(m.profile.bio||'自己紹介はまだありません。')}</p>${id!==localId?'<div id="roomSocialActions" class="room-social-actions"><button type="button" id="roomFriendAdd" disabled>フレンド申請</button><button type="button" id="roomBlockPerson" disabled>ブロック</button><p id="roomSocialStatus" class="muted" role="status">アカウントを確認しています…</p></div>':''}<h3>絵画展</h3><div class="gallery" id="remoteGallery" data-owner="${esc(id)}"><p class="muted">作品を読み込んでいます…</p></div>${isHost&&id!==localId?'<div class="modal-actions"><button id="spectateMember">描画・観戦を切替</button><button id="kickMember">退室させる</button></div>':''}`);if(id===localId)renderGallery($('#remoteGallery'),gallery,true);else sendHost({type:'galleryRequest',target:id});if(id!==localId)setupRoomSocialActions(id);if($('#spectateMember')&&window.ArtGame?.enabled()&&window.ArtGame.getView()?.phase!=='lobby')$('#spectateMember').hidden=true;if($('#kickMember')){$('#kickMember').onclick=()=>{if(confirm(`${m.profile.name}さんを退室させますか？`)){revokeRoomKey(id);const kickedConn=connections.get(id);sendWire(kickedConn,{type:'kicked'});setTimeout(()=>{removeMember(id,'退室させられました',true);kickedConn?.close()},450);$('#modal').close()}};$('#spectateMember').onclick=()=>{m.spectator=!m.spectator;broadcast({type:'roster',members:[...members.values()]});renderMembers();toast(m.spectator?'観戦に切り替えました':'描画を許可しました')}}}
 // Verify that the PeerJS participant's advertised Firebase UID belongs to their
 // real PeerJS connection before offering friend/block controls.
 async function setupRoomSocialActions(id){
@@ -3102,7 +3139,7 @@ $('#snapshotBtn').onclick=()=>{if(!canSaveCurrentRoom()){toast('閲覧中は部�
  $('#checkpointHistory').onclick=showCheckpointHistory;$('#snapshotDownload').onclick=()=>showArt(captureArtwork($('#snapshotName').value.trim()||room.name),false);
  $('#snapshotSave').onclick=async()=>{if(!canSaveCurrentRoom()){toast('閲覧中は作品を保存できません。');return;}try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
 };
-$('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div id="roomPublicControls"></div>${isHost?`<div class="room-create-block" style="margin-top:12px"><b>入室の承認</b><label class="check"><input id="roomApprovalRequired" type="checkbox" ${room.approvalRequired?'checked':''}>入室には部屋主の許可が必要</label><label class="check"><input id="roomViewerChat" type="checkbox" ${room.viewerChat!==false?'checked':''}>閲覧者のチャットを許可する</label><small>承認待ちの閲覧者はゲーム参加人数に含めません。</small><button type="button" id="roomApprovalQueue">入室申請を確認</button></div>`:''}<div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')};window.ArtPublicRooms?.mountRoomSettings();if(isHost){const updateAccess=()=>{room.approvalRequired=$('#roomApprovalRequired').checked;room.viewerChat=$('#roomViewerChat').checked;broadcast({type:'accessSettings',approvalRequired:room.approvalRequired,viewerChat:room.viewerChat});publishViewerRoster();renderMembers();toast('入室設定を更新しました')};$('#roomApprovalRequired').onchange=updateAccess;$('#roomViewerChat').onchange=updateAccess;$('#roomApprovalQueue').onclick=showViewerRequests}};
+$('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div id="roomPublicControls"></div>${isHost?`<div class="room-create-block" style="margin-top:12px"><b>入室の承認</b><label class="check"><input id="roomApprovalRequired" type="checkbox" ${room.approvalRequired?'checked':''}>入室には部屋主の許可が必要</label><label class="check"><input id="roomViewerChat" type="checkbox" ${room.viewerChat!==false?'checked':''}>閲覧者のチャットを許可する</label><label class="check"><input id="roomAutoJoin" type="checkbox" ${sessionAutoAdmit()?'checked':''}>「参加」を押した人を自動で許可する</label><small>初めて入室した人はまず観戦です。自動参加ONなら「参加」で参加できます。一度許可した人は同じ部屋なら再入室時に許可を省略します。</small><button type="button" id="roomApprovalQueue">入室申請を確認</button><div style="margin-top:12px"><label class="form-field">退出時の部屋主引き継ぎ先<select id="roomHandoffPreferred"><option value="">自動で選ぶ</option>${[...members.values()].filter(m=>m.peerId!==localId&&!m.spectator&&!m.disconnected).map(m=>`<option value="${esc(m.peerId)}" ${m.peerId===preferredHandoffPeer?'selected':''}>${esc(m.profile.name)}</option>`).join('')}</select></label><small>部屋主が退出すると、選択した参加者を優先して引き継ぎます。接続できない場合はほかの参加者を選びます。</small></div></div>`:''}<div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')};window.ArtPublicRooms?.mountRoomSettings();if(isHost){const updateAccess=()=>{room.approvalRequired=$('#roomApprovalRequired').checked;room.viewerChat=$('#roomViewerChat').checked;room.autoJoin=$('#roomAutoJoin').checked;broadcast({type:'accessSettings',approvalRequired:room.approvalRequired,autoJoin:room.autoJoin,viewerChat:room.viewerChat});publishViewerRoster();renderMembers();toast('入室設定を更新しました')};$('#roomApprovalRequired').onchange=()=>{if($('#roomApprovalRequired').checked)$('#roomAutoJoin').checked=false;updateAccess()};$('#roomViewerChat').onchange=updateAccess;$('#roomAutoJoin').onchange=updateAccess;$('#roomApprovalQueue').onclick=showViewerRequests;$('#roomHandoffPreferred').onchange=e=>{preferredHandoffPeer=e.target.value;toast('部屋主の引き継ぎ先を設定しました');}}};
 async function finishRoomExit(save){
  if(!room)return;
  if(save&&!canSaveCurrentRoom()){
@@ -3244,24 +3281,24 @@ historyRow.addEventListener('dblclick',e=>e.preventDefault());
 /* SECTION: app/40-tool-order.js */
 function initToolSorting(){
  const list=$('#toolButtons'),box=$('.toolbox');
- const buttons=[...list.querySelectorAll('button[data-tool]')];for(const b of buttons){b.dataset.sortId=b.dataset.tool;b.classList.add('sort-item');b.title=(b.dataset.tool==='pen'?'選択中にタップでペン1→2→3。':'')+'長押しで並べ替え'}
+ const buttons=[...list.querySelectorAll('button[data-tool]')];for(const b of buttons){b.dataset.sortId=b.dataset.tool;b.classList.add('sort-item');b.title=(b.dataset.tool==='pen'?'選択中にタップでペン1→2→3。':'')+'長押しで並べ替え／横に引き出して自由配置'}
  const groups=[['palette','.palette','カラーパレット'],['settings','.tool-settings','ペン設定'],['history','.undo-row','戻る・進む'],['layers','.layer-controls','レイヤー'],['view','.view-controls','画面操作']];
  for(const[id,selector,title]of groups){const el=$(selector);el.dataset.sortId=id;el.classList.add('sort-item');const handle=document.createElement('button');handle.className='sort-handle';handle.type='button';handle.textContent='⠿ '+title;handle.title='長押しで上下に移動 · Alt＋↑↓でも移動';el.prepend(handle);list.append(el)}
  const defaults=['pen','palette','settings','eraser','warp','blur','lasso','fill','history','layers','view'];const stored=load('artopia-tool-order',defaults);const items=new Map([...list.children].map(el=>[el.dataset.sortId,el]));
  for(const id of [...new Set([...(Array.isArray(stored)?stored:defaults),...defaults])])if(items.has(id))list.append(items.get(id));
  const save=()=>persist('artopia-tool-order',[...list.children].map(el=>el.dataset.sortId));
  let hold=null,drag=null,scrolling=null,suppressUntil=0;
- function stop(cancel=false){scrolling=null;clearTimeout(hold?.timer);hold=null;if(!drag)return;const d=drag;drag=null;d.ghost.remove();d.item.classList.remove('sort-placeholder');if(cancel){for(const el of d.order)list.append(el)}else save();suppressUntil=performance.now()+450;box.classList.remove('sorting')}
- function lift(h){const r=h.item.getBoundingClientRect(),ghost=h.item.cloneNode(true);ghost.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));ghost.removeAttribute('id');ghost.classList.add('sort-ghost');ghost.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transform:scale(1.2);transform-origin:center;pointer-events:none;z-index:1000`;document.body.append(ghost);drag={...h,ghost,offset:h.y-r.top,order:[...list.children]};h.item.classList.add('sort-placeholder');box.classList.add('sorting');hold=null;try{h.item.setPointerCapture(h.id)}catch{}}
+ function stop(cancel=false,x=0,y=0){scrolling=null;clearTimeout(hold?.timer);hold=null;if(!drag)return;const d=drag;drag=null;d.ghost.remove();d.item.classList.remove('sort-placeholder');if(!cancel&&d.detach&&window.ArtFloatingTools?.detach){window.ArtFloatingTools.detach(d.item,x,y);save();}else if(cancel){for(const el of d.order)list.append(el)}else save();suppressUntil=performance.now()+450;box.classList.remove('sorting')}
+ function lift(h){const r=h.item.getBoundingClientRect(),ghost=h.item.cloneNode(true);ghost.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));ghost.removeAttribute('id');ghost.classList.add('sort-ghost');ghost.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transform:scale(1.2);transform-origin:center;pointer-events:none;z-index:1000`;document.body.append(ghost);drag={...h,ghost,offset:h.y-r.top,startLeft:r.left,detach:false,order:[...list.children]};h.item.classList.add('sort-placeholder');box.classList.add('sorting');hold=null;try{h.item.setPointerCapture(h.id)}catch{}}
  list.addEventListener('pointerdown',e=>{if(e.button!==0)return;const item=e.target.closest('[data-sort-id]');if(!item||(!e.target.closest('.sort-handle')&&!item.matches('button[data-tool]')))return;stop();const h={item,id:e.pointerId,x:e.clientX,y:e.clientY,scroll:box.scrollTop};h.timer=setTimeout(()=>lift(h),420);hold=h});
  document.addEventListener('pointermove',e=>{
   if(scrolling?.id===e.pointerId){if(e.cancelable)e.preventDefault();box.scrollTop=scrolling.scroll+scrolling.y-e.clientY;suppressUntil=performance.now()+300}
   if(hold&&e.pointerId===hold.id&&Math.hypot(e.clientX-hold.x,e.clientY-hold.y)>10){clearTimeout(hold.timer);box.scrollTop=hold.scroll+hold.y-e.clientY;scrolling=hold;hold=null;suppressUntil=performance.now()+300}
-  if(!drag||e.pointerId!==drag.id)return;if(e.cancelable)e.preventDefault();drag.ghost.style.top=(e.clientY-drag.offset)+'px';const r=box.getBoundingClientRect();if(e.clientY<r.top+36)box.scrollTop-=12;else if(e.clientY>r.bottom-36)box.scrollTop+=12;
+  if(!drag||e.pointerId!==drag.id)return;if(e.cancelable)e.preventDefault();drag.ghost.style.top=(e.clientY-drag.offset)+'px';drag.ghost.style.left=(e.clientX-drag.x+drag.startLeft)+'px';const r=box.getBoundingClientRect();drag.detach=e.clientX>r.right+42||e.clientX<r.left-62||e.clientY<r.top-55||e.clientY>r.bottom+55;drag.ghost.style.borderColor=drag.detach?'#00a5a5':'#69c5c7';if(drag.detach)return;if(e.clientY<r.top+36)box.scrollTop-=12;else if(e.clientY>r.bottom-36)box.scrollTop+=12;
   const others=[...list.children].filter(el=>el!==drag.item),target=others.find(el=>{const b=el.getBoundingClientRect();return e.clientY<b.top+b.height/2});
   if(target!==drag.item.nextElementSibling){const before=new Map(others.map(el=>[el,el.getBoundingClientRect().top]));list.insertBefore(drag.item,target||null);for(const el of others){const dy=before.get(el)-el.getBoundingClientRect().top;if(dy)el.animate?.([{transform:`translateY(${dy}px)`},{transform:'translateY(0)'}],{duration:130,easing:'ease-out'})}}
  },{passive:false});
- document.addEventListener('pointerup',e=>{if(hold?.id===e.pointerId||drag?.id===e.pointerId||scrolling?.id===e.pointerId)stop()});document.addEventListener('pointercancel',()=>stop(true));
+ document.addEventListener('pointerup',e=>{if(hold?.id===e.pointerId||drag?.id===e.pointerId||scrolling?.id===e.pointerId)stop(false,e.clientX,e.clientY)});document.addEventListener('pointercancel',()=>stop(true));
  list.addEventListener('click',e=>{if(performance.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation()}},true);
  list.addEventListener('contextmenu',e=>{if(e.target.closest('.sort-handle')||e.target.closest('button[data-tool]'))e.preventDefault()});
  list.addEventListener('keydown',e=>{if(!e.altKey||!['ArrowUp','ArrowDown'].includes(e.key))return;const item=e.target.closest('[data-sort-id]');if(!item)return;e.preventDefault();if(e.key==='ArrowUp'&&item.previousElementSibling)list.insertBefore(item,item.previousElementSibling);else if(e.key==='ArrowDown'&&item.nextElementSibling)list.insertBefore(item.nextElementSibling,item);save();e.target.focus()});
@@ -11129,6 +11166,70 @@ function icon(name,klass=''){return `<svg class="as-icon ${klass}" viewBox="0 0 
 const modeName = {free:'おえかき',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'あーとれいたー'};
 let db=null,auth=null,me=null,initialized=false,initializing=false,code='',activeView='global',activeChat=null,activeTeam=null;
 let watchers=[], globalRows=[], friendRows=[], incomingRows=[], sentRows=[], teams=[], messages=[];
+// v1.4.30: account-scoped local read markers. No extra database permissions.
+const unreadByFriend=new Map(), dmAlerts=new Map(), memorySeen=new Map();
+const seenPrefix=()=>`artopia-dm-seen-v1:${me?.uid||'guest'}:`;
+function lastSeen(uid){const key=seenPrefix()+uid;try{return localStorage.getItem(key)||memorySeen.get(key)||''}catch{return memorySeen.get(key)||''}}
+function markDMSeen(uid,key){
+ if(!me||!uid||!key)return;
+ const previous=lastSeen(uid);if(key<=previous)return;
+ memorySeen.set(seenPrefix()+uid,key);
+ try{localStorage.setItem(seenPrefix()+uid,key)}catch{}
+ paintUnreadFor(uid);updateAllAlerts();
+}
+function readDMIfVisible(uid,key){
+ if(activeView==='chats'&&activeChat===uid&&!document.getElementById('artopiaSocial')?.hidden&&document.visibilityState==='visible')markDMSeen(uid,key);
+}
+function paintUnreadFor(uid){
+ const rows=unreadByFriend.get(uid)||[];
+ const latest=lastSeen(uid);
+ dmAlerts.set(uid,rows.filter(r=>r.from!==me?.uid&&r.key>latest).length);
+}
+function unreadDMCount(){return [...dmAlerts.values()].reduce((v,n)=>v+n,0)}
+function pendingFriendCount(){return incomingRows.filter(r=>r.status==='pending'&&!hiddenBlocks.has(r.uid)).length}
+function withAlert(el,on,description){
+ if(!el)return;el.classList.toggle('art-has-alert',!!on);
+ let dot=el.querySelector(':scope > .art-alert-dot');
+ if(on){if(!dot){dot=document.createElement('span');dot.className='art-alert-dot';dot.setAttribute('aria-hidden','true');el.append(dot)}el.title=description||'新着があります'}
+ else{dot?.remove();if(el.title===description)el.removeAttribute('title')}
+}
+function updateAllAlerts(){
+ const friendCount=pendingFriendCount(),chatCount=unreadDMCount(),any=friendCount+chatCount>0;
+ withAlert(document.getElementById('openArtSocial'),any,'新しいフレンド申請・DMがあります');
+ withAlert(document.getElementById('roomHubToggle'),any,'新しいフレンド申請・DMがあります');
+ withAlert(document.querySelector('#roomHubPanel .hub-section--social > summary'),any,'新しい交流通知があります');
+ withAlert(document.querySelector('#roomHubPanel [data-hub="friends"]'),friendCount>0,'フレンド申請があります');
+ withAlert(document.querySelector('#roomHubPanel [data-hub="dms"]'),chatCount>0,'未読DMがあります');
+ withAlert(document.querySelector('[data-as-tab="friends"]'),friendCount>0,'フレンド申請があります');
+ withAlert(document.querySelector('[data-as-tab="chats"]'),chatCount>0,'未読DMがあります');
+ document.querySelectorAll('[data-as-dm],[data-as-friend]').forEach(b=>withAlert(b,(dmAlerts.get(b.dataset.asDm||b.dataset.asFriend)||0)>0,'未読DMがあります'));
+}
+// DM subscriptions stay alive while drawing, not just while the social dialog is open.
+function refreshDMAlerts(){
+ if(!db||!me)return;
+ const wanted=new Set(friendRows.slice(0,80));
+ for(const [uid,stop] of [...dmAlertListeners])if(!wanted.has(uid)){stop();dmAlertListeners.delete(uid);unreadByFriend.delete(uid);dmAlerts.delete(uid)}
+ for(const uid of wanted){
+  if(dmAlertListeners.has(uid))continue;
+  const query=ref('dm/'+rkey(me.uid,uid)).orderByKey().limitToLast(40);
+  const onValue=snapshot=>{
+   const list=[];snapshot.forEach(ch=>{const v=ch.val();if(v&&typeof v.from==='string')list.push({key:ch.key,from:v.from})});
+   unreadByFriend.set(uid,list);
+   if(list.length)readDMIfVisible(uid,list.at(-1).key);
+   paintUnreadFor(uid);updateAllAlerts();
+  };
+  const onError=e=>console.warn('[Artopia] DM通知の読み込み',e?.code||e?.message);
+  query.on('value',onValue,onError);
+  dmAlertListeners.set(uid,()=>query.off('value',onValue));
+ }
+ updateAllAlerts();
+}
+const dmAlertListeners=new Map();
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState!=='visible'||!activeChat)return;
+ const rows=unreadByFriend.get(activeChat);
+ if(rows?.length)markDMSeen(activeChat,rows.at(-1).key);
+});
 let notice='', lastPost=0, pending=false, hiddenBlocks=new Set(), canonicalName='', globalDraft='';
 let globalReadState='idle', globalReadError='', globalListener=null, initStage='認証', profileError='';
 let lastGlobalShownKey='', latestReadAt=0;
@@ -11207,7 +11308,7 @@ function paintGlobalConnection(){
  label.textContent=globalReadState==='error'?globalReadError:(messages[globalReadState]||'Firebaseに接続できていません。');
  if(globalReadState==='ready'&&profileError)label.textContent=profileError+'（閲覧は可能です）';
 }
-async function init(){
+async function init(background=false){
  if(initializing)return;initializing=true;profileError='';
  try{
   initStage='Firebase匿名認証';
@@ -11215,12 +11316,12 @@ async function init(){
   const app=window.firebase.app('artopia-public');auth=app.auth();db=app.database();me=auth.currentUser;
   if(!me)throw Error('Firebase認証が完了していません。');
   // Start reading messages before touching profile/presence records.
-  attachGlobalRead();
+  if(!background)attachGlobalRead();
   await ensureProfile();
   initStage='フレンド・チーム情報の読込';bindData();initialized=true;
-  syncGallery(true).catch(e=>say(scopedError('公開絵画展の同期',e)));
+  if(!background)syncGallery(true).catch(e=>say(scopedError('公開絵画展の同期',e)));
  }catch(e){initialized=false;profileError=scopedError(initStage,e);say(profileError);}
- finally{initializing=false;show();paintGlobalConnection()}
+ finally{initializing=false;if(!document.getElementById('artopiaSocial')?.hidden)show();paintGlobalConnection();updateAllAlerts()}
 }
 // A denied write can mean schema validation failed even when auth is valid.
 // Show a safe, user-readable explanation instead of retrying blindly.
@@ -11290,10 +11391,10 @@ async function allocateCode(){
 }
 function bindData(){
  clearWatch();
- watch(ref('requests/'+me.uid),s=>{incomingRows=Object.entries(s.val()||{}).map(([uid,v])=>({uid,...v}));refreshFriends();if(activeView==='friends')drawFriends();},'フレンド申請の読み取り');
+ watch(ref('requests/'+me.uid),s=>{incomingRows=Object.entries(s.val()||{}).map(([uid,v])=>({uid,...v}));refreshFriends();if(activeView==='friends')drawFriends();updateAllAlerts();},'フレンド申請の読み取り');
  watch(ref('sent/'+me.uid),s=>{
-  sentRows=Object.keys(s.val()||{}).map(uid=>({uid}));
-  subscribeSent();
+  sentRows=Object.keys(s.val()||{}).map(uid=>({uid,status:'loading'}));
+  subscribeSent();if(activeView==='friends')drawFriends();
  },'送信済みフレンド申請の読み取り');
  watch(ref('teamIndex/'+me.uid),s=>{teams=Object.keys(s.val()||{});if(activeView==='chats')drawChats();},'チーム一覧の読み取り');
  watch(ref('invites/'+me.uid),s=>{window.asInvites=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));if(activeView==='chats')drawChats()},'チーム招待の読み取り');
@@ -11302,13 +11403,14 @@ function bindData(){
 }
 let sentSubs=[];
 function subscribeSent(){sentSubs.forEach(off=>off());sentSubs=[];for(const o of sentRows.slice(0,120)){
- const q=ref('requests/'+o.uid+'/'+me.uid),cb=s=>{o.status=s.val()?.status||'';refreshFriends();if(activeView==='friends')drawFriends()};
+ const q=ref('requests/'+o.uid+'/'+me.uid),cb=s=>{o.status=s.val()?.status||'';refreshFriends();if(activeView==='friends')drawFriends();updateAllAlerts()};
  q.on('value',cb,e=>say(scopedError('送信したフレンド申請の確認 /artopia_social_v1/requests/'+o.uid+'/'+me.uid,e)));sentSubs.push(()=>q.off('value',cb));
 }}
 function refreshFriends(){const friends=new Set();for(const v of incomingRows)if(v.status==='accepted')friends.add(v.uid);for(const v of sentRows)if(v.status==='accepted')friends.add(v.uid);friendRows=[...friends].filter(uid=>!hiddenBlocks.has(uid));
  // Friend requests and their accepted status load asynchronously. Refresh
  // the DM directory as soon as these records arrive (without replacing an open chat).
  if(initialized&&activeView==='chats'&&!activeChat&&!activeTeam&&$('as-dms'))drawChats();
+ refreshDMAlerts();updateAllAlerts();
  for(const [uid,off] of presenceHooks){if(!friends.has(uid)){off();presenceHooks.delete(uid);friendOnline.delete(uid)}}
  if(!db)return;
  for(const uid of friendRows.slice(0,80)){if(presenceHooks.has(uid))continue;
@@ -11396,11 +11498,12 @@ function show(){let shell=$('artopiaSocial');if(!shell)return;
  const oldInput=$('as-global-input');if(oldInput)globalDraft=oldInput.value;
  shell.innerHTML=`<div class="as-panel">${socialHeader()}${tabs()}<div class="as-body" id="as-body"></div><div id="as-notice" role="status" aria-live="polite" class="as-notice">${safe(notice)}</div></div>`;
  $('as-back').onclick=close;$('as-profile').onclick=drawProfile;
- shell.querySelectorAll('[data-as-tab]').forEach(b=>b.onclick=()=>{clearDetailWatch();activeView=b.dataset.asTab;activeChat=null;clearDetailWatch();activeTeam=null;show()});
+ shell.querySelectorAll('[data-as-tab]').forEach(b=>b.onclick=()=>{clearDetailWatch();activeView=b.dataset.asTab;activeChat=null;clearDetailWatch();activeTeam=null;if(initialized&&activeView==='global'&&!globalListener)attachGlobalRead();show()});
+ updateAllAlerts();
  if(!initialized){if(activeView==='global'){drawGlobal();return;}$('as-body').innerHTML='<div class="as-connect-error"><p>Firebaseの接続を完了できませんでした。</p><p>交流機能用ルールを確認してください。</p><button type="button" id="as-retry-connect">接続を再試行</button></div>';$('as-retry-connect').onclick=()=>init();return;}
  if(activeChat){drawDM(activeChat)}else if(activeTeam){drawTeam(activeTeam)}else if(activeView==='global')drawGlobal();else if(activeView==='friends')drawFriends();else drawChats();
 }
-function open(view='global'){const s=$('artopiaSocial');if(!s)return;s.hidden=false;document.body.classList.add('as-open');activeView=['global','friends','chats'].includes(view)?view:'global';activeChat=null;activeTeam=null;if(!initialized)init();show()}
+function open(view='global'){const s=$('artopiaSocial');if(!s)return;s.hidden=false;document.body.classList.add('as-open');activeView=['global','friends','chats'].includes(view)?view:'global';activeChat=null;activeTeam=null;if(!initialized)init();else if(activeView==='global'&&!globalListener)attachGlobalRead();show()}
 function close(){const s=$('artopiaSocial');if(s)s.hidden=true;document.body.classList.remove('as-open');clearDetailWatch();}
 let detailOff=[];
 function clearDetailWatch(){detailOff.forEach(f=>f());detailOff=[];}
@@ -11538,14 +11641,20 @@ async function shareCurrentRoom(snapshot){
  say('みんなのひろばにキャンバス付きで部屋を共有しました。');
 }
 function drawFriends(){const el=$('as-body');if(!el||activeView!=='friends')return;
+ const received=incomingRows.filter(r=>r.status==='pending'&&!hiddenBlocks.has(r.uid));
+ const sending=sentRows.filter(r=>r.status==='pending'||r.status==='loading');
  el.innerHTML=`<div class="as-subhead"><b>フレンド</b><button type="button" class="as-small" id="as-add">${icon('add')} 追加する</button></div><p class="as-hint">自分のID：<strong>${safe(code||'読み込み中')}</strong> <button type="button" id="as-copy-code">${icon('copy')} コピー</button></p><div class="as-list" id="as-friends-list"></div><div class="as-list" id="as-requests-list"></div>`;
  $('as-add').onclick=drawSearch;$('as-copy-code').onclick=()=>navigator.clipboard?.writeText(code).then(()=>say('IDをコピーしました'),()=>say('コピーできませんでした。'));
  $('as-friends-list').innerHTML=friendRows.length?`<b class="as-label">フレンド ${friendRows.length}人</b>`+friendRows.map(uid=>`<button type="button" class="as-listrow" data-as-friend="${safe(uid)}">${icon('user')}<span data-as-username="${safe(uid)}">プレイヤー</span><small data-as-online="${safe(uid)}">${friendOnline.get(uid)?'オンライン':'オフライン'}</small>${icon('chat')}</button>`).join(''):'<p class="as-empty">まだフレンドがいません。IDから探してみましょう。</p>';
- el.querySelectorAll('[data-as-friend]').forEach(b=>{b.onclick=()=>{activeView='chats';activeChat=b.dataset.asFriend;show()}; nameOf(b.dataset.asFriend).then(n=>{const x=b.querySelector('[data-as-username]');if(x)x.textContent=n})});
- $('as-requests-list').innerHTML=`<b class="as-label">申請中・受信中</b>`+incomingRows.filter(r=>r.status==='pending').map(r=>`<div class="as-request"><span data-as-username="${safe(r.uid)}">プレイヤー</span><button data-as-accept="${safe(r.uid)}">承認</button><button data-as-reject="${safe(r.uid)}" class="as-quiet">拒否</button></div>`).join('')+sentRows.filter(r=>r.status==='').map(r=>`<p class="as-hint">送信済み：${safe(r.uid.slice(0,10))}…</p>`).join('');
+ el.querySelectorAll('[data-as-friend]').forEach(b=>{b.onclick=()=>{activeView='chats';activeChat=b.dataset.asFriend;show()};nameOf(b.dataset.asFriend).then(n=>{const x=b.querySelector('[data-as-username]');if(x)x.textContent=n})});
+ $('as-requests-list').innerHTML=`<b class="as-label">受け取った申請 ${received.length}件</b>`+
+ (received.length?received.map(r=>`<div class="as-request"><span data-as-username="${safe(r.uid)}">プレイヤー</span><button data-as-accept="${safe(r.uid)}">承認</button><button data-as-reject="${safe(r.uid)}" class="as-quiet">拒否</button></div>`).join(''):'<p class="as-hint">新しい申請はありません。</p>')+
+ `<b class="as-label">送信した申請（承認待ち） ${sending.length}件</b>`+
+ (sending.length?sending.map(r=>`<div class="as-request as-sent-request"><span data-as-username="${safe(r.uid)}">プレイヤー</span><small>${r.status==='loading'?'状態を確認中…':'申請中'}</small></div>`).join(''):'<p class="as-hint">承認待ちの申請はありません。</p>');
  el.querySelectorAll('[data-as-accept]').forEach(b=>b.onclick=()=>changeRequest(b.dataset.asAccept,'accepted'));
  el.querySelectorAll('[data-as-reject]').forEach(b=>b.onclick=()=>changeRequest(b.dataset.asReject,'declined'));
  el.querySelectorAll('#as-requests-list [data-as-username]').forEach(x=>nameOf(x.dataset.asUsername).then(n=>{if(x.isConnected)x.textContent=n}));
+ updateAllAlerts();
 }
 function drawSearch(){const el=$('as-body');el.innerHTML=`<div class="as-subhead"><button class="as-textbtn" id="as-fback">${icon('back')} フレンド</button></div><h3>フレンドIDを検索</h3><form class="as-composer" id="as-search-form"><input id="as-search-value" maxlength="20" placeholder="AP-XXXXXXXXX" aria-label="フレンドID"><button type="submit">検索</button></form><div id="as-search-result"></div>`;
  $('as-fback').onclick=drawFriends;$('as-search-form').onsubmit=async e=>{e.preventDefault();const k=clean($('as-search-value').value,20).toUpperCase();try{const s=await ref('codes/'+k).once('value');const uid=s.val();const result=$('as-search-result');result.replaceChildren();if(!uid){result.textContent='見つかりませんでした。';return}const n=await nameOf(uid);result.innerHTML=`<div class="as-search-user">${icon('user')}<strong>${safe(n)}</strong><button id="as-send-request">フレンド申請</button></div>`;$('as-send-request').onclick=()=>sendFriendRequest(uid)}catch(e){say(errors(e))}};
@@ -11583,6 +11692,7 @@ function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeC
  $('as-recent-rooms').innerHTML=getRecentRooms().map(x=>`<div class="as-listrow">${icon('room')}<span>${safe(x.name)}<small> · ${safe(modeName[x.mode]||x.mode)}</small></span><small>${stamp(x.at)}</small></div>`).join('')||'<p class="as-hint">最近遊んだ部屋はまだありません。</p>';
  $('as-team-new').onclick=drawCreateTeam;
  $('as-dms').innerHTML=friendRows.length?friendRows.map(uid=>`<button class="as-listrow" data-as-dm="${safe(uid)}">${icon('chat')}<span data-as-username="${safe(uid)}">DM</span></button>`).join(''):'<p class="as-empty">DMはフレンドになった相手と利用できます。</p>';
+ updateAllAlerts();
  el.querySelectorAll('[data-as-dm]').forEach(b=>{b.onclick=()=>{activeChat=b.dataset.asDm;show()};nameOf(b.dataset.asDm).then(n=>{if(b.isConnected)b.querySelector('span').textContent=n})});
  $('as-team-list').innerHTML=teams.length?teams.map(id=>`<button class="as-listrow" data-as-team="${safe(id)}">${icon('team')}<span data-as-teamname="${safe(id)}">チームを読み込み中</span></button>`).join(''):'<p class="as-empty">参加中のチームはありません。</p>';
  el.querySelectorAll('[data-as-team]').forEach(b=>{b.onclick=()=>{activeTeam=b.dataset.asTeam;show()};ref(`teams/${b.dataset.asTeam}/meta`).once('value').then(s=>{if(b.isConnected)b.querySelector('span').textContent=s.val()?.name||'チーム'})});
@@ -11689,12 +11799,12 @@ function drawDM(uid){
   thread.innerHTML=rows.map(([key,record])=>{
    const own=record.from===localUid;
    const info=outgoing.get(key);
-   const delivery=info?(info.phase==='rejected'?'送信失敗：'+(info.error||'エラー'):info.phase==='unknown'?'送信結果未確認（再送前に履歴を確認）':info.phase==='queued'?'送信待ち':info.phase==='sending'?'送信中…':info.phase==='accepted'?(incoming.has(key)?'Firebase保存済み・履歴反映済み':'Firebase保存済み・表示確認中'):'保存結果未確認'):(own?'保存済み':'受信');
-   return `<article class="as-bubble ${own?'mine':''} ${info?.phase==='rejected'?'as-dm-failed':''}" data-dm-key="${safe(key)}"><small>${own?'あなた':safe(record.name)} · ${stamp(record.at)}</small><p>${safe(record.text)}</p><small class="as-dm-delivery">${safe(delivery)}</small></article>`;
+   const delivery=info?(info.phase==='rejected'?'送信失敗：'+(info.error||'エラー'):info.phase==='unknown'?'送信結果未確認':info.phase==='queued'?'送信待ち':info.phase==='sending'?'送信中…':''):'';
+   return `<article class="as-bubble ${own?'mine':''} ${info?.phase==='rejected'?'as-dm-failed':''}" data-dm-key="${safe(key)}"><small>${own?'あなた':safe(record.name)} · ${stamp(record.at)}</small><p>${safe(record.text)}</p>${delivery?`<small class="as-dm-delivery">${safe(delivery)}</small>`:''}</article>`;
   }).join('')||'<p class="as-empty">最初のメッセージを送ってみましょう。</p>';
   const own=[...incoming.values()].filter(x=>x.from===localUid).length;
   const connection=connected===false?'オフライン':connected===true?'接続中':'接続確認中';
-  sync.textContent=`Firebase${connection}｜受信履歴${readCount}件（自分${own}件）｜${lastRead}`;
+  sync.textContent=readFailure?'接続エラー：'+readFailure:'';sync.hidden=!readFailure;
   if(atBottom)thread.scrollTop=thread.scrollHeight;
  };
  const ingest=(snapshot,label)=>{
@@ -11707,6 +11817,7 @@ function drawDM(uid){
    const pending=outgoing.get(child.key);if(pending)pending.observed=true;
   });
   readCount=cnt;latestSnapAt=Date.now();lastRead=label;readFailure='';
+  const newest=[...incoming.keys()].sort().at(-1);if(newest)readDMIfVisible(uid,newest);
   if(state.textContent==='履歴を読み込んでいます…')report('');
   render();
  };
@@ -11714,7 +11825,7 @@ function drawDM(uid){
  const onChild=s=>{
   if(!live())return;
   const item=s.val();if(!item||typeof item.text!=='string'||typeof item.from!=='string')return;
-  incoming.set(s.key,item);const pending=outgoing.get(s.key);if(pending)pending.observed=true;lastRead='新着を受信';render();
+  incoming.set(s.key,item);const pending=outgoing.get(s.key);if(pending)pending.observed=true;lastRead='新着を受信';readDMIfVisible(uid,s.key);render();
  };
  const onReadError=e=>{if(!live())return;readFailure=errors(e);lastRead='読み取りエラー';report('DM履歴の読み取りが失敗しました：'+readFailure,true);render()};
  q.on('value',onValue,onReadError);detailOff.push(()=>q.off('value',onValue));
@@ -11730,7 +11841,7 @@ function drawDM(uid){
    const snap=await deadline(typeof q.get==='function'?q.get():q.once('value'),12000,'DM履歴の再取得');
    if(live()){
     ingest(snap,'履歴を再取得');
-    if(!quiet)report('最新履歴を再取得しました（'+readCount+'件）。');
+    if(!quiet)report('');
    }
    return snap;
   }catch(e){if(live()){lastRead='履歴の再取得失敗';report('DM履歴の再取得に失敗：'+errors(e),true);render()}throw e}
@@ -11752,7 +11863,7 @@ function drawDM(uid){
      const payload={from:localUid,to:uid,name:validName,text:job.text,at:ts()};
      await deadline(job.entry.set(payload),14000,'DM送信');
      current.phase='accepted';lastError='';
-     note.textContent='Firebaseへの保存を確認しました（相手の受信は未確認）。';
+     note.textContent='';
      queue.shift();render();
      // Do not block the next outgoing message on a readback request.
      // Readback is diagnostic; the server write ACK above is the only save success criterion.
@@ -11760,8 +11871,8 @@ function drawDM(uid){
       if(!live())return;
       let found=false;snap?.forEach?.(child=>{if(child.key===job.key)found=true});
       if(!found&&!incoming.has(job.key)){
-       note.textContent='Firebaseが書き込みを受け付けましたが、最新履歴に見つかりません。履歴の再取得で確認してください。';
-       report('履歴照合：送信ID '+shortKey(job.key)+' が最新60件にありません。',true);
+       /* history may be out of window */
+       /* A successful commit is enough; no normal-status diagnostic banner. */
       }
      }).catch(()=>{});
     }catch(e){
@@ -11914,9 +12025,12 @@ function installUI(){
    return 'フレンド申請を送りました。';
  }
  const authUid=()=>me?.uid||firebaseSession()?.auth.currentUser?.uid||'';
- window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,syncGallery,recordRoom,registerRoomIdentity,roomContactStatus,roomContactAction,ready:()=>!!db,authUid,currentFriendCode:()=>code};
+ window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,syncGallery,recordRoom,registerRoomIdentity,roomContactStatus,roomContactAction,updateAlerts:updateAllAlerts,ready:()=>!!db,authUid,currentFriendCode:()=>code};
 }
 installUI();
+// Start friend-request/DM notifications even if the player never opens Social.
+// Avoid downloading the public/global chat timeline just for notification dots.
+if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)void init(true);},900);
 })();
 
 </script>
@@ -11981,27 +12095,43 @@ installUI();
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function isRoom(){return !$('studio').hidden&&!!window.ArtRoomMenuInfo?.()}
  function closeHub(){panel.hidden=true;backdrop.hidden=true;toggle.setAttribute('aria-expanded','false');if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});}
- function row(action,label,end='›',extra='') {return `<button type="button" class="hub-entry ${extra}" data-hub="${action}"><span>${label}</span><span class="hub-end">${end}</span></button>`;}
+ const lineArt={
+  audio:'<path d="M4 10h4l5-4v12l-5-4H4z"/><path d="M16 9c2 2 2 4 0 6M19 6c4 4 4 8 0 12"/>',
+  chat:'<path d="M5 5h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H9l-5 3v-4a3 3 0 0 1-2-3V8a3 3 0 0 1 3-3Z"/><circle cx="9" cy="12" r=".7"/><circle cx="13" cy="12" r=".7"/><circle cx="17" cy="12" r=".7"/>',
+  settings:'<path d="M10 2h4l1 3 2 1 3-1 2 4-2 2v2l2 2-2 4-3-1-2 1-1 3h-4l-1-3-2-1-3 1-2-4 2-2v-2L2 9l2-4 3 1 2-1z"/><circle cx="12" cy="12" r="3"/>',
+  key:'<circle cx="16" cy="8" r="5"/><path d="M12 12 3 21h4l2-2h3l2-3"/>',
+  copy:'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+  bgm:'<path d="M4 14V7a8 8 0 0 1 16 0v7"/><rect x="2" y="12" width="4" height="8" rx="2"/><rect x="18" y="12" width="4" height="8" rx="2"/><path d="M10 11v6m0 0c-4-1-4 3 0 2m0-8 4-1v6m0 0c-4-1-4 3 0 2"/>',
+  effect:'<path d="M5 16V9a7 7 0 0 1 14 0v7l2 2H3z"/><path d="M10 21h4M19 3l2-1"/>',
+  volume:'<path d="M3 10h4l5-4v12l-5-4H3zM16 9c2 2 2 4 0 6"/><path d="M5 22h16"/><circle cx="14" cy="22" r="1"/>',
+  people:'<circle cx="12" cy="7" r="3"/><path d="M6 20v-3c0-4 2-6 6-6s6 2 6 6v3M4 11c-2 1-3 3-3 6m19-6c2 1 3 3 3 6"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-6 5-6 13 0 18M12 3c6 5 6 13 0 18"/>',
+  friend:'<circle cx="10" cy="8" r="4"/><path d="M3 21c0-5 3-7 7-7s7 2 7 7M19 15v7m-3-3h6"/>',
+  dm:'<path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3v-5a2 2 0 0 1-1-2V7a2 2 0 0 1 2-2Z"/><circle cx="8" cy="12" r=".7"/><circle cx="12" cy="12" r=".7"/><circle cx="16" cy="12" r=".7"/>',
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="5" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8 11 7-5M8 13l7 5"/>'
+ };
+ function hubIcon(name){return `<svg class="hub-line-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${lineArt[name]||''}</svg>`}
+ function row(action,label,end='›',extra='',symbol='') {return `<button type="button" class="hub-entry ${extra}" data-hub="${action}"><span class="hub-label">${hubIcon(symbol)}${label}</span><span class="hub-end">${end}</span></button>`;}
  function openHub(){
   if(!isRoom())return;
   returnFocus=document.activeElement;
   const info=window.ArtRoomMenuInfo(),sound=window.ArtSound?.getSettings?.()||{muted:false,volume:1};
   panel.innerHTML=`<div class="hub-head"><strong>☰ メニュー</strong><button id="hubClose" type="button" aria-label="メニューを閉じる">×</button></div>
   <div class="hub-body">
-   <details class="hub-section" open><summary>♫ 音</summary>
-    <div class="hub-entry"><span>BGM</span><small style="color:#86989c">現在未使用</small></div>
-    <label class="hub-entry"><span>効果音</span><input id="hubSfxOn" type="checkbox" ${!sound.muted?'checked':''} aria-label="効果音を鳴らす"></label>
-    <div class="hub-volume"><label for="hubSoundVol">音量 <output id="hubVolumeOut">${Math.round(sound.volume*100)}%</output></label><input id="hubSoundVol" type="range" min="0" max="100" value="${Math.round(sound.volume*100)}" aria-label="効果音の音量"></div>
+   <details class="hub-section" open><summary><span class="hub-label">${hubIcon('audio')}音</span></summary>
+    <div class="hub-entry"><span class="hub-label">${hubIcon('bgm')}BGM</span><small style="color:#86989c">現在未使用</small></div>
+    <label class="hub-entry"><span class="hub-label">${hubIcon('effect')}効果音</span><input id="hubSfxOn" type="checkbox" ${!sound.muted?'checked':''} aria-label="効果音を鳴らす"></label>
+    <div class="hub-volume"><label for="hubSoundVol" class="hub-label">${hubIcon('volume')}音量 <output id="hubVolumeOut">${Math.round(sound.volume*100)}%</output></label><input id="hubSoundVol" type="range" min="0" max="100" value="${Math.round(sound.volume*100)}" aria-label="効果音の音量"></div>
    </details>
-   <details class="hub-section" open><summary>♧ 交流</summary>
-    ${row('room-chat','◉ ルーム交流')}
-    ${row('global','◎ グローバルチャット')}
-    ${row('friends','♙ フレンド')}
-    ${row('dms','▣ フレンドチャット')}
-    ${row('share','♧ 共有','›','hub-entry--share')}
+   <details class="hub-section hub-section--social" open><summary><span class="hub-label">${hubIcon('chat')}交流</span></summary>
+    ${row('room-chat','ルーム交流','›','','people')}
+    ${row('global','グローバルチャット','›','','globe')}
+    ${row('friends','フレンド','›','','friend')}
+    ${row('dms','フレンドチャット','›','','dm')}
+    ${row('share','共有','›','hub-entry--share','share')}
    </details>
-   <div class="hub-shortcut">${row('settings','⚙ 部屋設定')}</div>
-   <div class="hub-shortcut">${row('code','⚿ 合言葉 <span class="hub-code">'+esc(info.code)+'</span>','›')}${row('copy-code','合言葉をコピー','⧉')}</div>
+   <div class="hub-shortcut">${row('settings','部屋設定','›','','settings')}</div>
+   <div class="hub-shortcut">${row('code','合言葉 <span class="hub-code">'+esc(info.code)+'</span>','›','','key')}${row('copy-code','合言葉をコピー','›','','copy')}</div>
    <p class="hub-caption">交流画面を閉じると、この描画画面に戻れます。共有は公開ルームの部屋主のみ利用できます。</p>
   </div>`;
   panel.hidden=false;backdrop.hidden=false;toggle.setAttribute('aria-expanded','true');
@@ -12009,6 +12139,7 @@ installUI();
   $('hubSfxOn').onchange=e=>window.ArtSound?.updateSettings?.({muted:!e.target.checked});
   $('hubSoundVol').oninput=e=>{const v=Number(e.target.value);$('hubVolumeOut').textContent=v+'%';window.ArtSound?.updateSettings?.({volume:v/100});};
   panel.querySelectorAll('[data-hub]').forEach(b=>b.onclick=()=>navigate(b.dataset.hub));
+  window.ArtSocial?.updateAlerts?.();
   $('hubClose').focus({preventScroll:true});
  }
  function navigate(action){
@@ -12060,6 +12191,87 @@ installUI();
  window.ArtRoomHub={confirmShare:openShare,open:openHub,close:closeHub,notice};
 })();
 </script>
+<script data-category="room-tools-v1.4.28.js">
+(()=>{
+'use strict';
+const studio=document.getElementById('studio'),dock=document.querySelector('.toolbox'),list=document.getElementById('toolButtons');
+if(!studio||!dock||!list)return;
+const storageKey='artopia-floating-tools-v1';
+let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{}}catch{}
+const floating=new Map();
+const save=()=>{try{localStorage.setItem(storageKey,JSON.stringify(Object.fromEntries([...floating].map(([id,f])=>[id,{x:parseFloat(f.style.left)||0,y:parseFloat(f.style.top)||0}]))))}catch{}};
+const bound=(v,a,b)=>Math.min(Math.max(v,a),Math.max(a,b));
+const nearDock=(x,y)=>{const r=dock.getBoundingClientRect();return x>=r.left-30&&x<=r.right+32&&y>=r.top-35&&y<=r.bottom+35};
+function attach(id,item,x,y){
+ if(!item||floating.has(id))return;
+ const wrap=document.createElement('div');wrap.className='art-floating-tool';wrap.dataset.floatId=id;
+ const bar=document.createElement('div');bar.className='art-float-handle';bar.setAttribute('role','toolbar');
+ const label=document.createElement('span');label.textContent='⠿ 移動 · '+(item.querySelector('.sort-handle')?.textContent||item.textContent||id).replace(/^⠿\s*/, '').trim().slice(0,17);
+ const ret=document.createElement('button');ret.type='button';ret.title='左のツール欄に戻す';ret.setAttribute('aria-label','ツール欄に戻す');ret.textContent='↩';ret.onclick=()=>dockBack(id);
+ bar.append(label,ret);wrap.append(bar,item);studio.append(wrap);floating.set(id,wrap);
+ position(wrap,x,y);save();
+ let pointer=null,hold=null,drag=false;
+ bar.addEventListener('pointerdown',e=>{
+  if(e.button!==0||e.target.closest('button'))return;
+  pointer={id:e.pointerId,x:e.clientX,y:e.clientY,left:parseFloat(wrap.style.left),top:parseFloat(wrap.style.top)};
+  hold=setTimeout(()=>{if(pointer){drag=true;bar.setPointerCapture(pointer.id);bar.style.cursor='grabbing'}},280);
+ });
+ bar.addEventListener('pointermove',e=>{
+  if(!pointer||e.pointerId!==pointer.id)return;
+  if(!drag&&Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>9){clearTimeout(hold);pointer=null;return}
+  if(!drag)return;
+  e.preventDefault();position(wrap,pointer.left+e.clientX-pointer.x,pointer.top+e.clientY-pointer.y);
+  wrap.classList.toggle('art-near-dock',nearDock(e.clientX,e.clientY));dock.classList.toggle('art-dock-highlight',nearDock(e.clientX,e.clientY));
+ });
+ const finish=e=>{if(!pointer||e.pointerId!==pointer.id)return;clearTimeout(hold);const dockIt=drag&&nearDock(e.clientX,e.clientY);pointer=null;drag=false;bar.style.cursor='grab';dock.classList.remove('art-dock-highlight');wrap.classList.remove('art-near-dock');if(dockIt)dockBack(id,e.clientY);else save()};
+ bar.addEventListener('pointerup',finish);bar.addEventListener('pointercancel',()=>{clearTimeout(hold);pointer=null;drag=false;dock.classList.remove('art-dock-highlight')});
+}
+function position(wrap,x,y){const width=wrap.getBoundingClientRect().width||180;wrap.style.left=bound(x,0,window.innerWidth-width-4)+'px';wrap.style.top=bound(y,0,window.innerHeight-52)+'px';}
+function dockBack(id,y){const wrap=floating.get(id);if(!wrap)return;const el=wrap.querySelector('[data-sort-id]');if(!el)return;const others=[...list.children];const target=Number.isFinite(y)?others.find(t=>{const r=t.getBoundingClientRect();return y<r.top+r.height/2}):null;list.insertBefore(el,target||null);wrap.remove();floating.delete(id);save();try{localStorage.setItem('artopia-tool-order',JSON.stringify([...list.children].map(el=>el.dataset.sortId)))}catch{}}
+window.ArtFloatingTools={detach:(item,x,y)=>{const id=item?.dataset?.sortId;if(!id)return;attach(id,item,x-50,y-10)},dock:dockBack,count:()=>floating.size};
+for(const [id,positionValue] of Object.entries(saved)){
+ const item=[...list.children].find(el=>el.dataset.sortId===id);
+ if(item&&typeof positionValue?.x==='number'&&typeof positionValue?.y==='number')attach(id,item,positionValue.x,positionValue.y);
+}
+window.addEventListener('resize',()=>{for(const el of floating.values())position(el,parseFloat(el.style.left)||0,parseFloat(el.style.top)||0)});
+// One-tap copy available directly in room chat and DM / global chat (long-press to select text also supported).
+const notify=msg=>{const to=document.getElementById('toast');if(to){to.textContent=msg;to.classList.add('show');setTimeout(()=>to.classList.remove('show'),2100)}};
+const copy=async value=>{try{await navigator.clipboard.writeText(value);notify('文章をコピーしました')}catch{window.prompt('文章をコピー',value)}};
+function decorateChat(container){
+ if(!container||!container.isConnected)return;
+ const rows=container.matches?.('.as-bubble,.as-message,.recent-comment-row,.chat-entry')?[container]:[...container.querySelectorAll('.as-bubble,.as-message,.recent-comment-row,.chat-entry')];
+ for(const row of rows){if(row.querySelector('.art-copy-action'))continue;
+  const text=row.matches('.recent-comment-row')?row.querySelector('span')?.textContent:row.matches('.chat-entry')?row.querySelector('div')?.textContent:row.matches('.as-message')?row.querySelector('.as-message-content p')?.textContent:row.querySelector('p')?.textContent;
+  if(!text)continue;
+  const btn=document.createElement('button');btn.type='button';btn.className='art-copy-action';btn.textContent='コピー';btn.title='このメッセージをコピー';btn.onclick=e=>{e.preventDefault();e.stopPropagation();void copy(text)};
+  (row.matches('.as-message')?row.querySelector('.as-message-top'):row.querySelector('small')||row.querySelector('header')||row).append(btn);
+ }
+}
+const observer=new MutationObserver(records=>{for(const record of records){for(const node of record.addedNodes){if(node.nodeType===1){decorateChat(node)}}}});
+for(const parent of [document.getElementById('artopiaSocial'),document.getElementById('recentComment'),document.getElementById('modal')])if(parent)observer.observe(parent,{subtree:true,childList:true});
+for(const node of document.querySelectorAll('.as-thread,.recent-comment-row,.chat-entry'))decorateChat(node);
+})();
+</script>
+
+<style id="artopia-outline-alerts-1430">
+/* Flat black outline icons matching the game-mode selection. */
+#roomHubPanel .hub-label{display:inline-flex;align-items:center;gap:11px;min-width:0}
+#roomHubPanel .hub-line-icon{display:block;width:21px;height:21px;min-width:21px;color:#111;stroke:#111;fill:none;flex:none}
+#roomHubPanel .hub-volume .hub-label{display:flex}
+#roomHubPanel .hub-volume output{margin-left:auto;font-variant-numeric:tabular-nums}
+#roomHubPanel .hub-entry--share{color:#273b42;background:#f4faf8}
+#roomHubPanel .hub-section>summary{color:#26383c}
+/* Alerts intentionally appear only for requests and direct messages. */
+#openArtSocial,#roomHubToggle,#roomHubPanel .hub-entry,#roomHubPanel .hub-section>summary,#artopiaSocial .as-tabs button,#artopiaSocial .as-listrow{position:relative}
+.art-alert-dot{position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:50%;background:#ee3b47;border:2px solid #fff;box-shadow:0 0 0 1px #ce3140;pointer-events:none;z-index:6}
+#roomHubPanel .hub-section>summary>.art-alert-dot{top:7px;right:37px}
+#roomHubPanel .hub-entry>.art-alert-dot{top:11px;right:28px}
+#artopiaSocial .as-tabs button>.art-alert-dot{right:10px;top:5px}
+#artopiaSocial .as-listrow>.art-alert-dot{right:7px;top:7px}
+#artopiaSocial .as-sent-request{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#artopiaSocial .as-sent-request small{font-size:12px;white-space:nowrap;color:#477f80}
+#artopiaSocial #as-requests-list>.as-label{display:block;margin-top:15px}
+</style>
 </body></html>
 
 <style>
@@ -12067,3 +12279,5 @@ installUI();
 .shadow-mode #shadowSkillInfo{left:auto!important;right:12px!important;bottom:14px!important;transform:none!important;width:134px!important;max-width:134px!important;min-height:46px!important;z-index:30!important}
 @media(max-width:720px){.shadow-mode #shadowSkillInfo{left:auto!important;right:8px!important;bottom:8px!important;width:106px!important;max-width:106px!important}}
 </style>
+
+<!-- Artopia 1.4.29: drawing/wolf/answer game-mode icons use black strokes. Menu icon samples are not yet installed. -->
