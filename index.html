@@ -1366,11 +1366,34 @@ dialog:has(#publicGalleryModal){width:min(1080px,96vw)}
 @media(max-width:700px){.home-hero{grid-template-columns:minmax(0,1fr);gap:12px}.hero-gallery-card{min-height:190px}.hero-gallery-preview{max-height:200px}.gallery-large{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.gallery-privacy-row{grid-template-columns:42px minmax(0,1fr);gap:6px}.gallery-privacy-row img{width:42px}.gallery-privacy-row select{grid-column:2}}
 </style>
+<style id="artopia-1433-gallery-friends">
+/* Artwork detail, not a separate per-thumbnail settings button. */
+#artDetailVisibility{margin:14px 0;padding:14px;border:1px solid #d6e8e4;border-radius:12px;background:#f8fcfb;display:flex;flex-direction:column;gap:7px}
+#artDetailVisibility label{font-size:14px;font-weight:750}
+#artDetailVisibility select{width:100%;min-height:40px}
+#artDetailVisibility small,#artDetailVisibility p{font-size:12px;color:#688188;margin:0;line-height:1.55}
+#artDetailVisibility p:empty{display:none}
+/* Social list avatars reuse open-chat profile images without emoji. */
+#artopiaSocial .as-inline-avatar{display:inline-flex;align-items:center;justify-content:center;flex:0 0 38px;width:38px;height:38px;overflow:hidden;border-radius:50%;background:#e2f4f1;border:1px solid #cfe7e3;color:#28777a}
+#artopiaSocial .as-inline-avatar img{width:100%;height:100%;object-fit:cover}
+#artopiaSocial .as-inline-avatar .as-icon{width:22px;height:22px}
+#artopiaSocial .as-inline-avatar .as-avatar-initial{font-size:16px}
+#artopiaSocial .as-listrow>.as-inline-avatar{flex:0 0 38px}
+#artopiaSocial .as-listrow [data-as-username]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#artopiaSocial .as-request>.as-inline-avatar{flex:0 0 34px;width:34px;height:34px}
+#artopiaSocial .as-dm-partner{display:flex;align-items:center;gap:10px}
+#artopiaSocial .as-dm-partner h3{margin:0}
+#artopiaSocial .as-bubble-author{display:flex;align-items:center;gap:6px}
+#artopiaSocial .as-bubble-author>.as-inline-avatar{width:22px;height:22px;flex:0 0 22px}
+#artopiaSocial .as-bubble-author .as-avatar-initial{font-size:11px}
+#artopiaSocial .as-bubble-author .as-icon{width:14px;height:14px}
+@media(max-width:550px){#artopiaSocial .as-request{gap:6px}#artopiaSocial .as-inline-avatar{width:32px;height:32px;flex-basis:32px}}
+</style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.4.32 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・公開範囲を設定</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.4.33 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
-    <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
+    <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button></div>
   </div>
   <p id="publicRoomsStatus" role="status" class="public-rooms-status">接続の準備中…</p>
   <div id="publicRoomsGrid" class="public-rooms-grid" aria-live="polite"><div class="public-room-empty">公開ルームを読み込んでいます…</div></div>
@@ -2115,6 +2138,23 @@ function validProfile(p){
 }
 window.ArtGalleryGetVisibility=id=>db('art','readonly',store=>store.get(id));
 window.ArtGallerySetVisibility=(id,a)=>db('art','readwrite',store=>store.put(a));
+// IndexedDB helpers are exposed explicitly: the Social module's `db` is Firebase,
+// not the local art store. Keep gallery privacy writes in the correct database.
+window.ArtGallerySetAllVisibility=visibility=>db('art','readwrite',store=>{
+ const cursor=store.openCursor();cursor.onsuccess=()=>{
+  const c=cursor.result;if(!c)return;
+  const art=c.value;art.visibility=visibility;c.update(art);c.continue();
+ };return cursor;
+});
+window.ArtGalleryRestoreVisibility=previous=>db('art','readwrite',store=>{
+ const cursor=store.openCursor();cursor.onsuccess=()=>{
+  const c=cursor.result;if(!c)return;
+  if(Object.prototype.hasOwnProperty.call(previous,c.key)){
+   const art=c.value,old=previous[c.key];if(old===null)delete art.visibility;else art.visibility=old;
+   c.update(art);
+  }c.continue();
+ };return cursor;
+});
 window.updateHomeGallery=()=>updateHome();
 function updateHome(){$('#homeName').textContent=profile.name||'名前を設定';$('#homeName').style.color=profile.color;$('#homeAvatar').innerHTML=avatar(profile);renderGallery($('#homeGallery'),gallery,true);const hero=$('#heroGalleryPreview');if(hero){const a=gallery[0];hero.innerHTML=a?.thumb?`<img src="${esc(a.thumb)}" alt="${esc(a.name)}"><span class="hero-gallery-title">${esc(a.name)}</span>`:'<span class="hero-gallery-empty">あなたの作品を飾ろう</span>'}}
 
@@ -2125,12 +2165,38 @@ async function db(store,mode,fn){let d=await dbReady;return new Promise((res,rej
 
 
 /* SECTION: app/04-gallery.js */
+// One-time migration from v1.4.32: the old global mode overrode per-art values.
+// Preserve exactly what was visible before upgrading, then individual overrides work.
+async function migrateLegacyGalleryPrivacy(){
+ const key='artopia-gallery-privacy-migrated-1433';
+ try{if(localStorage.getItem(key)==='1')return;}catch{return;}
+ const old=(()=>{try{return localStorage.getItem('artopia-gallery-visibility-v2')}catch{return null}})();
+ if(['public','friends','private'].includes(old)){
+  await db('art','readwrite',store=>{
+   const cursor=store.openCursor();cursor.onsuccess=()=>{
+    const c=cursor.result;if(!c)return;
+    const record=c.value;record.visibility=old;c.update(record);c.continue();
+   };return cursor;
+  });
+ }
+ // 'custom' already stored each artwork's preference and had private fallback.
+ try{if(old==='custom')localStorage.setItem('artopia-gallery-visibility-v2','private');localStorage.setItem(key,'1')}catch{}
+}
 async function refreshGallery(){try{
  await pruneRecoveryGallery();
+ await migrateLegacyGalleryPrivacy();
  const d=await dbReady;gallery=await new Promise((res,rej)=>{const tx=d.transaction('art','readonly'),q=tx.objectStore('art').openCursor(),rows=[];q.onsuccess=()=>{const cur=q.result;if(!cur)return;const a=cur.value;rows.push({id:a.id,name:a.name,at:a.at,w:a.w,h:a.h,thumb:a.thumb,format:a.format,visibility:a.visibility});cur.continue()};tx.oncomplete=()=>res(rows.sort((a,b)=>b.at-a.at));tx.onerror=tx.onabort=()=>rej(tx.error||Error('保存処理が中断されました。'))});updateHome();window.ArtSocial?.syncGallery?.().catch(e=>console.warn('公開絵画展プレビュー更新に失敗',e));
  }catch{toast('このブラウザで作品の保存が利用できません')}}
 async function openSavedArt(id){try{const art=await db('art','readonly',s=>s.get(id));if(art)showArt(art);else toast('作品が見つかりません')}catch{toast('作品を読み込めませんでした')}}
-function renderGallery(el,arts,own=false){el.innerHTML=arts.length?'':'<div class="empty-gallery">まだ作品がありません。<br>キャンバスの「保存」から、一枚目を飾りましょう。</div>';for(const a of arts){let b=document.createElement('button');b.className='art-card';b.innerHTML=`<img alt="${esc(a.name)}" src="${esc(a.thumb||a.image)}"><span>${esc(a.name)}</span>`;b.onclick=()=>own?openSavedArt(a.id):requestArt(a);if(own){const wrap=document.createElement('div');wrap.className='art-gallery-item';wrap.append(b);const p=document.createElement('button');p.type='button';p.className='gallery-privacy-button';p.textContent='公開範囲：'+(window.ArtSocial?.galleryItemLabel?.(a)||'非公開');p.onclick=()=>window.ArtSocial?.openGallerySettings?.(a.id);wrap.append(p);el.append(wrap)}else el.append(b)}}
+function renderGallery(el,arts,own=false){
+ el.innerHTML=arts.length?'':'<div class="empty-gallery">まだ作品がありません。キャンバスの「保存」から、一枚目を飾りましょう。</div>';
+ for(const a of arts){
+  const card=document.createElement('button');card.type='button';card.className='art-card';
+  card.innerHTML=`<img alt="${esc(a.name)}" src="${esc(a.thumb||a.image)}"><span>${esc(a.name)}</span>`;
+  card.onclick=()=>own?openSavedArt(a.id):requestArt(a);
+  el.append(card);
+ }
+}
 function download(url,name){
  let blob=null;try{if(url.startsWith('data:')){const comma=url.indexOf(','),header=url.slice(0,comma),raw=header.includes(';base64')?atob(url.slice(comma+1)):decodeURIComponent(url.slice(comma+1)),bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));blob=new Blob([bytes],{type:header.slice(5).split(';')[0]||'application/octet-stream'})}}catch{}
  const image=blob?.type.startsWith('image/')||/\.png$/i.test(name),link=blob?URL.createObjectURL(blob):url;
@@ -2147,9 +2213,32 @@ function bindLayerDownloads(art){document.querySelectorAll('[data-download-layer
 
 async function saveGamePicture(image,name,toGallery=false){let c,thumb;try{const im=await E.image(image);c=E.make(im.width,im.height);c.getContext('2d').drawImage(im,0,0);const png=c.toDataURL('image/png');if(!toGallery){download(png,name+'.png');return}thumb=E.make(240,Math.max(1,Math.round(im.height*240/im.width)));thumb.getContext('2d').drawImage(im,0,0,thumb.width,thumb.height);await db('art','readwrite',store=>store.put({id:uid(),format:2,name,at:Date.now(),w:im.width,h:im.height,image:png,thumb:thumb.toDataURL('image/webp',.8)}));await refreshGallery();toast('1枚の絵として絵画展に保存しました')}catch{toast('画像を保存できませんでした。もう一度お試しください。')}finally{if(c)c.width=c.height=0;if(thumb)thumb.width=thumb.height=0}}
 function showGamePicture(image,name){modal(name,'<img class="art-view" src="'+esc(image)+'" alt="作品"><div class="modal-actions"><button id="gamePicturePNG">PNG保存</button><button id="gamePictureGallery">絵画展に保存</button></div>');$('#gamePicturePNG').onclick=()=>saveGamePicture(image,name);$('#gamePictureGallery').onclick=async function(){this.disabled=true;try{await saveGamePicture(image,name,true)}finally{this.disabled=false}}}
-function showArt(a,own=true){if(a.format==='arts-character'&&own){window.ArtArts.showCharacter(a);return}if(a.format==='relay-album'){window.ArtGame.showAlbum(a,own);return}
+// The gallery detail has its own privacy control alongside saving/downloading.
+// Works for regular images, albums, and character detail modals.
+function attachArtPrivacyControl(art){
+ const root=document.querySelector('#modal .modal-inner');if(!root||!art?.id)return;
+ root.querySelector('#artDetailVisibility')?.remove();
+ const section=document.createElement('section');section.id='artDetailVisibility';section.className='art-detail-privacy';
+ section.innerHTML=`<label for="artDetailVisibilitySelect">この作品の公開範囲</label><select id="artDetailVisibilitySelect" aria-label="この作品の公開範囲"><option value="public">全員に公開</option><option value="friends">フレンドだけ</option><option value="private">非公開</option></select><small>変更すると、この作品だけの公開設定が変わります。</small><p id="artDetailVisibilityStatus" role="status" aria-live="polite"></p>`;
+ const actions=root.querySelector('.modal-actions');if(actions)actions.before(section);else root.append(section);
+ const select=section.querySelector('select'),status=section.querySelector('p');
+ const mode=window.ArtSocial?.galleryItemVisibility?.(art)||art.visibility||'private';
+ select.value=['public','friends','private'].includes(mode)?mode:'private';
+ select.onchange=async()=>{
+  const previous=window.ArtSocial?.galleryItemVisibility?.(art)||art.visibility||'private';
+  select.disabled=true;status.textContent='公開範囲を更新しています…';
+  try{
+   if(!window.ArtSocial?.setArtVisibility)throw Error('交流機能に接続してから設定してください。');
+   await window.ArtSocial.setArtVisibility(art.id,select.value);
+   art.visibility=select.value;status.textContent='この作品の公開範囲を変更しました。';
+   window.updateHomeGallery?.();
+  }catch(e){select.value=previous;status.textContent='変更できませんでした：'+(e?.message||String(e))}
+  finally{select.disabled=false;}
+ };
+}
+function showArt(a,own=true){if(a.format==='arts-character'&&own){window.ArtArts.showCharacter(a);attachArtPrivacyControl(a);return}if(a.format==='relay-album'){window.ArtGame.showAlbum(a,own);if(own)attachArtPrivacyControl(a);return}
  modal(a.name,`<img class="art-view" src="${esc(a.image)}" alt="${esc(a.name)}"><p class="muted">${new Date(a.at).toLocaleString('ja-JP')} · ${a.layers?.length===3?'3レイヤー保存済み':'1枚画像'}</p>${layerDownloadButtons(a)}<div class="modal-actions"><button id="downloadArt">全体 PNG</button>${own?'<button id="deleteArt">削除</button><button id="useArt" class="primary">この絵で部屋作成</button>':''}</div>`);
- bindLayerDownloads(a);$('#downloadArt').onclick=()=>download(a.image,`${a.name}.png`);
+ bindLayerDownloads(a);$('#downloadArt').onclick=()=>download(a.image,`${a.name}.png`);if(own)attachArtPrivacyControl(a);
  if(own){$('#deleteArt').onclick=async()=>{if(!confirm('この作品を絵画展から削除しますか？'))return;await db('art','readwrite',s=>s.delete(a.id));$('#modal').close();refreshGallery()};$('#useArt').onclick=()=>{activeArt=a.id;showCreate()}}
 }
 function captureArtwork(name,id){if(window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())throw Error('ゲーム中は作品の個別保存を利用できません。');
@@ -10998,7 +11087,7 @@ window.ArtRoomTools=(()=>{
   }
   function openGallery(){
     if(typeof window.modal!=='function' && typeof modal!=='function')return;
-    modal('あなたの絵画展','<p class="muted">ここに保存した作品は端末内に保管されます。交流プロフィールに見せる範囲は作品ごとに変更できます。</p><div class="modal-actions"><button type="button" id="publicGalleryPrivacy" class="primary">公開範囲を設定</button><button type="button" id="publicGalleryImport">画像を読み込む</button></div><div id="publicGalleryModal" class="gallery gallery-large"></div>');
+    modal('あなたの絵画展','<p class="muted">保存作品を押すと詳細画面が開き、ダウンロードや作品ごとの公開範囲を変更できます。</p><div class="modal-actions"><button type="button" id="publicGalleryPrivacy" class="primary">全体設定</button><button type="button" id="publicGalleryImport">画像を読み込む</button></div><div id="publicGalleryModal" class="gallery gallery-large"></div>');
     renderGallery(byId('publicGalleryModal'),gallery,true);
     byId('publicGalleryImport').onclick=()=>byId('importArt')?.click();
     byId('publicGalleryPrivacy').onclick=()=>window.ArtSocial?.openGallerySettings?.();
@@ -11155,7 +11244,7 @@ window.ArtRoomTools=(()=>{
     }
   }
   // User can open public/private gallery even without Firebase connectivity.
-  byId('openHomeGallery')?.addEventListener('click',openGallery);
+  byId('openHeroGallery')?.addEventListener('click',openGallery);
   byId('publicRoomsRefresh')?.addEventListener('click',refresh);
   window.ArtPublicRooms = {ensureReady,subscribe,refresh,hostOpened,hostUpdated,hostPromoted,stopHost,setVisibility,mountRoomSettings,canvasPreview,openGallery,findEntry:key=>activeEntries.find(e=>e.key===key)||null,joinKey:key=>{const r=activeEntries.find(e=>e.key===key);if(r){window.ArtSocial?.close?.();return joinListing(r);}toast('この部屋は現在公開されていません。');},currentEntryKey:()=>entryRef?.key||''};
   // Skip remote network requests for local preview environments; keep static UI readable.
@@ -11280,11 +11369,11 @@ const GALLERY_SHARING_KEY='artopia-public-gallery-enabled-v1';
 const GALLERY_MODE_KEY='artopia-gallery-visibility-v2';
 let lastGallerySignature='';
 let galleryWriteChain=Promise.resolve();
-function galleryMode(){try{const mode=localStorage.getItem(GALLERY_MODE_KEY);return ['public','friends','private','custom'].includes(mode)?mode:localStorage.getItem(GALLERY_SHARING_KEY)==='1'?'public':'private'}catch{return 'private'}}
-function artVisibility(a){const mode=galleryMode();return mode!=='custom'?mode:(['public','friends','private'].includes(a?.visibility)?a.visibility:'private')}
+function galleryMode(){try{const mode=localStorage.getItem(GALLERY_MODE_KEY);return ['public','friends','private'].includes(mode)?mode:mode==='custom'?'private':localStorage.getItem(GALLERY_SHARING_KEY)==='1'?'public':'private'}catch{return 'private'}}
+function artVisibility(a){return ['public','friends','private'].includes(a?.visibility)?a.visibility:galleryMode()}
 const visibilityName={public:'全員に公開',friends:'フレンド限定',private:'非公開'};
 function galleryItemLabel(a){return visibilityName[artVisibility(a)]||'非公開'};
-function galleryModeName(mode){return {public:'すべて公開',friends:'フレンド限定',private:'すべて非公開',custom:'作品ごとに設定'}[mode]||'すべて非公開';}
+function galleryModeName(mode){return {public:'すべて公開',friends:'フレンド限定',private:'すべて非公開'}[mode]||'すべて非公開';}
 
 const ref = path => db.ref(`${P}/${path}`);
 // Pair path is two RTDB keys: /dm/<uidA>/<uidB>/<messageId>.
@@ -11486,6 +11575,23 @@ function guestAvatar(p,uid=''){
  if(name)return `<span class="as-avatar-initial" aria-hidden="true">${safe(Array.from(name)[0])}</span>`;
  return icon('portrait');
 }
+function avatarChip(uid){
+ const p=uid===me?.uid?{name:profile?.name,avatar:profile?.avatar,localAvatar:true}:publicProfiles.get(uid);
+ return `<span class="as-inline-avatar" data-as-avatar-uid="${safe(uid||'')}" aria-hidden="true">${guestAvatar(p,uid)}</span>`;
+}
+function hydrateSocialAvatars(root){
+ if(!root)return;
+ const ids=new Set([...root.querySelectorAll('[data-as-avatar-uid]')].map(n=>n.dataset.asAvatarUid).filter(Boolean));
+ ids.forEach(uid=>{
+  if(uid===me?.uid)return;
+  readPublicProfile(uid).then(p=>{
+   if(!p)return;
+   root.querySelectorAll('[data-as-avatar-uid]').forEach(el=>{
+    if(el.dataset.asAvatarUid===uid && el.isConnected)el.innerHTML=guestAvatar(p,uid);
+   });
+  }).catch(()=>{});
+ });
+}
 function ownGalleryEnabled(){return galleryMode()!=='private'}
 // Respect the MIME type actually returned by the browser. Some browsers
 // export PNG when WebP encoding was requested, which was rejected by the
@@ -11546,13 +11652,25 @@ async function syncGallery(force=false){
  galleryWriteChain=galleryWriteChain.catch(()=>{}).then(job);
  return galleryWriteChain;
 }
+// Bulk setting: replace each saved work's visibility, including any old overrides.
 async function setGalleryMode(next){
- if(!['public','friends','private','custom'].includes(next))return;
+ if(!['public','friends','private'].includes(next))throw Error('公開範囲が不正です。');
  if(!db||!me)throw Error('交流機能に接続してから設定してください。');
- const before=galleryMode();localStorage.setItem(GALLERY_MODE_KEY,next);
- lastGallerySignature='';
- try{await syncGallery(true);if(next==='private')localStorage.setItem(GALLERY_SHARING_KEY,'0');else localStorage.setItem(GALLERY_SHARING_KEY,'1')}
- catch(e){localStorage.setItem(GALLERY_MODE_KEY,before);lastGallerySignature='';throw e}
+ const before=galleryMode();
+ const original=new Map((gallery||[]).map(a=>[a.id,a.visibility]));
+ await window.ArtGallerySetAllVisibility(next);
+ (gallery||[]).forEach(a=>a.visibility=next);
+ localStorage.setItem(GALLERY_MODE_KEY,next);lastGallerySignature='';
+ try{
+  await syncGallery(true);
+  localStorage.setItem(GALLERY_SHARING_KEY,next==='private'?'0':'1');
+ }catch(e){
+  // Roll back local and IndexedDB state if the server rejects the new visibility.
+  await window.ArtGalleryRestoreVisibility(Object.fromEntries([...original].map(([id,vis])=>[id,vis===undefined?null:vis]))).catch(err=>console.warn('絵画展の公開設定ロールバック',err));
+  (gallery||[]).forEach(a=>a.visibility=original.get(a.id));
+  localStorage.setItem(GALLERY_MODE_KEY,before);lastGallerySignature='';
+  throw e;
+ }
 }
 async function setArtVisibility(id,visibility){
  if(!db||!me)throw Error('交流機能に接続してから設定してください。');
@@ -11566,18 +11684,18 @@ async function setArtVisibility(id,visibility){
  try{await syncGallery(true)}catch(e){a.visibility=old;await window.ArtGallerySetVisibility(id,a);if(current)current.visibility=original;lastGallerySignature='';throw e}
 }
 async function dbLocalArt(id){return await window.ArtGalleryGetVisibility(id)}
-function openGallerySettings(focusId=''){
+function openGallerySettings(){
  const mode=galleryMode();
- const list=(gallery||[]);
- modal('絵画展の公開設定',`<p class="muted">交流プロフィールで表示する縮小画像の公開範囲です。元の高画質画像は端末に残ります。</p><label class="form-field">絵画展の公開範囲<select id="galleryModeSelect"><option value="public" ${mode==='public'?'selected':''}>すべて公開</option><option value="friends" ${mode==='friends'?'selected':''}>フレンドだけ</option><option value="private" ${mode==='private'?'selected':''}>すべて非公開</option><option value="custom" ${mode==='custom'?'selected':''}>作品ごとに設定</option></select></label><p class="muted">「作品ごとに設定」を選ぶと、それぞれの絵を公開・フレンド限定・非公開にできます。「作品ごとに設定」へ切り替えると、個別指定していない作品は非公開になります。</p><p id="galleryPrivacyNotice" role="status" class="muted"></p><div id="galleryPrivacyList" class="gallery-privacy-list"></div>`);
- const select=$('galleryModeSelect'),state=$('galleryPrivacyNotice'),body=$('galleryPrivacyList');
- const draw=()=>{const custom=select.value==='custom';body.hidden=!custom;body.innerHTML=!custom?'':list.map(a=>`<div class="gallery-privacy-row" data-gallery-id="${esc(a.id)}"><img src="${esc(a.thumb||'')}" alt=""><span>${esc(a.name)}</span><select aria-label="${esc(a.name)}の公開範囲"><option value="private" ${artVisibility(a)==='private'?'selected':''}>非公開</option><option value="friends" ${artVisibility(a)==='friends'?'selected':''}>フレンド限定</option><option value="public" ${artVisibility(a)==='public'?'selected':''}>全員に公開</option></select></div>`).join('')||'<p class="muted">作品はまだありません。</p>';
- body.querySelectorAll('[data-gallery-id]').forEach(row=>{const input=row.querySelector('select');input.onchange=async()=>{const previous=list.find(a=>a.id===row.dataset.galleryId)?.visibility||'private';input.disabled=true;state.textContent='公開設定を保存しています…';try{await setArtVisibility(row.dataset.galleryId,input.value);const target=list.find(a=>a.id===row.dataset.galleryId);if(target)target.visibility=input.value;state.textContent='作品の公開範囲を更新しました。';window.updateHomeGallery?.()}catch(e){input.value=previous;state.textContent='更新できませんでした：'+errors(e)}finally{input.disabled=false}}});
+ modal('絵画展の全体設定',`<p class="muted">ここを変更すると、保存済みの<strong>すべての作品</strong>が同じ公開範囲になります。作品ごとに変えたい場合は、絵画展でその作品を開き、詳細画面の「この作品の公開範囲」から設定してください。</p><label class="form-field">すべての作品の公開範囲<select id="galleryModeSelect"><option value="public" ${mode==='public'?'selected':''}>すべて公開</option><option value="friends" ${mode==='friends'?'selected':''}>すべてフレンド限定</option><option value="private" ${mode==='private'?'selected':''}>すべて非公開</option></select></label><p class="muted">公開するのはプロフィール用の縮小画像です。保存した元の画像は端末内に残ります。</p><p id="galleryPrivacyNotice" role="status" aria-live="polite" class="muted"></p>`);
+ const select=$('galleryModeSelect'),state=$('galleryPrivacyNotice');
+ select.onchange=async()=>{
+  const next=select.value,prev=galleryMode();select.disabled=true;
+  state.textContent='全作品の公開範囲を更新しています…';
+  try{await setGalleryMode(next);state.textContent='保存済みの全作品を「'+galleryModeName(next)+'」に変更しました。';window.updateHomeGallery?.()}
+  catch(e){select.value=prev;state.textContent='更新できませんでした：'+errors(e)}
+  finally{select.disabled=false}
  };
- select.onchange=async()=>{const next=select.value,prev=galleryMode();select.disabled=true;state.textContent='公開設定を更新しています…';try{await setGalleryMode(next);state.textContent='公開範囲を更新しました。';draw();window.updateHomeGallery?.()}catch(e){select.value=prev;state.textContent='更新できませんでした：'+errors(e)}finally{select.disabled=false}};
- draw();if(focusId){const target=[...body.querySelectorAll('[data-gallery-id]')].find(x=>x.dataset.galleryId===focusId);target?.scrollIntoView?.({block:'nearest'});}
 }
-
 async function avatarForFirebase(){const local=profile?.avatar;if(!local)return 'ink';return await imagePreview(local,72,13000)||'ink'}
 async function readPublicProfile(uid){if(!uid)return null;
  const age=Date.now()-(publicProfileFetched.get(uid)||0);
@@ -11743,20 +11861,20 @@ function drawFriends(){const el=$('as-body');if(!el||activeView!=='friends')retu
  const sending=sentRows.filter(r=>r.status==='pending'||r.status==='loading');
  el.innerHTML=`<div class="as-subhead"><b>フレンド</b><button type="button" class="as-small" id="as-add">${icon('add')} 追加する</button></div><p class="as-hint">自分のID：<strong>${safe(code||'読み込み中')}</strong> <button type="button" id="as-copy-code">${icon('copy')} コピー</button></p><div class="as-list" id="as-friends-list"></div><div class="as-list" id="as-requests-list"></div>`;
  $('as-add').onclick=drawSearch;$('as-copy-code').onclick=()=>navigator.clipboard?.writeText(code).then(()=>say('IDをコピーしました'),()=>say('コピーできませんでした。'));
- $('as-friends-list').innerHTML=friendRows.length?`<b class="as-label">フレンド ${friendRows.length}人</b>`+friendRows.map(uid=>`<button type="button" class="as-listrow" data-as-friend="${safe(uid)}">${icon('user')}<span data-as-username="${safe(uid)}">プレイヤー</span><small data-as-online="${safe(uid)}">${friendOnline.get(uid)?'オンライン':'オフライン'}</small>${icon('chat')}</button>`).join(''):'<p class="as-empty">まだフレンドがいません。IDから探してみましょう。</p>';
+ $('as-friends-list').innerHTML=friendRows.length?`<b class="as-label">フレンド ${friendRows.length}人</b>`+friendRows.map(uid=>`<button type="button" class="as-listrow" data-as-friend="${safe(uid)}">${avatarChip(uid)}<span data-as-username="${safe(uid)}">プレイヤー</span><small data-as-online="${safe(uid)}">${friendOnline.get(uid)?'オンライン':'オフライン'}</small>${icon('chat')}</button>`).join(''):'<p class="as-empty">まだフレンドがいません。IDから探してみましょう。</p>';
  el.querySelectorAll('[data-as-friend]').forEach(b=>{b.onclick=()=>{activeView='chats';activeChat=b.dataset.asFriend;show()};nameOf(b.dataset.asFriend).then(n=>{const x=b.querySelector('[data-as-username]');if(x)x.textContent=n})});
  $('as-requests-list').innerHTML=`<b class="as-label">受け取った申請 ${received.length}件</b>`+
- (received.length?received.map(r=>`<div class="as-request"><span data-as-username="${safe(r.uid)}">プレイヤー</span><button data-as-accept="${safe(r.uid)}">承認</button><button data-as-reject="${safe(r.uid)}" class="as-quiet">拒否</button></div>`).join(''):'<p class="as-hint">新しい申請はありません。</p>')+
+ (received.length?received.map(r=>`<div class="as-request">${avatarChip(r.uid)}<span data-as-username="${safe(r.uid)}">プレイヤー</span><button data-as-accept="${safe(r.uid)}">承認</button><button data-as-reject="${safe(r.uid)}" class="as-quiet">拒否</button></div>`).join(''):'<p class="as-hint">新しい申請はありません。</p>')+
  `<b class="as-label">送信した申請（承認待ち） ${sending.length}件</b>`+
- (sending.length?sending.map(r=>`<div class="as-request as-sent-request"><span data-as-username="${safe(r.uid)}">プレイヤー</span><small>${r.status==='loading'?'状態を確認中…':'申請中'}</small><button type="button" data-as-cancel="${safe(r.uid)}" ${r.status==='loading'?'disabled':''}>申請を取り消す</button></div>`).join(''):'<p class="as-hint">承認待ちの申請はありません。</p>');
+ (sending.length?sending.map(r=>`<div class="as-request as-sent-request">${avatarChip(r.uid)}<span data-as-username="${safe(r.uid)}">プレイヤー</span><small>${r.status==='loading'?'状態を確認中…':'申請中'}</small><button type="button" data-as-cancel="${safe(r.uid)}" ${r.status==='loading'?'disabled':''}>申請を取り消す</button></div>`).join(''):'<p class="as-hint">承認待ちの申請はありません。</p>');
  el.querySelectorAll('[data-as-accept]').forEach(b=>b.onclick=()=>changeRequest(b.dataset.asAccept,'accepted'));
  el.querySelectorAll('[data-as-reject]').forEach(b=>b.onclick=()=>changeRequest(b.dataset.asReject,'declined'));
  el.querySelectorAll('[data-as-cancel]').forEach(b=>b.onclick=()=>cancelFriendRequest(b.dataset.asCancel,b));
  el.querySelectorAll('#as-requests-list [data-as-username]').forEach(x=>nameOf(x.dataset.asUsername).then(n=>{if(x.isConnected)x.textContent=n}));
- updateAllAlerts();
+ hydrateSocialAvatars(el);updateAllAlerts();
 }
 function drawSearch(){const el=$('as-body');el.innerHTML=`<div class="as-subhead"><button class="as-textbtn" id="as-fback">${icon('back')} フレンド</button></div><h3>フレンドIDを検索</h3><form class="as-composer" id="as-search-form"><input id="as-search-value" maxlength="20" placeholder="AP-XXXXXXXXX" aria-label="フレンドID"><button type="submit">検索</button></form><div id="as-search-result"></div>`;
- $('as-fback').onclick=drawFriends;$('as-search-form').onsubmit=async e=>{e.preventDefault();const k=clean($('as-search-value').value,20).toUpperCase();try{const s=await ref('codes/'+k).once('value');const uid=s.val();const result=$('as-search-result');result.replaceChildren();if(!uid){result.textContent='見つかりませんでした。';return}const n=await nameOf(uid);result.innerHTML=`<div class="as-search-user">${icon('user')}<strong>${safe(n)}</strong><button id="as-send-request">フレンド申請</button></div>`;$('as-send-request').onclick=()=>sendFriendRequest(uid)}catch(e){say(errors(e))}};
+ $('as-fback').onclick=drawFriends;$('as-search-form').onsubmit=async e=>{e.preventDefault();const k=clean($('as-search-value').value,20).toUpperCase();try{const s=await ref('codes/'+k).once('value');const uid=s.val();const result=$('as-search-result');result.replaceChildren();if(!uid){result.textContent='見つかりませんでした。';return}const n=await nameOf(uid);result.innerHTML=`<div class="as-search-user">${avatarChip(uid)}<strong>${safe(n)}</strong><button id="as-send-request">フレンド申請</button></div>`;$('as-send-request').onclick=()=>sendFriendRequest(uid);hydrateSocialAvatars(result)}catch(e){say(errors(e))}};
 }
 async function sendFriendRequest(target){try{if(target===me.uid)throw Error('自分自身は追加できません。');if(hiddenBlocks.has(target))throw Error('この相手はブロック中です。');if(await isFriend(target))throw Error('すでにフレンドです。');
   const node=ref(`requests/${target}/${me.uid}`);const current=await node.once('value');if(current.exists())throw Error('すでに申請しています。');
@@ -11806,14 +11924,14 @@ function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeC
  el.innerHTML=`<div class="as-subhead"><b>チャット</b><button class="as-small" id="as-team-new">${icon('add')} チームを作る</button></div><b class="as-label">DM</b><div class="as-list" id="as-dms"></div><b class="as-label">チーム</b><div class="as-list" id="as-team-list"></div><b class="as-label">チーム招待</b><div class="as-list" id="as-team-invites"></div><b class="as-label">最近遊んだ部屋</b><div id="as-recent-rooms"></div><p class="as-hint">部屋履歴の再会チャットは、7日後のサーバー自動削除が準備できるまで公開しません。</p>`;
  $('as-recent-rooms').innerHTML=getRecentRooms().map(x=>`<div class="as-listrow">${icon('room')}<span>${safe(x.name)}<small> · ${safe(modeName[x.mode]||x.mode)}</small></span><small>${stamp(x.at)}</small></div>`).join('')||'<p class="as-hint">最近遊んだ部屋はまだありません。</p>';
  $('as-team-new').onclick=drawCreateTeam;
- $('as-dms').innerHTML=friendRows.length?friendRows.map(uid=>`<button class="as-listrow" data-as-dm="${safe(uid)}">${icon('chat')}<span data-as-username="${safe(uid)}">DM</span></button>`).join(''):'<p class="as-empty">DMはフレンドになった相手と利用できます。</p>';
+ $('as-dms').innerHTML=friendRows.length?friendRows.map(uid=>`<button class="as-listrow" data-as-dm="${safe(uid)}">${avatarChip(uid)}<span data-as-username="${safe(uid)}">DM</span></button>`).join(''):'<p class="as-empty">DMはフレンドになった相手と利用できます。</p>';
  updateAllAlerts();
- el.querySelectorAll('[data-as-dm]').forEach(b=>{b.onclick=()=>{activeChat=b.dataset.asDm;show()};nameOf(b.dataset.asDm).then(n=>{if(b.isConnected)b.querySelector('span').textContent=n})});
+ el.querySelectorAll('[data-as-dm]').forEach(b=>{b.onclick=()=>{activeChat=b.dataset.asDm;show()};nameOf(b.dataset.asDm).then(n=>{const label=b.querySelector('[data-as-username]');if(label&&b.isConnected)label.textContent=n})});hydrateSocialAvatars(el);
  $('as-team-list').innerHTML=teams.length?teams.map(id=>`<button class="as-listrow" data-as-team="${safe(id)}">${icon('team')}<span data-as-teamname="${safe(id)}">チームを読み込み中</span></button>`).join(''):'<p class="as-empty">参加中のチームはありません。</p>';
  el.querySelectorAll('[data-as-team]').forEach(b=>{b.onclick=()=>{activeTeam=b.dataset.asTeam;show()};ref(`teams/${b.dataset.asTeam}/meta`).once('value').then(s=>{if(b.isConnected)b.querySelector('span').textContent=s.val()?.name||'チーム'})});
  const invites=window.asInvites||[];
- $('as-team-invites').innerHTML=invites.length?invites.map(x=>`<div class="as-request"><span>${safe(x.teamName||'チームへの招待')}</span><button data-as-invite="${safe(x.id)}">参加</button></div>`).join(''):'<p class="as-hint">招待はありません。</p>';
- el.querySelectorAll('[data-as-invite]').forEach(b=>b.onclick=()=>acceptTeamInvite(b.dataset.asInvite));
+ $('as-team-invites').innerHTML=invites.length?invites.map(x=>`<div class="as-request">${avatarChip(x.ownerUid)}<span>${safe(x.teamName||'チームへの招待')}</span><button data-as-invite="${safe(x.id)}">参加</button></div>`).join(''):'<p class="as-hint">招待はありません。</p>';
+ el.querySelectorAll('[data-as-invite]').forEach(b=>b.onclick=()=>acceptTeamInvite(b.dataset.asInvite));hydrateSocialAvatars(el);
 }
 function composer(onSend){
  const form=$('as-composer-form');if(!form)return;
@@ -11886,7 +12004,7 @@ function drawDM(uid){
  const el=$('as-body');if(!db||!el||!me)return;
  el.classList.add('as-detail-body');
  el.innerHTML=`<button id="as-detail-back" class="as-textbtn" type="button">${icon('back')} チャット一覧へ</button>
- <h3 id="as-detail-title">DM</h3>
+ <div class="as-dm-partner">${avatarChip(uid)}<h3 id="as-detail-title">DM</h3></div>
  <p id="as-dm-status" class="as-hint" role="status" aria-live="polite">履歴を読み込んでいます…</p>
  <div class="as-dm-tools"><span id="as-dm-sync" role="status">Firebaseに接続しています…</span><button id="as-dm-refresh" type="button" class="as-small">履歴を再取得</button></div>
  <div id="as-detail-thread" class="as-thread as-tall"><p class="as-empty">読み込み中…</p></div>
@@ -11915,8 +12033,9 @@ function drawDM(uid){
    const own=record.from===localUid;
    const info=outgoing.get(key);
    const delivery=info?(info.phase==='rejected'?'送信失敗：'+(info.error||'エラー'):info.phase==='unknown'?'送信結果未確認':info.phase==='queued'?'送信待ち':info.phase==='sending'?'送信中…':''):'';
-   return `<article class="as-bubble ${own?'mine':''} ${info?.phase==='rejected'?'as-dm-failed':''}" data-dm-key="${safe(key)}"><small>${own?'あなた':safe(record.name)} · ${stamp(record.at)}</small><p>${safe(record.text)}</p>${delivery?`<small class="as-dm-delivery">${safe(delivery)}</small>`:''}</article>`;
+   return `<article class="as-bubble ${own?'mine':''} ${info?.phase==='rejected'?'as-dm-failed':''}" data-dm-key="${safe(key)}"><div class="as-bubble-author">${avatarChip(record.from)}<small>${own?'あなた':safe(record.name)} · ${stamp(record.at)}</small></div><p>${safe(record.text)}</p>${delivery?`<small class="as-dm-delivery">${safe(delivery)}</small>`:''}</article>`;
   }).join('')||'<p class="as-empty">最初のメッセージを送ってみましょう。</p>';
+  hydrateSocialAvatars(thread);
   const own=[...incoming.values()].filter(x=>x.from===localUid).length;
   const connection=connected===false?'オフライン':connected===true?'接続中':'接続確認中';
   sync.textContent=readFailure?'接続エラー：'+readFailure:'';sync.hidden=!readFailure;
@@ -11964,7 +12083,7 @@ function drawDM(uid){
  };
  refresh.onclick=()=>{void load().catch(()=>{})};
  $('as-detail-back').onclick=()=>{clearDetailWatch();activeChat=null;show()};
- nameOf(uid).then(name=>{if(live())title.textContent=name+'とのDM'});
+ hydrateSocialAvatars(el);nameOf(uid).then(name=>{if(live())title.textContent=name+'とのDM'});
  const drain=async()=>{
   if(inFlight)return;inFlight=true;
   try{
@@ -12023,7 +12142,7 @@ function drawTeam(id){clearDetailWatch();const el=$('as-body');if(!el)return;el.
  el.innerHTML=`<button id="as-team-back" class="as-textbtn">${icon('back')} チャット一覧</button><div class="as-subhead"><h3 id="as-team-title">チームチャット</h3><button class="as-small" id="as-team-invite">${icon('add')} 招待</button></div><div id="as-detail-thread" class="as-thread as-tall"><p class="as-empty">会話を読み込んでいます…</p></div><form id="as-composer-form" class="as-composer"><input id="as-composer-input" maxlength="300" placeholder="メッセージを入力"><button type="submit">${icon('send')}</button></form>`;
  $('as-team-back').onclick=()=>{clearDetailWatch();activeTeam=null;show()};$('as-team-invite').onclick=()=>drawTeamInvite(id);
  ref('teams/'+id+'/meta').once('value').then(s=>{if($('as-team-title')&&activeTeam===id)$('as-team-title').textContent=s.val()?.name||'チーム'}).catch(e=>say(errors(e)));
- const q=ref('teams/'+id+'/messages').orderByKey().limitToLast(60),cb=s=>{const list=$('as-detail-thread');if(!list||activeTeam!==id)return;const a=[];s.forEach(x=>a.push(x.val()));list.innerHTML=a.map(m=>`<article class="as-bubble ${m.from===me.uid?'mine':''}"><small>${safe(m.name)} · ${stamp(m.at)}</small><p>${safe(m.text)}</p></article>`).join('')||'<p class="as-empty">このチームで会話を始めましょう。</p>';list.scrollTop=list.scrollHeight};q.on('value',cb,e=>say(errors(e)));detailOff.push(()=>q.off('value',cb));
+ const q=ref('teams/'+id+'/messages').orderByKey().limitToLast(60),cb=s=>{const list=$('as-detail-thread');if(!list||activeTeam!==id)return;const a=[];s.forEach(x=>a.push(x.val()));list.innerHTML=a.map(m=>`<article class="as-bubble ${m.from===me.uid?'mine':''}"><div class="as-bubble-author">${avatarChip(m.from)}<small>${safe(m.name)} · ${stamp(m.at)}</small></div><p>${safe(m.text)}</p></article>`).join('')||'<p class="as-empty">このチームで会話を始めましょう。</p>';hydrateSocialAvatars(list);list.scrollTop=list.scrollHeight};q.on('value',cb,e=>say(errors(e)));detailOff.push(()=>q.off('value',cb));
  composer(async msg=>{await ref('teams/'+id+'/messages').push().set({from:me.uid,name:clean(profile.name,20),text:msg,at:ts()})});
 }
 function drawTeamInvite(id){const el=$('as-body');el.innerHTML=`<button id="as-team-back" class="as-textbtn">${icon('back')} チームへ戻る</button><h3>チームに招待</h3><p class="as-hint">フレンドIDから相手を招待します。相手が承諾するまでチームに参加しません。</p><form id="as-invite-form" class="as-composer"><input id="as-invite-code" maxlength="20" placeholder="フレンドID" required><button type="submit">送る</button></form>`;
@@ -12032,7 +12151,7 @@ function drawTeamInvite(id){const el=$('as-body');el.innerHTML=`<button id="as-t
 }
 async function acceptTeamInvite(id){try{const v=(await ref('invites/'+me.uid+'/'+id).once('value')).val();if(!v)throw Error('招待が見つかりません。');
  await ref('teams/'+id+'/members/'+me.uid).set(true);await ref('teamIndex/'+me.uid+'/'+id).set(true);await ref('invites/'+me.uid+'/'+id).remove();activeTeam=id;activeView='chats';show();say('チームに参加しました。');}catch(e){say(errors(e))}}
-async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar({avatar:profile?.avatar,name:profile?.name,localAvatar:true},me?.uid)}</div><h3>${safe(profile?.name||'プレイヤー')}</h3><p class="as-profile-bio">${safe(profile?.bio||'自己紹介はまだありません。')}</p><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><section class="as-sharing-box"><h3>絵画展の公開範囲</h3><p class="as-hint">現在：${safe(galleryModeName(galleryMode()))}。公開するのは縮小画像だけです。</p><button type="button" id="as-gallery-privacy" class="primary">公開範囲・作品別設定を開く</button></section><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
+async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar({avatar:profile?.avatar,name:profile?.name,localAvatar:true},me?.uid)}</div><h3>${safe(profile?.name||'プレイヤー')}</h3><p class="as-profile-bio">${safe(profile?.bio||'自己紹介はまだありません。')}</p><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><section class="as-sharing-box"><h3>絵画展の全体設定</h3><p class="as-hint">現在：${safe(galleryModeName(galleryMode()))}。公開するのは縮小画像だけです。</p><button type="button" id="as-gallery-privacy" class="primary">全体設定を開く</button></section><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
  $('as-profile-back').onclick=show;$('as-link-google').disabled=!me?.isAnonymous;
  $('as-gallery-privacy').onclick=()=>openGallerySettings();
  $('as-link-google').onclick=async()=>{try{const provider=new window.firebase.auth.GoogleAuthProvider();const current=auth.currentUser;if(!current?.isAnonymous)return;const res=await current.linkWithPopup(provider);me=res.user;await ensureProfile();show();say('Googleアカウントと連携しました。')}catch(e){say('連携に失敗しました。既存アカウントがある場合はデータの移行が必要です。 '+errors(e))}};
@@ -12140,7 +12259,7 @@ function installUI(){
    return 'フレンド申請を送りました。';
  }
  const authUid=()=>me?.uid||firebaseSession()?.auth.currentUser?.uid||'';
- window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,syncGallery,galleryMode,galleryItemLabel,openGallerySettings,recordRoom,registerRoomIdentity,roomContactStatus,roomContactAction,updateAlerts:updateAllAlerts,ready:()=>!!db,authUid,currentFriendCode:()=>code};
+ window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,syncGallery,galleryMode,galleryItemLabel,galleryItemVisibility:artVisibility,setArtVisibility,openGallerySettings,recordRoom,registerRoomIdentity,roomContactStatus,roomContactAction,updateAlerts:updateAllAlerts,ready:()=>!!db,authUid,currentFriendCode:()=>code};
 }
 installUI();
 // Start friend-request/DM notifications even if the player never opens Social.
@@ -12427,11 +12546,7 @@ window.addEventListener('resize',()=>{for(const el of floating.values())position
 #artopiaSocial #as-requests-list>.as-label{display:block;margin-top:15px}
 </style>
 <script>
-window.addEventListener('DOMContentLoaded',()=>{
- const hero=document.getElementById('openHeroGallery');
- const existing=document.getElementById('openHomeGallery');
- if(hero&&existing)hero.addEventListener('click',()=>existing.click());
-});
+// The enlarged gallery card is wired directly to ArtPublicRooms.openGallery().
 </script>
 </body></html>
 
