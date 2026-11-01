@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.3 BETA / 描画と通信・操作の改善
+あーとぴあ 1.4.7 BETA / チャット開閉タブの配置改善
 このindex.htmlだけをアップロードしてください。画像・音声・アプリのコードは埋め込み済みです。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -688,6 +688,24 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 .shadow-mode #recentComment{display:block!important}
 .shadow-mode .member-panel{display:flex!important}
 @media(max-width:650px){.shadow-mode #shadowPanel{inset:55px 5px 25px 5px;width:auto}.shadow-mode #shadowTools{bottom:5px}}
+
+/* Ver.1.4.7: panel handle on the right edge, away from game settings. */
+.studio{position:relative}
+.studio #toggleChatPanel{
+ position:absolute;top:53%;right:0;left:auto;transform:translateY(-50%);
+ z-index:22;display:flex;align-items:center;justify-content:center;
+ width:32px;height:78px;min-width:32px;min-height:56px;padding:0;
+ border:1px solid #9fcfcd;border-right:0;border-radius:13px 0 0 13px;
+ background:#f5fcfc;color:#276d77;box-shadow:-3px 1px 12px #163b4930;
+ cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.studio #toggleChatPanel:hover,.studio #toggleChatPanel:focus-visible{background:#dff4f3;border-color:#69c3c1}
+.studio #toggleChatPanel:focus-visible{outline:2px solid #237e87;outline-offset:-2px}
+.studio #toggleChatPanel svg{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s ease}
+/* Open: right arrow closes the panel. Closed: left arrow opens it. */
+.studio.chat-collapsed #toggleChatPanel svg{transform:rotate(180deg)}
+@media(max-width:650px){.studio #toggleChatPanel{width:29px;min-width:29px;height:66px;border-radius:11px 0 0 11px}}
+@media(prefers-reduced-motion:reduce){.studio #toggleChatPanel svg{transition:none}}
 </style>
 <style>
 /* CATEGORY: ゲーム発表・お題と投票の操作 */
@@ -1210,8 +1228,39 @@ body.as-open{overflow:hidden}
 @media(max-width:640px){.as-launch span{display:none}.as-launch{padding:8px}.as-panel{border-radius:14px;min-height:calc(100vh - 16px)}#artopiaSocial{padding:8px}.as-head{padding:13px}.as-body{padding:12px}.as-tabs{padding:5px}.as-tabs button{padding:10px 3px;font-size:12px}.as-tabs .as-icon{width:16px;height:16px}.as-room-share{grid-template-columns:35% 1fr}.as-room-meta{padding:8px}.as-thread{max-height:55vh}}
 
 </style>
+<style id="artopia145-style">
+/* Artopia 1.4.5: original canvas visibility icons and social profiles */
+.room-create-visibility strong{display:inline-flex;align-items:center;gap:8px}
+.room-create-visibility strong .icon{width:23px;height:23px;stroke-width:1.7;flex-shrink:0}
+#joinMain .action-icon .icon{width:28px;height:28px}
+.art-join-mark{display:flex;align-items:center;justify-content:center;width:58px;height:58px;margin:0 auto 16px;border-radius:16px;background:#e9f7f5;color:#297e82}
+.art-join-mark .icon{width:36px;height:36px;stroke-width:1.7}
+#artopiaSocial .as-message-author{display:flex;gap:11px;align-items:flex-start;min-width:0}
+#artopiaSocial .as-message-content{flex:1;min-width:0}
+#artopiaSocial .as-author-avatar{display:grid;place-items:center;width:38px;height:38px;min-width:38px;border:1px solid #cee3e0;border-radius:12px;background:#e8f6f3;padding:2px;overflow:hidden;cursor:pointer;color:#397e82}
+#artopiaSocial .as-author-avatar>img,#artopiaSocial .as-profile-large-avatar>img{width:100%;height:100%;object-fit:cover;display:block}
+#artopiaSocial .as-author-avatar>.as-icon{width:24px;height:24px}
+#artopiaSocial .as-message-top{flex-wrap:wrap}
+#artopiaSocial .as-profile-large-avatar{display:grid;place-items:center;width:80px;height:80px;border:1px solid #c7e4e0;border-radius:20px;background:#eaf7f5;color:#377c80;overflow:hidden}
+#artopiaSocial .as-profile-large-avatar .as-icon{width:52px;height:52px}
+#artopiaSocial .as-profile-bio{white-space:pre-wrap;overflow-wrap:anywhere;color:#526970;line-height:1.65}
+#artopiaSocial .as-public-gallery{display:flex;flex-direction:column;gap:12px}
+#artopiaSocial .as-art-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#artopiaSocial .as-art-card{min-width:0;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:12px;border:1px solid #d9e7e4;background:white;cursor:pointer;color:#3b555a}
+#artopiaSocial .as-art-card img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#fafcfc;border-radius:7px}
+#artopiaSocial .as-art-card span{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#artopiaSocial .as-sharing-box{border:1px solid #d8e7e4;border-radius:14px;padding:14px;background:#f7fcfb}
+#artopiaSocial .as-sharing-box label{display:flex;gap:10px;align-items:center;font-weight:700;color:#37676c}
+#artopiaSocial .as-sharing-box input{width:18px;height:18px;accent-color:#31848a}
+#artopiaSocial .as-buttons{flex-wrap:wrap;justify-content:center}
+#artopiaSocial .as-gallery-viewer{position:fixed;inset:8% 8% 6%;background:#fff;z-index:10;box-shadow:0 16px 55px #304c5366;border:1px solid #c9e0dc;border-radius:18px;display:flex;flex-direction:column;gap:14px;padding:20px;overflow:auto;align-items:center}
+#artopiaSocial .as-gallery-viewer img{max-width:100%;max-height:68vh;object-fit:contain}
+#artopiaSocial .as-gallery-viewer p{font-size:12px;color:#6c7c80}
+#artopiaSocial .as-gallery-viewer button{align-self:flex-start;border:0;background:#eaf7f5;color:#247b81;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+@media(max-width:520px){#artopiaSocial .as-art-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#artopiaSocial .as-gallery-viewer{inset:5% 3% 4%;padding:12px}}
+</style>
 </head><body>
-<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.3 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="people"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
+<div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="brand small">あーとぴあ<i></i></div></header><main class="home-main"><div class="eyebrow">ARTOPIA / VER.1.4.6 BETA</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteInk"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
     <div class="public-rooms-actions"><button type="button" id="publicRoomsRefresh" class="quiet" aria-label="公開ルームを再読み込み">↻ 更新</button><button type="button" id="openHomeGallery" class="quiet">▧ 絵画展</button></div>
@@ -1243,7 +1292,7 @@ body.as-open{overflow:hidden}
   <p>アプリのインストールやアカウント登録は不要です。オンラインで遊ぶときはインターネットに接続し、参加者はゲーム画面を開いたままにしてください。プロフィールや絵画展の作品は、使用している端末のブラウザに保存されます。</p>
 </div></details></section>
 </main><footer class="home-footer"><span>みんなで、ふくらむ、ひとつの絵。</span><span>プロフィールと作品はこの端末に保存されます</span></footer></div>
-<div id="studio" class="screen studio" hidden><header class="studio-header"><div class="header-identity"><button class="brand small" id="leaveBtn" title="部屋から退出" aria-label="部屋から退出"><span class="exit-brand">あーとぴあ</span><span class="exit-label">退出</span></button><div class="room-heading"><b id="roomTitle"></b><small id="connectionState">接続中</small></div></div><div class="header-actions"><button type="button" id="toggleChatPanel" title="チャットを閉じる" aria-label="チャットを閉じる" aria-expanded="true" data-icon="chat"></button><button id="snapshotBtn" title="スナップショット" data-icon="camera"></button><button id="reloadCanvasBtn" class="quiet" title="再読み込み" aria-label="再読み込み">↻</button><div class="header-menu"><button id="headerMenuToggle" aria-label="その他の操作" aria-expanded="false" aria-controls="headerMore" title="その他の操作">⋯</button><div class="header-more" id="headerMore"><button id="membersBtn" class="quiet" title="参加者・コメント" data-icon="people"></button><button id="inviteBtn" class="quiet">合言葉</button><button id="roomSettingsBtn" title="部屋設定" data-icon="gear"></button></div></div></div></header><div class="workspace"><aside class="toolbox"><div id="toolButtons" class="tool-grid"></div><div class="undo-row"><button id="undoBtn" title="戻る（Ctrl+Z）" data-icon="undo"></button><button id="redoBtn" title="進む（Ctrl+Shift+Z）" data-icon="redo"></button></div><div class="tool-settings"><label id="penTypeLabel"><span id="brushTypeText">ペンの種類</span> <select id="penType" aria-label="このペンの種類"><option value="normal">普通ペン</option><option value="spray">エアブラシ</option><option value="cotton">もこもこ</option><option value="fade">フェードペン</option></select></label><div class="art-size-setting"><label for="sizeRange">サイズ</label><span class="art-size-stepper"><button type="button" id="sizeMinus" title="サイズを1px小さく" aria-label="サイズを1px小さく">−</button><output id="sizeValue">12 px</output><button type="button" id="sizePlus" title="サイズを1px大きく" aria-label="サイズを1px大きく">＋</button></span><input id="sizeRange" type="range" min="1" max="160" value="12"></div><label id="strengthLabel"><span id="strengthText">不透明度</span><output id="strengthValue">100%</output><input id="strengthRange" type="range" min="1" max="100" value="100"></label><details id="drawingFeelSettings"><summary>描き心地</summary><label>手ぶれ補正<output id="smoothValue">20</output><input id="smoothRange" type="range" min="0" max="80" value="20"></label><label class="check"><input id="pressureCheck" type="checkbox">筆圧を使う</label><label class="check"><input id="penOnlyCheck" type="checkbox">ペンのみで描画</label></details><div id="fillSettings" hidden><label>塗りつぶし強度 <output id="toleranceValue">20%</output><input id="toleranceRange" type="range" min="0" max="100" value="20"></label><label>領域を拡張 <output id="expandValue">2 px</output><input id="expandRange" type="range" min="0" max="50" value="2"></label><small>全レイヤーの線を参照します。</small></div></div><div class="palette"><div class="color-line"><label class="color-input" title="色を選ぶ"><input type="color" id="colorInput" value="#30485b"></label><input id="hexInput" value="#30485b" maxlength="7" aria-label="カラーコード"><button id="eyedropBtn" title="スポイト" data-icon="eyedrop"></button></div><div class="swatches" id="swatches"></div><div class="palette-actions"><button id="addColorBtn" class="quiet">＋ 色を保存</button><button id="sharedPaletteBtn" class="quiet">共有</button></div></div><div class="layer-controls"><button id="layerBtn" class="layer-btn"><span data-icon="layers"></span><b id="layerLabel">レイヤー 1</b><span>›</span></button><label>表示レイヤー透明度 <output id="layerOpacityValue">100%</output><input id="layerOpacityRange" type="range" min="0" max="100" value="100"></label><small>描いた絵も薄く表示します。自分の表示・画像保存に反映します。</small><label>これから描く線の不透明度 <output id="inkOpacityValue">100%</output><input id="inkOpacityRange" type="range" min="0" max="100" value="100"></label><small>自分が新しく描く線に適用し、相手にも同じ濃さで届きます。</small></div><div class="view-controls"><button id="panBtn"><span data-icon="hand"></span><span id="panText">画面移動 OFF</span></button><button id="fitBtn" class="quiet" title="全体表示" data-icon="fit"></button><label class="check rotation-toggle"><input id="rotationCheck" type="checkbox">キャンバス回転 ON/OFF</label><div class="canvas-zoom"><button id="zoomOutBtn" title="キャンバスだけ縮小" aria-label="キャンバスを縮小">−</button><button id="zoomInBtn" title="キャンバスだけ拡大" aria-label="キャンバスを拡大">＋</button></div></div></aside><main id="viewport" class="viewport"><div id="canvasSurface"><canvas id="display"></canvas><canvas id="overlay"></canvas><div id="cursors"></div><svg id="brushCursor" hidden aria-hidden="true" viewBox="0 0 100 100"><defs><radialGradient id="brushSoft"><stop offset="0" stop-color="white" stop-opacity=".65"/><stop offset=".55" stop-color="#b9d7e6" stop-opacity=".3"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><circle class="brush-fill" cx="50" cy="50" r="49"/><g class="brush-warp" fill="none" stroke="#596a86" stroke-opacity=".65" stroke-width="2"><path d="M15 30 C35 10 65 50 85 30 M12 50 C35 25 65 75 88 50 M15 70 C35 50 65 90 85 70"/></g><circle cx="50" cy="50" r="49" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="50" r="49" fill="none" stroke="#475769" stroke-width="1" vector-effect="non-scaling-stroke"/></svg></div><div id="canvasClipboard" hidden><button id="pasteSelection" disabled title="貼り付ける位置をキャンバスで調整">貼り付け</button></div><div id="emptyHint" class="canvas-hint">ここから、あなたの一筆を。</div><div id="flyLayer"></div><div id="transformBar" hidden><b>選択範囲</b><button id="copySelection">コピー</button><button id="cutSelection">切り取り</button><button id="flipX">左右反転</button><button id="flipY">上下反転</button><label>回転 <output id="selectionAngle">0°</output><input id="rotateSelection" step="0.1" aria-label="選択範囲の回転角度" type="range" min="-180" max="180" value="0"></label><label>大きさ<input id="scaleSelection" type="range" min="10" max="300" value="100"></label><button id="cancelTransform">取消</button><button id="applyTransform" class="primary">確定</button></div><div class="canvas-status"><span id="undoHint">次に戻る：—</span><span id="rotationValue" title="キャンバスの回転角度">0°</span><span id="zoomValue">100%</span><span id="canvasSize"></span></div></main><aside class="member-panel" id="memberPanel"><div class="section-head"><h2>参加メンバー</h2><span id="memberCount" class="badge">1</span></div><div id="memberList"></div><div class="member-bottom"><button id="chatBtn" class="chat-button"><span data-icon="chat"></span>コメント <span id="unreadBadge"></span></button><label class="check"><input id="flyCheck" type="checkbox" checked>コメントを流す</label><label class="check"><input id="cursorCheck" type="checkbox" checked>カーソルを表示</label><div class="studio-chatbar"><div id="recentComment" class="recent-comment" role="log" aria-label="コメント履歴" aria-live="polite">コメントはここから送れます</div><form id="inlineChatForm" class="inline-chat"><input id="inlineChatInput" enterkeyhint="send" maxlength="180" autocomplete="off" placeholder="みんなにコメント…" aria-label="コメントを入力"><button class="primary" type="submit">送信</button><button id="chatHistoryBtn" type="button" class="quiet">履歴</button></form></div></div></aside></div><button id="mobileChat" class="mobile-chat" title="コメント" data-icon="chat"></button></div>
+<div id="studio" class="screen studio" hidden><header class="studio-header"><div class="header-identity"><button class="brand small" id="leaveBtn" title="部屋から退出" aria-label="部屋から退出"><span class="exit-brand">あーとぴあ</span><span class="exit-label">退出</span></button><div class="room-heading"><b id="roomTitle"></b><small id="connectionState">接続中</small></div></div><div class="header-actions"><button id="snapshotBtn" title="スナップショット" data-icon="camera"></button><button id="reloadCanvasBtn" class="quiet" title="再読み込み" aria-label="再読み込み">↻</button><div class="header-menu"><button id="headerMenuToggle" aria-label="その他の操作" aria-expanded="false" aria-controls="headerMore" title="その他の操作">⋯</button><div class="header-more" id="headerMore"><button id="membersBtn" class="quiet" title="参加者・コメント" data-icon="people"></button><button id="inviteBtn" class="quiet">合言葉</button><button id="roomSettingsBtn" title="部屋設定" data-icon="gear"></button></div></div></div></header><div class="workspace"><aside class="toolbox"><div id="toolButtons" class="tool-grid"></div><div class="undo-row"><button id="undoBtn" title="戻る（Ctrl+Z）" data-icon="undo"></button><button id="redoBtn" title="進む（Ctrl+Shift+Z）" data-icon="redo"></button></div><div class="tool-settings"><label id="penTypeLabel"><span id="brushTypeText">ペンの種類</span> <select id="penType" aria-label="このペンの種類"><option value="normal">普通ペン</option><option value="spray">エアブラシ</option><option value="cotton">もこもこ</option><option value="fade">フェードペン</option></select></label><div class="art-size-setting"><label for="sizeRange">サイズ</label><span class="art-size-stepper"><button type="button" id="sizeMinus" title="サイズを1px小さく" aria-label="サイズを1px小さく">−</button><output id="sizeValue">12 px</output><button type="button" id="sizePlus" title="サイズを1px大きく" aria-label="サイズを1px大きく">＋</button></span><input id="sizeRange" type="range" min="1" max="160" value="12"></div><label id="strengthLabel"><span id="strengthText">不透明度</span><output id="strengthValue">100%</output><input id="strengthRange" type="range" min="1" max="100" value="100"></label><details id="drawingFeelSettings"><summary>描き心地</summary><label>手ぶれ補正<output id="smoothValue">20</output><input id="smoothRange" type="range" min="0" max="80" value="20"></label><label class="check"><input id="pressureCheck" type="checkbox">筆圧を使う</label><label class="check"><input id="penOnlyCheck" type="checkbox">ペンのみで描画</label></details><div id="fillSettings" hidden><label>塗りつぶし強度 <output id="toleranceValue">20%</output><input id="toleranceRange" type="range" min="0" max="100" value="20"></label><label>領域を拡張 <output id="expandValue">2 px</output><input id="expandRange" type="range" min="0" max="50" value="2"></label><small>全レイヤーの線を参照します。</small></div></div><div class="palette"><div class="color-line"><label class="color-input" title="色を選ぶ"><input type="color" id="colorInput" value="#30485b"></label><input id="hexInput" value="#30485b" maxlength="7" aria-label="カラーコード"><button id="eyedropBtn" title="スポイト" data-icon="eyedrop"></button></div><div class="swatches" id="swatches"></div><div class="palette-actions"><button id="addColorBtn" class="quiet">＋ 色を保存</button><button id="sharedPaletteBtn" class="quiet">共有</button></div></div><div class="layer-controls"><button id="layerBtn" class="layer-btn"><span data-icon="layers"></span><b id="layerLabel">レイヤー 1</b><span>›</span></button><label>表示レイヤー透明度 <output id="layerOpacityValue">100%</output><input id="layerOpacityRange" type="range" min="0" max="100" value="100"></label><small>描いた絵も薄く表示します。自分の表示・画像保存に反映します。</small><label>これから描く線の不透明度 <output id="inkOpacityValue">100%</output><input id="inkOpacityRange" type="range" min="0" max="100" value="100"></label><small>自分が新しく描く線に適用し、相手にも同じ濃さで届きます。</small></div><div class="view-controls"><button id="panBtn"><span data-icon="hand"></span><span id="panText">画面移動 OFF</span></button><button id="fitBtn" class="quiet" title="全体表示" data-icon="fit"></button><label class="check rotation-toggle"><input id="rotationCheck" type="checkbox">キャンバス回転 ON/OFF</label><div class="canvas-zoom"><button id="zoomOutBtn" title="キャンバスだけ縮小" aria-label="キャンバスを縮小">−</button><button id="zoomInBtn" title="キャンバスだけ拡大" aria-label="キャンバスを拡大">＋</button></div></div></aside><main id="viewport" class="viewport"><div id="canvasSurface"><canvas id="display"></canvas><canvas id="overlay"></canvas><div id="cursors"></div><svg id="brushCursor" hidden aria-hidden="true" viewBox="0 0 100 100"><defs><radialGradient id="brushSoft"><stop offset="0" stop-color="white" stop-opacity=".65"/><stop offset=".55" stop-color="#b9d7e6" stop-opacity=".3"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><circle class="brush-fill" cx="50" cy="50" r="49"/><g class="brush-warp" fill="none" stroke="#596a86" stroke-opacity=".65" stroke-width="2"><path d="M15 30 C35 10 65 50 85 30 M12 50 C35 25 65 75 88 50 M15 70 C35 50 65 90 85 70"/></g><circle cx="50" cy="50" r="49" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="50" cy="50" r="49" fill="none" stroke="#475769" stroke-width="1" vector-effect="non-scaling-stroke"/></svg></div><div id="canvasClipboard" hidden><button id="pasteSelection" disabled title="貼り付ける位置をキャンバスで調整">貼り付け</button></div><div id="emptyHint" class="canvas-hint">ここから、あなたの一筆を。</div><div id="flyLayer"></div><div id="transformBar" hidden><b>選択範囲</b><button id="copySelection">コピー</button><button id="cutSelection">切り取り</button><button id="flipX">左右反転</button><button id="flipY">上下反転</button><label>回転 <output id="selectionAngle">0°</output><input id="rotateSelection" step="0.1" aria-label="選択範囲の回転角度" type="range" min="-180" max="180" value="0"></label><label>大きさ<input id="scaleSelection" type="range" min="10" max="300" value="100"></label><button id="cancelTransform">取消</button><button id="applyTransform" class="primary">確定</button></div><div class="canvas-status"><span id="undoHint">次に戻る：—</span><span id="rotationValue" title="キャンバスの回転角度">0°</span><span id="zoomValue">100%</span><span id="canvasSize"></span></div></main><aside class="member-panel" id="memberPanel"><div class="section-head"><h2>参加メンバー</h2><span id="memberCount" class="badge">1</span></div><div id="memberList"></div><div class="member-bottom"><button id="chatBtn" class="chat-button"><span data-icon="chat"></span>コメント <span id="unreadBadge"></span></button><label class="check"><input id="flyCheck" type="checkbox" checked>コメントを流す</label><label class="check"><input id="cursorCheck" type="checkbox" checked>カーソルを表示</label><div class="studio-chatbar"><div id="recentComment" class="recent-comment" role="log" aria-label="コメント履歴" aria-live="polite">コメントはここから送れます</div><form id="inlineChatForm" class="inline-chat"><input id="inlineChatInput" enterkeyhint="send" maxlength="180" autocomplete="off" placeholder="みんなにコメント…" aria-label="コメントを入力"><button class="primary" type="submit">送信</button><button id="chatHistoryBtn" type="button" class="quiet">履歴</button></form></div></div></aside></div><button type="button" id="toggleChatPanel" class="chat-edge-toggle" title="チャットを閉じる" aria-label="チャットを閉じる" aria-expanded="true" aria-controls="memberPanel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5 16 12 9 19"/></svg></button><button id="mobileChat" class="mobile-chat" title="コメント" data-icon="chat"></button></div>
 
 <!-- CATEGORY: 共通ダイアログ -->
 <dialog id="modal"><div id="modalContent"></div></dialog><div id="toast" role="status"></div><input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
@@ -1885,7 +1934,7 @@ window.ArtHistory=(()=>{
 /* SECTION: app/00-state.js */
 'use strict';
 const $=s=>document.querySelector(s),E=ArtEngine;
-const paths={folderUpload:'M3 8V5h6l2 3h10v12H3Z M12 17V10 M8.5 13.5 12 10l3.5 3.5',question:'M5 7C5 3.7 7.8 2 12 2s7 1.9 7 5c0 2.8-1.8 4.2-4.1 5.5-.9.5-1.4 1.1-1.4 2V16h-4v-2c0-2.1 1-3.4 3-4.5 1.6-.9 2.5-1.5 2.5-2.5 0-1.1-1.1-1.7-3-1.7S9 5.9 9 7.5H5Z M10 19h3.5v3H10Z',phone:'M6 3H4a2 2 0 0 0-2 2c0 9.4 7.6 17 17 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-1.4-1.9l-3-1a2 2 0 0 0-2 .5l-1.4 1.4a13 13 0 0 1-6.2-6.2l1.4-1.4a2 2 0 0 0 .5-2l-1-3A2 2 0 0 0 6 3Z',announcement:'M3 10h5l11-5v14L8 14H3z M8 10v4 M5 14l2 7h4l-2-6 M22 9v6',scope:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5 M8 8h8v8H8z',wolf:'M3 3l6 4h6l6-4-1 10 2 2-5 3-5 4-5-4-5-3 2-2z M7 11l2 2 M17 11l-2 2 M10 16h4l-2 2z M12 18v4',brush:'M4 20l4-1L21 6l-3-3L5 16z M14 7l3 3 M4 20l-1 2',eraser:'M3 14L14 3l7 7-11 11H8z M8 9l7 7 M10 21h11',warp:'M3 6c5-7 20-3 16 4-3 5-12-2-11 4 1 4 8 0 7 6 M4 19l3 2',lasso:'M17 18C30 6 6-3 3 9c-3 11 18 11 14 4-3-4-11 2-9 7l2 2',fill:'M4 10l7-7 9 9-9 9-9-9z M3 11h16 M9 2l5 5 M21 17c-3 4-1 5 0 5s3-1 0-5',blur:'M12 2C9 7 4 11 4 16a8 8 0 0016 0c0-5-5-9-8-14 M8 16c0 3 2 4 4 4',undo:'M9 4L3 10l6 6 M3 10h11a6 6 0 010 12',redo:'M15 4l6 6-6 6 M21 10H10a6 6 0 000 12',layers:'M12 2L2 8l10 6 10-6z M2 12l10 6 10-6 M2 16l10 6 10-6',hand:'M8 12V5a2 2 0 014 0v6-8a2 2 0 014 0v8-6a2 2 0 014 0v10c0 6-3 8-7 8-3 0-5-2-7-5l-3-4a2 2 0 013-2l2 2',camera:'M3 6h5l2-3h4l2 3h5v15H3z M16 13a4 4 0 11-8 0 4 4 0 018 0',gear:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M16 12a4 4 0 11-8 0 4 4 0 018 0',people:'M9 8a4 4 0 11-8 0 4 4 0 018 0 M1 22v-4a5 5 0 0110 0v4 M16 5a4 4 0 010 8 M15 16a5 5 0 016 5',swords:'M3 3l5 1 11 11-4 4L4 8z M14 20l6-6 M17 17l4 4 M3 21l4-4 M4 14l6 6 M5 15l4-4 M13 7l3-3 5-1-1 5-3 3',eyedrop:'M14 3l7 7 M17 3l4 4-5 5-4-4z M12 8L3 17v4h4l9-9',fit:'M3 9V3h6 M15 3h6v6 M21 15v6h-6 M9 21H3v-6 M8 8h8v8H8z',chat:'M3 3h18v14H9l-6 5z M7 7h10 M7 12h7'};
+const paths={folderUpload:'M3 8V5h6l2 3h10v12H3Z M12 17V10 M8.5 13.5 12 10l3.5 3.5',question:'M5 7C5 3.7 7.8 2 12 2s7 1.9 7 5c0 2.8-1.8 4.2-4.1 5.5-.9.5-1.4 1.1-1.4 2V16h-4v-2c0-2.1 1-3.4 3-4.5 1.6-.9 2.5-1.5 2.5-2.5 0-1.1-1.1-1.7-3-1.7S9 5.9 9 7.5H5Z M10 19h3.5v3H10Z',phone:'M6 3H4a2 2 0 0 0-2 2c0 9.4 7.6 17 17 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-1.4-1.9l-3-1a2 2 0 0 0-2 .5l-1.4 1.4a13 13 0 0 1-6.2-6.2l1.4-1.4a2 2 0 0 0 .5-2l-1-3A2 2 0 0 0 6 3Z',announcement:'M3 10h5l11-5v14L8 14H3z M8 10v4 M5 14l2 7h4l-2-6 M22 9v6',scope:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5 M8 8h8v8H8z',wolf:'M3 3l6 4h6l6-4-1 10 2 2-5 3-5 4-5-4-5-3 2-2z M7 11l2 2 M17 11l-2 2 M10 16h4l-2 2z M12 18v4',brush:'M4 20l4-1L21 6l-3-3L5 16z M14 7l3 3 M4 20l-1 2',eraser:'M3 14L14 3l7 7-11 11H8z M8 9l7 7 M10 21h11',warp:'M3 6c5-7 20-3 16 4-3 5-12-2-11 4 1 4 8 0 7 6 M4 19l3 2',lasso:'M17 18C30 6 6-3 3 9c-3 11 18 11 14 4-3-4-11 2-9 7l2 2',fill:'M4 10l7-7 9 9-9 9-9-9z M3 11h16 M9 2l5 5 M21 17c-3 4-1 5 0 5s3-1 0-5',blur:'M12 2C9 7 4 11 4 16a8 8 0 0016 0c0-5-5-9-8-14 M8 16c0 3 2 4 4 4',undo:'M9 4L3 10l6 6 M3 10h11a6 6 0 010 12',redo:'M15 4l6 6-6 6 M21 10H10a6 6 0 000 12',layers:'M12 2L2 8l10 6 10-6z M2 12l10 6 10-6 M2 16l10 6 10-6',hand:'M8 12V5a2 2 0 014 0v6-8a2 2 0 014 0v8-6a2 2 0 014 0v10c0 6-3 8-7 8-3 0-5-2-7-5l-3-4a2 2 0 013-2l2 2',camera:'M3 6h5l2-3h4l2 3h5v15H3z M16 13a4 4 0 11-8 0 4 4 0 018 0',gear:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M16 12a4 4 0 11-8 0 4 4 0 018 0',people:'M9 8a4 4 0 11-8 0 4 4 0 018 0 M1 22v-4a5 5 0 0110 0v4 M16 5a4 4 0 010 8 M15 16a5 5 0 016 5',publicInk:'M3 18V8c4-4 13-4 18 0v10c-5 4-14 4-18 0z M7 10c2-2 8-3 11 0 M7 13c3-1 7-1 10 0 M17 4l3-2',privateInk:'M4 6l8-3 8 3v9l-8 6-8-6V6z M9 11V9a3 3 0 016 0v2 M8 11h8v6H8v-6z',inviteInk:'M4 20l9-10 M2 22l5-1-4-4-1 5z M14 4a4 4 0 110 8 4 4 0 010-8z M17 10l4 4-2 2 2 2-2 2-5-5',swords:'M3 3l5 1 11 11-4 4L4 8z M14 20l6-6 M17 17l4 4 M3 21l4-4 M4 14l6 6 M5 15l4-4 M13 7l3-3 5-1-1 5-3 3',eyedrop:'M14 3l7 7 M17 3l4 4-5 5-4-4z M12 8L3 17v4h4l9-9',fit:'M3 9V3h6 M15 3h6v6 M21 15v6h-6 M9 21H3v-6 M8 8h8v8H8z',chat:'M3 3h18v14H9l-6 5z M7 7h10 M7 12h7'};
 const icon=n=>`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.brush}"/></svg>`;
 function icons(root=document){root.querySelectorAll('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon))}icons();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1941,7 +1990,7 @@ async function db(store,mode,fn){let d=await dbReady;return new Promise((res,rej
 /* SECTION: app/04-gallery.js */
 async function refreshGallery(){try{
  await pruneRecoveryGallery();
- const d=await dbReady;gallery=await new Promise((res,rej)=>{const tx=d.transaction('art','readonly'),q=tx.objectStore('art').openCursor(),rows=[];q.onsuccess=()=>{const cur=q.result;if(!cur)return;const a=cur.value;rows.push({id:a.id,name:a.name,at:a.at,w:a.w,h:a.h,thumb:a.thumb,format:a.format});cur.continue()};tx.oncomplete=()=>res(rows.sort((a,b)=>b.at-a.at));tx.onerror=tx.onabort=()=>rej(tx.error||Error('保存処理が中断されました。'))});updateHome();
+ const d=await dbReady;gallery=await new Promise((res,rej)=>{const tx=d.transaction('art','readonly'),q=tx.objectStore('art').openCursor(),rows=[];q.onsuccess=()=>{const cur=q.result;if(!cur)return;const a=cur.value;rows.push({id:a.id,name:a.name,at:a.at,w:a.w,h:a.h,thumb:a.thumb,format:a.format});cur.continue()};tx.oncomplete=()=>res(rows.sort((a,b)=>b.at-a.at));tx.onerror=tx.onabort=()=>rej(tx.error||Error('保存処理が中断されました。'))});updateHome();window.ArtSocial?.syncGallery?.().catch(e=>console.warn('公開絵画展プレビュー更新に失敗',e));
  }catch{toast('このブラウザで作品の保存が利用できません')}}
 async function openSavedArt(id){try{const art=await db('art','readonly',s=>s.get(id));if(art)showArt(art);else toast('作品が見つかりません')}catch{toast('作品を読み込めませんでした')}}
 function renderGallery(el,arts,own=false){el.innerHTML=arts.length?'':'<div class="empty-gallery">まだ作品がありません。<br>キャンバスの「保存」から、一枚目を飾りましょう。</div>';for(const a of arts){let b=document.createElement('button');b.className='art-card';b.innerHTML=`<img alt="${esc(a.name)}" src="${esc(a.thumb||a.image)}"><span>${esc(a.name)}</span>`;b.onclick=()=>own?openSavedArt(a.id):requestArt(a);el.append(b)}}
@@ -2018,8 +2067,8 @@ function showCreate(options={}){
    <div id="createModeNativeSlot" class="room-create-native" aria-hidden="true"></div>
    <div class="room-create-block"><div class="room-create-label">公開設定</div>
     <div class="room-create-visibility" role="group" aria-label="部屋の公開設定">
-     <label class="selected"><input id="newPublic" type="radio" name="newVisibility" value="public" checked><span><strong>🌐 公開</strong><small>公開ルーム一覧に表示</small></span></label>
-     <label><input id="newPrivate" type="radio" name="newVisibility" value="private"><span><strong>🔒 非公開</strong><small>合言葉を知っている人だけ</small></span></label>
+     <label class="selected"><input id="newPublic" type="radio" name="newVisibility" value="public" checked><span><strong>${icon('publicInk')} 公開</strong><small>公開ルーム一覧に表示</small></span></label>
+     <label><input id="newPrivate" type="radio" name="newVisibility" value="private"><span><strong>${icon('privateInk')} 非公開</strong><small>合言葉を知っている人だけ</small></span></label>
     </div><p id="createPublicHint" class="room-create-hint">誰でも公開ルーム一覧から参加できます。</p>
    </div>
    <div class="room-create-block"><label class="form-field">部屋名 <span class="required">必須</span><input id="newRoomName" maxlength="40" value="${esc(suggestedName)}" placeholder="のんびりおえかき" required></label></div>
@@ -2136,7 +2185,7 @@ function showCreate(options={}){
  $('#newRoomName').focus({preventScroll:true});
 }
 $('#createMain').onclick=()=>showCreate();
-function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('合言葉で入る',`<form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
+function showJoin(code=''){if(!profile.name){showProfile(true);return}modal('合言葉で入る',`<div class="art-join-mark" aria-hidden="true">${icon('inviteInk')}</div><form id="joinForm"><label class="form-field">合言葉<input id="joinCode" value="${esc(code)}" maxlength="32" placeholder="部屋主から教えてもらった合言葉" required></label><label class="check"><input id="joinSpectator" type="checkbox">観戦で参加する</label><p id="joinError" class="error"></p><div class="modal-actions"><button id="joinSubmit" class="primary">入室する</button></div></form>`);$('#joinForm').onsubmit=async e=>{e.preventDefault();$('#joinSubmit').disabled=true;$('#joinError').textContent='部屋に接続しています…';try{await joinRoom($('#joinCode').value.trim(),$('#joinSpectator').checked);$('#modal').close()}catch(e){$('#joinError').textContent=errorText(e);$('#joinSubmit').disabled=false}}}
 $('#joinMain').onclick=()=>showJoin();
 // Invitation links bypass the passphrase form after the player's name is known.
 let inviteJoining=false;
@@ -2271,6 +2320,7 @@ function handleViewerMessage(id,m){
 function viewerStateUI(){
  const studio=$('#studio');if(!studio)return;
  studio.classList.toggle('artopia-viewer',!!localViewer);
+ const saveButton=$('#snapshotBtn');if(saveButton){saveButton.disabled=!canSaveCurrentRoom();saveButton.title=canSaveCurrentRoom()?'キャンバス保存':'閲覧者は作品を保存できません';}
  const panel=$('#viewerAccessNotice');
  if(panel){panel.hidden=!localViewer;panel.textContent=localViewer?(localViewerRequested?'参加申請を送信しました。部屋主の判断を待っています。':room?.viewerChat===false?'閲覧中です。参加したい場合のみ「参加申請」を押してください。閲覧者のチャットは無効です。':'閲覧中です。見ているだけでも大丈夫です。参加したい場合のみ申請してください。'):''}
  let btn=$('#viewerApplyBtn');if(!btn&&panel){btn=document.createElement('button');btn.type='button';btn.id='viewerApplyBtn';btn.className='primary';btn.addEventListener('click',()=>localViewerRequested?cancelParticipationRequest():requestToParticipate());panel.after(btn)}
@@ -2368,11 +2418,11 @@ function connectHandoff(state,token,attempt=0){
 /* SECTION: app/13-validation.js */
 function setChatPanelVisible(visible){
  const studio=$('#studio'),button=$('#toggleChatPanel');studio.classList.toggle('chat-collapsed',!visible);
- button.setAttribute('aria-expanded',String(!!visible));button.setAttribute('aria-label',visible?'チャットを閉じる':'チャットを開く');button.title=visible?'チャットを閉じる':'チャットを開く';
+ button.setAttribute('aria-expanded',String(!!visible));button.setAttribute('aria-label',visible?'チャットを閉じる':'チャットを開く');button.title=visible?'チャットを閉じる':'チャットを開く';$('#memberPanel').setAttribute('aria-hidden',String(!visible));
  if(!visible&&document.activeElement?.id==='inlineChatInput')document.activeElement.blur();
 }
 $('#toggleChatPanel').onclick=()=>setChatPanelVisible($('#studio').classList.contains('chat-collapsed'));
-function enterStudio(){setChatPanelVisible(true);if(!$('#viewerAccessNotice')){const note=document.createElement('div');note.id='viewerAccessNotice';note.hidden=true;$('#memberList').before(note)}window.ArtSound?.play('page',2);$('#home').hidden=true;$('#studio').hidden=false;$('#roomTitle').textContent=room.name;$('#connectionState').textContent=room.offline?'ひとりで試す':isHost?'部屋主として接続中':'接続中';$('#canvasSize').textContent=`${engine.w} × ${engine.h} px`;for(const c of [$('#display'),$('#overlay')]){c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';renderMembers();updateInlineComment();renderControls();render();requestAnimationFrame(fitView);window.ArtGame?.enter()}
+function enterStudio(){setChatPanelVisible(true);if(!$('#viewerAccessNotice')){const note=document.createElement('div');note.id='viewerAccessNotice';note.hidden=true;$('#memberList').before(note)}window.ArtSound?.play('page',2);$('#home').hidden=true;$('#studio').hidden=false;$('#roomTitle').textContent=room.name;$('#connectionState').textContent=room.offline?'ひとりで試す':isHost?'部屋主として接続中':'接続中';$('#canvasSize').textContent=`${engine.w} × ${engine.h} px`;for(const c of [$('#display'),$('#overlay')]){c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';renderMembers();viewerStateUI();updateInlineComment();renderControls();render();requestAnimationFrame(fitView);window.ArtGame?.enter()}
 function sendRejection(id,text,opId){const m={type:'notice',text,opId};if(id===localId)handleClient(m);else sendWire(connections.get(id),m)}
 function bounds(a){if(a.kind==='setting')return null;if(['cut','paste','transform'].includes(a.tool))return E.area(engine.layers[a.layer],a);if(a.tool==='fill')return{x:0,y:0,w:engine.w,h:engine.h};let xs=a.points.map(p=>p[0]),ys=a.points.map(p=>p[1]),r=(a.size||1)/2+5,x=Math.min(...xs)-r,y=Math.min(...ys)-r,x2=Math.max(...xs)+r,y2=Math.max(...ys)+r;if(a.tool==='transform'){let rad=Math.hypot(x2-x,y2-y)*a.scale/2,cx=a.cx+a.dx,cy=a.cy+a.dy;x=Math.min(x,cx-rad);y=Math.min(y,cy-rad);x2=Math.max(x2,cx+rad);y2=Math.max(y2,cy+rad)}return{x,y,w:x2-x,h:y2-y}}
 const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
@@ -2805,9 +2855,9 @@ $('#inlineChatForm').onsubmit=e=>{e.preventDefault();const input=$('#inlineChatI
 
 /* SECTION: app/33-display-reload.js */
 $('#reloadCanvasBtn').onclick=()=>{if(window.ArtGame?.enabled()){clearInputState(true);render();toast('描画表示を更新しました');return}
- modal('再読み込み',`<p class="muted">まず「表示を再描画」をお試しください。部屋に接続したまま表示を作り直します。</p><div class="modal-actions"><button id="refreshDisplay" class="primary">表示を再描画</button></div><p class="muted">ページ全体を読み直す場合は、先に3レイヤーを絵画展に保存します。${isHost?'ほかの参加者がいる場合は、次の人へ部屋主を引き継ぎます。':'再読み込み後は合言葉で入り直せます。'}</p><div class="modal-actions"><button id="reloadPage">保存してページ再読み込み</button></div>`);
+ modal('再読み込み',`<p class="muted">まず「表示を再描画」をお試しください。部屋に接続したまま表示を作り直します。</p><div class="modal-actions"><button id="refreshDisplay" class="primary">表示を再描画</button></div>${canSaveCurrentRoom()?`<p class="muted">ページ全体を読み直す場合は、先に3レイヤーを絵画展に保存します。${isHost?'ほかの参加者がいる場合は、次の人へ部屋主を引き継ぎます。':'再読み込み後は合言葉で入り直せます。'}</p><div class="modal-actions"><button id="reloadPage">保存してページ再読み込み</button></div>`:'<p class="muted">閲覧者は部屋の作品を保存できません。ページを読み直す場合は、一度退出してから入り直してください。</p>'}`);
  $('#refreshDisplay').onclick=()=>{try{clearInputState(true);pan=false;cancelSelection();releasePenPreview();releaseEffectPreview();releasePreviewWork();invalidateLocalView();engine.clearCache();for(const c of [$('#display'),$('#overlay')]){c.width=0;c.height=0;c.width=engine.w;c.height=engine.h}engine.rebuild();render();$('#modal').close();toast('表示を作り直しました')}catch{toast('表示を復元できませんでした。保存して再読み込みをお試しください。')}};
- $('#reloadPage').onclick=async()=>{const b=$('#reloadPage');b.disabled=true;try{await saveCanvasArt(room.name+'（再読み込み前）');if(isHost){await handoffHost();resetSession()}else history.replaceState(null,'','#room='+encodeURIComponent(room.code));connected=false;location.reload()}catch{b.disabled=false;toast('保存できなかったため、再読み込みを中止しました。')}};
+ if($('#reloadPage'))$('#reloadPage').onclick=async()=>{if(!canSaveCurrentRoom()){toast('閲覧者は作品を保存できません。');return;}const b=$('#reloadPage');b.disabled=true;try{await saveCanvasArt(room.name+'（再読み込み前）');if(isHost){await handoffHost();resetSession()}else history.replaceState(null,'','#room='+encodeURIComponent(room.code));connected=false;location.reload()}catch{b.disabled=false;toast('保存できなかったため、再読み込みを中止しました。')}};
 };
 $('#inviteBtn').onclick=()=>{modal('友だちを招待',`<p class="muted">合言葉を伝えるか、招待リンクを送ってください。リンクを開くと直接入室できます。</p><div class="code-box">${esc(room.code)}</div><div class="modal-actions"><button id="copyCode">合言葉をコピー</button><button id="copyLink" class="primary">招待リンクをコピー</button></div>`);$('#copyCode').onclick=()=>copyText(room.code);$('#copyLink').onclick=()=>copyText(location.href.split('#')[0]+'#room='+encodeURIComponent(room.code))};
 async function copyText(s){try{await navigator.clipboard.writeText(s);toast('コピーしました')}catch{prompt('コピーしてください',s)}}
@@ -2871,15 +2921,28 @@ setInterval(()=>{if(isHost&&room?.snapshotInterval&&Date.now()-lastCheckpointAt>
 
 
 /* SECTION: app/35-save-exit-dialogs.js */
-$('#snapshotBtn').onclick=()=>{if(window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())return;
+/* Artopia 1.4.6: only active room members may save the shared canvas. */
+function canSaveCurrentRoom(){
+ if(!room || !engine || localViewer)return false;
+ if(isHost)return true;
+ const member=members.get(localId);
+ return !!(member && !member.viewer && !member.spectator && !member.disconnected);
+}
+
+$('#snapshotBtn').onclick=()=>{if(!canSaveCurrentRoom()){toast('閲覧中は部屋の作品を保存できません。参加が承認されると利用できます。');return;}if(window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())return;
  if(!engine)return;modal('キャンバス保存',`<p class="muted">3レイヤーを別々に保持し、表示中の透明度も一緒に保存します。全体画像は今の見た目で保存します。</p><div class="modal-actions"><button id="checkpointHistory">スナップショットを見る</button>${isHost?'<button id="checkpointNow">今の状態をスナップショット</button>':''}</div><label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">PNGを書き出す</button><button id="xCanvasShare">Xに投稿する</button><button id="snapshotSave" class="primary">3レイヤーで保存</button></div>`);
  $('#xCanvasShare').onclick=()=>window.ArtShare.prepare('あーとぴあで描きました！');
  if($('#checkpointNow'))$('#checkpointNow').onclick=async()=>{const b=$('#checkpointNow');b.disabled=true;try{if(await captureCheckpoint())toast('スナップショットを保存しました')}finally{b.disabled=false}};
  $('#checkpointHistory').onclick=showCheckpointHistory;$('#snapshotDownload').onclick=()=>showArt(captureArtwork($('#snapshotName').value.trim()||room.name),false);
- $('#snapshotSave').onclick=async()=>{try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
+ $('#snapshotSave').onclick=async()=>{if(!canSaveCurrentRoom()){toast('閲覧中は作品を保存できません。');return;}try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
 };
 $('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズなどは部屋作成時に設定します。</p><div id="roomPublicControls"></div>${isHost?`<div class="room-create-block" style="margin-top:12px"><b>入室の承認</b><label class="check"><input id="roomApprovalRequired" type="checkbox" ${room.approvalRequired?'checked':''}>入室には部屋主の許可が必要</label><label class="check"><input id="roomViewerChat" type="checkbox" ${room.viewerChat!==false?'checked':''}>閲覧者のチャットを許可する</label><small>承認待ちの閲覧者はゲーム参加人数に含めません。</small><button type="button" id="roomApprovalQueue">入室申請を確認</button></div>`:''}<div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')};window.ArtPublicRooms?.mountRoomSettings();if(isHost){const updateAccess=()=>{room.approvalRequired=$('#roomApprovalRequired').checked;room.viewerChat=$('#roomViewerChat').checked;broadcast({type:'accessSettings',approvalRequired:room.approvalRequired,viewerChat:room.viewerChat});publishViewerRoster();renderMembers();toast('入室設定を更新しました')};$('#roomApprovalRequired').onchange=updateAccess;$('#roomViewerChat').onchange=updateAccess;$('#roomApprovalQueue').onclick=showViewerRequests}};
 async function finishRoomExit(save){
+ if(!room)return;
+ if(save&&!canSaveCurrentRoom()){
+  toast('閲覧者は「保存して退出」を利用できません。通常の「退出」を選んでください。');
+  return;
+ }
  const buttons=[$('#confirmLeave'),$('#leaveWithoutSave'),$('#gameConfirmLeave')].filter(Boolean);buttons.forEach(b=>b.disabled=true);
  try{
   window.ArtHistory?.flush();
@@ -2892,6 +2955,12 @@ async function finishRoomExit(save){
 }
 async function leaveRoom(){
  if(!room)return;
+ if(!canSaveCurrentRoom()){
+  modal('閲覧を終了しますか？','<p class="muted">閲覧者は作品を保存して退出できません。参加が承認されるまでは、通常の退出のみ利用できます。</p><div class="modal-actions"><button id="cancelLeave">戻る</button><button id="leaveWithoutSave" class="primary">退出</button></div>');
+  $('#cancelLeave').onclick=()=>$('#modal').close();
+  $('#leaveWithoutSave').onclick=()=>finishRoomExit(false);
+  return;
+ }
  if(window.ArtGame?.enabled()){
   modal('ゲームから退出しますか？','<p>'+(['answer','wolf'].includes(room.mode)?'参加者が退出すると現在のゲームを中断します。':'途中のゲームでは、残った人で続行します。')+'部屋主は次の参加者へ引き継ぎます。</p><div class="modal-actions"><button id="gameCancelLeave">戻る</button><button id="gameConfirmLeave" class="primary">退出する</button></div>');
   $('#gameCancelLeave').onclick=()=>$('#modal').close();$('#gameConfirmLeave').onclick=()=>finishRoomExit(false);return;
@@ -10812,7 +10881,9 @@ const ICON_PATHS = {
  'arts':'<path d="m4 4 16 16M20 4 4 20"/><path d="m4 4 7 2-5 5-2-7Zm16 0-7 2 5 5 2-7Z"/>',
  'chimera':'<path d="M7 3h10v7H7zM4 10h16v6H4zM7 16h10v5H7z"/><path d="M10 6h.01M14 6h.01M10 13h4"/>',
  'shadow':'<path d="M4 6c5-4 11-4 16 0v9c-2 4-5 6-8 6s-6-2-8-6V6Z"/><path d="M12 3v17M7 11h2m6 0h2M7 15l3 1m4 0 3-1"/>',
- 'copy':'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>'
+ 'copy':'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+ 'portrait':'<path d="M3 7c4-4 14-4 18 0v11c-4 3-14 3-18 0V7Z"/><circle cx="12" cy="9" r="3"/><path d="M6 18c0-4 2-6 6-6s6 2 6 6"/>',
+ 'gallery':'<path d="M3 5h18v14H3z M6 16l5-6 4 4 2-2 3 4 M7 9h1"/>'
 };
 function icon(name,klass=''){return `<svg class="as-icon ${klass}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]||ICON_PATHS.paint}</svg>`}
 const modeName = {free:'おえかき',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'あーとれいたー'};
@@ -10820,6 +10891,9 @@ let db=null,auth=null,me=null,initialized=false,initializing=false,code='',activ
 let watchers=[], globalRows=[], friendRows=[], incomingRows=[], sentRows=[], teams=[], messages=[];
 let notice='', lastPost=0, pending=false, hiddenBlocks=new Set(), canonicalName='', globalDraft='';
 let presenceHooks=new Map(), friendOnline=new Map();
+let publicProfiles=new Map(), publicProfileLoading=new Set();
+const GALLERY_SHARING_KEY='artopia-public-gallery-enabled-v1';
+let lastGallerySignature='';
 const ref = path => db.ref(`${P}/${path}`);
 const rkey = (a,b) => [a,b].sort().join('_');
 const errors = e => String(e?.code||'').toUpperCase().includes('PERMISSION_DENIED')?'Firebaseのアクセスが拒否されました（PERMISSION_DENIED）。Realtime Databaseに交流機能用ルールが公開されているか確認してください。':(e?.message||'通信に失敗しました');
@@ -10832,19 +10906,20 @@ async function init(){
   await window.ArtPublicRooms.ensureReady();
   const app=window.firebase.app('artopia-public');auth=app.auth();db=app.database();me=auth.currentUser;
   if(!me)throw Error('Firebase認証が完了していません。');
-  await ensureProfile();bindData();initialized=true;show();
+  await ensureProfile();bindData();initialized=true;show();syncGallery(true).catch(e=>say('絵画展の同期に失敗しました：'+errors(e)));
  }catch(e){initialized=false;say(errors(e));show();}
  finally{initializing=false}
 }
 async function ensureProfile(){
  const mine=ref('profiles/'+me.uid),snap=await mine.once('value');
  const existing=snap.val();const rawName=clean(profile?.name||'プレイヤー',20)||'プレイヤー';
+ const avatarValue=await avatarForFirebase();const colorValue=/^#[0-9a-f]{6}$/i.test(profile?.color||'')?profile.color:'#238995';
  if(!existing){
   code=await allocateCode();
-  await mine.set({name:rawName,bio:clean(profile?.bio||'',160),avatar:'ink',friendCode:code,createdAt:ts(),updatedAt:ts()});
+  await mine.set({name:rawName,bio:clean(profile?.bio||'',160),avatar:avatarValue,color:colorValue,friendCode:code,createdAt:ts(),updatedAt:ts()});
  }else{code=existing.friendCode||'';if(!code){code=await allocateCode();await mine.update({friendCode:code})}}
  const p=await mine.once('value');const data=p.val()||{};
- if(data.name!==rawName||data.bio!==clean(profile?.bio||'',160))await mine.update({name:rawName,bio:clean(profile?.bio||'',160),updatedAt:ts()});
+ if(data.name!==rawName||data.bio!==clean(profile?.bio||'',160)||data.avatar!==avatarValue||data.color!==colorValue)await mine.update({name:rawName,bio:clean(profile?.bio||'',160),avatar:avatarValue,color:colorValue,updatedAt:ts()});
  canonicalName=rawName;
  const pRef=ref('presence/'+me.uid);await pRef.onDisconnect().set({online:false,at:ts()});await pRef.set({online:true,at:ts()});
 }
@@ -10886,6 +10961,19 @@ function refreshFriends(){const friends=new Set();for(const v of incomingRows)if
 async function isFriend(uid){if(!uid||uid===me?.uid)return false;
  const [a,b]=await Promise.all([ref(`requests/${me.uid}/${uid}`).once('value'),ref(`requests/${uid}/${me.uid}`).once('value')]);
  return a.val()?.status==='accepted'||b.val()?.status==='accepted';}
+const isImageData=(v,max=14000)=>typeof v==='string'&&v.length<=max&&/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(v);
+const guestAvatar = p => isImageData(p?.avatar) ? `<img src="${safe(p.avatar)}" alt="">` : icon('portrait');
+function ownGalleryEnabled(){try{return localStorage.getItem(GALLERY_SHARING_KEY)==='1'}catch{return false}}
+function imagePreview(src,maxWidth=180,maxLength=15000){return new Promise(resolve=>{if(typeof src!=='string'||!/^data:image\/(png|webp|jpeg);base64,/i.test(src))return resolve(null);const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const scale=Math.min(1,maxWidth/Math.max(img.width,img.height));c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);let result=null;for(const quality of [.76,.6,.45,.3]){const out=c.toDataURL('image/webp',quality);if(out.length<=maxLength){result=out;break}}c.width=c.height=0;resolve(result)};img.onerror=()=>resolve(null);img.src=src})}
+async function syncGallery(force=false){if(!db||!me||!ownGalleryEnabled())return;
+ const chosen=(gallery||[]).filter(a=>a&&a.thumb).slice(0,6);
+ const signature=chosen.map(a=>String(a.id)+':'+String(a.at)).join('|');if(!force&&signature===lastGallerySignature)return;
+ const items={};for(let i=0;i<chosen.length;i++){const a=chosen[i];const thumb=await imagePreview(a.thumb,180,15000);if(thumb)items['item'+i]={name:clean(a.name||'作品',40)||'作品',thumb,at:Math.max(0,Math.floor(Number(a.at)||Date.now()))}}
+ const node=ref('galleryShowcase/'+me.uid);if(Object.keys(items).length)await node.set({updatedAt:ts(),items});else await node.remove();lastGallerySignature=signature;
+}
+async function avatarForFirebase(){const local=profile?.avatar;if(!local)return 'ink';return await imagePreview(local,72,13000)||'ink'}
+async function readPublicProfile(uid){if(!uid)return null;if(publicProfiles.has(uid))return publicProfiles.get(uid);if(publicProfileLoading.has(uid))return null;
+ publicProfileLoading.add(uid);try{const s=await ref('profiles/'+uid).once('value');const p=s.val()||{};publicProfiles.set(uid,p);if(activeView==='global')renderGlobalMessages();return p}catch{return null}finally{publicProfileLoading.delete(uid)}}
 async function nameOf(uid){try{const s=await ref('profiles/'+uid).once('value');return s.val()?.name||'プレイヤー'}catch{return 'プレイヤー'}}
 function socialHeader(){return `<header class="as-head"><button type="button" id="as-back" class="as-iconbtn" aria-label="戻る">${icon('back')}</button><div><strong>交流</strong><small>アートピアでつながる</small></div><button type="button" class="as-iconbtn" id="as-profile" aria-label="交流プロフィール">${icon('user')}</button></header>`}
 function tabs(){return `<nav class="as-tabs" aria-label="交流メニュー">${[['global','social','みんな'],['friends','people','フレンド'],['chats','chat','チャット']].map(([id,i,t])=>`<button type="button" data-as-tab="${id}" class="${activeView===id?'active':''}">${icon(i)}${t}</button>`).join('')}</nav>`}
@@ -10914,7 +11002,8 @@ function globalItem(m){
 function renderGlobalMessages(){
  const thread=$('as-global-thread');if(!thread||activeView!=='global'||activeChat||activeTeam)return;
  const wasAtBottom=thread.scrollHeight-thread.scrollTop-thread.clientHeight<75;
- thread.innerHTML=globalRows.filter(m=>!hiddenBlocks.has(m.from)).map(m=>`<article class="as-message"><div class="as-message-top"><button type="button" data-as-person="${safe(m.from)}">${safe(m.name||'プレイヤー')}</button><time>${stamp(m.at)}</time></div>${globalItem(m)}</article>`).join('')||'<p class="as-empty">まだ投稿はありません。最初のメッセージを送ってみましょう。</p>';
+ thread.innerHTML=globalRows.filter(m=>!hiddenBlocks.has(m.from)).map(m=>{const p=publicProfiles.get(m.from);return `<article class="as-message"><div class="as-message-author"><button type="button" class="as-author-avatar" data-as-person="${safe(m.from)}" aria-label="${safe(p?.name||m.name||'プレイヤー')}のプロフィール">${guestAvatar(p)}</button><div class="as-message-content"><div class="as-message-top"><button type="button" data-as-person="${safe(m.from)}" style="color:${/^#[0-9a-f]{6}$/i.test(p?.color||'')?p.color:'#247a80'}">${safe(p?.name||m.name||'プレイヤー')}</button><time>${stamp(m.at)}</time></div>${globalItem(m)}</div></div></article>`}).join('')||'<p class="as-empty">まだ投稿はありません。最初のメッセージを送ってみましょう。</p>';
+ for(const m of globalRows.slice(-50)){if(m.from&&!publicProfiles.has(m.from)&&!publicProfileLoading.has(m.from))readPublicProfile(m.from)}
  thread.querySelectorAll('[data-as-person]').forEach(b=>b.onclick=()=>personCard(b.dataset.asPerson));
  thread.querySelectorAll('[data-as-room]').forEach(b=>b.onclick=()=>window.ArtPublicRooms?.joinKey?.(b.dataset.asRoom));
  const count=$('as-global-count');if(count)count.textContent='最近の投稿 '+globalRows.length+'件';
@@ -10964,11 +11053,24 @@ async function sendFriendRequest(target){try{if(target===me.uid)throw Error('自
  }catch(e){say(errors(e))}}
 async function changeRequest(uid,status){try{const node=ref(`requests/${me.uid}/${uid}`);const snap=await node.once('value');if(!snap.exists())throw Error('申請が見つかりません。');const data=snap.val();if(data.status!=='pending')return;
  await node.update({status,updatedAt:ts()});refreshFriends();drawFriends();say(status==='accepted'?'フレンドになりました。':'申請を断りました。');}catch(e){say(errors(e))}}
-async function personCard(uid){if(!uid)return;const n=await nameOf(uid);const el=$('as-body');if(!el)return;
- el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><div class="as-person-card">${icon('user')}<h3>${safe(n)}</h3><p>プレイヤープロフィール</p><div class="as-buttons"><button id="as-person-add">フレンド申請</button><button id="as-person-block" class="as-quiet">ブロック</button></div></div>`;
- $('as-person-back').onclick=drawGlobal;$('as-person-add').onclick=()=>sendFriendRequest(uid);
- $('as-person-block').onclick=async()=>{if(!confirm(n+'さんをブロックしますか？'))return;try{await ref(`blocks/${me.uid}/${uid}`).set(true);say('ブロックしました。');drawGlobal()}catch(e){say(errors(e))}};
+async function personCard(uid){if(!uid||!db)return;if(uid===me?.uid){drawProfile();return;}
+ const el=$('as-body');if(!el)return;const displayed=uid;
+ el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><p class="as-hint">プロフィールを読み込んでいます…</p>`;
+ try{
+  const [s,g]=await Promise.all([ref('profiles/'+uid).once('value'),ref('galleryShowcase/'+uid).once('value')]);
+  if(!el.isConnected||activeView!=='global'||displayed!==uid)return;
+  const p=s.val()||{}, n=clean(p.name||'プレイヤー',20),bio=clean(p.bio||'',160);
+  const items=Object.values(g.val()?.items||{}).filter(x=>x&&isImageData(x.thumb,15000)).slice(0,6);
+  el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar(p)}</div><h3 style="color:${/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#245a61'}">${safe(n)}</h3><p class="as-profile-bio">${safe(bio||'自己紹介はまだありません。')}</p><div class="as-buttons"><button id="as-person-add">フレンド申請</button><button id="as-person-block" class="as-quiet">${hiddenBlocks.has(uid)?'ブロック解除':'ブロック'}</button></div></div><section class="as-public-gallery"><div class="as-subhead"><h3>絵画展</h3><small>公開作品プレビュー</small></div><div id="as-person-gallery" class="as-art-grid">${items.length?items.map((x,i)=>`<button class="as-art-card" data-art-index="${i}" type="button"><img alt="${safe(x.name)}" src="${safe(x.thumb)}"><span>${safe(x.name)}</span></button>`).join(''):'<p class="as-hint">公開されている作品はありません。</p>'}</div></section>`;
+  $('as-person-back').onclick=drawGlobal;
+  const btn=$('as-person-add');if(await isFriend(uid)){btn.textContent='フレンドです';btn.disabled=true}
+  btn.onclick=()=>sendFriendRequest(uid);
+  $('as-person-block').onclick=async()=>{const blocked=hiddenBlocks.has(uid);if(!confirm(n+'さんのブロックを'+(blocked?'解除':'実行')+'しますか？'))return;try{if(blocked)await ref(`blocks/${me.uid}/${uid}`).remove();else await ref(`blocks/${me.uid}/${uid}`).set(true);if(blocked)hiddenBlocks.delete(uid);else hiddenBlocks.add(uid);say(blocked?'ブロックを解除しました。':'ブロックしました。');drawGlobal()}catch(e){say(errors(e))}};
+  $('as-person-gallery').querySelectorAll('[data-art-index]').forEach(b=>b.onclick=()=>showPublicGalleryImage(items[Number(b.dataset.artIndex)]));
+ }catch(e){el.innerHTML=`<button class="as-textbtn" id="as-person-back">${icon('back')} みんなのひろば</button><p class="as-connect-error">プロフィールを開けませんでした：${safe(errors(e))}</p>`;$('as-person-back').onclick=drawGlobal}
 }
+function showPublicGalleryImage(a){if(!a)return;const frame=document.createElement('div');frame.className='as-gallery-viewer';frame.innerHTML=`<button type="button" id="as-gallery-close" aria-label="絵画展へ戻る">${icon('back')} 戻る</button><h3>${safe(a.name)}</h3><img src="${safe(a.thumb)}" alt="${safe(a.name)}"><p>公開プロフィール用のプレビューです。元の高解像度画像ではありません。</p>`;const el=$('as-body');const existing=el?.querySelector('.as-gallery-viewer');existing?.remove();el?.append(frame);frame.querySelector('#as-gallery-close').onclick=()=>frame.remove();}
+
 const HISTORY_KEY='artopia-social-recent-rooms';
 function getRecentRooms(){try{return (JSON.parse(localStorage.getItem(HISTORY_KEY))||[]).filter(x=>x&&Date.now()-x.at<7*86400000).slice(0,10)}catch{return []}}
 function recordRoom(r){if(!r?.id)return;const a=getRecentRooms().filter(x=>x.id!==r.id);a.unshift({id:String(r.id).slice(0,100),name:clean(r.name,40),mode:clean(r.mode,20),at:Date.now()});try{localStorage.setItem(HISTORY_KEY,JSON.stringify(a.slice(0,10)))}catch{}}
@@ -11007,11 +11109,12 @@ function drawTeamInvite(id){const el=$('as-body');el.innerHTML=`<button id="as-t
 }
 async function acceptTeamInvite(id){try{const v=(await ref('invites/'+me.uid+'/'+id).once('value')).val();if(!v)throw Error('招待が見つかりません。');
  await ref('teams/'+id+'/members/'+me.uid).set(true);await ref('teamIndex/'+me.uid+'/'+id).set(true);await ref('invites/'+me.uid+'/'+id).remove();activeTeam=id;activeView='chats';show();say('チームに参加しました。');}catch(e){say(errors(e))}}
-async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card">${icon('user')}<h3>${safe(profile?.name||'プレイヤー')}</h3><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
+async function drawProfile(){const el=$('as-body');if(!el)return;el.innerHTML=`<button class="as-textbtn" id="as-profile-back">${icon('back')} 戻る</button><div class="as-person-card"><div class="as-profile-large-avatar">${guestAvatar({avatar:profile?.avatar})}</div><h3>${safe(profile?.name||'プレイヤー')}</h3><p class="as-profile-bio">${safe(profile?.bio||'自己紹介はまだありません。')}</p><p>フレンドID：<b>${safe(code)}</b></p><p>${me?.isAnonymous?'ゲストアカウント':'アカウント連携済み'}</p><button id="as-link-google">${me?.isAnonymous?'Googleアカウントと連携':'連携済み'}</button></div><section class="as-sharing-box"><label><input type="checkbox" id="as-gallery-share" ${ownGalleryEnabled()?'checked':''}> 絵画展のプレビューをプロフィールで公開</label><p class="as-hint">オンにすると、絵画展の最新6作品の縮小画像と名前を交流機能の利用者に公開します。元の高画質作品は送信しません。いつでもオフにできます。</p><p id="as-gallery-share-state" class="as-hint"></p></section><p class="as-hint">ゲストのままでも交流できますが、ブラウザのデータを削除すると以前の交流データに戻れない場合があります。</p>`;
  $('as-profile-back').onclick=show;$('as-link-google').disabled=!me?.isAnonymous;
+ $('as-gallery-share').onchange=async e=>{const checked=e.target.checked;e.target.disabled=true;const state=$('as-gallery-share-state');state.textContent='設定を更新しています…';try{if(checked){localStorage.setItem(GALLERY_SHARING_KEY,'1');lastGallerySignature='';await syncGallery(true)}else{await ref('galleryShowcase/'+me.uid).remove();localStorage.setItem(GALLERY_SHARING_KEY,'0');lastGallerySignature=''}state.textContent=checked?'公開作品を更新しました。':'公開を停止し、作品プレビューを削除しました。'}catch(err){e.target.checked=!checked;if(checked)localStorage.setItem(GALLERY_SHARING_KEY,'0');state.textContent='設定を変更できませんでした：'+errors(err)}finally{e.target.disabled=false}};
  $('as-link-google').onclick=async()=>{try{const provider=new window.firebase.auth.GoogleAuthProvider();const current=auth.currentUser;if(!current?.isAnonymous)return;const res=await current.linkWithPopup(provider);me=res.user;await ensureProfile();show();say('Googleアカウントと連携しました。')}catch(e){say('連携に失敗しました。既存アカウントがある場合はデータの移行が必要です。 '+errors(e))}};
 }
-async function syncProfile(){if(!db||!me)return;try{const nextName=clean(profile.name||'プレイヤー',20)||'プレイヤー';await ref('profiles/'+me.uid).update({name:nextName,bio:clean(profile.bio||'',160),updatedAt:ts()});canonicalName=nextName}catch(e){say(errors(e))}}
+async function syncProfile(){if(!db||!me)return;try{const nextName=clean(profile.name||'プレイヤー',20)||'プレイヤー';const nextAvatar=await avatarForFirebase();const nextColor=/^#[0-9a-f]{6}$/i.test(profile?.color||'')?profile.color:'#238995';await ref('profiles/'+me.uid).update({name:nextName,bio:clean(profile.bio||'',160),avatar:nextAvatar,color:nextColor,updatedAt:ts()});canonicalName=nextName;publicProfiles.delete(me.uid)}catch(e){say(errors(e))}}
 function socialIcon(name){return icon(name)}
 function installUI(){
  const shell=document.createElement('section');shell.id='artopiaSocial';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
@@ -11025,7 +11128,7 @@ function installUI(){
  };
  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.id==='roomCreateScreen'||n.querySelector?.('#roomCreateScreen')))))replaceIcons()}).observe(document.body,{childList:true,subtree:false});
  document.addEventListener('click',e=>{if(e.target.closest?.('.room-mode-choice'))requestAnimationFrame(replaceIcons)});
- window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,recordRoom,ready:()=>!!db,authUid:()=>me?.uid||'',currentFriendCode:()=>code};
+ window.ArtSocial={open,close,socialIcon,shareCurrentRoom,isFriend,syncProfile,syncGallery,recordRoom,ready:()=>!!db,authUid:()=>me?.uid||'',currentFriendCode:()=>code};
 }
 installUI();
 })();
