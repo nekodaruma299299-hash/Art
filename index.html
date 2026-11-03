@@ -12225,70 +12225,58 @@ async function inviteTeamFriends(id,ids){
  }
  return results;
 }
-// Attach the action once to the persistent social shell. The invitations list
-// is frequently re-rendered by independent Firebase subscriptions; direct
-// onclick handlers on its discarded buttons are not reliable.
-const decliningTeamInvites=new Set();
-const locallyDeclinedInvites=new Map();
-function renderDeclineState(id,message,failed=false){
- const host=document.getElementById('as-team-invites');
- if(!host)return;
- let status=host.querySelector('[data-team-decline-status]');
- if(!status){status=document.createElement('p');status.dataset.teamDeclineStatus='';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.className='as-hint';host.append(status)}
- status.textContent=message;
- status.style.color=failed?'#aa3540':'';
+// Team invite decline: use the ID stored on data-as-invite-decline, not
+// data-as-invite (which belongs to the separate Join button).
+const teamDeclineInFlight=new Set();
+function teamDeclineNotice(message,failed=false){
+ const panel=document.getElementById('as-notice');
+ if(panel){panel.textContent=message;panel.style.color=failed?'#ab3444':'#226a6c';}
+ const local=document.getElementById('as-team-decline-feedback');
+ if(local){local.textContent=message;local.style.color=failed?'#ab3444':'#226a6c';}
 }
 async function declineTeamInvite(id){
  if(!me||!auth?.currentUser)throw Error('ログイン状態を確認してください。');
- if(!id||/[.#$\[\]/]/.test(id))throw Error('招待IDが不正です。');
- if(decliningTeamInvites.has(id))return false;
- decliningTeamInvites.add(id);
- const uid=auth.currentUser.uid;
- try{
-  if(me.uid!==uid)throw Error('認証情報が更新されています。交流を開き直してください。');
-  const path='invites/'+uid+'/'+id,invite=ref(path);
-  renderDeclineState(id,'招待を辞退しています…');
-  let before=await deadline(invite.once('value'),12000,'招待の読み取り');
-  if(before.exists()){
-   try{await deadline(invite.remove(),12000,'招待の辞退')}
-   catch(e){
-    const latest=await deadline(invite.once('value'),8000,'削除結果の照合');
-    if(latest.exists())throw new Error('/artopia_social_v1/'+path+' の削除に失敗：'+errors(e));
-   }
-  }
-  // Verify on the server rather than assuming a resolved write updated the UI.
-  const after=await deadline(invite.once('value'),12000,'辞退結果の確認');
-  if(after.exists())throw Error('Firebase上に招待が残っています。/artopia_social_v1/'+path+' を確認してください。');
-  const original=(window.asInvites||[]).find(x=>x.id===id);
-  locallyDeclinedInvites.set(id,original?.createdAt??null);
-  window.asInvites=(window.asInvites||[]).filter(x=>x.id!==id);
-  pendingTeamInvites=window.asInvites.length;
-  updateAllAlerts();
-  if(activeView==='chats'&&!activeTeam&&!activeChat&&!activeRoomThread)drawChats();
-  renderDeclineState(id,'招待を辞退しました。');
-  // Owner-side pending is optional bookkeeping. Never hold up the UI for it.
-  void deadline(ref('teams/'+id+'/pending/'+uid).remove(),8000,'招待中一覧の整理')
-    .catch(e=>console.warn('[Artopia] pending cleanup skipped',id,e?.code||e?.message));
-  return true;
- }finally{decliningTeamInvites.delete(id)}
+ if(!id||/[.#$\[\]\/]/.test(id))throw Error('招待のチームIDを取得できませんでした。');
+ if(me.uid!==auth.currentUser.uid)throw Error('ログイン情報が変わりました。交流を開き直してください。');
+ const path='invites/'+me.uid+'/'+id;
+ const invite=ref(path);
+ // A removed invitation is a successful decline, not an error.
+ const before=await deadline(invite.once('value'),12000,'招待の確認');
+ if(before.exists())await deadline(invite.remove(),12000,'招待の削除');
+ const after=await deadline(invite.once('value'),12000,'辞退の確認');
+ if(after.exists())throw Error('Firebase上に招待が残っています：'+path);
+ // Optimistically remove the row, then allow the Firebase listener to confirm.
+ window.asInvites=(window.asInvites||[]).filter(x=>x.id!==id);
+ pendingTeamInvites=window.asInvites.length;
+ updateAllAlerts();
+ if(activeView==='chats'&&!activeTeam&&!activeChat&&!activeRoomThread)drawChats();
+ // The leader's pending list is optional and may have a different permission.
+ void deadline(ref('teams/'+id+'/pending/'+me.uid).remove(),8000,'招待中一覧の整理')
+   .catch(e=>console.warn('[Artopia] 招待中一覧を整理できませんでした',id,e?.code||e?.message));
 }
-// Install once on a stable ancestor, in capture phase, to survive list updates.
-function setupTeamDeclineHandler(socialInviteShell){
- if(!socialInviteShell||socialInviteShell.dataset.teamDeclineHandler)return;
- socialInviteShell.dataset.teamDeclineHandler='1';
- socialInviteShell.addEventListener('click',async e=>{
-  const button=e.target.closest?.('[data-as-invite-decline]');
-  if(!button||!socialInviteShell.contains(button))return;
-  e.preventDefault();e.stopImmediatePropagation();
-  const id=button.dataset.asInviteDecline;
-  if(button.disabled||decliningTeamInvites.has(id))return;
-  button.disabled=true;
-  try{await declineTeamInvite(id)}
-  catch(err){
-   const message='招待を辞退できませんでした：'+errors(err);
-   renderDeclineState(id,message,true);say(message);window.alert(message);
-  }finally{if(button.isConnected)button.disabled=false}
- },true);
+function attachTeamDeclineButtons(container){
+ container.querySelectorAll('[data-as-invite-decline]').forEach(button=>{
+  button.onclick=async event=>{
+   event.preventDefault();event.stopPropagation();
+   // Read the exact attribute on the decline button, never the Join button's attribute.
+   const id=button.getAttribute('data-as-invite-decline');
+   if(teamDeclineInFlight.has(id))return;
+   teamDeclineInFlight.add(id);
+   button.disabled=true;
+   teamDeclineNotice('チーム招待の辞退処理を開始しました…');
+   try{
+    await declineTeamInvite(id);
+    teamDeclineNotice('チーム招待を辞退しました。');
+   }catch(error){
+    const message='チーム招待を辞退できませんでした：'+errors(error);
+    teamDeclineNotice(message,true);
+    window.alert(message);
+   }finally{
+    teamDeclineInFlight.delete(id);
+    if(button.isConnected)button.disabled=false;
+   }
+  };
+ });
 }
 
 async function cancelTeamInvite(id,uid){
@@ -12559,19 +12547,7 @@ function bindData(){
  },'送信済みフレンド申請の読み取り');
  watch(ref('teamIndex/'+me.uid),s=>{teams=Object.keys(s.val()||{});refreshTeamAlerts();if(activeView==='chats'&&!activeRoomThread)drawChats();},'チーム一覧の読み取り');
  watchRecentRoomThreads();
- watch(ref('invites/'+me.uid),s=>{
-  const raw=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));
-  // After a successful decline, ignore only stale snapshots of that exact
-  // invite. If a fresh invitation is sent, its createdAt differs and it shows.
-  for(const [id,at] of locallyDeclinedInvites){
-   const current=raw.find(x=>x.id===id);
-   if(!current||current.createdAt!==at)locallyDeclinedInvites.delete(id);
-  }
-  window.asInvites=raw.filter(x=>!locallyDeclinedInvites.has(x.id));
-  pendingTeamInvites=window.asInvites.length;
-  if(activeView==='chats'&&!activeChat&&!activeTeam&&!activeRoomThread)drawChats();
-  updateAllAlerts();
- },'チーム招待の読み取り');
+ watch(ref('invites/'+me.uid),s=>{window.asInvites=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));pendingTeamInvites=window.asInvites.length;if(activeView==='chats')drawChats();updateAllAlerts()},'チーム招待の読み取り');
  watch(ref('blocks/'+me.uid),s=>{hiddenBlocks=new Set(Object.keys(s.val()||{})); refreshFriends();if(activeView==='global')drawGlobal()},'ブロック設定の読み取り');
  refreshFriends();
 }
@@ -13181,7 +13157,7 @@ function paintRecentRoomList(){
  updateAllAlerts();
 }
 function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeChat||activeTeam||activeRoomThread)return;el.classList.remove('as-person-body','as-global-body','as-detail-body');
- el.innerHTML=`<div class="as-subhead"><b>チャット</b><button class="as-small" id="as-team-new">${icon('add')} チームを作る</button></div><b class="as-label">DM</b><div class="as-list" id="as-dms"></div><b class="as-label">チーム</b><div class="as-list" id="as-team-list"></div><b class="as-label">チーム招待</b><div class="as-list" id="as-team-invites"></div><b class="as-label">最近遊んだ部屋</b><div id="as-recent-rooms"></div><p class="as-hint">部屋の参加者だけが利用できます。履歴は7日間閲覧でき、期限後は非表示になります。</p>`;
+ el.innerHTML=`<div class="as-subhead"><b>チャット</b><button class="as-small" id="as-team-new">${icon('add')} チームを作る</button></div><b class="as-label">DM</b><div class="as-list" id="as-dms"></div><b class="as-label">チーム</b><div class="as-list" id="as-team-list"></div><b class="as-label">チーム招待</b><div class="as-list" id="as-team-invites"></div><p class="as-hint" id="as-team-decline-feedback" role="status" aria-live="polite"></p><b class="as-label">最近遊んだ部屋</b><div id="as-recent-rooms"></div><p class="as-hint">部屋の参加者だけが利用できます。履歴は7日間閲覧でき、期限後は非表示になります。</p>`;
  paintRecentRoomList();
  $('as-team-new').onclick=drawCreateTeam;
  $('as-dms').innerHTML=friendRows.length?friendRows.map(uid=>`<button class="as-listrow" data-as-dm="${safe(uid)}">${avatarChip(uid)}<span data-as-username="${safe(uid)}">DM</span></button>`).join(''):'<p class="as-empty">DMはフレンドになった相手と利用できます。</p>';
@@ -13193,7 +13169,7 @@ function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeC
  const invites=window.asInvites||[];
  $('as-team-invites').innerHTML=invites.length?invites.map(x=>`<div class="as-request">${avatarChip(x.ownerUid)}<span>${safe(x.teamName||'チームへの招待')}</span><button data-as-invite="${safe(x.id)}">参加</button><button type="button" class="as-quiet" data-as-invite-decline="${safe(x.id)}">辞退</button></div>`).join(''):'<p class="as-hint">招待はありません。</p>';
  el.querySelectorAll('[data-as-invite]').forEach(b=>b.onclick=()=>acceptTeamInvite(b.dataset.asInvite));
-hydrateSocialAvatars(el);
+ attachTeamDeclineButtons(el);hydrateSocialAvatars(el);
 }
 function drawRoomThread(id){
  clearDetailWatch();const el=$('as-body');if(!el||!db||!me)return;
@@ -13823,8 +13799,6 @@ async function syncProfile(){
 function socialIcon(name){return icon(name)}
 function installUI(){
  const shell=document.createElement('section');shell.id='artopiaSocial';shell.dataset.socialVersion='1.4.51';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
- // The social panel does not exist until this point: attach the delegated decline handler now.
- setupTeamDeclineHandler(shell);
  const home=$('home');const head=home?.querySelector('.home-header');if(head){const action=document.createElement('button');action.type='button';action.id='openArtSocial';action.className='as-launch';action.innerHTML=icon('social')+'<span>交流</span>';action.onclick=open;head.append(action)}
  const studioHead=$('studio')?.querySelector('.header-actions');if(studioHead){const share=document.createElement('button');share.id='as-share-room';share.type='button';share.className='quiet';share.title='公開ルームをみんなのひろばで共有';share.innerHTML=icon('share')+'<span>共有</span>';share.onclick=()=>window.ArtRoomHub?.confirmShare?.();studioHead.append(share)}
  // Replace emoji-derived game choices with proprietary monochrome SVG symbols.
