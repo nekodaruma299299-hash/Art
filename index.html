@@ -12225,13 +12225,41 @@ async function inviteTeamFriends(id,ids){
  }
  return results;
 }
+// An invitation can disappear between the live listener and a click (owner
+// cancellation, another tab, or an earlier accepted decline). Treat a missing
+// invitation as already declined, rather than attempting a forbidden no-op
+// removal under older Firebase Security Rules.
+const decliningTeamInvites=new Set();
 async function declineTeamInvite(id){
- if(!me)throw Error('ログインが必要です。');
- await deadline(ref('invites/'+me.uid+'/'+id).remove(),12000,'招待の辞退');
- // Team-side pending entry is optional for invites sent with older versions.
- try{await ref('teams/'+id+'/pending/'+me.uid).remove();}
- catch(e){console.warn('招待中一覧の整理を後回しにします',e?.code||e?.message)}
- if(activeView==='chats'&&!activeTeam)drawChats();
+ if(!me||!auth?.currentUser)throw Error('ログイン状態を確認してください。');
+ if(!/^[A-Za-z0-9_-]{1,120}$/.test(id))throw Error('招待IDが不正です。');
+ if(decliningTeamInvites.has(id))return;
+ decliningTeamInvites.add(id);
+ const uid=auth.currentUser.uid;
+ try{
+  if(me.uid!==uid)throw Error('認証情報が更新されています。交流画面を開き直してください。');
+  const invite=ref('invites/'+uid+'/'+id);
+  let snapshot;
+  try{snapshot=await deadline(invite.once('value'),12000,'招待の状態確認')}
+  catch(e){throw Error('招待データの読み取り：'+errors(e))}
+  if(snapshot.exists()){
+   try{await deadline(invite.remove(),12000,'招待データの削除')}
+   catch(e){
+    // A simultaneous cancellation can delete the item just before our write.
+    try{if(!(await deadline(invite.once('value'),8000,'招待の再確認')).exists())snapshot=null}
+    catch{}
+    if(snapshot)throw Error('招待データ /invites/'+uid+'/'+id+' の削除：'+errors(e));
+   }
+  }
+  // The owner's pending list is bookkeeping; a declined invitation must not
+  // be shown as failed solely because this optional cleanup is inaccessible.
+  try{await deadline(ref('teams/'+id+'/pending/'+uid).remove(),8000,'招待中一覧の整理')}
+  catch(e){console.warn('[Artopia] チーム招待の保留一覧を整理できませんでした',id,e?.code||e?.message)}
+  window.asInvites=(window.asInvites||[]).filter(x=>x.id!==id);
+  pendingTeamInvites=window.asInvites.length;
+  updateAllAlerts();
+  if(activeView==='chats'&&!activeTeam&&!activeChat&&!activeRoomThread)drawChats();
+ }finally{decliningTeamInvites.delete(id)}
 }
 async function cancelTeamInvite(id,uid){
  if(!me||!uid)throw Error('招待の指定が不正です。');
@@ -13124,9 +13152,14 @@ function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeC
  $('as-team-invites').innerHTML=invites.length?invites.map(x=>`<div class="as-request">${avatarChip(x.ownerUid)}<span>${safe(x.teamName||'チームへの招待')}</span><button data-as-invite="${safe(x.id)}">参加</button><button class="as-quiet" data-as-invite-decline="${safe(x.id)}">辞退</button></div>`).join(''):'<p class="as-hint">招待はありません。</p>';
  el.querySelectorAll('[data-as-invite]').forEach(b=>b.onclick=()=>acceptTeamInvite(b.dataset.asInvite));
  el.querySelectorAll('[data-as-invite-decline]').forEach(b=>b.onclick=async()=>{
+  const id=b.dataset.asInvite;
+  if(b.disabled||decliningTeamInvites.has(id))return;
   b.disabled=true;
-  try{await declineTeamInvite(b.dataset.asInvite);}
-  catch(e){say('招待を辞退できませんでした：'+errors(e));if(b.isConnected)b.disabled=false;}
+  try{await declineTeamInvite(id);}
+  catch(e){
+   const message='招待を辞退できませんでした：'+errors(e);
+   say(message);window.alert(message);
+  }finally{if(b.isConnected)b.disabled=false}
  });hydrateSocialAvatars(el);
 }
 function drawRoomThread(id){
