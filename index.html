@@ -14232,7 +14232,7 @@ body.art-cursor-brush-linked #art-cursor-hover-example{cursor:var(--artopia-brus
  const labels={default:'標準',brush:'筆',pencil:'鉛筆',nib:'ペン先',cross:'十字',star:'星',circle:'○',xmark:'×',triangle:'△'};
  const hot={default:[4,2],brush:[6,27],pencil:[4,30],nib:[16,29],cross:[16,16],star:[16,16],circle:[16,16],xmark:[16,16],triangle:[16,16]};
  const svgFor=(key,size=32)=>'<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 32 32">'+shapes[key]+'</svg>';
- const clampSize=size=>Math.max(1,Math.min(64,Math.round(Number.isFinite(Number(size))?Number(size):32)));
+ const clampSize=size=>Math.max(1,Math.min(248,Math.round(Number.isFinite(Number(size))?Number(size):32)));
  const cursorFor=(key,size)=>{
   if(key==='default'&&size===32)return 'auto';
   const x=Math.round(hot[key][0]*size/32),y=Math.round(hot[key][1]*size/32);
@@ -14283,8 +14283,8 @@ body.art-cursor-brush-linked #art-cursor-hover-example{cursor:var(--artopia-brus
   brushSize=nextSize;brushTool=tool;brushZoom=z;
   if(brushLinked)applyCursor();
  }
- function settingsHtml(){return '<section id="art-cursor-settings" class="art-cursor-settings"><h3>マウスカーソル</h3><p class="muted">見本を選び、サイズを調整できます。設定は自動保存されます。</p><div class="art-cursor-examples">'+Object.keys(shapes).map(key=>'<button type="button" class="art-cursor-example" data-art-cursor="'+key+'" aria-pressed="'+(selected===key)+'"><span class="art-cursor-icon">'+svgFor(key)+'</span><span>'+labels[key]+'</span></button>').join('')+'</div><label class="art-cursor-link-row"><input type="checkbox" id="art-cursor-link-brush" '+(brushLinked?'checked':'')+'><span>描画中はペン・消しゴムのサイズに連動</span></label><div class="art-cursor-size-settings"><label for="art-cursor-size">カーソルサイズ <output id="art-cursor-size-value">'+cursorSize+'px</output></label><input id="art-cursor-size" type="range" min="1" max="64" step="1" value="'+cursorSize+'" aria-label="マウスカーソルの大きさ"><div class="art-cursor-size-markers"><span>1px</span><span>標準 32px</span><span>64px</span></div></div><div id="art-cursor-hover-example" class="art-cursor-hover-example" tabindex="0"><span id="art-cursor-live-sample" aria-hidden="true">'+svgFor(selected,cursorSize)+'</span><span>ここでカーソルを動かして試せます</span></div><p class="art-cursor-help">※「標準」の32pxはOSの通常カーソルです。ブラウザによって最大サイズが制限される場合があります。</p></section>'}
- function bindSettings(root){if(!root)return;root.querySelectorAll('[data-art-cursor]').forEach(btn=>btn.onclick=()=>set(btn.dataset.artCursor));const slider=root.querySelector('#art-cursor-size');if(slider)slider.addEventListener('input',()=>setSize(slider.value));const link=root.querySelector('#art-cursor-link-brush');if(link)link.onchange=()=>setBrushLinked(link.checked);applyCursor()}
+ function settingsHtml(){return '<section id="art-cursor-settings" class="art-cursor-settings"><h3>マウスカーソル</h3><p class="muted">見本を選び、サイズを調整できます。設定は自動保存されます。</p><div class="art-cursor-examples">'+Object.keys(shapes).map(key=>'<button type="button" class="art-cursor-example" data-art-cursor="'+key+'" aria-pressed="'+(selected===key)+'"><span class="art-cursor-icon">'+svgFor(key)+'</span><span>'+labels[key]+'</span></button>').join('')+'</div><label class="art-cursor-link-row"><input type="checkbox" id="art-cursor-link-brush" '+(brushLinked?'checked':'')+'><span>描画中はペン・消しゴムのサイズに連動</span></label><div class="art-cursor-size-settings"><label for="art-cursor-size">カーソルサイズ <output id="art-cursor-size-value">'+cursorSize+'px</output></label><input id="art-cursor-size" type="range" min="1" max="248" step="1" value="'+cursorSize+'" aria-label="マウスカーソルの大きさ"><div class="art-cursor-size-adjust"><button type="button" id="art-cursor-minus" aria-label="カーソルを1px小さく">−</button><button type="button" id="art-cursor-plus" aria-label="カーソルを1px大きく">＋</button></div><div class="art-cursor-size-markers"><span>1px</span><span>標準 32px</span><span>248px</span></div></div><div id="art-cursor-hover-example" class="art-cursor-hover-example" tabindex="0"><span id="art-cursor-live-sample" aria-hidden="true">'+svgFor(selected,cursorSize)+'</span><span>ここでカーソルを動かして試せます</span></div><p class="art-cursor-help">※「標準」の32pxはOSの通常カーソルです。ブラウザによって最大サイズが制限される場合があります。</p></section>'}
+ function bindSettings(root){if(!root)return;root.querySelectorAll('[data-art-cursor]').forEach(btn=>btn.onclick=()=>set(btn.dataset.artCursor));const slider=root.querySelector('#art-cursor-size');if(slider)slider.addEventListener('input',()=>{setSize(slider.value);window.ArtCursorPrefs?.refreshVisual?.()});const link=root.querySelector('#art-cursor-link-brush');if(link)link.onchange=()=>setBrushLinked(link.checked);root.querySelector('#art-cursor-minus')?.addEventListener('click',()=>{setSize(cursorSize-1);window.ArtCursorPrefs?.refreshVisual?.()});root.querySelector('#art-cursor-plus')?.addEventListener('click',()=>{setSize(cursorSize+1);window.ArtCursorPrefs?.refreshVisual?.()});applyCursor()}
  window.ArtCursorPrefs={settingsHtml,bindSettings,set,setSize,setBrushLinked,syncBrush,get linked(){return brushLinked},get current(){return selected},get size(){return cursorSize},get displaySize(){return effectiveSize()}};
  try{selected=localStorage.getItem('artopia-mouse-cursor-v1')||'default';cursorSize=clampSize(localStorage.getItem('artopia-mouse-cursor-size-v1')||32);brushLinked=localStorage.getItem('artopia-cursor-brush-linked-v1')==='1'}catch{}
  applyCursor();
@@ -14292,6 +14292,8 @@ body.art-cursor-brush-linked #art-cursor-hover-example{cursor:var(--artopia-brus
 </script>
 <style id="artopia-v162-style">
 /* Artopia 1.4.62: shared cursor image, direction, and pet-mode overlay */
+.art-cursor-size-adjust{display:flex;justify-content:flex-end;gap:8px;margin-top:7px}
+.art-cursor-size-adjust button{min-width:40px;min-height:34px;padding:4px 12px;font-size:19px}
 #artopia-self-cursor{position:absolute;left:0;top:0;z-index:41;pointer-events:none;transform:translate(-50%,-50%);display:none;will-change:left,top}
 #artopia-self-cursor .artopia-cursor-visual{display:block;max-width:none;max-height:none;object-fit:contain;filter:drop-shadow(0 1px 2px #0005)}
 #artopia-self-cursor .artopia-cursor-vector svg{width:100%;height:100%;display:block}
@@ -14344,12 +14346,13 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
  const $=s=>document.querySelector(s);
  const safeRead=(k,d)=>{try{return localStorage.getItem(k)||d}catch{return d}};
  const safeWrite=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){console.warn('Cursor storage unavailable',e)}};
- const clamp=n=>Math.max(8,Math.min(248,Math.round(Number(n)||32)));
+ const clamp=n=>Math.max(1,Math.min(248,Math.round(Number.isFinite(Number(n))?Number(n):32)));
  const imagePattern=/^data:image\/(?:png|webp|jpeg);base64,[a-z0-9+/=]+$/i;
  let imageData=safeRead('artopia-cursor-image-v162','');
  if(!imagePattern.test(imageData)||imageData.length>25000)imageData='';
  let usingImage=safeRead('artopia-cursor-mode-v162','shape')==='image'&&!!imageData;
- let size=clamp(safeRead('artopia-cursor-image-size-v162','40'));
+ // Use the same user-facing cursor size for both shapes and uploaded images.
+ const cursorSize=()=>clamp(prefs.size);
  let flip=safeRead('artopia-cursor-auto-flip-v162','0')==='1';
  let baseDir=safeRead('artopia-cursor-base-direction-v162','right')==='left'?'left':'right';
  let dir=baseDir;
@@ -14360,7 +14363,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   const map={default:'M4 2L4 28L11 20L16 29L20 27L15 18L27 17Z',brush:'M7 26L25 5L29 9L11 29Z',pencil:'M4 28L25 5L29 8L8 30Z',nib:'M16 3L28 16L16 29L4 16Z',cross:'M15 2H17V15H30V17H17V30H15V17H2V15H15Z',star:'M16 2L20 12L30 13L22 20L24 30L16 25L8 30L10 20L2 13L12 12Z',circle:'M16 4A12 12 0 1 0 16 28A12 12 0 1 0 16 4',xmark:'M6 4L16 13L26 4L29 7L19 16L29 26L26 29L16 19L6 29L3 26L13 16L3 7Z',triangle:'M16 4L29 27H3Z'};
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="${map[shape]||map.default}" stroke="#1b333c" stroke-width="2" fill="white" stroke-linejoin="round"/></svg>`;
  };
- const skin=()=>({image:usingImage?imageData:'',shape:prefs.current,size:usingImage?size:prefs.size,flip,baseDir});
+ const skin=()=>({image:usingImage?imageData:'',shape:prefs.current,size:cursorSize(),flip,baseDir});
  const safeSkin=s=>{
   if(!s||typeof s!=='object')return null;
   const image=typeof s.image==='string'&&s.image.length<=25000&&imagePattern.test(s.image)?s.image:'';
@@ -14378,7 +14381,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   const preview=document.getElementById('art-cursor-hover-example');
   if(!sample||!preview)return;
   if(!usingImage){sample.style.width='68px';sample.style.height='68px';sample.removeAttribute('data-image-data');return}
-  sample.style.width=size+'px';sample.style.height=size+'px';
+  sample.style.width=cursorSize()+'px';sample.style.height=cursorSize()+'px';
   if(sample.dataset.imageData!==imageData){
    sample.replaceChildren();const img=document.createElement('img');img.alt='画像カーソルのプレビュー';img.src=imageData;
    img.style.cssText='width:100%;height:100%;object-fit:contain;max-width:none;max-height:none';sample.append(img);
@@ -14395,19 +14398,21 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   return screenCursor;
  }
  function paintScreenCursor(){
-  const el=ensureScreenCursor(),visible=usingImage&&!pet&&lastMouseX!==null;
-  document.body.classList.toggle('artopia-image-cursor',usingImage&&!pet);
+  const useOverlay=usingImage||prefs.size>64;
+   const el=ensureScreenCursor(),visible=useOverlay&&!pet&&lastMouseX!==null;
+  document.body.classList.toggle('artopia-image-cursor',useOverlay&&!pet);
   el.style.display=visible?'block':'none';
   if(!visible)return;
   const img=el.firstElementChild;
-  if(img.getAttribute('src')!==imageData)img.src=imageData;
+  const cursorSource=usingImage?imageData:'data:image/svg+xml,'+encodeURIComponent(fontSvg(prefs.current));
+   if(img.getAttribute('src')!==cursorSource)img.src=cursorSource;
   el.style.left=lastMouseX+'px';el.style.top=lastMouseY+'px';
-  img.style.width=size+'px';img.style.height=size+'px';
+  img.style.width=cursorSize()+'px';img.style.height=cursorSize()+'px';
   el.style.transform='translate(-50%,-50%) scaleX('+(effectiveMirror(skin(),dir)?'-1':'1')+')';
  }
  function updateNativeCursor(){
   if(pet){paintScreenCursor();return}
-  if(usingImage){
+  if(usingImage||prefs.size>64){
    // CSS/OS cursors are frequently capped at 32–64px. A fixed, non-interactive
    // visual makes the requested 248px size and mirroring work consistently.
    document.body.classList.remove('art-cursor-custom');
@@ -14499,24 +14504,15 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   const r=oldSet(v);notifySkinChanged();return r;
  };
  prefs.setSize=function(v){const r=oldSize(v);notifySkinChanged();return r};
- prefs.sendPosition=trySend;
+ prefs.refreshVisual=notifySkinChanged;
+  prefs.sendPosition=trySend;
  prefs.receiveSkin=(id,s)=>{const safe=safeSkin(s);if(safe)remoteSkins.set(id,safe)};
  prefs.remoteHtml=(id,c)=>iconHtml(remoteSkins.get(id)||{image:'',shape:'default',size:24,flip:false,baseDir:'right'},c.dir);
- prefs.settingsHtml=function(){return oldSettings().replace('</section>',`<div class="artopia-extra-cursor-settings"><h3>画像カーソル</h3><p class="muted">写真を選択するとカーソルにできます。ほかの参加者にも表示されます。</p><div class="artopia-cursor-upload"><button type="button" id="artopia-cursor-image-pick">画像を読み込む</button><button type="button" id="artopia-cursor-use-shape">デフォルト図形に戻す</button></div><input type="file" accept="image/png,image/jpeg,image/webp" id="artopia-cursor-file" hidden><div id="artopia-cursor-upload-status"></div><label>画像サイズ（8～248px） <span class="artopia-image-size-row"><button type="button" id="artopia-cursor-image-minus" aria-label="画像カーソルを1px小さく">−</button><input id="artopia-cursor-image-size" type="range" min="8" max="248" step="1" value="${size}"><button type="button" id="artopia-cursor-image-plus" aria-label="画像カーソルを1px大きく">＋</button><output id="artopia-cursor-image-size-output">${size}px</output></span></label><label><input type="checkbox" id="artopia-cursor-flip" ${flip?'checked':''}> 移動方向で左右反転する（初期値 OFF）</label><label>元画像の向き <select id="artopia-cursor-base-dir"><option value="right" ${baseDir==='right'?'selected':''}>右向き</option><option value="left" ${baseDir==='left'?'selected':''}>左向き</option></select></label><p class="muted">左右反転OFFでは元画像をそのまま表示します。ONでは移動方向に合わせて向きを変えます。</p></div></section>`)};
+ prefs.settingsHtml=function(){return oldSettings().replace('</section>',`<div class="artopia-extra-cursor-settings"><h3>画像カーソル</h3><p class="muted">写真を選択するとカーソルにできます。ほかの参加者にも表示されます。</p><div class="artopia-cursor-upload"><button type="button" id="artopia-cursor-image-pick">画像を読み込む</button><button type="button" id="artopia-cursor-use-shape">デフォルト図形に戻す</button></div><input type="file" accept="image/png,image/jpeg,image/webp" id="artopia-cursor-file" hidden><div id="artopia-cursor-upload-status"></div><p class="muted">画像・図形とも、上の「カーソルサイズ」で1〜248pxまで変更できます。−／＋で1pxずつ調整できます。</p><label><input type="checkbox" id="artopia-cursor-flip" ${flip?'checked':''}> 移動方向で左右反転する（初期値 OFF）</label><label>元画像の向き <select id="artopia-cursor-base-dir"><option value="right" ${baseDir==='right'?'selected':''}>右向き</option><option value="left" ${baseDir==='left'?'selected':''}>左向き</option></select></label><p class="muted">左右反転OFFでは元画像をそのまま表示します。ONでは移動方向に合わせて向きを変えます。</p></div></section>`)};
  prefs.bindSettings=function(root){oldBind(root);if(!root)return;
   const file=root.querySelector('#artopia-cursor-file');
   root.querySelector('#artopia-cursor-image-pick')?.addEventListener('click',()=>file?.click());
   root.querySelector('#artopia-cursor-use-shape')?.addEventListener('click',()=>{usingImage=false;safeWrite('artopia-cursor-mode-v162','shape');oldSet('default');notifySkinChanged();const status=root.querySelector('#artopia-cursor-upload-status');if(status)status.textContent='標準カーソルに戻しました';});
-  const imageSlider=root.querySelector('#artopia-cursor-image-size');
-  const setImageSize=n=>{
-   size=clamp(n);safeWrite('artopia-cursor-image-size-v162',String(size));
-   if(imageSlider)imageSlider.value=String(size);
-   const o=root.querySelector('#artopia-cursor-image-size-output');if(o)o.textContent=size+'px';
-   notifySkinChanged();
-  };
-  imageSlider?.addEventListener('input',e=>setImageSize(e.target.value));
-  root.querySelector('#artopia-cursor-image-minus')?.addEventListener('click',()=>setImageSize(size-1));
-  root.querySelector('#artopia-cursor-image-plus')?.addEventListener('click',()=>setImageSize(size+1));
   root.querySelector('#artopia-cursor-flip')?.addEventListener('change',e=>{flip=e.target.checked;safeWrite('artopia-cursor-auto-flip-v162',flip?'1':'0');dir=baseDir;notifySkinChanged()});
   root.querySelector('#artopia-cursor-base-dir')?.addEventListener('change',e=>{baseDir=e.target.value==='left'?'left':'right';safeWrite('artopia-cursor-base-direction-v162',baseDir);dir=baseDir;notifySkinChanged()});
   root.addEventListener('click',e=>{
