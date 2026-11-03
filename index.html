@@ -12273,8 +12273,8 @@ async function declineTeamInvite(id){
  }finally{decliningTeamInvites.delete(id)}
 }
 // Install once on a stable ancestor, in capture phase, to survive list updates.
-const socialInviteShell=document.getElementById('artopiaSocial');
-if(socialInviteShell&&!socialInviteShell.dataset.teamDeclineHandler){
+function setupTeamDeclineHandler(socialInviteShell){
+ if(!socialInviteShell||socialInviteShell.dataset.teamDeclineHandler)return;
  socialInviteShell.dataset.teamDeclineHandler='1';
  socialInviteShell.addEventListener('click',async e=>{
   const button=e.target.closest?.('[data-as-invite-decline]');
@@ -13823,6 +13823,8 @@ async function syncProfile(){
 function socialIcon(name){return icon(name)}
 function installUI(){
  const shell=document.createElement('section');shell.id='artopiaSocial';shell.dataset.socialVersion='1.4.51';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
+ // The social panel does not exist until this point: attach the delegated decline handler now.
+ setupTeamDeclineHandler(shell);
  const home=$('home');const head=home?.querySelector('.home-header');if(head){const action=document.createElement('button');action.type='button';action.id='openArtSocial';action.className='as-launch';action.innerHTML=icon('social')+'<span>交流</span>';action.onclick=open;head.append(action)}
  const studioHead=$('studio')?.querySelector('.header-actions');if(studioHead){const share=document.createElement('button');share.id='as-share-room';share.type='button';share.className='quiet';share.title='公開ルームをみんなのひろばで共有';share.innerHTML=icon('share')+'<span>共有</span>';share.onclick=()=>window.ArtRoomHub?.confirmShare?.();studioHead.append(share)}
  // Replace emoji-derived game choices with proprietary monochrome SVG symbols.
