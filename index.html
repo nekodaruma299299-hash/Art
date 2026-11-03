@@ -2338,9 +2338,27 @@ window.ArtSound=(()=>{
  try{const s=JSON.parse(localStorage.getItem('artopia-sound')||'{}');if(Number.isFinite(s.volume))volume=Math.max(0,Math.min(1,s.volume));muted=!!s.muted}catch{}
  function status(text){const el=document.querySelector('#soundStatus');if(el)el.textContent=text}
  function stop(){request++;for(const voice of voices){try{voice.stop()}catch{}}voices.clear();player.pause();try{player.currentTime=0}catch{}}
- let context=null,gain=null;const decoded=new Map(),voices=new Set();
- function unlock(){unlocked=true;if(!context){try{if(navigator.audioSession)navigator.audioSession.type='playback';const C=window.AudioContext||window.webkitAudioContext;if(!C)return;context=new C({latencyHint:'interactive'});gain=context.createGain();gain.connect(context.destination);gain.gain.value=muted?0:volume;for(const [name,data]of Object.entries(assets)){const bytes=Uint8Array.from(atob(data.split(',')[1]),c=>c.charCodeAt(0));context.decodeAudioData(bytes.buffer).then(buffer=>decoded.set(name,buffer)).catch(()=>{})}}catch{context=null}}if(context&&context.state!=='running')context.resume().catch(()=>{})}
- function fastPlay(name){if(!context||context.state!=='running'||!decoded.has(name))return false;try{if(voices.size>=8){const old=voices.values().next().value;old.stop();voices.delete(old)}const voice=context.createBufferSource();voice.buffer=decoded.get(name);voice.connect(gain);voices.add(voice);voice.onended=()=>{voices.delete(voice);voice.disconnect()};voice.start();return true}catch{return false}}
+ let context=null,gain=null;const decoded=new Map(),decoding=new Set(),voices=new Set();
+ function unlock(){unlocked=true;if(!context){try{if(navigator.audioSession)navigator.audioSession.type='playback';const C=window.AudioContext||window.webkitAudioContext;if(!C)return;context=new C({latencyHint:'interactive'});gain=context.createGain();gain.connect(context.destination);gain.gain.value=muted?0:volume;/* Decode each effect only when it is played, not on the first home-screen tap. */}catch{context=null}}if(context&&context.state!=='running')context.resume().catch(()=>{})}
+ // First playback uses the existing HTMLAudio fallback; later plays use the cached decoded buffer.
+ // Deferring decoding keeps the first touch responsive on mobile devices.
+ function scheduleDecode(name){
+  if(!context||!assets[name]||decoded.has(name)||decoding.has(name))return;
+  decoding.add(name);
+  setTimeout(()=>{
+   const ctx=context;
+   try{
+    if(!ctx){decoding.delete(name);return}
+    const data=assets[name];
+    const bytes=Uint8Array.from(atob(data.slice(data.indexOf(',')+1)),c=>c.charCodeAt(0));
+    ctx.decodeAudioData(bytes.buffer)
+      .then(buffer=>{if(context===ctx)decoded.set(name,buffer)})
+      .catch(()=>{})
+      .finally(()=>decoding.delete(name));
+   }catch{decoding.delete(name)}
+  },0);
+ }
+ function fastPlay(name){if(!context||context.state!=='running'||!decoded.has(name)){scheduleDecode(name);return false;}try{if(voices.size>=8){const old=voices.values().next().value;old.stop();voices.delete(old)}const voice=context.createBufferSource();voice.buffer=decoded.get(name);voice.connect(gain);voices.add(voice);voice.onended=()=>{voices.delete(voice);voice.disconnect()};voice.start();return true}catch{return false}}
  // Machine-gun round: replay the attack transient of the strong-shot WAV with
  // a short fade and reduced per-voice gain. It intentionally bypasses the global
  // 85ms one-shot throttle; normal SFX still use play() and the user's master volume.
