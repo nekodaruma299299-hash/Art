@@ -14330,6 +14330,11 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .artopia-extra-cursor-settings .artopia-image-size-row button{width:31px;height:31px;padding:0;flex-shrink:0;font-size:18px;line-height:1}
 .artopia-extra-cursor-settings .artopia-image-size-row output{min-width:49px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
 @media(max-width:520px){.artopia-extra-cursor-settings label:has(.artopia-image-size-row){align-items:stretch;flex-direction:column}}
+
+/* Preview of an uploaded image must not inherit shape cursor's 64px limit. */
+#art-cursor-live-sample:has(img){max-width:none;max-height:none;flex-shrink:0}
+#art-cursor-live-sample:has(img) img{max-width:none!important;max-height:none!important}
+#art-cursor-hover-example:has(#art-cursor-live-sample img){overflow:auto;min-height:95px}
 </style>
 <script id="artopia-v162">
 (()=>{
@@ -14368,7 +14373,21 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   if(s.image)return `<img class="artopia-remote-icon" alt="" src="${s.image}" style="width:${w}px;height:${w}px;transform:translate(-50%,-50%) ${mir}">`;
   return `<span class="artopia-remote-icon" style="width:${w}px;height:${w}px;transform:translate(-50%,-50%) ${mir}">${fontSvg(s.shape)}</span>`;
  };
- function notifySkinChanged(){skinSerial++;lastSkinSent=0;paintSelf();updateNativeCursor();updateMenu();}
+ function updateImagePreview(){
+  const sample=document.getElementById('art-cursor-live-sample');
+  const preview=document.getElementById('art-cursor-hover-example');
+  if(!sample||!preview)return;
+  if(!usingImage){sample.style.width='68px';sample.style.height='68px';sample.removeAttribute('data-image-data');return}
+  sample.style.width=size+'px';sample.style.height=size+'px';
+  if(sample.dataset.imageData!==imageData){
+   sample.replaceChildren();const img=document.createElement('img');img.alt='画像カーソルのプレビュー';img.src=imageData;
+   img.style.cssText='width:100%;height:100%;object-fit:contain;max-width:none;max-height:none';sample.append(img);
+   sample.dataset.imageData=imageData;
+  }
+  preview.style.cursor='none';
+ }
+ function notifySkinChanged(){skinSerial++;lastSkinSent=0;paintSelf();updateNativeCursor();updateMenu();updateImagePreview();}
+
  function ensureScreenCursor(){
   if(screenCursor)return screenCursor;
   screenCursor=document.createElement('div');screenCursor.id='artopia-screen-cursor';
@@ -14384,7 +14403,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   if(img.getAttribute('src')!==imageData)img.src=imageData;
   el.style.left=lastMouseX+'px';el.style.top=lastMouseY+'px';
   img.style.width=size+'px';img.style.height=size+'px';
-  el.style.transform='translate(-50%,-50%) '+(effectiveMirror(skin(),dir)?'scaleX(-1)':'');
+  el.style.transform='translate(-50%,-50%) scaleX('+(effectiveMirror(skin(),dir)?'-1':'1')+')';
  }
  function updateNativeCursor(){
   if(pet){paintScreenCursor();return}
@@ -14416,7 +14435,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   self.style.left=petLatest[0]+'px';self.style.top=petLatest[1]+'px';
   const s=skin(),el=self.firstElementChild;
   const offset=(petLatest[2]==='touch')?Math.max(24,s.size*.8):0;
-  el.style.transform=`translateY(${-offset}px) ${effectiveMirror(s,dir)?'scaleX(-1)':'none'}`;
+  el.style.transform=`translateY(${-offset}px) scaleX(${effectiveMirror(s,dir)?-1:1})`;
   el.style.width=s.size+'px';el.style.height=s.size+'px';
   if(s.image){if(el.dataset.src!==s.image){el.innerHTML='<img class="artopia-cursor-visual" alt="">';el.firstElementChild.src=s.image;el.dataset.src=s.image}el.firstElementChild.style.width='100%';el.firstElementChild.style.height='100%'}
   else{if(el.dataset.src!==s.shape){el.innerHTML=fontSvg(s.shape);el.dataset.src=s.shape}}
@@ -14436,8 +14455,9 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   // cursors face the correct direction even while navigating the studio UI.
   document.addEventListener('pointermove',e=>{
    if(e.pointerType!=='mouse'&&e.pointerType!=='pen')return;
-   if(lastMouseX!==null)updateDirection(e.clientX-lastMouseX);
+   const dx=lastMouseX===null?0:e.clientX-lastMouseX;
    lastMouseX=e.clientX;lastMouseY=e.clientY;
+   updateDirection(dx);
    if(!pet)paintScreenCursor();
   },true);
   document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||e.pointerType==='pen'){lastMouseX=e.clientX;lastMouseY=e.clientY;paintScreenCursor()}},true);
@@ -14473,12 +14493,16 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
  function toggle(){if(pet){openCursor()}else setPet(true)}
  window.ArtPetMode={active:()=>pet,toggle,set:setPet};
  const oldSet=prefs.set.bind(prefs),oldSize=prefs.setSize.bind(prefs),oldSettings=prefs.settingsHtml.bind(prefs),oldBind=prefs.bindSettings.bind(prefs);
- prefs.set=function(v){usingImage=false;safeWrite('artopia-cursor-mode-v162','shape');const r=oldSet(v);notifySkinChanged();return r};
+ prefs.set=function(v){
+  // This function is also called for ordinary reapplication of cursor style.
+  // Keep the uploaded photo unless the user explicitly selects a figure.
+  const r=oldSet(v);notifySkinChanged();return r;
+ };
  prefs.setSize=function(v){const r=oldSize(v);notifySkinChanged();return r};
  prefs.sendPosition=trySend;
  prefs.receiveSkin=(id,s)=>{const safe=safeSkin(s);if(safe)remoteSkins.set(id,safe)};
  prefs.remoteHtml=(id,c)=>iconHtml(remoteSkins.get(id)||{image:'',shape:'default',size:24,flip:false,baseDir:'right'},c.dir);
- prefs.settingsHtml=function(){return oldSettings().replace('</section>',`<div class="artopia-extra-cursor-settings"><h3>画像カーソル</h3><p class="muted">写真を選択するとカーソルにできます。ほかの参加者にも表示されます。</p><div class="artopia-cursor-upload"><button type="button" id="artopia-cursor-image-pick">画像を読み込む</button><button type="button" id="artopia-cursor-use-shape">デフォルト図形に戻す</button></div><input type="file" accept="image/png,image/jpeg,image/webp" id="artopia-cursor-file" hidden><div id="artopia-cursor-upload-status"></div><label>画像サイズ <span class="artopia-image-size-row"><button type="button" id="artopia-cursor-image-minus" aria-label="画像カーソルを1px小さく">−</button><input id="artopia-cursor-image-size" type="range" min="8" max="248" step="1" value="${size}"><button type="button" id="artopia-cursor-image-plus" aria-label="画像カーソルを1px大きく">＋</button><output id="artopia-cursor-image-size-output">${size}px</output></span></label><label><input type="checkbox" id="artopia-cursor-flip" ${flip?'checked':''}> 移動方向で左右反転する（初期値 OFF）</label><label>元画像の向き <select id="artopia-cursor-base-dir"><option value="right" ${baseDir==='right'?'selected':''}>右向き</option><option value="left" ${baseDir==='left'?'selected':''}>左向き</option></select></label><p class="muted">左右反転OFFでは元画像をそのまま表示します。ONでは移動方向に合わせて向きを変えます。</p></div></section>`)};
+ prefs.settingsHtml=function(){return oldSettings().replace('</section>',`<div class="artopia-extra-cursor-settings"><h3>画像カーソル</h3><p class="muted">写真を選択するとカーソルにできます。ほかの参加者にも表示されます。</p><div class="artopia-cursor-upload"><button type="button" id="artopia-cursor-image-pick">画像を読み込む</button><button type="button" id="artopia-cursor-use-shape">デフォルト図形に戻す</button></div><input type="file" accept="image/png,image/jpeg,image/webp" id="artopia-cursor-file" hidden><div id="artopia-cursor-upload-status"></div><label>画像サイズ（8～248px） <span class="artopia-image-size-row"><button type="button" id="artopia-cursor-image-minus" aria-label="画像カーソルを1px小さく">−</button><input id="artopia-cursor-image-size" type="range" min="8" max="248" step="1" value="${size}"><button type="button" id="artopia-cursor-image-plus" aria-label="画像カーソルを1px大きく">＋</button><output id="artopia-cursor-image-size-output">${size}px</output></span></label><label><input type="checkbox" id="artopia-cursor-flip" ${flip?'checked':''}> 移動方向で左右反転する（初期値 OFF）</label><label>元画像の向き <select id="artopia-cursor-base-dir"><option value="right" ${baseDir==='right'?'selected':''}>右向き</option><option value="left" ${baseDir==='left'?'selected':''}>左向き</option></select></label><p class="muted">左右反転OFFでは元画像をそのまま表示します。ONでは移動方向に合わせて向きを変えます。</p></div></section>`)};
  prefs.bindSettings=function(root){oldBind(root);if(!root)return;
   const file=root.querySelector('#artopia-cursor-file');
   root.querySelector('#artopia-cursor-image-pick')?.addEventListener('click',()=>file?.click());
@@ -14495,7 +14519,13 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   root.querySelector('#artopia-cursor-image-plus')?.addEventListener('click',()=>setImageSize(size+1));
   root.querySelector('#artopia-cursor-flip')?.addEventListener('change',e=>{flip=e.target.checked;safeWrite('artopia-cursor-auto-flip-v162',flip?'1':'0');dir=baseDir;notifySkinChanged()});
   root.querySelector('#artopia-cursor-base-dir')?.addEventListener('change',e=>{baseDir=e.target.value==='left'?'left':'right';safeWrite('artopia-cursor-base-direction-v162',baseDir);dir=baseDir;notifySkinChanged()});
-  root.addEventListener('click',e=>{if(e.target.closest('[data-art-cursor]')){usingImage=false;safeWrite('artopia-cursor-mode-v162','shape');notifySkinChanged()}},true);
+  root.addEventListener('click',e=>{
+   if(e.target.closest('[data-art-cursor]')){
+    usingImage=false;safeWrite('artopia-cursor-mode-v162','shape');
+    const preview=root.querySelector('#art-cursor-live-sample');if(preview){preview.dataset.imageData='';preview.style.width='68px';preview.style.height='68px'}
+    notifySkinChanged();
+   }
+  },true);
   if(file)file.addEventListener('change',async()=>{
    const f=file.files?.[0];file.value='';if(!f)return;
    const status=root.querySelector('#artopia-cursor-upload-status');
@@ -14507,11 +14537,10 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
     if(out.length>24000){const c2=document.createElement('canvas');c2.width=c2.height=64;c2.getContext('2d').drawImage(c,0,0,64,64);out=c2.toDataURL('image/webp',.60)}
     if(!imagePattern.test(out)||out.length>25000)throw Error('画像を圧縮できませんでした');
     imageData=out;usingImage=true;safeWrite('artopia-cursor-image-v162',imageData);safeWrite('artopia-cursor-mode-v162','image');
-    if(status)status.textContent='画像カーソルを設定しました';notifySkinChanged();const preview=root.querySelector('#art-cursor-live-sample');if(preview)preview.innerHTML='<img src="'+imageData+'" alt="選択したカーソル" style="max-height:64px;max-width:64px;object-fit:contain">';
+    if(status)status.textContent='画像カーソルを設定しました';notifySkinChanged();
    }catch(e){if(status)status.textContent='画像を読み込めませんでした：'+(e.message||e)}
   });
-  if(usingImage){const preview=root.querySelector('#art-cursor-live-sample');if(preview)preview.innerHTML='<img src="'+imageData+'" alt="選択したカーソル" style="max-height:64px;max-width:64px;object-fit:contain">'}
-  updateMenu();
+  updateMenu();updateImagePreview();
  };
  function updateMenu(){const status=$('#artopia-cursor-upload-status');if(status&&!status.textContent)status.textContent=usingImage?'画像カーソルを使用中':'図形カーソルを使用中'}
  function openCursor(){if(typeof modal!=='function')return;modal('カーソル設定',prefs.settingsHtml());prefs.bindSettings($('#art-cursor-settings'))}
