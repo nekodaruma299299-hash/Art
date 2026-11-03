@@ -1744,6 +1744,22 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #artopiaSocial .as-team-body .as-team-delivery{font-size:10px}
 @media(max-width:530px){#artopiaSocial .as-team-body .as-bubble p{font-size:14px}}
 </style>
+<style id="artopia-pc-team-and-photo-fix">
+/* Keep the friend checkbox and name on one horizontal line, including desktop widths. */
+#artopiaSocial .as-form .as-invite-option,
+#artopiaSocial .as-invite-option{
+ display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+ width:100%;min-width:0;box-sizing:border-box;gap:10px;
+}
+#artopiaSocial .as-form .as-invite-option input[type="checkbox"]{
+ flex:0 0 18px;width:18px;height:18px;min-width:18px;margin:0;
+}
+#artopiaSocial .as-invite-option span{flex:1;min-width:0;overflow-wrap:anywhere}
+#artopiaSocial .as-form{width:100%;max-width:min(100%,560px);min-width:0;box-sizing:border-box}
+#artopiaSocial .as-invite-picker{min-width:0;width:100%;box-sizing:border-box}
+#artopiaSocial #as-team-invites.art-has-alert{position:relative}
+#artopiaSocial #as-team-invites>.art-alert-dot{top:6px;right:8px}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.4.60</div><h1>今日の一枚を、<br>いっしょに。</h1><p class="intro">同じキャンバスに、あなたの色を。<br>部屋を作るか、合言葉で友だちの部屋へ。</p></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -2338,27 +2354,9 @@ window.ArtSound=(()=>{
  try{const s=JSON.parse(localStorage.getItem('artopia-sound')||'{}');if(Number.isFinite(s.volume))volume=Math.max(0,Math.min(1,s.volume));muted=!!s.muted}catch{}
  function status(text){const el=document.querySelector('#soundStatus');if(el)el.textContent=text}
  function stop(){request++;for(const voice of voices){try{voice.stop()}catch{}}voices.clear();player.pause();try{player.currentTime=0}catch{}}
- let context=null,gain=null;const decoded=new Map(),decoding=new Set(),voices=new Set();
- function unlock(){unlocked=true;if(!context){try{if(navigator.audioSession)navigator.audioSession.type='playback';const C=window.AudioContext||window.webkitAudioContext;if(!C)return;context=new C({latencyHint:'interactive'});gain=context.createGain();gain.connect(context.destination);gain.gain.value=muted?0:volume;/* Decode each effect only when it is played, not on the first home-screen tap. */}catch{context=null}}if(context&&context.state!=='running')context.resume().catch(()=>{})}
- // First playback uses the existing HTMLAudio fallback; later plays use the cached decoded buffer.
- // Deferring decoding keeps the first touch responsive on mobile devices.
- function scheduleDecode(name){
-  if(!context||!assets[name]||decoded.has(name)||decoding.has(name))return;
-  decoding.add(name);
-  setTimeout(()=>{
-   const ctx=context;
-   try{
-    if(!ctx){decoding.delete(name);return}
-    const data=assets[name];
-    const bytes=Uint8Array.from(atob(data.slice(data.indexOf(',')+1)),c=>c.charCodeAt(0));
-    ctx.decodeAudioData(bytes.buffer)
-      .then(buffer=>{if(context===ctx)decoded.set(name,buffer)})
-      .catch(()=>{})
-      .finally(()=>decoding.delete(name));
-   }catch{decoding.delete(name)}
-  },0);
- }
- function fastPlay(name){if(!context||context.state!=='running'||!decoded.has(name)){scheduleDecode(name);return false;}try{if(voices.size>=8){const old=voices.values().next().value;old.stop();voices.delete(old)}const voice=context.createBufferSource();voice.buffer=decoded.get(name);voice.connect(gain);voices.add(voice);voice.onended=()=>{voices.delete(voice);voice.disconnect()};voice.start();return true}catch{return false}}
+ let context=null,gain=null;const decoded=new Map(),voices=new Set();
+ function unlock(){unlocked=true;if(!context){try{if(navigator.audioSession)navigator.audioSession.type='playback';const C=window.AudioContext||window.webkitAudioContext;if(!C)return;context=new C({latencyHint:'interactive'});gain=context.createGain();gain.connect(context.destination);gain.gain.value=muted?0:volume;for(const [name,data]of Object.entries(assets)){const bytes=Uint8Array.from(atob(data.split(',')[1]),c=>c.charCodeAt(0));context.decodeAudioData(bytes.buffer).then(buffer=>decoded.set(name,buffer)).catch(()=>{})}}catch{context=null}}if(context&&context.state!=='running')context.resume().catch(()=>{})}
+ function fastPlay(name){if(!context||context.state!=='running'||!decoded.has(name))return false;try{if(voices.size>=8){const old=voices.values().next().value;old.stop();voices.delete(old)}const voice=context.createBufferSource();voice.buffer=decoded.get(name);voice.connect(gain);voices.add(voice);voice.onended=()=>{voices.delete(voice);voice.disconnect()};voice.start();return true}catch{return false}}
  // Machine-gun round: replay the attack transient of the strong-shot WAV with
  // a short fade and reduced per-voice gain. It intentionally bypasses the global
  // 85ms one-shot throttle; normal SFX still use play() and the user's master volume.
@@ -11582,9 +11580,18 @@ window.ArtRoomTools=(()=>{
  const canSwitch=()=>isHost&&connected&&!migrationOut&&!checkpointBusy&&(!window.ArtGame?.enabled()||['lobby','finished'].includes(window.ArtGame.getView?.()?.phase));
  function sync(){const photo=$('#photoInsertBtn'),move=$('#moveLayerBtn');if(photo){photo.hidden=!shared();photo.disabled=!shared()}if(move)move.disabled=!shared();}
  const photo=document.createElement('button');photo.id='photoInsertBtn';photo.title='写真を貼る';photo.setAttribute('aria-label','写真を貼る');photo.innerHTML=icon('folderUpload');$('#snapshotBtn').before(photo);
- const picker=document.createElement('input');picker.type='file';picker.accept='image/*';picker.hidden=true;document.body.append(picker);
- photo.onclick=()=>{if(!shared())return;if(selection){toast('現在の変形を確定または取り消してください');return}picker.value='';picker.click()};
- picker.onchange=async()=>{const file=picker.files?.[0];if(!file||!shared())return;const token=sessionToken,epoch=room.canvasEpoch||0,url=URL.createObjectURL(file);let c;try{const im=await E.image(url);if(token!==sessionToken||!shared()||epoch!==(room.canvasEpoch||0))return;const z=Math.min(1,engine.w/im.width,engine.h/im.height,1024/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*z)),h=Math.max(1,Math.round(im.height*z));c=E.make(w,h);c.getContext('2d').drawImage(im,0,0,w,h);const clip=E.packCut({part:c,box:{x:0,y:0,w,h}});if(selection){toast('現在の変形を確定または取り消してください');return}if(stroke)finishStroke();clearInputState(false,false);cancelSelection();pan=false;selection={mode:'paste',layer:prefs.layer,points:[[0,0],[w,0],[w,h],[0,h]],clip,cx:w/2,cy:h/2,dx:(engine.w-w)/2,dy:(engine.h-h)/2,angle:0,scale:1,flipX:1,flipY:1};showSelectionControls();renderControls();renderOverlay();toast('写真を移動・回転・拡大縮小して「ここに貼り付け」で確定')}catch{toast('写真を読み込めませんでした。PNG・JPEGなどの画像を選んでください。')}finally{URL.revokeObjectURL(url);if(c)c.width=c.height=0}};
+ const picker=document.createElement('input');picker.type='file';picker.accept='.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp';picker.hidden=true;document.body.append(picker);
+ let photoPickerBusy=false;
+ photo.onclick=()=>{if(!shared()||photoPickerBusy)return;if(selection){toast('現在の変形を確定または取り消してください');return}
+  photoPickerBusy=true;picker.value='';
+  try{picker.click()}catch(e){toast('画像選択を開けませんでした');console.warn('[Artopia] 写真選択',e)}
+  finally{setTimeout(()=>{photoPickerBusy=false},600)}
+ };
+ picker.addEventListener('cancel',()=>{photoPickerBusy=false});
+ picker.onchange=async()=>{const file=picker.files?.[0];photoPickerBusy=false;if(!file||!shared())return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type.toLowerCase())){toast('PNG・JPEG・WebPの画像を選んでください');return}
+  if(file.size>25*1024*1024){toast('画像が大きすぎます。25MB以下にしてください');return}
+  const token=sessionToken,epoch=room.canvasEpoch||0,url=URL.createObjectURL(file);let c;try{const im=await E.image(url);if(token!==sessionToken||!shared()||epoch!==(room.canvasEpoch||0))return;const z=Math.min(1,engine.w/im.width,engine.h/im.height,1024/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*z)),h=Math.max(1,Math.round(im.height*z));c=E.make(w,h);c.getContext('2d').drawImage(im,0,0,w,h);const clip=E.packCut({part:c,box:{x:0,y:0,w,h}});if(selection){toast('現在の変形を確定または取り消してください');return}if(stroke)finishStroke();clearInputState(false,false);cancelSelection();pan=false;selection={mode:'paste',layer:prefs.layer,points:[[0,0],[w,0],[w,h],[0,h]],clip,cx:w/2,cy:h/2,dx:(engine.w-w)/2,dy:(engine.h-h)/2,angle:0,scale:1,flipX:1,flipY:1};showSelectionControls();renderControls();renderOverlay();toast('写真を移動・回転・拡大縮小して「ここに貼り付け」で確定')}catch{toast('写真を読み込めませんでした。PNG・JPEGなどの画像を選んでください。')}finally{URL.revokeObjectURL(url);if(c)c.width=c.height=0}};
  const move=document.createElement('button');move.id='moveLayerBtn';move.textContent='このレイヤー全体を動かす';$('.layer-controls').append(move);
  move.onclick=()=>{if(!shared())return;if(selection){toast('現在の変形を確定または取り消してください');return}if(stroke)finishStroke();window.ArtHistory?.flush();clearInputState(false,false);pan=false;const w=engine.w,h=engine.h,a={layer:prefs.layer,points:[[0,0],[w,0],[w,h],[0,h]],cx:w/2,cy:h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1,lockId:uid()};if(conflicts(localId,{...a,tool:'transform'})){toast('このレイヤーはほかの人が変形中です');return}selection=a;showSelectionControls();if(room.protect)sendHost({type:'lock',lock:{id:a.lockId,layer:a.layer,rect:{x:0,y:0,w,h}}});renderControls();renderOverlay()};
  function applyMode(config,epoch){
@@ -11969,6 +11976,7 @@ let watchers=[], globalRows=[], globalLatestRows=[], globalOlderRows=[], globalO
 const unreadByFriend=new Map(), dmAlerts=new Map(), memorySeen=new Map();
 const roomAlerts=new Map(),roomAlertListeners=new Map(),roomKeys=new Set(),roomRetryAfter=new Map();
 const teamAlerts=new Map(),teamAlertListeners=new Map(),teamMemorySeen=new Map();
+let pendingTeamInvites=0;
 let roomIndexOff=null,roomHistoryReadError='';
 const ROOM_AGE_MS=7*86400000;
 const seenPrefix=()=>`artopia-dm-seen-v1:${me?.uid||'guest'}:`;
@@ -12062,17 +12070,18 @@ function withAlert(el,on,description){
  else{dot?.remove();if(el.title===description)el.removeAttribute('title')}
 }
 function updateAllAlerts(){
- const friendCount=pendingFriendCount(),chatCount=unreadDMCount(),roomCount=unreadRoomCount(),teamCount=unreadTeamCount(),any=friendCount+chatCount+roomCount+teamCount>0;
+ const friendCount=pendingFriendCount(),chatCount=unreadDMCount(),roomCount=unreadRoomCount(),teamCount=unreadTeamCount(),inviteCount=pendingTeamInvites,any=friendCount+chatCount+roomCount+teamCount+inviteCount>0;
  withAlert(document.getElementById('openArtSocial'),any,'新しいフレンド申請・DM・チーム・部屋チャットがあります');
  withAlert(document.getElementById('roomHubToggle'),any,'新しいフレンド申請・DM・チーム・部屋チャットがあります');
  withAlert(document.querySelector('#roomHubPanel .hub-section--social > summary'),any,'新しい交流通知があります');
  withAlert(document.querySelector('#roomHubPanel [data-hub="friends"]'),friendCount>0,'フレンド申請があります');
- withAlert(document.querySelector('#roomHubPanel [data-hub="dms"]'),chatCount+roomCount+teamCount>0,'未読DM・チーム・部屋チャットがあります');
+ withAlert(document.querySelector('#roomHubPanel [data-hub="dms"]'),chatCount+roomCount+teamCount+inviteCount>0,'未読DM・チーム・部屋チャット・チーム招待があります');
  withAlert(document.querySelector('[data-as-tab="friends"]'),friendCount>0,'フレンド申請があります');
- withAlert(document.querySelector('[data-as-tab="chats"]'),chatCount+roomCount+teamCount>0,'未読DM・チーム・部屋チャットがあります');
+ withAlert(document.querySelector('[data-as-tab="chats"]'),chatCount+roomCount+teamCount+inviteCount>0,'未読DM・チーム・部屋チャット・チーム招待があります');
  document.querySelectorAll('[data-as-dm],[data-as-friend]').forEach(b=>withAlert(b,(dmAlerts.get(b.dataset.asDm||b.dataset.asFriend)||0)>0,'未読DMがあります'));
  document.querySelectorAll('[data-as-recent]').forEach(b=>withAlert(b,(roomAlerts.get(b.dataset.asRecent)||0)>0,'未読の部屋チャットがあります'));
  document.querySelectorAll('[data-as-team]').forEach(b=>withAlert(b,(teamAlerts.get(b.dataset.asTeam)||0)>0,'未読のチームチャットがあります'));
+ withAlert(document.getElementById('as-team-invites'),inviteCount>0,'チームへの招待があります');
 }
 // DM subscriptions stay alive while drawing, not just while the social dialog is open.
 function refreshDMAlerts(){
@@ -12484,7 +12493,7 @@ async function allocateCode(){
  }throw Error('フレンドIDを発行できませんでした。');
 }
 function bindData(){
- clearWatch();
+ clearWatch();pendingTeamInvites=0;window.asInvites=[];
  watch(ref('requests/'+me.uid),s=>{incomingRows=Object.entries(s.val()||{}).map(([uid,v])=>({uid,...v}));refreshFriends();if(activeView==='friends'&&!$('as-person-back'))drawFriends();updateAllAlerts();},'フレンド申請の読み取り');
  watch(ref('sent/'+me.uid),s=>{
   sentRows=Object.keys(s.val()||{}).map(uid=>({uid,status:'loading'}));
@@ -12492,7 +12501,7 @@ function bindData(){
  },'送信済みフレンド申請の読み取り');
  watch(ref('teamIndex/'+me.uid),s=>{teams=Object.keys(s.val()||{});refreshTeamAlerts();if(activeView==='chats'&&!activeRoomThread)drawChats();},'チーム一覧の読み取り');
  watchRecentRoomThreads();
- watch(ref('invites/'+me.uid),s=>{window.asInvites=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));if(activeView==='chats')drawChats()},'チーム招待の読み取り');
+ watch(ref('invites/'+me.uid),s=>{window.asInvites=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));pendingTeamInvites=window.asInvites.length;if(activeView==='chats')drawChats();updateAllAlerts()},'チーム招待の読み取り');
  watch(ref('blocks/'+me.uid),s=>{hiddenBlocks=new Set(Object.keys(s.val()||{})); refreshFriends();if(activeView==='global')drawGlobal()},'ブロック設定の読み取り');
  refreshFriends();
 }
