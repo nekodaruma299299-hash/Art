@@ -722,7 +722,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 /* Ver.1.4.7: panel handle on the right edge, away from game settings. */
 .studio{position:relative}
 .studio #toggleChatPanel{
- position:absolute;top:108px;right:0;left:auto;transform:none;
+ position:absolute;top:165px;right:0;left:auto;transform:none;
  z-index:22;display:flex;align-items:center;justify-content:center;
  width:32px;height:78px;min-width:32px;min-height:56px;padding:0;
  border:1px solid #9fcfcd;border-right:0;border-radius:13px 0 0 13px;
@@ -734,7 +734,7 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 .studio #toggleChatPanel svg{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s ease}
 /* Open: right arrow closes the panel. Closed: left arrow opens it. */
 .studio.chat-collapsed #toggleChatPanel svg{transform:rotate(180deg)}
-@media(max-width:650px){.studio #toggleChatPanel{top:90px;width:29px;min-width:29px;height:66px;border-radius:11px 0 0 11px}}
+@media(max-width:650px){.studio #toggleChatPanel{top:147px;width:29px;min-width:29px;height:66px;border-radius:11px 0 0 11px}}
 @media(prefers-reduced-motion:reduce){.studio #toggleChatPanel svg{transition:none}}
 
 .room-social-actions{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0 14px;border-bottom:1px solid #dce7e9;margin-bottom:12px}
@@ -4869,7 +4869,7 @@ window.ArtsRules=(()=>{
   force_heal:{name:'フォースヒール',class:'kemono',fixedCost:36,cooldown:30000,effect:'8秒の範囲回復。自分以外の味方とペットに2秒で40HP',gesture:'一筆の左右対称なハート形を描き、中心まで折り返す'},
   fur_coat:{name:'ファーコート',class:'kemono',fixedCost:34,cooldown:35000,effect:'範囲内の自分と味方とペットに装甲30を15秒付与',gesture:'4つ以上の半円状のもこもこを一筆で連ねる'},
   summon_bat:{name:'サモンバット',class:'vampire',fixedCost:24,cooldown:28000,effect:'素早く飛ぶ吸血コウモリを28秒召喚。命中すると自身を回復',gesture:'左右の三角を中央の交差でつないだ⋈を一筆'},
-  blood_seeker:{name:'ブラッドシーカー',class:'vampire',fixedCost:35,cooldown:22000,effect:'回避可能な緩い追尾をする深紅のコウモリ弾。命中でHP吸収',gesture:'2つの山と内側の谷を持つ左右対称の羽根型を一筆'},
+  blood_seeker:{name:'ブラッドシーカー',class:'vampire',fixedCost:35,cooldown:8000,effect:'深紅のコウモリ3匹を同時に放つ。1匹につき最大10回、1回約1ダメージの連続吸血攻撃（全命中時、合計約30ダメージ）。緩い追尾なので回避可能',gesture:'2つの山と内側の谷を持つ左右対称の羽根型を一筆'},
   blood_slash:{name:'ブラッドスラッシュ',class:'vampire',fixedCost:0,cooldown:25000,effect:'HP25を支払い高威力の赤い斬撃。敵にランダムな弱体化を与える',gesture:'大きな鎌の外側から内側へ戻る一筆'},
   blood_ritual:{name:'ブラッドリチュアル',class:'vampire',fixedCost:45,cooldown:45000,effect:'6秒間敵のインクを奪い、奪取量の25%を自身の最大HPへ（1回60/1試合150まで）',gesture:'円とその内側の三角の角をつなげた魔法陣を一筆'}
  });
@@ -7305,7 +7305,7 @@ window.ArtArts=(()=>{
  }
  // Homing is computed by the host; clients render the replicated velocity.
  function steerGhostShot(s,owner){
-  if(s.style==='bloodSeeker'){let target=null,best=Infinity;for(const q of [...host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)),...livePets(Date.now()).filter(q=>!creatureFriendly(owner,q))]){const d=R.dist(s,q);if(d<best){best=d;target=q}}if(target){const desired=Math.atan2(target.y-s.y,target.x-s.x),old=Math.atan2(s.vy,s.vx),delta=Math.atan2(Math.sin(desired-old),Math.cos(desired-old)),steer=R.clamp(delta,-.08,.08),angle=old+steer;s.vx=Math.cos(angle)*300;s.vy=Math.sin(angle)*300}return}
+  if(s.style==='bloodSeeker'){if(s.latchId)return;let target=null,best=Infinity;for(const q of [...host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)),...livePets(Date.now()).filter(q=>!creatureFriendly(owner,q))]){const d=R.dist(s,q);if(d<best){best=d;target=q}}if(target){const desired=Math.atan2(target.y-s.y,target.x-s.x),old=Math.atan2(s.vy,s.vx),delta=Math.atan2(Math.sin(desired-old),Math.cos(desired-old)),steer=R.clamp(delta,-.08,.08),angle=old+steer;s.vx=Math.cos(angle)*300;s.vy=Math.sin(angle)*300}return}
   if(s.style!=='ghost')return;
   let target=null,best=Infinity;
   for(const q of host.fighters){if(!q.active||q.hp<=0||friendly(owner,q)||(s.hit||[]).includes(q.id))continue;const d=R.dist(s,q);if(d<best){best=d;target=q}}
@@ -7396,7 +7396,11 @@ window.ArtArts=(()=>{
   }
   if(k==='blood_seeker'){
    const dir=e.angle||0;
-   host.shots.push({id:++host.seq,owner:p.id,x:p.x+Math.cos(dir)*20,y:p.y+Math.sin(dir)*20,vx:Math.cos(dir)*300,vy:Math.sin(dir)*300,power:40,radius:15,knockback:10,left:1250,end:now+4200,hit:[],pierce:false,passWalls:false,style:'bloodSeeker',turnRate:1.8,healFactor:.5});
+   // Three independently steerable bats; each attaches on contact and bites at most 10 times.
+   for(let i=0;i<3;i++){
+    const a=dir+(i-1)*.23;
+    host.shots.push({id:++host.seq,owner:p.id,x:p.x+Math.cos(a)*24-Math.sin(a)*(i-1)*9,y:p.y+Math.sin(a)*24+Math.cos(a)*(i-1)*9,vx:Math.cos(a)*310,vy:Math.sin(a)*310,power:1,radius:10,knockback:0,left:1280,end:now+4300,hit:[],pierce:false,passWalls:false,style:'bloodSeeker',turnRate:1.8,healFactor:.5,bitesLeft:10,batIndex:i});
+   }
    e.type='blood_seeker';e.x=p.x;e.y=p.y;e.r=58;e.end=now+950;e.start=now;return true;
   }
   if(k==='blood_slash'){
@@ -7664,6 +7668,21 @@ window.ArtArts=(()=>{
   if(now>=s.end||s.left<=0)return false;
   const owner=host.fighters.find(p=>p.id===s.owner);if(!owner)return false;
   if(now<(s.fireAt||0))return true;
+  if(s.style==='bloodSeeker'&&s.latchId){
+   const target=s.latchKind==='pet'?livePets(now).find(q=>q.id===s.latchId):host.fighters.find(q=>q.id===s.latchId&&q.active&&q.hp>0);
+   if(!target||s.bitesLeft<=0)return false;
+   const angle=now/90+(s.batIndex||0)*2.1;
+   s.x=target.x+Math.cos(angle)*(target.r||R.R)*.65;s.y=target.y+Math.sin(angle)*(target.r||R.R)*.65;
+   if(now>=s.nextBiteAt){
+    s.nextBiteAt=now+145;
+    const actual=s.latchKind==='pet'?petHurt(target,1,now,s):hurt(target,1,now,{x:s.x,y:s.y,owner:s.owner,damageType:'magic'},true,0);
+    s.bitesLeft--;
+    if(actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);
+     if(s.bitesLeft%2===0)host.effects.push({id:++host.seq,type:'bloodSoul',owner:s.owner,x:target.x,y:target.y,tx:owner.x,ty:owner.y,r:6,start:now,end:now+450});
+    }
+   }
+   return s.bitesLeft>0&&target.hp>0;
+  }
   steerGhostShot(s,owner);
   if(!s.passWalls&&!s.ricochetUntil&&shotHitsWallAt(s.x,s.y,s.radius||4)){for(const b of host.blocks)if(R.intersects(s.x,s.y,s.radius||4,b))damageWall(b,s.power,now);return false;}
   const distance=Math.hypot(s.vx,s.vy)*dt,steps=Math.max(1,Math.ceil(distance/8));
@@ -7684,7 +7703,7 @@ window.ArtArts=(()=>{
    else{s.x=tx;s.y=ty}
    const mirror=host.effects.find(e=>e.type==='reflect'&&e.end>now&&e.owner!==s.owner&&!s.passWalls&&R.dist(e,s)<e.r+(s.radius||4));
    if(mirror){const old=s.owner;s.owner=mirror.owner;s.vx=-s.vx;s.vy=-s.vy;s.hit=[];s.ricochetUntil=0;s.pierce=false;break}
-   const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
+   const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature&&s.style==='bloodSeeker'){s.latchKind='pet';s.latchId=creature.id;s.nextBiteAt=now;return true;}if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
    if(host.fighters.some(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now)))return false;
    const decoy=host.effects.find(e=>e.type==='decoyBody'&&e.end>now&&e.owner!==s.owner&&R.dist(e,s)<e.r+r);
    if(decoy){triggerTrickDecoy(decoy,owner,now);return false}
@@ -7693,6 +7712,7 @@ window.ArtArts=(()=>{
     if(s.ricochetUntil){s.hitTimes??={};if(now-(s.hitTimes[q.id]||0)<800)continue;s.hitTimes[q.id]=now}
     else if(s.hit.includes(q.id))continue;
     if(s.style==='repulse'){const volley=host.volleyHits?.[s.group];if(!volley||volley.ids.includes(q.id))return false;volley.ids.push(q.id)}
+    if(s.style==='bloodSeeker'){s.latchKind='fighter';s.latchId=q.id;s.nextBiteAt=now;return true;}
     s.hit.push(q.id);const actual=hurt(q,s.power,now,{x:q.x-s.vx,y:q.y-s.vy,owner:s.owner,damageType:'magic'},true,s.knockback||0);if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:q.x,y:q.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}
     if(!s.pierce)return false;
    }
@@ -8737,7 +8757,7 @@ finishPaint(false)};
  }
  function drawArtShot(x,s,now){
  if(s.style==='ghost'){drawGhostShot(x,s,now);return}
- if(s.style==='bloodSeeker'){const a=Math.atan2(s.vy,s.vx),r=s.radius||15;x.save();x.translate(s.x,s.y);x.rotate(a);x.shadowColor='#e63455';x.shadowBlur=24;x.strokeStyle='#ff8ea5';x.fillStyle='#af1a36';x.lineWidth=3;x.beginPath();x.moveTo(r*.75,0);x.lineTo(-r*.2,-r*.4);x.lineTo(-r*1.6,-r*1.15);x.lineTo(-r,-r*.1);x.lineTo(-r*1.6,r*1.15);x.lineTo(-r*.2,r*.4);x.closePath();x.fill();x.stroke();x.restore();return}
+ if(s.style==='bloodSeeker'){const a=s.latchId?Math.sin(now/110)*.5:Math.atan2(s.vy,s.vx),r=s.radius||10,flap=Math.sin(now/85+(s.batIndex||0)*2.1)*r*.5;x.save();x.translate(s.x,s.y);x.rotate(a);x.shadowColor='#e63455';x.shadowBlur=22;x.strokeStyle='#ff9cac';x.fillStyle='#bc183c';x.lineWidth=2;x.beginPath();x.moveTo(r*.75,0);x.lineTo(-r*.2,-r*.4);x.lineTo(-r*1.6,-r*1.15-flap);x.lineTo(-r,-r*.1);x.lineTo(-r*1.6,r*1.15+flap);x.lineTo(-r*.2,r*.4);x.closePath();x.fill();x.stroke();x.restore();return}
  if(s.style==='catOrb'){x.save();x.translate(s.x,s.y);x.shadowColor='#ffe8a4';x.shadowBlur=14;x.fillStyle='#ffedd0';x.strokeStyle='#ffba62';x.lineWidth=2;x.beginPath();x.arc(0,0,s.radius||7,0,Math.PI*2);x.fill();x.stroke();x.restore();return}
  const a=Math.atan2(s.vy,s.vx),r=s.radius||8,color=s.style==='repulse'?'#8ee8ec':s.style==='ricochet'?'#ffd381':s.style?'#ffa887':'#bb9bff';
  x.save();x.translate(s.x,s.y);x.rotate(a);x.shadowColor=color;x.shadowBlur=13;x.lineCap='round';
@@ -10263,6 +10283,21 @@ window.ArtShadow=(()=>{
   if(now>=s.end||s.left<=0)return false;
   const owner=host.fighters.find(p=>p.id===s.owner);if(!owner)return false;
   if(now<(s.fireAt||0))return true;
+  if(s.style==='bloodSeeker'&&s.latchId){
+   const target=s.latchKind==='pet'?livePets(now).find(q=>q.id===s.latchId):host.fighters.find(q=>q.id===s.latchId&&q.active&&q.hp>0);
+   if(!target||s.bitesLeft<=0)return false;
+   const angle=now/90+(s.batIndex||0)*2.1;
+   s.x=target.x+Math.cos(angle)*(target.r||R.R)*.65;s.y=target.y+Math.sin(angle)*(target.r||R.R)*.65;
+   if(now>=s.nextBiteAt){
+    s.nextBiteAt=now+145;
+    const actual=s.latchKind==='pet'?petHurt(target,1,now,s):hurt(target,1,now,{x:s.x,y:s.y,owner:s.owner,damageType:'magic'},true,0);
+    s.bitesLeft--;
+    if(actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);
+     if(s.bitesLeft%2===0)host.effects.push({id:++host.seq,type:'bloodSoul',owner:s.owner,x:target.x,y:target.y,tx:owner.x,ty:owner.y,r:6,start:now,end:now+450});
+    }
+   }
+   return s.bitesLeft>0&&target.hp>0;
+  }
   steerGhostShot(s,owner);
   if(!s.passWalls&&!s.ricochetUntil&&shotHitsWallAt(s.x,s.y,s.radius||4)){for(const b of host.blocks)if(R.intersects(s.x,s.y,s.radius||4,b))damageWall(b,s.power,now);return false;}
   const distance=Math.hypot(s.vx,s.vy)*dt,steps=Math.max(1,Math.ceil(distance/8));
