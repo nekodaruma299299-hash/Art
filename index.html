@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.82 / アートレイターのタスク画面・開始時間・キラーアイコン修正
+あーとぴあ 1.4.83 / アートレイターのタスク画面・開始時間・キラーアイコン修正
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -10797,7 +10797,7 @@ window.ArtShadow=(()=>{
   const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.clearRect(0,0,118,166);mx.fillStyle='#14212a';mx.fillRect(0,0,118,166);const sx=110/R.W,sy=158/R.H;mx.save();mx.translate(4,4);mx.fillStyle='#314c53';mx.strokeStyle='#789099';mx.lineWidth=1;for(const a of SHADOW_ROOMS){mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy)}mx.fillStyle='#46e789';mx.shadowBlur=6;mx.shadowColor='#42ff99';mx.beginPath();mx.arc(p.x*sx,p.y*sy,4,0,Math.PI*2);mx.fill();mx.restore()}
   let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
   const chips=m.inventory.filter(i=>ShadowRules.catalog[i.sku]).map(i=>{const s=ShadowRules.catalog[i.sku];return '<button data-open-item="'+i.id+'" '+(m.state!=='alive'?'disabled':'')+' class="'+(i.on?'on':'')+'" title="'+esc(s.name)+'">'+esc(s.name)+'<small>'+(i.on?'ON':'OFF')+' · '+(i.charges<0?'∞':i.charges)+'</small></button>'}).join('');
-  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div><button type="button" class="shadow-near-chat" data-panel="chat" aria-label="近くの人とチャット">チャット</button>';if(tools.innerHTML!==html)tools.innerHTML=html;
+  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div>';if(tools.innerHTML!==html)tools.innerHTML=html;
   if(m.action?.kind!=='task')shadowTaskDismissed=null;
   if(m.action?.kind==='task'&&shadowPanel!=='task'&&shadowTaskDismissed!==m.action.target){shadowPanel='task';shadowPanelKey='';taskInk=[];taskStroke=null;taskAutoSubmitted=false}
   if(shadowPanel==='task'&&m.action?.kind!=='task'){shadowPanel='';shadowPanelKey=''}
@@ -15467,4 +15467,14 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .shadow-mode #shadowTools .shadow-items{flex:1 1 160px;min-width:0}
 .shadow-mode #shadowTools .shadow-near-chat{position:relative;z-index:36;min-width:88px;min-height:43px;border-radius:10px;border:1px solid #9b8ec2;background:#ede7ff;color:#3d2c61;font-weight:700;touch-action:manipulation;pointer-events:auto}
 .shadow-mode #shadowTools .shadow-near-chat:active{background:#cdbbfa}
+</style>
+
+<style>
+/* Ver.1.4.83: Closed Shadow task/shop panels must never intercept field strokes or guide taps.
+   Overrides previous display:flex!important rule even when the panel is hidden. */
+.shadow-mode #shadowStage #shadowPanel[hidden],
+.shadow-mode #shadowStage #shadowPanelShade[hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+.shadow-mode #shadowField #shadowSkillInfo{pointer-events:auto!important;cursor:pointer!important;}
+/* The removed temporary chat button leaves inventory tools available as before. */
+.shadow-mode #shadowTools .shadow-items{width:100%;}
 </style>
