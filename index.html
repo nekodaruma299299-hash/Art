@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.96 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.97 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9576,14 +9576,8 @@ window.ArtShadow=(()=>{
   };
   const openings=['ES','SW','NSE','EW','WS','NES','EW','NW','NS','NE','NW'];
   SHADOW_ROOMS.forEach((r,i)=>roomWalls(r,openings[i]));
-  // Varied cover: crates, labs, machinery. Wide walkable links are left between rooms.
-  for(const [x,y,w,h] of [[205,188,83,42],[385,325,60,90],[1170,195,145,48],[1510,355,75,54],
-   [205,735,106,72],[368,914,40,80],[785,635,75,65],[1010,785,86,40],
-   [1530,825,88,105],[1670,1075,82,52],[265,1390,94,75],[470,1555,100,82],
-   [280,1690,84,58],[1500,1670,90,95],
-   [1680,1855,65,92],[825,1980,90,58],[1085,2160,65,55],[230,2290,100,64],
-   [1490,2355,86,64],[415,106,40,48],[1260,510,50,90],[550,1135,76,45],
-   [1290,1330,72,95],[590,2020,85,50]].map(row=>row.map(shadowScale)))add(x,y,w,h);
+  // Room furniture is now visual-only and wall mounted. Collision is restricted to
+  // real room boundaries and closed doors; do not create invisible cover over tasks.
   // Cut continuous openings wherever a real hallway crosses a wall. Keep wall fragments.
   let carved=walls.filter(b=>Math.hypot(b.x+b.w/2-SHADOW_W/2,b.y+b.h/2-SHADOW_H/2)>140);
   for(const hall of SHADOW_HALLS){
@@ -9592,10 +9586,10 @@ window.ArtShadow=(()=>{
     const ix=Math.max(b.x,hall.x),iy=Math.max(b.y,hall.y),ex=Math.min(b.x+b.w,hall.x+hall.w),ey=Math.min(b.y+b.h,hall.y+hall.h);
     if(ex<=ix||ey<=iy){next.push(b);continue}
     // Only perimeter walls are cut; individual furniture remains inside their rooms.
-    if(b.w>125&&b.h<=26){
+    if(b.w>shadowScale(100)&&b.h<=shadowScale(22)+2){
      if(ix>b.x+8)next.push({...b,w:ix-b.x});
      if(ex<b.x+b.w-8)next.push({...b,x:ex,w:b.x+b.w-ex});
-    }else if(b.h>125&&b.w<=26){
+    }else if(b.h>shadowScale(100)&&b.w<=shadowScale(22)+2){
      if(iy>b.y+8)next.push({...b,h:iy-b.y});
      if(ey<b.y+b.h-8)next.push({...b,y:ey,h:b.y+b.h-ey});
     }else next.push(b);
@@ -9607,6 +9601,7 @@ window.ArtShadow=(()=>{
 
  // Ver.1.4.96: doors are derived from the same hall/room intersections as the floor.
  // They do not introduce a second independent map coordinate system.
+ const SHADOW_WALLS_FOR_DOORS=shadowWalls();
  const SHADOW_DOORS=[];
  for(let ri=0;ri<SHADOW_ROOMS.length;ri++){
   const r=SHADOW_ROOMS[ri],choices=[];
@@ -9625,17 +9620,12 @@ window.ArtShadow=(()=>{
   for(const q of choices){if(kept.some(v=>Math.hypot(v.x-q.x,v.y-q.y)<90))continue;
    const w=q.axis==='H'?100:16,h=q.axis==='V'?100:16;
    // Existing solid wall may still cut this location: only mount a door at a navigable gap.
-   if(shadowWalls().some(b=>q.x>b.x-12&&q.x<b.x+b.w+12&&q.y>b.y-12&&q.y<b.y+b.h+12))continue;
+   if(SHADOW_WALLS_FOR_DOORS.some(b=>q.x>b.x-12&&q.x<b.x+b.w+12&&q.y>b.y-12&&q.y<b.y+b.h+12))continue;
    kept.push({...q,w,h,id:'lab-door-'+ri+'-'+kept.length,room:ri});
   }
   SHADOW_DOORS.push(...kept.slice(0,4));
  }
- // Some rooms connect to an internal hall and have no perimeter-crossing candidate.
- // Visualize one accessible opening at the existing southern research-corridor link.
- if(!SHADOW_DOORS.some(d=>d.room===3)){
-  const r=SHADOW_ROOMS[3],x=r.x+r.w*.43,y=r.y+r.h;
-  SHADOW_DOORS.push({id:'lab-door-3-0',room:3,x,y,w:100,h:16,axis:'H',openUntil:0});
- }
+ // Never invent a door without checking a true wall opening.
  const shadowFacilityDefs=[
   {id:'camera',room:0,label:'監視カメラ',kind:'camera',color:'#83d9f2'},
   {id:'med',room:2,label:'リカバリーポッド',kind:'med',color:'#7cdeaf'},
@@ -9643,9 +9633,15 @@ window.ArtShadow=(()=>{
   {id:'reactor',room:4,label:'メインリアクター',kind:'reactor',color:'#83d8fb'},
   {id:'vent',room:7,label:'空調制御盤',kind:'vent',color:'#93c4e1'},
   {id:'work',room:8,label:'整備ステーション',kind:'work',color:'#e5b777'}
- ].map(q=>{const r=SHADOW_ROOMS[q.room];return {...q,x:r.x+r.w/2,y:r.y+r.h*.60}});
+ ].map(q=>{const r=SHADOW_ROOMS[q.room];
+  // Wall-mounted interaction consoles: no central-floor blockage or overlapping task icon.
+  // Keep 90px clear of the north wall and away from corners/door swing zones.
+  const align={camera:.24,med:.74,ink:.24,reactor:.74,vent:.25,work:.74}[q.kind]??.5;
+  return {...q,x:Math.round(r.x+r.w*align),y:Math.round(r.y+shadowScale(82))};
+ });
 
- R.map=()=>shadowWalls();
+ const SHADOW_WALLS=shadowWalls();
+ R.map=()=>SHADOW_WALLS.map(w=>({...w}));
  const shadowOnFloor=(x,y,r=R.R)=>[...SHADOW_ROOMS,...SHADOW_HALLS].some(a=>x>=a.x+r*.65&&x<=a.x+a.w-r*.65&&y>=a.y+r*.65&&y<=a.y+a.h-r*.65);
  R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||!shadowOnFloor(x,y,r)||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b))||(host?.shadow?.doors||view?.shadow?.doors||[]).some(d=>d.openUntil<=Date.now()&&!(d.room===3&&d.id==='lab-door-3-0')&&Math.abs(x-d.x)<d.w/2+r*.7&&Math.abs(y-d.y)<d.h/2+r*.7);
  const moves=R.moves;
@@ -9697,7 +9693,26 @@ window.ArtShadow=(()=>{
   host.shadow.doors=SHADOW_DOORS.map(d=>({...d,openUntil:now+8000}));
   host.shadow.facilities=shadowFacilityDefs.map(d=>({...d,hp:d.kind==='reactor'?50:null,maxHp:d.kind==='reactor'?50:null,poisoned:false,enhancedUntil:0,disabledUntil:0,repairingUntil:0}));
   // Original task anchors are reprojected to the enlarged facility layout.
-  for(const t of host.shadow.tasks){t.x=shadowScale(t.x);t.y=shadowScale(t.y)}const spawns=shadowSpawnPositions(host.fighters.length,host.blocks);host.fighters.forEach((p,i)=>Object.assign(p,spawns[i]));for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
+  for(const [index,t] of host.shadow.tasks.entries()){
+   // Place each task on a tested walkable point, not on wall-mounted equipment or doors.
+   const preferred=[0,1,2,3,4,5,6,8,10][index]??(index%SHADOW_ROOMS.length);
+   const room=SHADOW_ROOMS[preferred],candidates=[];
+   for(let yy=room.y+120;yy<room.y+room.h-85;yy+=48)
+    for(let xx=room.x+85;xx<room.x+room.w-85;xx+=48){
+     if(R.blocked(xx,yy,host.blocks,R.R+18))continue;
+     if(host.shadow.facilities.some(f=>Math.hypot(xx-f.x,yy-f.y)<shadowScale(155)))continue;
+     if(host.shadow.doors.some(d=>Math.hypot(xx-d.x,yy-d.y)<shadowScale(110)))continue;
+     if(host.shadow.tasks.slice(0,index).some(q=>Math.hypot(xx-q.x,yy-q.y)<shadowScale(140)))continue;
+     // Favor reachable, uncluttered room interiors, not the centre meeting controls.
+     const dc=Math.hypot(xx-(room.x+room.w*.5),yy-(room.y+room.h*.65));
+     if(preferred===6&&Math.hypot(xx-R.W/2,yy-R.H/2)<shadowScale(190))continue;
+     candidates.push({x:xx,y:yy,score:dc});
+    }
+   candidates.sort((a,b)=>a.score-b.score);
+   if(candidates.length){t.x=candidates[0].x;t.y=candidates[0].y}
+   else{t.x=Math.round(room.x+room.w*.5);t.y=Math.round(room.y+room.h*.7)}
+  }
+  const spawns=shadowSpawnPositions(host.fighters.length,host.blocks);host.fighters.forEach((p,i)=>Object.assign(p,spawns[i]));for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
  // Art Traitor: host-authoritative, all-player meeting. Time is paused; persistent memo is public.
  function shadowMeetingStart(p,now,reason='button',corpse=null){
   const h=host.shadow;if(!h||h.meeting||host.phase!=='battle'||h.phase==='ended'||!ShadowRules.up(p))return false;
@@ -11233,35 +11248,19 @@ window.ArtShadow=(()=>{
 
  // 2.5D research interiors: only visual geometry, never a second collision map.
  function shadowLabDecor(ctx,now){
+  // Uniform orthographic room treatment. Do not draw pseudo-walls or fake
+  // solid machinery; actual walls are drawn from the collision map.
   ctx.save();
-  const machine=(x,y,w,h,color)=>{
-   ctx.save();ctx.fillStyle='#20394335';ctx.beginPath();ctx.ellipse(x+w*.53,y+h+12,w*.60,13,0,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle='#344956';ctx.fillRect(x,y,w,h);ctx.fillStyle=color;ctx.fillRect(x,y,w,Math.max(8,h*.34));
-   ctx.fillStyle='#253944';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+13,y-17);ctx.lineTo(x+w+13,y-17);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();
-   ctx.strokeStyle='#adc4cf';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.restore();
-  };
-  for(let i=0;i<SHADOW_ROOMS.length;i++){
-   const r=SHADOW_ROOMS[i],a=r.x,b=r.y,w=r.w,h=r.h;
-   ctx.save();ctx.strokeStyle='#546f7e44';ctx.lineWidth=2;
-   // Decorative floor seams, all drawn beneath gameplay objects.
-   for(let yy=b+110;yy<b+h-15;yy+=110){ctx.beginPath();ctx.moveTo(a+16,yy);ctx.lineTo(a+w-16,yy);ctx.stroke()}
-   if(i===6){ // Largest room: discussion table, shop and call switch.
-    ctx.fillStyle='#ded8e8';ctx.beginPath();ctx.ellipse(a+w*.52,b+h*.58,w*.32,h*.25,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#8674a4';ctx.lineWidth=4;ctx.stroke();
-    for(let j=0;j<8;j++){const t=j*Math.PI/4;const xx=a+w*.52+Math.cos(t)*w*.38,yy=b+h*.58+Math.sin(t)*h*.31;ctx.fillStyle='#647c8c';ctx.fillRect(xx-20,yy-11,40,22)}
-    machine(a+66,b+h*.30,115,55,'#74c7e7');
-   } else if(i===0){for(let k=0;k<3;k++)machine(a+60+k*(w-110)/3,b+70,Math.min(105,w*.2),46,'#6bbde5')}
-   else if(i===2){for(let k=0;k<2;k++){const xx=a+w*(.16+k*.42);ctx.fillStyle='#e4f4ed';ctx.fillRect(xx,b+100,w*.28,122);ctx.strokeStyle='#5ab58c';ctx.lineWidth=5;ctx.strokeRect(xx,b+100,w*.28,122)}}
-   else if(i===3){for(let k=0;k<3;k++){const xx=a+w*(.13+k*.26);machine(xx,b+95,w*.17,110,'#aa86e2')}}
-   else if(i===4){ctx.strokeStyle='#42c9f1';ctx.lineWidth=11;ctx.shadowColor='#43d6f4';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(a+w*.52,b+h*.59,Math.min(w,h)*.19,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#92e4f9';ctx.fillRect(a+w*.45,b+h*.54,w*.14,h*.10)}
-   else if(i===7){for(let k=0;k<2;k++){const xx=a+w*(.25+k*.43),yy=b+h*.42;ctx.strokeStyle='#728e9d';ctx.lineWidth=8;ctx.beginPath();ctx.arc(xx,yy,49,0,Math.PI*2);ctx.stroke();for(let q=0;q<4;q++){const t=q*Math.PI/2+now/3500;ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx+Math.cos(t)*38,yy+Math.sin(t)*38);ctx.stroke()}}}
-   else if(i===8){for(let k=0;k<2;k++)machine(a+65+k*w*.45,b+100,w*.30,76,'#c4a069')}
-   else if(i===5||i===9||i===10){machine(a+60,b+100,w*.22,74,'#8ba2ae');machine(a+w*.66,b+h*.61,w*.18,55,'#7cabb0')}
-   else {machine(a+90,b+100,w*.22,52,'#8ac7bd')}
-   ctx.restore();
+  for(const r of SHADOW_ROOMS){
+   ctx.strokeStyle='#829eac55';ctx.lineWidth=2;
+   for(let yy=r.y+100;yy<r.y+r.h-20;yy+=115){
+    ctx.beginPath();ctx.moveTo(r.x+22,yy);ctx.lineTo(r.x+r.w-22,yy);ctx.stroke();
+   }
+   ctx.fillStyle='#647c8830';ctx.fillRect(r.x+22,r.y+28,r.w-44,12);
   }
-  // Side shading provides subtle depth without changing top-down movement geometry.
-  for(const r of SHADOW_ROOMS){ctx.save();ctx.fillStyle='#253b4b9c';ctx.fillRect(r.x,r.y,13,r.h);ctx.fillStyle='#344d5aa8';ctx.fillRect(r.x,r.y, r.w,17);ctx.strokeStyle='#f2ffff92';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(r.x+3,r.y+3);ctx.lineTo(r.x+r.w-3,r.y+3);ctx.stroke();ctx.restore()}
+  // Meeting room has an open central floor for player traffic and drawing.
+  const m=SHADOW_ROOMS[6];ctx.fillStyle='#9582ba22';
+  ctx.beginPath();ctx.ellipse(m.x+m.w*.50,m.y+m.h*.62,m.w*.22,m.h*.15,0,0,Math.PI*2);ctx.fill();
   ctx.restore();
  }
  function shadowLabDevices(ctx,now){
@@ -11269,7 +11268,7 @@ window.ArtShadow=(()=>{
   ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
   for(const f of state.facilities||[]){
    const cx=f.x,cy=f.y,bad=f.poisoned||f.hp===0;
-   ctx.save();ctx.translate(cx,cy);ctx.shadowColor=bad?'#f26771':f.color;ctx.shadowBlur=15;ctx.fillStyle='#263f50';ctx.strokeStyle=bad?'#df6970':f.color;ctx.lineWidth=4;
+   ctx.save();ctx.translate(cx,cy);ctx.fillStyle='#334959';ctx.fillRect(-42,-55,84,15);ctx.shadowColor=bad?'#f26771':f.color;ctx.shadowBlur=15;ctx.fillStyle='#263f50';ctx.strokeStyle=bad?'#df6970':f.color;ctx.lineWidth=4;
    ctx.beginPath();ctx.roundRect(-34,-32,68,64,9);ctx.fill();ctx.stroke();
    ctx.fillStyle=bad?'#e27c8c':f.color;
    if(f.kind==='reactor'){ctx.beginPath();ctx.arc(0,-7,17,0,Math.PI*2);ctx.fill()}else if(f.kind==='camera'){ctx.fillRect(-18,-19,36,21)}else if(f.kind==='med'){ctx.fillRect(-4,-22,8,29);ctx.fillRect(-15,-12,30,8)}else if(f.kind==='ink'){for(let j=-1;j<=1;j++)ctx.fillRect(j*15-5,-22,10,33)}else if(f.kind==='vent'){ctx.beginPath();ctx.arc(0,-6,17,0,Math.PI*2);ctx.stroke()}else{ctx.fillRect(-17,-15,34,22)}
