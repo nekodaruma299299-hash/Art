@@ -9485,7 +9485,7 @@ const ShadowRules=(()=>{
  ];
  const catalog=Object.fromEntries(goods.map(s=>[s.id,s]));
  function shuffled(a,random=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
- function settings(s={}){return {gateMin:[10,15,20,30].includes(+s.gateMin)?+s.gateMin:15,graceMin:[2,3,5].includes(+s.graceMin)?+s.graceMin:3,accelerate:s.accelerate!==false,createSeconds:clamp(+s.createSeconds||90,30,300),stage:s.stage||'lab',meetingCost:clamp(Number.isFinite(+s.meetingCost)?+s.meetingCost:6,0,100),meetingSeconds:60,characterWidth:512,characterHeight:512,teams:'solo',battleSeconds:1800}}
+ function settings(s={}){return {gateMin:clamp(Number.isFinite(+s.gateMin)&&+s.gateMin>0?+s.gateMin:5,0.5,120),graceMin:clamp(Number.isFinite(+s.graceMin)&&+s.graceMin>0?+s.graceMin:1,0.5,30),accelerate:s.accelerate!==false,createSeconds:clamp(+s.createSeconds||90,30,300),stage:s.stage||'lab',meetingCost:clamp(Number.isFinite(+s.meetingCost)?+s.meetingCost:6,0,100),meetingSeconds:60,characterWidth:512,characterHeight:512,teams:'solo',battleSeconds:1800}}
  function job(paths,rgba){const score={police:0,doctor:0,engineer:0,thief:0,detective:0,courier:0},valid=paths.filter(p=>p.length>=3),boxes=[];
   for(const path of valid){const p=path.filter(q=>Number.isFinite(q.x)&&Number.isFinite(q.y));if(p.length<3)continue;let len=0,turn=0,curve=0,sharp=0,right=0;for(let i=1;i<p.length;i++)len+=dist(p[i-1],p[i]);if(len<3)continue;
    const stride=Math.max(1,Math.floor(p.length/14));for(let i=stride;i<p.length-stride;i+=stride){const a=p[i-stride],b=p[i],c=p[i+stride],u=Math.atan2(b.y-a.y,b.x-a.x),v=Math.atan2(c.y-b.y,c.x-b.x),d=Math.atan2(Math.sin(v-u),Math.cos(v-u));turn+=d;const t=Math.abs(d);if(t>1.85)sharp++;if(t>1.05&&t<1.9)right++;if(t>.07&&t<.85)curve++}
@@ -9670,7 +9670,7 @@ window.ArtShadow=(()=>{
  // Adapter for the existing combat implementation, scoped to this closure.
  function shadowSyncSkills(p){p.skills=ShadowRules.enabledSkills(p);p.skill=p.skills[0]||''}
  function shadowPublic(id,images){const s=publicState(images),me=host.fighters.find(p=>p.id===id),ghost=me&&!ShadowRules.living(me);s.testMode=!!(room.offline&&room.shadowTest);s.testBotsMove=!!host.testBotsMove;s.shadowSettings=host.settings;s.privateRole=host.shadowRoles?.[id]||null;s.killerFriends=s.privateRole==='killer'?Object.keys(host.shadowRoles).filter(k=>host.shadowRoles[k]==='killer'):[];
-  if(host.shadow){const h=host.shadow;s.shadow={doors:(h.doors||[]).map(d=>({id:d.id,x:d.x,y:d.y,w:d.w,h:d.h,axis:d.axis,room:d.room,openUntil:d.openUntil})),facilities:(h.facilities||[]).map(d=>({id:d.id,x:d.x,y:d.y,room:d.room,label:d.label,kind:d.kind,color:d.color,hp:d.hp,maxHp:d.maxHp,poisoned:d.poisoned,enhancedUntil:d.enhancedUntil,disabledUntil:d.disabledUntil})),phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),meetingUsedBodies:[...(h.meetingUsedBodies||[])],weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,cameraUntil:me.cameraUntil||0,cameraRoom:me.cameraRoom??0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
+  if(host.shadow){const h=host.shadow;s.shadow={doors:(h.doors||[]).map(d=>({id:d.id,x:d.x,y:d.y,w:d.w,h:d.h,axis:d.axis,room:d.room,openUntil:d.openUntil})),facilities:(h.facilities||[]).map(d=>({id:d.id,x:d.x,y:d.y,room:d.room,label:d.label,kind:d.kind,color:d.color,hp:d.hp,maxHp:d.maxHp,poisoned:d.poisoned,enhancedUntil:d.enhancedUntil,disabledUntil:d.disabledUntil})),phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,crateType:c.crateType||'wood',respawnAt:c.respawnAt||0,opened:c.opened,opening:host.fighters.filter(p=>p.action?.kind==='crateOpen'&&p.action.target===c.id).map(p=>({start:p.action.start,end:p.action.end}))[0]||null,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y,amount:d.amount})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),meetingUsedBodies:[...(h.meetingUsedBodies||[])],weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,cameraUntil:me.cameraUntil||0,cameraRoom:me.cameraRoom??0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
   s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.invisibleUntil=q.invisibleUntil||0;p.state=q.state;p.corpseX=q.corpseX;p.corpseY=q.corpseY;p.diedAt=q.diedAt;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
@@ -9784,14 +9784,14 @@ window.ArtShadow=(()=>{
   c.respawnAt=now+45000;c.opened=true;
   host.effects.push({id:++host.seq,type:'shadowCrateBreak',owner,x:c.x,y:c.y,r:65,start:now,end:now+1050});
   // Loot is made visible through the existing pickup system; no duplicate crate take path.
-  c.loot.filter(item=>item&&(['pickup_hp','pickup_ink'].includes(item.sku)||ShadowRules.catalog[item.sku])).forEach((item,i)=>{const a=i*2.39996+.6,radius=32+12*(i%2);
-    host.shadow.drops.push({id:'drop-'+(++host.seq),sku:item.sku,x:R.clamp(c.x+Math.cos(a)*radius,32,R.W-32),y:R.clamp(c.y+Math.sin(a)*radius,32,R.H-32),charges:ShadowRules.catalog[item.sku]?.charges||1,poison:!!c.poison&&item.sku==='emergency_medkit'})});
+  c.loot.filter(item=>item&&(['pickup_hp','pickup_ink','pickup_rainbow'].includes(item.sku)||ShadowRules.catalog[item.sku])).forEach((item,i)=>{const a=i*2.39996+.6,radius=32+12*(i%2);
+    host.shadow.drops.push({id:'drop-'+(++host.seq),sku:item.sku,amount:item.amount,x:R.clamp(c.x+Math.cos(a)*radius,32,R.W-32),y:R.clamp(c.y+Math.sin(a)*radius,32,R.H-32),charges:ShadowRules.catalog[item.sku]?.charges||1,poison:!!c.poison&&item.sku==='emergency_medkit'})});
   c.loot=[];c.trap=false;c.poison=false;
  }
  function shadowCast(id,shape,now=Date.now()){
   const p=host.fighters.find(f=>f.id===id);if(!ShadowRules.up(p)||p.action||!shape)return false;
   const armed=sku=>p.inventory.find(i=>i.sku===sku&&i.on),isShot=shape.type==='magic',isKnife=shape.type==='slash';
-  if(!isShot&&!isKnife){p.castError='武器の図形ではありません。';return false}
+  if(!isShot&&!isKnife){const item=p.inventory.find(i=>i.on&&i.charges!==0&&ShadowRules.catalog[i.sku]?.skill===shape.type);if(!item){p.castError='対応するスキル装備がありません。';return false;}const cost=R.cost(shape);if(p.ink<cost){p.castError='インク不足です';return false;}p.ink-=cost;const aim={x:p.x+(shape.x||0),y:p.y+(shape.y||0)},radius=Math.max(40,Math.min(160,shape.radius||70));if(['heal','recharge'].includes(shape.type)){p.hp=Math.min(p.maxHp,p.hp+20);p.ink=Math.min(p.maxInk,p.ink+20)}else if(['guard','iron','reactor'].includes(shape.type)){p.shieldUntil=now+3000}else{for(const q of host.fighters){if(q.id===p.id||!ShadowRules.up(q)||q.alignment===p.alignment||R.dist(q,aim)>radius)continue;shadowHurt(q,shape.type==='star'?25:14,now,{owner:p.id,type:shape.type},false)}}host.effects.push({id:++host.seq,type:shape.type,owner:p.id,x:aim.x,y:aim.y,r:radius,start:now,end:now+650});ShadowRules.consume(p,item);shadowSyncSkills(p);return true;}
   const strongKnife=armed('killer_knife'),toyKnife=armed('toy_knife'),judge=armed('judgment_gun'),pistol=armed('ink_pistol'),airgun=armed('air_gun');
   if(isShot&&p.alignment!=='artist'){p.castError='銃はアーティスト専用です。';return false}
   if(isKnife&&p.alignment!=='killer'){p.castError='ナイフはキラー専用です。';return false}
@@ -9841,14 +9841,30 @@ window.ArtShadow=(()=>{
   return true;
  }
  // Only the dedicated, actually implemented Shadow consumables may be generated.
- function shadowRandomCrateLoot(){
-  const roll=Math.random();
-  if(roll<.43)return 'pickup_hp';
-  if(roll<.86)return 'pickup_ink';
-  const pool=ShadowRules.goods.filter(g=>g.faction==='both'&&g.category==='utility'&&g.charges>0&&['common','rare'].includes(g.rarity)&&['trace_scanner','smoke_bomb','safety_shield','task_booster','disguise','emergency_medkit','evidence_kit'].includes(g.id));
-  return pool.length?pool[Math.floor(Math.random()*pool.length)].id:'pickup_ink';
+ function shadowCrateType(){const r=Math.random();return r<.70?'wood':r<.95?'iron':'gold'}
+ function shadowShopLoot(expensive=false){
+  const pool=ShadowRules.goods.filter(g=>g.charges>0&&g.faction==='both'&&ShadowRules.catalog[g.id]&&(expensive?g.price_am>=20:['common','rare'].includes(g.rarity)));
+  return pool.length?pool[Math.floor(Math.random()*pool.length)].id:null;
  }
- function shadowSpawnCrate(now){const h=host.shadow;if(h.crates.length>=2)return;let pos;for(let n=0;n<30;n++){const p={x:80+Math.random()*(R.W-160),y:80+Math.random()*(R.H-160)};if(!R.blocked(p.x,p.y,host.blocks,35)){pos=p;break}}if(!pos)return;const loot=[];for(let n=0;n<1+Math.floor(Math.random()*3);n++){loot.push({id:'loot-'+(++host.seq),sku:shadowRandomCrateLoot()})}h.crates.push({id:'crate-'+(++host.seq),...pos,opened:false,hp:60,maxHp:60,respawnAt:0,loot,trap:false,poison:false,created:now});}
+ // Future gold-only and job-restricted loot can be registered here without affecting ordinary crates.
+ const shadowGoldExclusiveLoot=[];
+ function shadowBuildCrateLoot(kind){
+  const loot=[],add=(sku,amount)=>{if(sku)loot.push({id:'loot-'+(++host.seq),sku,amount:amount||undefined})};
+  if(kind==='gold'){
+   // Three independent rolls: full refill rainbow, expensive shop product, reserved exclusive slot.
+   for(let i=0;i<3;i++){
+    const roll=Math.random(),exclusive=shadowGoldExclusiveLoot.filter(g=>ShadowRules.catalog[g]);
+    const sku=roll<.35?'pickup_rainbow':roll<.80?shadowShopLoot(true):(exclusive.length?exclusive[Math.floor(Math.random()*exclusive.length)]:shadowShopLoot(true));
+    add(sku||'pickup_rainbow');
+   }
+  }else{
+   for(let i=0;i<5;i++)add(Math.random()<.5?'pickup_hp':'pickup_ink',kind==='iron'?10:3);
+   const rate=kind==='iron'?.20:.10;if(Math.random()<rate){const shop=shadowShopLoot();if(shop)loot[Math.floor(Math.random()*loot.length)]={id:'loot-'+(++host.seq),sku:shop};}
+  }
+  return loot;
+ }
+ function shadowSpawnCrate(now){const h=host.shadow;if(h.crates.length>=2)return;let pos;for(let n=0;n<30;n++){const p={x:80+Math.random()*(R.W-160),y:80+Math.random()*(R.H-160)};if(!R.blocked(p.x,p.y,host.blocks,35)){pos=p;break}}if(!pos)return;const crateType=shadowCrateType(),loot=shadowBuildCrateLoot(crateType);h.crates.push({id:'crate-'+(++host.seq),...pos,crateType,opened:false,hp:60,maxHp:60,respawnAt:0,loot,trap:false,poison:false});}
+
  function shadowNear(p,q,r=90){return q&&R.dist(p,q)<=r}
  function shadowReply(p,text){p.notice=text;shadowSend()}
  function shadowAction(id,m){if(!host||host.phase!=='battle'||!host.shadow)return true;const p=host.fighters.find(p=>p.id===id),h=host.shadow,now=Date.now();if(!p)return true;
@@ -9922,8 +9938,9 @@ window.ArtShadow=(()=>{
   if(m.action==='toggle'){const i=p.inventory.find(i=>i.id===m.itemId);if(i)i.on=!i.on;shadowSyncSkills(p)}
   if(m.action==='drop'){const i=p.inventory.find(i=>i.id===m.itemId);if(i){h.drops.push({...i,id:'drop-'+(++host.seq),x:p.x,y:p.y});p.inventory=p.inventory.filter(q=>q!==i);shadowSyncSkills(p)}}
   if(m.action==='pickup'){const d=h.drops.find(d=>d.id===m.target);if(shadowNear(p,d,100)){
-   if(d.sku==='pickup_hp')p.hp=Math.min(p.maxHp,p.hp+30);
-   else if(d.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+40);
+   if(d.sku==='pickup_hp')p.hp=Math.min(p.maxHp,p.hp+(d.amount||30));
+   else if(d.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+(d.amount||40));
+   else if(d.sku==='pickup_rainbow'){p.hp=p.maxHp;p.ink=p.maxInk;}
    else{if(!ShadowRules.catalog[d.sku]||!ShadowRules.available(p,ShadowRules.catalog[d.sku]))return shadowReply(p,'入手できないアイテムです');if(p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots||p.inventory.some(i=>i.sku===d.sku))return shadowReply(p,'所持枠がいっぱいです');p.inventory.push({id:'item-'+(++host.seq),sku:d.sku,charges:d.charges,on:true,poison:!!d.poison});shadowSyncSkills(p)}
    p.pickupEvent=(p.pickupEvent||0)+1;p.pickupKind=d.sku;h.drops=h.drops.filter(q=>q!==d);
   }}
@@ -9934,12 +9951,12 @@ window.ArtShadow=(()=>{
   if(m.action==='taskStart'){const t=h.tasks.find(t=>t.id===m.target);if(!shadowNear(p,t))return true;const progress=p.taskProgress?.[t.id]||{rev:0,readyAt:0};if(progress.readyAt>now)return true;const model=ShadowRules.taskModel(t.kind,progress.rev);p.action={kind:'task',target:t.id,rev:progress.rev,start:now,end:now+(model.seconds-(p.job==='engineer'&&['WIR_01','REPAIR_01'].includes(t.kind)?3:0))*(p.taskBoost?1.5:1)*1000,x:p.x,y:p.y,hit:p.lastHitSeq};p.taskBoost=false;p.taskStartedSeq=(p.taskStartedSeq||0)+1}
   if(m.action==='taskSubmit'){const a=p.action,t=a&&h.tasks.find(t=>t.id===a.target);if(a?.kind!=='task'||!shadowNear(p,t)||a.rev!==(p.taskProgress?.[t.id]?.rev||0)||(p.taskProgress?.[t.id]?.readyAt||0)>now||now>a.end+30000||!ShadowRules.taskCheck(t.kind,a.rev,m.paths))return shadowReply(p,'まだ完成していません。お手本と経過時間を確認してください。');p.am=Math.min(100,p.am+ShadowRules.taskModel(t.kind,a.rev).reward);p.action=null;const progress=(p.taskProgress??={})[t.id]??={rev:0,readyAt:0};progress.rev++;progress.readyAt=now+30000;p.notice='タスク完了！ アートマターを獲得しました';p.taskSuccessSeq=(p.taskSuccessSeq||0)+1}
   if(['open','take','steal','inspect','trap','poison','disarm'].includes(m.action)){const c=h.crates.find(c=>c.id===m.target);if(!shadowNear(p,c))return true;
-   if(m.action==='open'){if(c.hp<=0||c.opened)return true;if(c.trap&&p.alignment!=='killer')shadowHurt(p,25,now,{owner:c.trapOwner||'trap',type:'crateTrap'},true);shadowDamageCrate(c,c.hp,now,p.id);return true}
+   if(m.action==='open'){if(c.hp<=0||c.opened||p.action)return true;const multiplier=c.crateType==='gold'?3:c.crateType==='iron'?2:1;p.action={kind:'crateOpen',target:c.id,start:now,end:now+650*multiplier,x:p.x,y:p.y,hit:p.lastHitSeq};return shadowReply(p,'クレートを開封中…');}
    if(m.action==='inspect'){if(p.job!=='detective'&&!p.inventory.some(i=>i.sku==='evidence_kit'&&i.on))return true;p.notice=c.trap||c.poison||c.stolen||c.forged?'細工または開封の痕跡があります。犯人は特定できません。':'目立った細工の痕跡はありません';const item=p.inventory.find(i=>i.sku==='evidence_kit'&&i.on);if(p.job!=='detective'&&item)ShadowRules.consume(p,item)}
    if(m.action==='trap'){const item=p.inventory.find(i=>i.sku==='trap_kit'&&i.on);if(p.alignment!=='killer'||!item||c.opened)return true;p.action={kind:'trap',target:c.id,start:now,end:now+(p.job==='engineer'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq,itemId:item.id}}
    if(m.action==='poison'){const item=p.inventory.find(i=>i.sku==='poison_vial'&&i.on);if(p.alignment!=='killer'||!item||!c.loot.some(i=>['pickup_hp','emergency_medkit'].includes(i.sku)))return true;c.poison=true;ShadowRules.consume(p,item)}
    if(m.action==='disarm'&&p.job==='engineer'){c.trap=false;p.notice='罠を解除しました'}
-   if(m.action==='take'||m.action==='steal'){if(m.action==='steal'&&(p.job!=='thief'||p.stealReady>now))return true;if(m.action==='take'&&!c.opened)return true;const item=m.action==='steal'?c.loot[0]:c.loot.find(i=>i.id===m.itemId);if(!item)return true;if(!['pickup_hp','pickup_ink'].includes(item.sku)&&!ShadowRules.catalog[item.sku])return shadowReply(p,'このアイテムは現在使用できません');const poison=c.poison&&['pickup_hp','emergency_medkit'].includes(item.sku);if(item.sku==='pickup_hp'){if(poison)p.poison={from:now+3000,to:now+11000};else p.hp=Math.min(p.maxHp,p.hp+30)}else if(item.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+40);else{if(!ShadowRules.catalog[item.sku]||!ShadowRules.available(p,ShadowRules.catalog[item.sku])||p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots||p.inventory.some(i=>i.sku===item.sku))return shadowReply(p,'所持枠が満杯か、取得できない道具です');p.inventory.push({id:'item-'+(++host.seq),sku:item.sku,on:true,charges:ShadowRules.catalog[item.sku].charges,poison})}c.loot=c.loot.filter(i=>i!==item);if(m.action==='steal'){c.opened=false;c.stolen=true;p.stealReady=now+60000}if(!c.loot.length&&c.opened)h.crates=h.crates.filter(q=>q!==c);shadowSyncSkills(p)}
+   if(m.action==='take'||m.action==='steal'){if(m.action==='steal'&&(p.job!=='thief'||p.stealReady>now))return true;if(m.action==='take'&&!c.opened)return true;const item=m.action==='steal'?c.loot[0]:c.loot.find(i=>i.id===m.itemId);if(!item)return true;if(!['pickup_hp','pickup_ink','pickup_rainbow'].includes(item.sku)&&!ShadowRules.catalog[item.sku])return shadowReply(p,'このアイテムは現在使用できません');const poison=c.poison&&['pickup_hp','emergency_medkit'].includes(item.sku);if(item.sku==='pickup_hp'){if(poison)p.poison={from:now+3000,to:now+11000};else p.hp=Math.min(p.maxHp,p.hp+(item.amount||30))}else if(item.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+(item.amount||40));else if(item.sku==='pickup_rainbow'){p.hp=p.maxHp;p.ink=p.maxInk;}else{if(!ShadowRules.catalog[item.sku]||!ShadowRules.available(p,ShadowRules.catalog[item.sku])||p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots||p.inventory.some(i=>i.sku===item.sku))return shadowReply(p,'所持枠が満杯か、取得できない道具です');p.inventory.push({id:'item-'+(++host.seq),sku:item.sku,on:true,charges:ShadowRules.catalog[item.sku].charges,poison})}c.loot=c.loot.filter(i=>i!==item);if(m.action==='steal'){c.opened=false;c.stolen=true;p.stealReady=now+60000}if(!c.loot.length&&c.opened)h.crates=h.crates.filter(q=>q!==c);shadowSyncSkills(p)}
   }
   if(m.action==='use'){const item=p.inventory.find(i=>i.id===m.itemId&&i.on),sku=item?.sku;if(!item)return true;
    if(sku==='bullet_pack'){p.ammo=Math.min(12,(p.ammo||0)+1);ShadowRules.consume(p,item);p.notice='弾薬を1発補充しました'}
@@ -10005,7 +10022,8 @@ window.ArtShadow=(()=>{
    if(p.state==='down'){p.downHP=Math.max(0,100*(Math.max(0,(p.downUntil||now)-now)/10000));p.hp=.0001;p.moving=false;if(now>=(p.downUntil||now)||p.downHP<=0)shadowDead(p,now);continue}
    if(p.poison){if(now>=p.poison.to)p.poison=null;else if(now>=p.poison.from)shadowHurt(p,dt*3,now,{id:'poison',type:'magic'},true)}
    const a=p.action;if(!a)continue;delete host.inputs[p.id];p.dash=null;if(R.dist(p,a)>8||p.lastHitSeq!==a.hit){p.action=null;continue}if(a.kind==='task')continue;if(a.kind==='revive'&&now>(a.heldUntil||0)){p.action=null;continue}
-   const q=a.kind==='revive'?host.fighters.find(q=>q.id===a.target):a.kind==='trap'?h.crates.find(c=>c.id===a.target):null;if(['revive','trap'].includes(a.kind)&&!shadowNear(p,q)){p.action=null;continue}if(now<a.end)continue;p.action=null;
+   const q=a.kind==='revive'?host.fighters.find(q=>q.id===a.target):['trap','crateOpen'].includes(a.kind)?h.crates.find(c=>c.id===a.target):null;if(['revive','trap','crateOpen'].includes(a.kind)&&!shadowNear(p,q)){p.action=null;continue}if(now<a.end)continue;p.action=null;
+   if(a.kind==='crateOpen'){if(q&&q.hp>0&&!q.opened){if(q.trap&&p.alignment!=='killer')shadowHurt(p,25,now,{owner:q.trapOwner||'trap',type:'crateTrap'},true);shadowDamageCrate(q,q.hp,now,p.id);}continue}
    if(a.kind==='facilityRepair'){const f=h.facilities?.find(v=>v.id===a.target);if(f&&f.kind==='reactor'){f.hp=50;f.disabledUntil=0;host.effects.push({id:++host.seq,type:'shadowCrateRespawn',x:f.x,y:f.y,start:now,end:now+950})}continue}
    if(a.kind==='revive'&&q?.state==='down'&&q.downUntil>now&&q.downHP>0&&p.am>=10){p.am-=10;q.hp=30;q.state='alive';q.protectUntil=now+600;q.downBlocked=[];q.reviveCount=(q.reviveCount||0)+1;q.reviveProgress=0;q.downUntil=0}
    if(a.kind==='escape'&&p.alignment==='artist'&&h.graceAt){p.state='escaped';p.escapedAt=now;p.hp=0;p.active=false;host.effects=host.effects.filter(e=>e.owner!==p.id);host.shots=host.shots.filter(s=>s.owner!==p.id)}
@@ -10013,8 +10031,7 @@ window.ArtShadow=(()=>{
   }
   if(!h.graceAt&&now>=h.gateAt){h.phase='escape_grace';h.graceAt=now+host.settings.graceMin*60000;host.deadline=h.graceAt}
   for(const c of h.crates)if(c.hp<=0&&c.respawnAt&&now>=c.respawnAt){
-   c.hp=c.maxHp||60;c.opened=false;c.respawnAt=0;c.loot=[];
-   for(let i=0,n=1+Math.floor(Math.random()*2);i<n;i++){c.loot.push({id:'loot-'+(++host.seq),sku:shadowRandomCrateLoot()});}
+   c.hp=c.maxHp||60;c.opened=false;c.respawnAt=0;c.crateType=shadowCrateType();c.loot=shadowBuildCrateLoot(c.crateType);
    host.effects.push({id:++host.seq,type:'shadowCrateRespawn',owner:null,x:c.x,y:c.y,r:55,start:now,end:now+900});
   }
   if(now>=h.nextCrate){shadowSpawnCrate(now);h.nextCrate=now+45000+Math.random()*25000}
@@ -10023,6 +10040,7 @@ window.ArtShadow=(()=>{
  function shadowRecognize(paths,skills){
   // Dedicated Shadow gesture reader. ArtsRules.recognize() used to veto simple
   // gun strokes in the previous version (especially straight strokes).
+  const arts=R.recognize(paths,skills||[]);if(arts&&arts.type!=='slash'&&arts.type!=='magic')return arts;
   if(!Array.isArray(paths)||paths.length!==1)return null;
   const p=paths[0];if(!Array.isArray(p)||p.length<3||p.length>1200)return null;
   if(p.some(q=>!Number.isFinite(q.x)||!Number.isFinite(q.y)))return null;
@@ -10511,7 +10529,7 @@ window.ArtShadow=(()=>{
  if(m.type==='gameShadowReady'&&['create','collect'].includes(host.phase)&&!host.ready[id]){acceptArt(id,m.image,m.drawingPaths,m.artFacing);return true}
  if(host.phase!=='battle'||migrationOut||host.shadow?.meeting)return true;const f=host.fighters.find(p=>p.id===id);if(!f||!ShadowRules.up(f)||f.action)return true;if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameShadowCast'){const reply={type:'gameShadowFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameShadowInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now()};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
- if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length===1;const shape=valid?shadowRecognize(m.strokes,f.skills||[f.skill]):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':'ナイフで攻撃')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
+ if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length>=1&&m.strokes.length<=16;const shape=valid?shadowRecognize(m.strokes,f.skills||[f.skill]):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':shape.type==='slash'?'ナイフで攻撃':(moves[shape.type]?.name||shape.type)+'を発動')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
  function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameShadowFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
 
  // ARTLATER BOT: roles are fixed by the host, movement uses the same collision map.
@@ -11066,7 +11084,7 @@ window.ArtShadow=(()=>{
  }
  function shadowMeetingUI(){
   if(view?.phase!=='battle')return;
-  const data=view?.shadow,meeting=data?.meeting;let overlay=$('#shadowMeetingScreen,#shadowMiniMap');
+  const data=view?.shadow,meeting=data?.meeting;let overlay=$('#shadowMeetingScreen');
   if(!meeting){if(overlay)overlay.remove();meetingUiId=null;meetingDraw=null;return}
   if(meetingUiId!==meeting.id||!overlay){
    meetingUiId=meeting.id;meetingRenderedNotes=-1;meetingRenderedChat='';
@@ -11098,7 +11116,7 @@ window.ArtShadow=(()=>{
  const shadowTitle='アートレイター';
  function shadowRequest(action,extra={}){shadowSeq=Math.max(shadowSeq,view?.shadow?.me?.lastSeq||0);sendHost({type:'gameShadowAction',gameId:view.id,seq:++shadowSeq,action,...extra})}
  function shadowInfo(){modal(shadowTitle,'<p>描いたキャラの職業は公開、陣営は秘密。タスクでアートマターを集め、装備を購入し、出口の開放を待ちましょう。</p><p>4〜5人はキラー1人、6〜8人は2人。キラーはアーティストの脱出を妨害します。通常攻撃3種はありません。アーティストはジャッジメントガン（別売り弾薬）、キラーはおもちゃのナイフを初期所持し、キラーナイフを購入できます。ピストルはインクで射撃します。</p><p>HPが0になるとダウン。残りのダウンHPは蘇生しても引き継ぎます。救助に必要な時間は通常4秒、医者は2秒、費用12アートマターです。ダウンすると10秒後に死亡します。完全死亡・脱出後は観戦と幽霊チャットだけです。</p><p>通常時のチャットは距離制です。中央の会議装置か死体の通報から全員会議を開き、共有メモを作れます。会議中は全員にチャットが届き、出口タイマーは停止します。P2Pの部屋主はゲーム状態を管理するため、部屋主からも陣営を隠せる仕組みではありません。</p><p>開発版：価格・職業判定・対戦バランスは試遊用の初期値です。実端末のオンライン対戦・ホスト交代は未検証です。オンライン対戦・職業固有機能の検証は今後も必要です。画像貼り付けが職業判定に影響する場合があります。同じ円のワープと地雷を両方ONにした場合、装備順が優先されます。</p>')}
- function shadowConfigHTML(s=ShadowRules.settings()){return '<label class="form-field">出口まで<select id="shadowGate">'+[10,15,20,30].map(n=>'<option '+(s.gateMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">出口開放後の猶予<select id="shadowGrace">'+[2,3,5].map(n=>'<option '+(s.graceMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">キャラ作成（秒）<input id="shadowCreateTime" type="number" min="30" max="300" value="'+s.createSeconds+'"></label><label class="check"><input id="shadowAccelerate" type="checkbox" '+(s.accelerate?'checked':'')+'>アートマターで出口開放を早める</label><label class="form-field">会議の必要アートマター<input id="shadowMeetingCost" type="number" min="0" max="100" step="1" value="'+s.meetingCost+'"></label><label class="form-field">ステージ<select id="shadowMap">'+Object.entries({lab:'研究所',garden:'庭園（旧）',ruins:'遺跡（旧）',forest:'森（旧）',arena:'闘技場（旧）'}).map(([k,v])=>'<option value="'+k+'" '+(s.stage===k?'selected':'')+'>'+esc(v.name||v)+'</option>').join('')+'</select></label><p>4〜8人。全員が同じバージョンを使用してください。</p>'}
+ function shadowConfigHTML(s=ShadowRules.settings()){return '<label class="form-field">出口まで（分）<input id="shadowGate" type="number" min="0.5" max="120" step="0.5" value="'+s.gateMin+'" required></label><label class="form-field">出口開放後の猶予（分）<input id="shadowGrace" type="number" min="0.5" max="30" step="0.5" value="'+s.graceMin+'" required></label><label class="form-field">キャラ作成（秒）<input id="shadowCreateTime" type="number" min="30" max="300" value="'+s.createSeconds+'"></label><label class="check"><input id="shadowAccelerate" type="checkbox" '+(s.accelerate?'checked':'')+'>アートマターで出口開放を早める</label><label class="form-field">会議の必要アートマター<input id="shadowMeetingCost" type="number" min="0" max="100" step="1" value="'+s.meetingCost+'"></label><label class="form-field">ステージ<select id="shadowMap">'+Object.entries({lab:'研究所',garden:'庭園（旧）',ruins:'遺跡（旧）',forest:'森（旧）',arena:'闘技場（旧）'}).map(([k,v])=>'<option value="'+k+'" '+(s.stage===k?'selected':'')+'>'+esc(v.name||v)+'</option>').join('')+'</select></label><p>4〜8人。全員が同じバージョンを使用してください。</p>'}
  function shadowReadSettings(){return ShadowRules.settings({gateMin:+$('#shadowGate').value,graceMin:+$('#shadowGrace').value,createSeconds:+$('#shadowCreateTime').value,accelerate:$('#shadowAccelerate').checked,meetingCost:+$('#shadowMeetingCost').value,stage:$('#shadowMap').value})}
  function shadowSettingsDialog(){const edit=isHost&&host?.phase==='lobby';modal(shadowTitle+'の設定','<form id="shadowConfigForm"><fieldset '+(!edit?'disabled':'')+'>'+shadowConfigHTML(view?.settings)+'</fieldset>'+(edit?'<button class="primary">保存</button>':'')+'</form>');$('#shadowConfigForm').onsubmit=e=>{e.preventDefault();if(edit&&e.target.reportValidity()){host.settings=shadowReadSettings();room.shadowSettings=host.settings;sendAll(true);$('#modal').close()}}}
  function shadowEquipUI(){const own=view.art?.[localId],role=view.privateRole;if(!own)return '<h2>キャラクターを準備しています</h2>';const job=ShadowRules.J.find(j=>j.id===own.shadowJob);const killer=role==='killer';const roleIcon=killer?'<div class="shadow-intro-roleicon is-killer" aria-hidden="true"><svg viewBox="0 0 96 96"><path d="M79 10Q81 9 80 13L70 39 49 60 40 51 61 30Z"/><path d="M35 56L45 66M29 62L40 73"/><path d="M38 63L19 83Q16 86 12 82Q9 78 13 74L31 56"/><path d="M11 82L17 88"/></svg></div>':'<div class="shadow-intro-roleicon is-artist" aria-hidden="true"><svg viewBox="0 0 96 96"><path d="M50 12C28 12 12 29 12 51C12 73 29 84 48 84C59 84 64 75 60 68C57 62 60 55 69 56C80 57 86 49 83 39C79 23 66 12 50 12Z"></path><circle cx="32" cy="37" r="5"></circle><circle cx="48" cy="27" r="5"></circle><circle cx="65" cy="35" r="5"></circle><circle cx="29" cy="55" r="5"></circle><path d="M48 68Q53 61 61 65"/></svg></div>';return '<div class="shadow-intro '+(killer?'is-killer':'is-artist')+'"><div class="shadow-intro-halo"></div><div class="shadow-intro-content"><small>SECRET ROLE · この陣営は自分だけに表示されます</small>'+roleIcon+'<h2>'+(killer?'キラー':'アーティスト')+'</h2><p class="shadow-intro-job">'+esc(job?.name||'職業')+'</p><div class="shadow-intro-art">'+(own.image?'<img src="'+esc(own.image)+'" alt="あなたが描いたキャラクター">':'<div class="shadow-intro-noart">キャラクター</div>')+'</div><p class="shadow-intro-description">'+esc(job?.visible_bonus||'')+'</p><p class="shadow-intro-goal">'+(killer?'正体を隠し、アーティストの脱出を阻止せよ':'仲間と協力し、キラーの正体を暴いて脱出せよ')+'</p>'+(killer&&view.killerFriends?.length>1?'<p class="shadow-intro-teammates">仲間：'+view.killerFriends.filter(id=>id!==localId).map(id=>esc(view.players.find(p=>p.id===id)?.name||'')).join('・')+'</p>':'')+'</div></div>'}
@@ -11110,7 +11128,7 @@ window.ArtShadow=(()=>{
   if(h){const content='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b>' +(m.state==='down'?'<b>死亡まで '+Math.ceil((m.downHP||0)/10)+'秒</b>':'');if(h._shadowMarkup!==content){h.innerHTML=content;h._shadowMarkup=content}}let timeBox=$('#shadowTimeBox');if(!timeBox){timeBox=document.createElement('div');timeBox.id='shadowTimeBox';$('#shadowField').append(timeBox)}const timeBasis=s.meeting?s.meeting.started:(Date.now()+offset);const remain=Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-timeBasis)/1000));timeBox.textContent=(s.graceAt?'脱出猶予':'出口開放まで')+'  '+Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0')+(s.meeting?' · 会議中は停止':'');
   // Minimap: only own location is visible. Do not disclose killer/player positions.
   let map=$('#shadowMiniMap');if(!map){map=document.createElement('canvas');map.id='shadowMiniMap';map.width=118;map.height=166;map.setAttribute('aria-label','自分の位置を緑の点で表示するミニマップ');$('#shadowField').append(map)}
-  if(map.width!==472){map.width=472;map.height=664;map.title='タップでマップを拡大／縮小';map.setAttribute('aria-label','区画名と連絡通路。緑の点は自分。タップで拡大');map.setAttribute('role','button');map.tabIndex=0;map.onclick=e=>{e.stopPropagation();shadowOpenMap()};map.onpointerdown=e=>e.stopPropagation();map.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();shadowOpenMap()}}}
+  if(map.width!==472){map.width=472;map.height=664;map.title='タップでマップを拡大／縮小';map.setAttribute('aria-label','区画名と連絡通路。緑の点は自分。タップで拡大');map.setAttribute('role','button');map.tabIndex=0;map.onclick=e=>{e.stopPropagation();shadowOpenMap()};map.onpointerdown=e=>{e.stopPropagation()};map.onpointerup=e=>e.stopPropagation();map.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();shadowOpenMap()}}}
   const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.fillStyle='#14212a';mx.fillRect(0,0,472,664);const sx=440/R.W,sy=632/R.H;mx.save();mx.translate(16,16);mx.fillStyle='#718d98';for(const a of SHADOW_HALLS)mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);for(const a of SHADOW_ROOMS){mx.fillStyle='#314c53';mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeStyle='#a8c3cd';mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.fillStyle='#fff';mx.font='bold 13px sans-serif';mx.textAlign='center';mx.fillText(a.name,(a.x+a.w/2)*sx,(a.y+a.h/2)*sy,a.w*sx-4)}mx.font='10px sans-serif';mx.fillStyle='#ecf4ff';for(const [i,a] of SHADOW_HALLS.entries()){const x=a.x+a.w/2,y=a.y+a.h/2;if(SHADOW_ROOMS.some(r=>x>r.x&&x<r.x+r.w&&y>r.y&&y<r.y+r.h))continue;mx.fillText('通路'+(Math.floor(i/2)+1),x*sx,y*sy)}mx.fillStyle='#46ff95';mx.strokeStyle='#14212a';mx.lineWidth=3;mx.beginPath();mx.arc(p.x*sx,p.y*sy,7,0,Math.PI*2);mx.fill();mx.stroke();mx.restore();const large=$('#shadowMapLarge');if(large)large.getContext('2d').drawImage(map,0,0)}
 
   let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});panel.addEventListener('pointerdown',()=>{shadowPanelPointerDown=true});for(const ev of ['pointerup','pointercancel','lostpointercapture'])panel.addEventListener(ev,()=>{shadowPanelPointerDown=false});tools.addEventListener('pointerdown',e=>{if(e.target.closest('button'))shadowToolsPointerDown=true});const releaseTools=()=>{shadowToolsPointerDown=false};tools.addEventListener('pointerup',releaseTools);tools.addEventListener('pointercancel',releaseTools);tools.addEventListener('lostpointercapture',releaseTools);window.addEventListener('pointerup',()=>{shadowToolsPointerDown=false;shadowPanelPointerDown=false},true);window.addEventListener('pointercancel',()=>{shadowToolsPointerDown=false;shadowPanelPointerDown=false},true);tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
@@ -11167,7 +11185,7 @@ window.ArtShadow=(()=>{
       if(m.cameraUntil>Date.now()+offset)html+=button('監視映像を再表示','cameraView');
      }
      if(f.kind==='med')html+=add('治療 · 3アートマター','med')+add('汚染を除去 · 3アートマター','clean');
-     if(f.kind==='ink')html+='<p>強化：60秒間、補給量が5→7。変換：インク10→アートマター1。</p>'+add('インク10 → アートマター1','convert')+add('インク補給 · 1アートマター','ink')+add('強化 · 8アートマター','enhance')+add('汚染を除去 · 3アートマター','clean');
+     if(f.kind==='ink')html+='<p>強化：60秒間、補給量が5→7。変換：インク10→アートマター1。</p>'+add('インク10 → アートマター1','convert')+add('インク5補充 · 1アートマター','ink')+add('強化 · 8アートマター','enhance')+add('汚染を除去 · 3アートマター','clean');
      if(f.kind==='reactor')html+='<p>強化：60秒間、監視カメラの起動時間が12秒→20秒。</p>'+add('リアクター修理','repair')+add('施設強化 · 8アートマター','enhance');
      if(f.kind==='vent')html+='<p>強化：妨害を解除し、60秒間は新たな空調妨害を防ぎます。</p>'+add('空調を操作','vent')+add('施設強化 · 8アートマター','enhance');
      if(f.kind==='locker')html+='<p>装備枠：'+m.slots+' / 5</p>'+add('枠を増やす · '+(m.slots===3?20:35)+' アートマター','slot');
@@ -11178,7 +11196,7 @@ window.ArtShadow=(()=>{
     for(const t of s.tasks.filter(t=>near(t)))html+=button(esc(ShadowRules.taskNames[t.kind])+' · '+ShadowRules.taskModel(t.kind).reward+'アートマター','taskStart','data-target="'+t.id+'" '+(t.readyAt>Date.now()+offset?'disabled':''));
     if(R.dist(p,{x:R.W/2,y:R.H/2})<125)html+='<p>中央の準備装置・ショップ</p>'+button('15アートマター → 出口を60秒短縮','clock')+button('ダウンHPを治療','treat');
     for(const c of s.crates.filter(c=>near(c)&&c.hp>0))html+='<p>クレート（HP '+Math.ceil(c.hp)+'）</p>'+'<span class="shadow-crate-hold-tip">マップ上の箱を0.65秒長押しで開封</span>'+(m.job==='detective'?button('調べる','inspect','data-target="'+c.id+'"'):'')+(view.privateRole==='killer'?button('罠を仕掛ける','trap','data-target="'+c.id+'"')+button('毒を仕込む','poison','data-target="'+c.id+'"'):'');
-    for(const d of s.drops.filter(near))if(['pickup_hp','pickup_ink'].includes(d.sku)||ShadowRules.catalog[d.sku])html+=button('拾う：'+esc(d.sku==='pickup_hp'?'HP回復粒':d.sku==='pickup_ink'?'インク回復粒':ShadowRules.catalog[d.sku].name),'pickup','data-target="'+d.id+'"');
+    for(const d of s.drops.filter(near))if(['pickup_hp','pickup_ink','pickup_rainbow'].includes(d.sku)||ShadowRules.catalog[d.sku])html+=button('拾う：'+esc(d.sku==='pickup_hp'?'HP回復粒':d.sku==='pickup_ink'?'インク回復粒':d.sku==='pickup_rainbow'?'虹色の全回復粒':ShadowRules.catalog[d.sku].name),'pickup','data-target="'+d.id+'"');
     if(s.graceAt)for(const [name,x]of [['west',35],['east',R.W-35]])if(near({x,y:R.H/2}))html+=button('出口で脱出する（4秒）','escape','data-target="'+name+'"');
     html+='<p class="muted">近くにある対象が表示されます。タスク・箱・出口は地図上のマークへ。</p>';
    }
@@ -11369,7 +11387,7 @@ window.ArtShadow=(()=>{
   entries.sort((a,b)=>a.y-b.y);for(const e of entries){if(e.b){if(e.b.furniture)shadowFurniture(ctx,e.b);else shadowWallMesh(ctx,e.b,SHADOW_WALL_Z);continue}const p=e.p,img=images.get(p.id);ctx.save();ctx.translate(p.x,p.y);if(p.state==='dead'||p.state==='down')ctx.rotate(Math.PI/2);if(img?.complete&&img.naturalWidth)ctx.drawImage(img,-32,-38,64,64);else{ctx.fillStyle='#c1d5dd';ctx.beginPath();ctx.arc(0,-6,24,0,Math.PI*2);ctx.fill()}ctx.restore()}
   shadowLabDevices(ctx,now);shadowCentralDevices(ctx,now);
   for(const q of view.shadow.tasks||[]){ctx.fillStyle='#91dcba';ctx.beginPath();ctx.arc(q.x,q.y,18,0,Math.PI*2);ctx.fill()}
-  for(const q of view.shadow.crates||[])if(q.hp>0){ctx.fillStyle='#c79e66';ctx.fillRect(q.x-23,q.y-20,46,40)}
+  for(const q of view.shadow.crates||[])if(q.hp>0)shadowDrawCrate(ctx,q);
   for(const q of view.shadow.weaponShots||[]){ctx.fillStyle='#fdf0a1';ctx.beginPath();ctx.arc(q.x,q.y,6,0,Math.PI*2);ctx.fill()}
   ctx.restore();ctx.fillStyle='#78f1bd';ctx.font='bold 12px sans-serif';ctx.textAlign='left';ctx.fillText('LIVE · '+SHADOW_ROOMS[m.cameraRoom||0].name+' · '+Math.max(0,Math.ceil((m.cameraUntil-now)/1000))+'秒',10,18);
  }
@@ -11465,16 +11483,68 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
   x.beginPath();x.arc(e.x,e.y,(burst?12:8)+t*(burst?62:38),0,Math.PI*2);x.stroke();
   for(let i=0;i<(burst?18:9);i++){const a=i*2.39996,dist=t*(burst?65:32),xx=e.x+Math.cos(a)*dist,yy=e.y+Math.sin(a)*dist;x.fillStyle=revive?'#a8f4fa':i%3?'#d4a16f':'#fff0c8';x.fillRect(xx-3,yy-3,6,6)}x.restore();
  }
+ // The same small Canvas sprite is used in the arena and in live security-camera feeds.
+ // Coordinates deliberately match the old 46x36 crate footprint (hit detection unchanged).
+ function shadowDrawCrate(g,c){
+  const kind=['wood','iron','gold'].includes(c.crateType)?c.crateType:'wood';
+  const pal=kind==='wood'?{base:'#97613a',rim:'#593923',edge:'#d59a5e',dark:'#633d25',glint:'#edba78'}:kind==='iron'?{base:'#707e90',rim:'#394657',edge:'#b6c6d4',dark:'#4b5a6b',glint:'#e7f2f7'}:{base:'#d9a12b',rim:'#805011',edge:'#ffe38c',dark:'#a96e16',glint:'#fff0b0'};
+  g.save();g.translate(c.x,c.y);g.lineJoin='round';g.lineCap='round';
+  // Narrow grounding shadow and shallow top surface give depth without enlarging the collision tile.
+  g.fillStyle='rgba(0,0,0,.32)';g.beginPath();g.ellipse(1,17,24,6,0,0,Math.PI*2);g.fill();
+  g.fillStyle=pal.dark;g.fillRect(-23,-15,46,33);
+  g.fillStyle=pal.edge;g.beginPath();g.moveTo(-23,-15);g.lineTo(-18,-21);g.lineTo(19,-21);g.lineTo(23,-15);g.closePath();g.fill();
+  const gradient=g.createLinearGradient(-22,-16,23,18);
+  gradient.addColorStop(0,pal.edge);gradient.addColorStop(.2,pal.base);gradient.addColorStop(1,pal.dark);
+  g.fillStyle=gradient;g.fillRect(-21,-15,42,31);
+  if(kind==='wood'){
+   // Six individual timber slats with a continuous X-frame and heavy iron brackets.
+   for(let i=0;i<5;i++){
+    const yy=-13+i*6;
+    g.fillStyle=i%2?'#9e663e':'#b77a49';g.fillRect(-19,yy,38,5);
+    g.strokeStyle='#603a24';g.lineWidth=.8;g.beginPath();g.moveTo(-19,yy+5);g.lineTo(19,yy+5);g.stroke();
+    g.strokeStyle='rgba(255,223,165,.26)';g.beginPath();g.moveTo(-17,yy+1);g.lineTo(15,yy+1);g.stroke();
+   }
+   g.strokeStyle='#704628';g.lineWidth=5;g.beginPath();g.moveTo(-15,-10);g.lineTo(15,12);g.moveTo(15,-10);g.lineTo(-15,12);g.stroke();
+   g.strokeStyle='#d09456';g.lineWidth=1.25;g.beginPath();g.moveTo(-15,-12);g.lineTo(15,10);g.stroke();
+   g.strokeStyle='#78838c';g.lineWidth=4;g.strokeRect(-20,-14,40,30);
+   g.strokeStyle='#d1dce1';g.lineWidth=1;g.strokeRect(-21,-15,42,32);
+  }else if(kind==='iron'){
+   g.fillStyle='#8594a5';g.fillRect(-16,-10,32,23);
+   g.strokeStyle='#4c5d6c';g.lineWidth=2;g.strokeRect(-17,-11,34,25);
+   g.beginPath();g.moveTo(0,-11);g.lineTo(0,14);g.moveTo(-17,2);g.lineTo(17,2);g.stroke();
+   // Warning stripe only at the top edge keeps the front readable at game scale.
+   g.save();g.beginPath();g.rect(-19,-15,38,5);g.clip();g.fillStyle='#e6b73b';g.fillRect(-19,-15,38,5);
+   g.strokeStyle='#35404b';g.lineWidth=3;for(let i=-32;i<34;i+=8){g.beginPath();g.moveTo(i,-9);g.lineTo(i+8,-19);g.stroke()}g.restore();
+   g.fillStyle='#79deec';g.fillRect(-8,-4,16,9);g.strokeStyle='#ddffff';g.lineWidth=1;g.strokeRect(-8,-4,16,9);
+  }else{
+   g.fillStyle='#f2bf43';g.fillRect(-16,-10,32,23);
+   g.strokeStyle='#ffe38e';g.lineWidth=3;g.strokeRect(-18,-12,36,27);
+   g.strokeStyle='#a36c19';g.lineWidth=1.4;g.strokeRect(-14,-8,28,19);
+   g.strokeStyle='#ffe698';g.lineWidth=3.5;g.beginPath();g.moveTo(-12,-7);g.lineTo(12,10);g.moveTo(12,-7);g.lineTo(-12,10);g.stroke();
+   // Jewel is intentionally restrained to avoid covering characters or the floor.
+   g.fillStyle='#43dced';g.beginPath();g.moveTo(0,-3);g.lineTo(5,1);g.lineTo(0,6);g.lineTo(-5,1);g.closePath();g.fill();
+   g.strokeStyle='#dfffff';g.lineWidth=.8;g.stroke();
+  }
+  g.strokeStyle=pal.rim;g.lineWidth=2;g.strokeRect(-22,-16,44,33);
+  g.strokeStyle=pal.glint;g.lineWidth=1;g.beginPath();g.moveTo(-21,-16);g.lineTo(21,-16);g.moveTo(-21,-16);g.lineTo(-21,15);g.stroke();
+  const bolts=kind==='wood'||kind==='iron';
+  for(const px of [-18,18])for(const py of [-12,13]){
+   g.fillStyle=bolts?'#d4e0e6':'#fff1b6';g.beginPath();g.arc(px,py,kind==='gold'?2.8:2.1,0,Math.PI*2);g.fill();
+   g.strokeStyle=bolts?'#4a5765':'#a97719';g.lineWidth=.8;g.stroke();
+  }
+  g.restore();
+ }
  for(const c of s.crates){if(c.hp<=0){x.save();x.globalAlpha=.2;x.strokeStyle='#9aafbd';x.setLineDash([5,6]);x.strokeRect(c.x-23,c.y-18,46,36);x.restore();continue}
-  x.fillStyle='#b88b58';x.strokeStyle='#624932';x.lineWidth=3;x.fillRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-23,c.y-18,46,36);x.strokeRect(c.x-4,c.y-18,8,36);
+  shadowDrawCrate(x,c);
+  const opener=c.opening;if(opener){const progress=Math.max(0,Math.min(1,(Date.now()+offset-opener.start)/Math.max(1,opener.end-opener.start)));x.save();x.strokeStyle='#182b39';x.lineWidth=7;x.beginPath();x.arc(c.x,c.y-35,24,0,Math.PI*2);x.stroke();x.strokeStyle=c.crateType==='gold'?'#ffd85a':c.crateType==='iron'?'#8bdcff':'#a6eeaf';x.lineCap='round';x.lineWidth=5;x.beginPath();x.arc(c.x,c.y-35,24,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);x.stroke();x.restore();}
   if(me?.state==='alive'&&R.dist(me,c)<=95)halo(c,34);
   if(c.hp<(c.maxHp||60)){x.fillStyle='#4e4040';x.fillRect(c.x-25,c.y-30,50,5);x.fillStyle='#a2e6cf';x.fillRect(c.x-25,c.y-30,50*c.hp/(c.maxHp||60),5)}
  }
  for(const d of s.drops){
-  const heal=d.sku==='pickup_hp',ink=d.sku==='pickup_ink';const col=heal?'#55c98c':ink?'#5aade8':'#e6bf66';
-  x.save();x.translate(d.x,d.y);x.shadowColor=col;x.shadowBlur=16;x.fillStyle=col;x.beginPath();x.arc(0,-3+Math.sin(now/280+d.x)*3,13,0,Math.PI*2);x.fill();
-  x.shadowBlur=0;x.strokeStyle='#ffffff';x.lineWidth=2.2;x.beginPath();x.arc(0,-3,13,0,Math.PI*2);x.stroke();
-  x.fillStyle='#ffffff';x.font='bold 15px sans-serif';x.fillText(heal?'+':ink?'◈':'✦',0,2);x.restore();halo(d,21);
+  const heal=d.sku==='pickup_hp',ink=d.sku==='pickup_ink',rainbow=d.sku==='pickup_rainbow';const col=rainbow?'hsl('+Math.round(now/12%360)+' 95% 65%)':heal?'#55c98c':ink?'#5aade8':'#e6bf66';
+  x.save();x.translate(d.x,d.y);x.shadowColor=col;x.shadowBlur=16;x.fillStyle=col;x.beginPath();x.arc(0,-3+Math.sin(now/280+d.x)*3,rainbow?16:d.amount===3?8:d.amount===10?13:13,0,Math.PI*2);x.fill();
+  x.shadowBlur=0;x.strokeStyle='#ffffff';x.lineWidth=2.2;x.beginPath();x.arc(0,-3,rainbow?16:d.amount===3?8:d.amount===10?13:13,0,Math.PI*2);x.stroke();
+  x.fillStyle='#ffffff';x.font='bold 15px sans-serif';x.fillText(rainbow?'✦':heal?'+':ink?'◈':'✦',0,2);x.restore();halo(d,21);
  }
   shadowCentralDevices(x,now);
   for(const gx of [35,R.W-35]){x.fillStyle=s.graceAt?'#80d4ab':'#8f9caa';x.fillRect(gx-22,R.H/2-45,44,90);x.fillStyle='#233e3c';x.fillText(s.graceAt?'脱出':'出口',gx,R.H/2-57)}
@@ -11660,7 +11730,7 @@ finishPaint(false)};
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#shadowArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,[]);hint(shape?(shape.type==='magic'?'銃の直線':'ナイフの半円')+'：ペンを離すと発動':'武器のお手本を参考に一筆で描いてください。発動失敗ではインクを消費しません。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,self()?.skills||[]);hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'武器のお手本を参考に一筆で描いてください。発動失敗ではインクを消費しません。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
