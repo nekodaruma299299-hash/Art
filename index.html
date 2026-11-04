@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.83 / アートレイターのタスク画面・開始時間・キラーアイコン修正
+あーとぴあ 1.4.84 / アートレイターのタスク画面・開始時間・キラーアイコン修正
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -8081,7 +8081,7 @@ window.ArtArts=(()=>{
  // Each input has its own identifier, so the joystick never captures the Pencil.
  const fingerById=e=>[...e.changedTouches].find(t=>t.identifier===touchStick);
  field.addEventListener('touchstart',e=>{
-  if(!battleActive()||touchStick!==null)return;
+  if(!battleActive()||touchStick!==null||e.target.closest('.shadow-weapon-guide,button,input,textarea'))return;
   const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));
   if(!t)return;
   touchStick=t.identifier;
@@ -8118,7 +8118,7 @@ window.ArtArts=(()=>{
    summonCore={x:(loX+hiX)/2,y:(loY+hiY)/2};
    hint('♡の線はコアに変わりました。周りへ描いてペットを完成させましょう。');sendInput();return}
 finishPaint(false)};
- c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd&&g.pointerType!=='pen'){c.onpointerup(e)}else{if(g.pointerType==='pen')hint('ペン入力が端末側で中断されました。移動指はそのまま、ペンで描き直してください。');gesture=null;finishPaint(true)}}};
+ c.onpointercancel=e=>{if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd){c.onpointerup(e)}else{gesture=null;finishPaint(true)}}};
  c.addEventListener('lostpointercapture',e=>{
   // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
   if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
@@ -9614,7 +9614,7 @@ window.ArtShadow=(()=>{
  // Adapter for the existing combat implementation, scoped to this closure.
  function shadowSyncSkills(p){p.skills=ShadowRules.enabledSkills(p);p.skill=p.skills[0]||''}
  function shadowPublic(id,images){const s=publicState(images),me=host.fighters.find(p=>p.id===id),ghost=me&&!ShadowRules.living(me);s.testMode=!!(room.offline&&room.shadowTest);s.testBotsMove=!!host.testBotsMove;s.shadowSettings=host.settings;s.privateRole=host.shadowRoles?.[id]||null;s.killerFriends=s.privateRole==='killer'?Object.keys(host.shadowRoles).filter(k=>host.shadowRoles[k]==='killer'):[];
-  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
+  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
   s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.state=q.state;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
@@ -9666,15 +9666,19 @@ window.ArtShadow=(()=>{
   if(isShot&&now<(p.gunReady||0)||isKnife&&now<(p.knifeReady||0)){p.castError='武器の再使用待ちです。';return false}
   p.ink-=cost;
   const angle=Number.isFinite(shape.angle)?shape.angle:Math.atan2(shape.y||0,shape.x||1),ux=Math.cos(angle),uy=Math.sin(angle);
-  const hits=host.fighters.filter(q=>q.id!==id&&ShadowRules.living(q)&&q.state==='alive').map(q=>{const dx=q.x-p.x,dy=q.y-p.y;return{q,along:dx*ux+dy*uy,side:Math.abs(dx*uy-dy*ux)}}).filter(v=>v.along>0&&v.along<(isShot?300:55)&&v.side<(isShot?23:45)).sort((a,b)=>a.along-b.along);
-  const clear=q=>{for(let t=.1;t<1;t+=.1)if(R.blocked(p.x+(q.x-p.x)*t,p.y+(q.y-p.y)*t,6))return false;return true};
+  const hits=isShot?[]:host.fighters.filter(q=>q.id!==id&&ShadowRules.living(q)&&q.state==='alive').map(q=>{const dx=q.x-p.x,dy=q.y-p.y;return{q,along:dx*ux+dy*uy,side:Math.abs(dx*uy-dy*ux)}}).filter(v=>v.along>0&&v.along<55&&v.side<45).sort((a,b)=>a.along-b.along);
+  const clear=q=>{for(let t=.1;t<1;t+=.1)if(R.blocked(p.x+(q.x-p.x)*t,p.y+(q.y-p.y)*t,4))return false;return true};
   if(isShot){if(useJudgment)p.ammo--;p.gunReady=now+(useJudgment?3000:1400)}else p.knifeReady=now+(strongKnife?15000:2800);
   p.lastSpecial=now;p.disguiseUntil=0;
   const chosen=hits.find(v=>clear(v.q));
-  if(chosen){const q=chosen.q;if(isShot){if(useJudgment){if(q.alignment==='killer'){p.damageDealt=(p.damageDealt||0)+q.hp;shadowDead(q,now)}else shadowHurt(p,30,now,{owner:p.id,type:'misfire'},true)}else{shadowHurt(q,20,now,{owner:p.id,type:'pistol'},false)}}
-   else if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?100:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(strongKnife&&dealt>0&&['down','dead'].includes(q.state)){strongKnife.charges=0;p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフは命中して壊れました';shadowSyncSkills(p)}}}
-  // Weapon strokes can also break crates; crate hits never consume the one-use knife.
-  for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<(isShot?300:55)&&b<(isShot?32:42)&&clear(c)){shadowDamageCrate(c,isShot?(useJudgment?40:20):(strongKnife?35:8),now,p.id);break}}
+  if(isShot){
+   // Shadow projectiles travel through the map at a visible speed. The host alone
+   // resolves cover, hits, BOT targets, damage and one-use ammunition.
+   const spawn={x:p.x+ux*17,y:p.y+uy*17};
+   (host.shadow.weaponShots??=[]).push({id:++host.seq,owner:id,weapon:useJudgment?'judgment':'pistol',x:spawn.x,y:spawn.y,vx:ux*560,vy:uy*560,created:now,end:now+1100,left:300});
+  }else if(chosen){const q=chosen.q;if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?100:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(strongKnife&&dealt>0&&['down','dead'].includes(q.state)){strongKnife.charges=0;p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフは命中して壊れました';shadowSyncSkills(p)}}}
+  // Only the knife hits crates immediately; bullets are checked during flight.
+  if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<55&&b<42&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);break}}
   host.effects.push({id:++host.seq,type:isShot?'shadowGunFlash':'shadowKnifeArc',owner:p.id,x:p.x,y:p.y,r:isShot?40:65,angle,start:now,end:now+(isShot?420:530),weapon:isShot?(useJudgment?'judgment':'pistol'):(strongKnife?'killer':'toy')});
   return true;
  }
@@ -9738,6 +9742,31 @@ window.ArtShadow=(()=>{
   shadowSend();return true;
  }
  function shadowUpdate(dt,now){const h=host.shadow;if(!h)return;
+  // Host-authoritative bullets: physical flight, map collision and first target hit.
+  h.weaponShots=(h.weaponShots||[]).filter(b=>{
+   if(b.end<=now||b.left<=0)return false;
+   const owner=host.fighters.find(p=>p.id===b.owner);if(!owner)return false;
+   const travel=Math.min(Math.max(0,dt),.12)*Math.hypot(b.vx,b.vy),steps=Math.max(1,Math.ceil(travel/6));
+   for(let i=0;i<steps;i++){
+    const speed=Math.hypot(b.vx,b.vy),step=Math.min(travel/steps,b.left),nx=b.x+b.vx/speed*step,ny=b.y+b.vy/speed*step;
+    b.left-=step;
+    if(R.blocked(nx,ny,host.blocks,4)){host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:13,start:now,end:now+260,weapon:b.weapon});return false;}
+    b.x=nx;b.y=ny;
+    const victim=host.fighters.find(q=>q.id!==b.owner&&ShadowRules.living(q)&&q.state==='alive'&&R.dist(q,b)<R.R+8);
+    if(victim){
+     if(b.weapon==='judgment'){
+      if(victim.alignment==='killer'){owner.damageDealt=(owner.damageDealt||0)+victim.hp;shadowDead(victim,now)}
+      else shadowHurt(owner,30,now,{owner:owner.id,type:'misfire'},true);
+     }else shadowHurt(victim,20,now,{owner:b.owner,type:'pistol'},false);
+     host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:22,start:now,end:now+360,weapon:b.weapon});
+     return false;
+    }
+    const crate=h.crates.find(c=>c.hp>0&&Math.abs(c.x-b.x)<28&&Math.abs(c.y-b.y)<23);
+    if(crate){shadowDamageCrate(crate,b.weapon==='judgment'?40:20,now,b.owner);host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:17,start:now,end:now+260,weapon:b.weapon});return false;}
+    if(b.left<=0)return false;
+   }
+   return true;
+  });
   for(const p of host.fighters){if(!ShadowRules.living(p))continue;const member=members.get(p.id),testBot=host.players.some(q=>q.id===p.id&&q.bot);if(!testBot&&(!member||member.disconnected)){p.disconnectedAt??=now;delete host.inputs[p.id];if(now-p.disconnectedAt>=60000){shadowDead(p,now,'forfeit');continue}}else p.disconnectedAt=null;
    if(p.state==='down'){p.downHP=Math.max(0,p.downHP-3*dt);p.hp=.0001;p.moving=false;if(p.downHP<=0)shadowDead(p,now);continue}
    if(p.poison){if(now>=p.poison.to)p.poison=null;else if(now>=p.poison.from)shadowHurt(p,dt*3,now,{id:'poison',type:'magic'},true)}
@@ -10913,9 +10942,15 @@ window.ArtShadow=(()=>{
  x.save();x.textAlign='center';x.font='bold 13px sans-serif';
  const halo=(q,r)=>{if(!close(q))return;x.save();x.shadowColor='#ffee92';x.shadowBlur=20+Math.sin(now/260)*5;x.strokeStyle='#fff1a1';x.lineWidth=4;x.beginPath();x.arc(q.x,q.y,r,0,Math.PI*2);x.stroke();x.restore()};
  for(const t of s.tasks){const ready=t.readyAt<=now;x.fillStyle=ready?'#bce4ce':'#b9bfc0';x.strokeStyle=ready?'#317562':'#6c8584';x.lineWidth=3;x.beginPath();x.arc(t.x,t.y,23,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#24473b';x.fillText('✎',t.x,t.y+5);x.fillText(ShadowRules.taskNames[t.kind],t.x,t.y+41);if(ready)halo(t,29)}
+ for(const b of s.weaponShots||[]){
+  const a=Math.atan2(b.vy,b.vx),col=b.weapon==='pistol'?'#7fd5ff':'#ffe8a0';
+  x.save();x.translate(b.x,b.y);x.rotate(a);x.shadowColor=col;x.shadowBlur=16;x.strokeStyle=col;x.fillStyle='#fffef2';x.lineWidth=4;x.lineCap='round';
+  x.beginPath();x.moveTo(-17,0);x.lineTo(-3,0);x.stroke();x.beginPath();x.ellipse(0,0,7,4,0,0,Math.PI*2);x.fill();x.restore();
+ }
+ for(const e of view.effects||[])if(e.type==='shadowBulletImpact'&&e.end>now){const q=Math.min(1,(now-e.start)/(e.end-e.start));x.save();x.globalAlpha=1-q;x.strokeStyle=e.weapon==='pistol'?'#7fd5ff':'#ffdb78';x.lineWidth=3;x.beginPath();x.arc(e.x,e.y,4+(e.r||15)*q,0,Math.PI*2);x.stroke();x.restore();}
  for(const e of view.effects||[])if(['shadowGunFlash','shadowKnifeArc'].includes(e.type)&&e.end>now){
   const t=Math.min(1,(now-e.start)/Math.max(1,e.end-e.start));x.save();x.translate(e.x,e.y);x.rotate(e.angle||0);x.globalAlpha=1-t;x.strokeStyle=e.type==='shadowGunFlash'?(e.weapon==='pistol'?'#79caff':'#eac177'):(e.weapon==='toy'?'#a6ccd0':'#e65a71');x.shadowColor=x.strokeStyle;x.shadowBlur=19;x.lineCap='round';
-  if(e.type==='shadowGunFlash'){x.lineWidth=4;x.beginPath();x.moveTo(13,0);x.lineTo(115+120*t,0);x.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;x.beginPath();x.moveTo(16*Math.cos(a),16*Math.sin(a));x.lineTo((28+35*t)*Math.cos(a),(28+35*t)*Math.sin(a));x.stroke()}}
+  if(e.type==='shadowGunFlash'){x.lineWidth=4;x.beginPath();x.moveTo(10,0);x.lineTo(27+12*t,0);x.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;x.beginPath();x.moveTo(16*Math.cos(a),16*Math.sin(a));x.lineTo((28+35*t)*Math.cos(a),(28+35*t)*Math.sin(a));x.stroke()}}
   else{x.lineWidth=8;x.beginPath();x.arc(0,0,55,-1.2+1.7*t,1.2+1.7*t);x.stroke();x.lineWidth=2;x.strokeStyle='#ffe3dc';x.beginPath();x.arc(0,0,45,-1.2+1.7*t,1.2+1.7*t);x.stroke()}
   x.restore();
  }
@@ -10986,14 +11021,18 @@ window.ArtShadow=(()=>{
  function relativePoint(e){const p=worldPoint(e),me=self(),pos=positions.get(localId)||me;return{x:p.x-pos.x,y:p.y-pos.y}}
  function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<(gesture.pointerType==='pen'?.65:1.4))return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900){for(const path of all){const compact=R.resample(path,Math.max(2,Math.ceil(path.length/2)));path.splice(0,path.length,...compact)}}if(R.length(all)>=5800){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
  function shadowWeaponGuide(){
+  const field=$('#shadowField');if(!field)return;
+  const old=field.querySelector('.shadow-weapon-guide');if(old){old.remove();return}
   const killer=view?.privateRole==='killer';
-  const svg= d=>'<svg viewBox="0 0 120 95" width="150" height="110" aria-hidden="true"><path d="'+d+'" fill="none" stroke="#8b4b9b" stroke-width="6" stroke-linecap="round"/></svg>';
-  const title=killer?'ナイフのお手本':'銃のお手本';
-  const guide=killer?svg('M 21 70 Q 59 9 100 70'):svg('M 20 78 L 100 15');
-  const desc=killer?'半円を一筆で描いてナイフを振ります。おもちゃのナイフ10ダメージ・キラーナイフ100ダメージ。':'自分から外側に向かって直線を一筆で描きます。ピストルはインク10で20ダメージ、ジャッジメントガンは弾薬を消費します。';
-  modal(title,'<div style="display:grid;place-items:center;padding:10px">'+guide+'</div><p>'+desc+'</p><p>武器がONで、インクと再使用時間の条件を満たす必要があります。</p>');
+  const overlay=document.createElement('div');overlay.className='shadow-weapon-guide';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','武器の描き方');
+  const path=killer?'M 21 70 Q 59 9 100 70':'M 20 78 L 100 15';
+  overlay.innerHTML='<div class="shadow-weapon-card"><button type="button" class="shadow-weapon-close" aria-label="お手本を閉じる">×</button><h3>'+(killer?'ナイフ':'銃')+'のお手本</h3><svg viewBox="0 0 120 95" aria-hidden="true"><path d="'+path+'" fill="none" stroke="#9254b2" stroke-width="6" stroke-linecap="round"/></svg><p>'+(killer?'半円を一筆で描くと攻撃。おもちゃのナイフ10ダメージ／キラーナイフ100ダメージ。':'自分から撃ちたい方向へ直線を一筆。ピストルはインク10で20ダメージ。')+'</p></div>';
+  overlay.addEventListener('pointerdown',e=>{e.stopPropagation()},{capture:true});
+  overlay.addEventListener('pointerup',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close')){e.preventDefault();overlay.remove()}},{capture:true});
+  overlay.addEventListener('click',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close'))overlay.remove()});
+  field.appendChild(overlay);
  }
- function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');$('#shadowSkillInfo').onclick=shadowWeaponGuide;
+ function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');$('#shadowSkillInfo').addEventListener('pointerdown',e=>{e.stopPropagation();},{capture:true});$('#shadowSkillInfo').onclick=e=>{e.preventDefault();e.stopPropagation();shadowWeaponGuide()};
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
  const place=e=>{const r=field.getBoundingClientRect(),radius=joy.offsetWidth/2;origin={x:R.clamp(e.clientX-r.left,radius,r.width-radius),y:R.clamp(e.clientY-r.top,radius,r.height-radius)};joy.style.left=(origin.x-radius)+'px';joy.style.top=(origin.y-radius)+'px';joy.style.bottom='auto';joy.classList.add('is-active')};
@@ -11066,7 +11105,7 @@ finishPaint(false)};
  });
  // Allow weapon drawing from any non-interactive map surface, even room overlays.
  field.addEventListener('pointerdown',e=>{
-  if(e.target===c||e.target.closest('button,input,select,textarea,[role=button]')||inZone(e))return;
+  if(e.target===c||e.target.closest('.shadow-weapon-guide,button,input,select,textarea,[role=button]')||inZone(e))return;
   if(gesture?.id===e.pointerId)return;
   e.stopPropagation();c.onpointerdown(e);
  },true);
@@ -15477,4 +15516,15 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .shadow-mode #shadowField #shadowSkillInfo{pointer-events:auto!important;cursor:pointer!important;}
 /* The removed temporary chat button leaves inventory tools available as before. */
 .shadow-mode #shadowTools .shadow-items{width:100%;}
+</style>
+
+<style>
+/* Art Traitor 1.4.84: pointer-safe heads-up display and an independent weapon guide */
+.shadow-mode #shadowHUD,.shadow-mode #shadowSkillIcons,.shadow-mode #shadowJoystickZone{pointer-events:none!important}
+.shadow-mode #shadowField .shadow-weapon-guide{position:absolute;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:rgba(15,19,32,.55);pointer-events:auto;touch-action:manipulation;padding:16px}
+.shadow-mode #shadowField .shadow-weapon-card{position:relative;width:min(370px,94%);max-height:92%;overflow:auto;background:#fffcf4;color:#332c3e;border-radius:18px;border:2px solid #bca3d0;padding:18px;text-align:center;box-shadow:0 16px 40px #0006}
+.shadow-mode #shadowField .shadow-weapon-card svg{display:block;width:min(220px,75%);height:140px;margin:auto}
+.shadow-mode #shadowField .shadow-weapon-card h3{margin:4px 38px 8px;font-size:22px}
+.shadow-mode #shadowField .shadow-weapon-card p{font-size:14px;line-height:1.5}
+.shadow-mode #shadowField .shadow-weapon-close{position:absolute;top:8px;right:8px;min-width:44px;min-height:44px;border-radius:10px;font-size:24px;cursor:pointer;touch-action:manipulation}
 </style>
