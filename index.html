@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.87 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.88 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9517,8 +9517,11 @@ const ShadowRules=(()=>{
   if(kind==='FILL_01'){const grid=new Set();let outside=0,count=0;for(const path of paths)for(const p of sample(path)){count++;if(p.x<25||p.x>75||p.y<25||p.y>75){outside++;continue}for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++){const x=Math.round(p.x/2)+dx,y=Math.round(p.y/2)+dy;if(x>=12&&x<=38&&y>=12&&y<=38)grid.add(x+','+y)}}return count>0&&outside/count<=.20&&grid.size>=27*27*.76}
   const targets=taskModel(kind,rev).paths;
   if(kind==='REPAIR_01'&&paths.length===1){const drawn=sample(paths[0]),expected=targets.flatMap(sample);const close=(v,arr)=>arr.some(q=>dist(v,q)<11);return expected.filter(q=>close(q,drawn)).length/expected.length>=.78&&drawn.filter(q=>close(q,expected)).length/drawn.length>=.74;}
-  if(paths.length!==targets.length)return false;return targets.every((path,i)=>{const target=sample(path),draw=sample(paths[i]);if(draw.length>target.length*7)return false;const near=(p,arr)=>arr.some(q=>dist(p,q)<9);if(target.filter(p=>near(p,draw)).length/target.length<(kind==='REPAIR_01'?.70:.76)||draw.filter(p=>near(p,target)).length/draw.length<(kind==='REPAIR_01'?.68:.78))return false;
-   if(['DOT_01','MAZE_01','MIX_01','WIR_01'].includes(kind)){let prev=-1;for(const p of path){let j=draw.findIndex((v,j)=>j>prev&&dist(v,p)<9);if(j<0)return false;prev=j}}return true})}
+  if(paths.length!==targets.length)return false;return targets.every((path,i)=>{const target=sample(path),draw=sample(paths[i]);if(draw.length>target.length*7)return false;const radius=kind==='MIX_01'?11:9,near=(p,arr)=>arr.some(q=>dist(p,q)<radius);
+   const targetCoverage=target.filter(p=>near(p,draw)).length/target.length,drawCoverage=draw.filter(p=>near(p,target)).length/draw.length;
+   // MIX tests square, circle, triangle in stroke order, not the start vertex or drawing direction.
+   if(targetCoverage<(kind==='REPAIR_01'?.70:kind==='MIX_01'?.68:.76)||drawCoverage<(kind==='REPAIR_01'?.68:kind==='MIX_01'?.68:.78))return false;
+   if(['DOT_01','MAZE_01','WIR_01'].includes(kind)){let prev=-1;for(const p of path){let j=draw.findIndex((v,j)=>j>prev&&dist(v,p)<9);if(j<0)return false;prev=j}}return true})}
  return{C,J,catalog,goods,settings,job,available,price,living,up,init,buy,consume,enabledSkills,result,chat,taskNames,taskModel,taskCheck,dist,shuffled};
 })();
 window.ArtShadow=(()=>{
@@ -9731,7 +9734,7 @@ window.ArtShadow=(()=>{
  function shadowAction(id,m){if(!host||host.phase!=='battle'||!host.shadow)return true;const p=host.fighters.find(p=>p.id===id),h=host.shadow,now=Date.now();if(!p)return true;
   if(m.action==='chat'&&h.meeting){const msg=String(m.text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,120);if(msg){h.meetingChat.push({id:++host.seq,from:p.id,name:host.players.find(q=>q.id===id)?.name||members.get(id)?.profile?.name||'参加者',text:msg,at:now});h.meetingChat=h.meetingChat.slice(-100)}shadowSend();return true}
   if(m.action==='chat'){for(const packet of ShadowRules.chat(host,id,m.text,now)){const q=host.fighters.find(p=>p.id===packet.to);q.chatLog=[...(q.chatLog||[]),packet.message].slice(-100)}shadowSend();return true}
-  if(h.meeting){if(m.action==='meetingStroke'&&ShadowRules.living(p)){const path=Array.isArray(m.path)?m.path:[];if(path.length>=2&&path.length<=220&&path.every(pt=>Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=0&&pt.x<=1000&&pt.y>=0&&pt.y<=600)&&h.meetingNotes.length<120){const stride=Math.max(1,Math.ceil(path.length/72));const points=path.filter((_,i)=>i%stride===0||i===path.length-1);h.meetingNotes.push({id:++host.seq,from:id,path:points.map(pt=>({x:Math.round(pt.x),y:Math.round(pt.y)}))});shadowSend()}return true}return true}
+  if(h.meeting){if(m.action==='meetingStroke'&&ShadowRules.living(p)){const path=Array.isArray(m.path)?m.path:[],tool=m.tool==='eraser'?'eraser':'pen';if(path.length>=2&&path.length<=220&&path.every(pt=>Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=0&&pt.x<=1000&&pt.y>=0&&pt.y<=600)&&h.meetingNotes.length<600){const stride=Math.max(1,Math.ceil(path.length/72));const points=path.filter((_,i)=>i%stride===0||i===path.length-1);h.meetingNotes.push({id:++host.seq,from:id,tool,path:points.map(pt=>({x:Math.round(pt.x),y:Math.round(pt.y)}))});shadowSend()}return true}return true}
   if(room.offline&&room.shadowTest&&id===localId&&m.action?.startsWith('test')){if(m.action==='testAM')p.am=100;if(m.action==='testGate'){h.gateAt=now;h.graceAt=now+180000;h.phase='escape_grace';host.deadline=h.graceAt}if(m.action==='testHeal'){p.state='alive';p.active=true;p.hp=p.maxHp;p.ink=p.maxInk;p.downHP=100;p.poison=null;p.action=null}if(m.action==='testBots')host.testBotsMove=!host.testBotsMove;shadowSend();return true}
   if(!ShadowRules.up(p)||!Number.isSafeInteger(m.seq)||m.seq<=p.lastSeq)return true;p.lastSeq=m.seq;const center={x:R.W/2,y:R.H/2};
   if(m.action==='meetingStart'){if(!shadowMeetingStart(p,now,'button'))shadowReply(p,'中央の会議装置で必要なアートマターを確認してください');return true}
@@ -10846,16 +10849,23 @@ window.ArtShadow=(()=>{
   }
  }
 
- let meetingUiId=null,meetingRenderedNotes=0,meetingRenderedChat='',meetingDraw=null;
+ let meetingUiId=null,meetingRenderedNotes=0,meetingRenderedChat='',meetingDraw=null,meetingTool='pen';
  function shadowMeetingCanvasPaint(canvas,notes,temporary=null){
   if(!canvas)return;const dpr=Math.min(2,devicePixelRatio||1),w=1000,h=600;
   if(canvas.width!==w*dpr||canvas.height!==h*dpr){canvas.width=w*dpr;canvas.height=h*dpr}
   const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#fffef9';ctx.fillRect(0,0,w,h);
   ctx.strokeStyle='#ede7dd';ctx.lineWidth=1;for(let y=30;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
-  for(const n of [...(notes||[]),...(temporary?[{path:temporary}]:[])]){
+  // Draw memo strokes on a separate transparent layer so the eraser never removes the paper ruling.
+  const ink=document.createElement('canvas');ink.width=w;ink.height=h;
+  const pen=ink.getContext('2d');pen.lineCap='round';pen.lineJoin='round';
+  const all=[...(notes||[]),...(temporary?[temporary]:[])];
+  for(const n of all){
    if(!Array.isArray(n.path)||n.path.length<2)continue;
-   ctx.lineWidth=4.5;ctx.strokeStyle=n.from==='system'?'#7b6c94':'#514378';ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();n.path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+   const erase=n.tool==='eraser';pen.globalCompositeOperation=erase?'destination-out':'source-over';
+   pen.lineWidth=erase?36:4.5;pen.strokeStyle=erase?'rgba(0,0,0,1)':n.from==='system'?'#7b6c94':'#514378';
+   pen.beginPath();n.path.forEach((p,i)=>i?pen.lineTo(p.x,p.y):pen.moveTo(p.x,p.y));pen.stroke();
   }
+  ctx.drawImage(ink,0,0);
  }
  function shadowDownloadMeetingNotes(){
   const canvas=document.createElement('canvas');shadowMeetingCanvasPaint(canvas,view?.shadow?.meetingNotes||[]);
@@ -10868,14 +10878,18 @@ window.ArtShadow=(()=>{
   if(meetingUiId!==meeting.id||!overlay){
    meetingUiId=meeting.id;meetingRenderedNotes=-1;meetingRenderedChat='';
    if(overlay)overlay.remove();overlay=document.createElement('section');overlay.id='shadowMeetingScreen';
-   overlay.innerHTML='<div class="shadow-meeting-head"><div><b>会議 · 共有メモ</b><small>描いたメモは次の会議にも残ります</small></div><strong id="shadowMeetingClock"></strong></div><div class="shadow-meeting-main"><div class="shadow-meeting-paper"><canvas id="shadowMeetingPaper" aria-label="みんなで描く共有メモ" width="1000" height="600"></canvas></div><div class="shadow-meeting-chat"><div id="shadowMeetingMessages" role="log"></div><form id="shadowMeetingForm"><input id="shadowMeetingInput" maxlength="120" placeholder="全員にメッセージ" autocomplete="off" aria-label="会議チャット"><button type="submit">送信</button></form></div></div>';
+   overlay.innerHTML='<div class="shadow-meeting-head"><div><b>会議 · 共有メモ</b><small>描いたメモは次の会議にも残ります</small></div><div class="shadow-meeting-tools" role="group" aria-label="メモの道具"><button type="button" id="shadowMeetingPen" aria-pressed="true" class="selected">ペン</button><button type="button" id="shadowMeetingEraser" aria-pressed="false">消しゴム</button></div><strong id="shadowMeetingClock"></strong></div><div class="shadow-meeting-main"><div class="shadow-meeting-paper"><canvas id="shadowMeetingPaper" aria-label="みんなで描く共有メモ" width="1000" height="600"></canvas></div><div class="shadow-meeting-chat"><div id="shadowMeetingMessages" role="log"></div><form id="shadowMeetingForm"><input id="shadowMeetingInput" maxlength="120" placeholder="全員にメッセージ" autocomplete="off" aria-label="会議チャット"><button type="submit">送信</button></form></div></div>';
    stage.appendChild(overlay);overlay.addEventListener('pointerdown',e=>e.stopPropagation());overlay.addEventListener('pointermove',e=>e.stopPropagation());overlay.addEventListener('pointerup',e=>e.stopPropagation());
    overlay.querySelector('#shadowMeetingForm').onsubmit=e=>{e.preventDefault();e.stopPropagation();const field=overlay.querySelector('#shadowMeetingInput');const text=field.value.trim();if(text){shadowRequest('chat',{text});field.value='';field.focus({preventScroll:true})}};
+   const setMeetingTool=tool=>{meetingTool=tool;for(const [id,which] of [['shadowMeetingPen','pen'],['shadowMeetingEraser','eraser']]){const b=overlay.querySelector('#'+id);b.classList.toggle('selected',tool===which);b.setAttribute('aria-pressed',String(tool===which))}};
+   overlay.querySelector('#shadowMeetingPen').onclick=()=>setMeetingTool('pen');
+   overlay.querySelector('#shadowMeetingEraser').onclick=()=>setMeetingTool('eraser');
+   setMeetingTool(meetingTool);
    const canvas=overlay.querySelector('#shadowMeetingPaper');canvas.style.touchAction='none';
    const getPoint=e=>{const r=canvas.getBoundingClientRect();return{x:Math.round(R.clamp((e.clientX-r.left)/r.width*1000,0,1000)),y:Math.round(R.clamp((e.clientY-r.top)/r.height*600,0,600))}};
-   canvas.onpointerdown=e=>{e.preventDefault();e.stopPropagation();meetingDraw={id:e.pointerId,path:[getPoint(e)]};try{canvas.setPointerCapture(e.pointerId)}catch{}};
-   canvas.onpointermove=e=>{if(meetingDraw?.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();if(meetingDraw.path.length<220)meetingDraw.path.push(getPoint(e));shadowMeetingCanvasPaint(canvas,view.shadow.meetingNotes,meetingDraw.path)};
-   canvas.onpointerup=e=>{if(meetingDraw?.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();meetingDraw.path.push(getPoint(e));const path=meetingDraw.path;meetingDraw=null;if(path.length>=2)shadowRequest('meetingStroke',{path});shadowMeetingCanvasPaint(canvas,view.shadow.meetingNotes,path)};
+   canvas.onpointerdown=e=>{e.preventDefault();e.stopPropagation();meetingDraw={id:e.pointerId,tool:meetingTool,path:[getPoint(e)]};try{canvas.setPointerCapture(e.pointerId)}catch{}};
+   canvas.onpointermove=e=>{if(meetingDraw?.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();if(meetingDraw.path.length<220)meetingDraw.path.push(getPoint(e));shadowMeetingCanvasPaint(canvas,view.shadow.meetingNotes,meetingDraw)};
+   canvas.onpointerup=e=>{if(meetingDraw?.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();meetingDraw.path.push(getPoint(e));const finished=meetingDraw;meetingDraw=null;if(finished.path.length>=2)shadowRequest('meetingStroke',{path:finished.path,tool:finished.tool});shadowMeetingCanvasPaint(canvas,view.shadow.meetingNotes,finished)};
    canvas.onpointercancel=e=>{meetingDraw=null;shadowMeetingCanvasPaint(canvas,view.shadow.meetingNotes)};
   }
   const remaining=Math.max(0,Math.ceil((meeting.until-Date.now()-offset)/1000));const clock=overlay.querySelector('#shadowMeetingClock');if(clock)clock.textContent=remaining+'秒';
@@ -15502,8 +15516,8 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #shadowStage .shadow-intro h2{font-size:clamp(28px,6vmin,68px);letter-spacing:.1em;margin:0;color:#ecfaff;text-shadow:0 0 30px #5fd6ff88;}
 #shadowStage .shadow-intro.is-killer h2{color:#ffe5e9;text-shadow:0 0 30px #ff678b99;}
 .shadow-intro-job{font-size:clamp(18px,3.5vmin,38px);font-weight:800;margin:0!important;letter-spacing:.08em;}
-.shadow-intro-art{flex:1;min-height:0;width:min(90vw,90vh,650px);max-width:100%;display:grid;place-items:center;filter:drop-shadow(0 0 14px #ffffff44);}
-.shadow-intro-art img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;image-rendering:auto;}
+.shadow-intro-art{flex:1;min-height:0;width:min(90vw,90vh,650px);max-width:100%;display:grid;place-items:center;position:relative;filter:drop-shadow(0 0 16px #ffffff99) drop-shadow(0 0 4px #ffffff);}
+.shadow-intro-art img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 0 3px white) drop-shadow(0 0 11px rgba(255,255,255,.9)) drop-shadow(0 0 24px rgba(255,255,255,.58));}
 .shadow-intro-description,.shadow-intro-goal,.shadow-intro-teammates{margin:0!important;font-size:clamp(12px,2vmin,19px);line-height:1.35!important;}
 .shadow-intro-goal{font-weight:700;color:#bceeff;}.shadow-intro.is-killer .shadow-intro-goal{color:#ffbac5;}
 @keyframes shadow-intro-orbit{to{transform:rotate(360deg)}}@keyframes shadow-intro-enter{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
@@ -15649,4 +15663,13 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #shadowTimeBox{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:31;white-space:nowrap;background:#13263de9;color:#fff2da;border:1px solid #b39b62;border-radius:12px;padding:6px 14px;font-size:clamp(12px,1.5vw,18px);font-weight:800;pointer-events:none}
 .shadow-weapon-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;max-height:65vh;overflow:auto}.shadow-weapon-list article{border:1px solid #c9bdd6;border-radius:10px;padding:9px}.shadow-weapon-list p{font-size:12px}.shadow-weapon-example svg{width:92px;height:70px}
 @media(max-width:740px){.shadow-meeting-main{grid-template-columns:1fr;grid-template-rows:minmax(0,1.1fr) minmax(140px,.65fr)}.shadow-meeting-chat{padding:7px}.shadow-meeting-head{flex-shrink:0}}
+</style>
+
+<style>
+/* Art Traitor Ver.1.4.88: second-row timer and synchronized meeting drawing tools */
+.shadow-mode #shadowTimeBox{top:74px!important;left:10px!important;transform:none!important;max-width:calc(100% - 20px);font-size:clamp(12px,1.5vw,17px)!important;z-index:31!important}
+#shadowMeetingScreen .shadow-meeting-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+#shadowMeetingScreen .shadow-meeting-tools button{min-height:40px;min-width:70px;border-radius:10px;padding:6px 12px;background:#fbf7ff;color:#42365e;border:2px solid #978bb0;touch-action:manipulation}
+#shadowMeetingScreen .shadow-meeting-tools button.selected{background:#7f5cb8;color:#fff;border-color:#e1d3ff}
+@media(max-width:740px){.shadow-mode #shadowTimeBox{top:74px!important;font-size:12px!important}#shadowMeetingScreen .shadow-meeting-head{gap:6px;flex-wrap:wrap}#shadowMeetingScreen .shadow-meeting-tools button{min-width:63px;min-height:36px;padding:4px 8px}}
 </style>
