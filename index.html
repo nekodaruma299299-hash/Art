@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.88 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.89 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -2901,19 +2901,20 @@ function sendWire(conn,msg){
  if(!conn?.open)return;
  let state=wireQueues.get(conn);
  if(!state){state={queue:[],running:false};wireQueues.set(conn,state)}
- const battle=msg.type==='gameArtsState'&&msg.state?.phase==='battle';
- const movement=msg.type==='gameArtsInput';
- const keyframe=battle&&Array.isArray(msg.state?.battleBaseBlocks)&&msg.state.battleBaseBlocks.length>0;
+ const battle=['gameArtsState','gameShadowState'].includes(msg.type)&&msg.state?.phase==='battle';
+ const movement=['gameArtsInput','gameShadowInput'].includes(msg.type);
+ const replaceKey=msg.type+':'+(msg.gameId||msg.state?.id||'');
+ const keyframe=battle&&(!!msg.state?.art||(Array.isArray(msg.state?.battleBaseBlocks)&&msg.state.battleBaseBlocks.length>0));
  if(battle||movement){
   // Complete snapshots and ongoing movement/preview inputs supersede older ones.
   // Casts, chat, feedback, handoff, and every other reliable action NEVER do.
   // Keep a partially transmitted message intact to avoid incomplete chunks.
   for(let i=state.queue.length-1;i>=0;i--){
    const item=state.queue[i];
-   if(item.index===0&&((battle&&item.battle&&(!item.keyframe||keyframe))||(movement&&item.movement)))state.queue.splice(i,1);
+   if(item.index===0&&item.replaceKey===replaceKey&&((battle&&item.battle&&(!item.keyframe||keyframe))||(movement&&item.movement)))state.queue.splice(i,1);
   }
  }
- state.queue.push({packets:wirePackets(msg),index:0,battle,movement,keyframe});
+ state.queue.push({packets:wirePackets(msg),index:0,battle,movement,keyframe,replaceKey});
  if(state.running)return;
  state.running=true;
  const pump=()=>{
@@ -3627,7 +3628,7 @@ $('#membersBtn').onclick=()=>$('#inlineChatInput').focus();
 function roomEvent(text,important=false){if(!room||!isHost)return;const message={id:uid(),author:'system',name:important?'部屋主引き継ぎ':'入退室',color:important?'#c52641':'#74858c',text,at:Date.now(),system:true,requestAlert:!!important};addChat(message);broadcast({type:'chatMessage',message})}
 function addChat(m){if(chat.some(x=>x.id===m.id))return;chat.push(m);if(!m.system&&m.author!==localId)window.ArtSound?.play('tap');updateInlineComment();if($('#modal').open&&$('#chatList'))renderChat();else if(m.author!==localId)unread++;$('#unreadBadge').textContent=unread||'';if(!m.system&&$('#flyCheck').checked){let n=document.createElement('div');n.className='flying';n.style.top=(10+(chat.length%5)*12)+'%';let b=document.createElement('b');b.style.color=m.color;b.textContent=m.name;n.append(b,document.createTextNode(m.text));const fly=$('#flyLayer');while(fly.children.length>=12)fly.firstElementChild.remove();fly.append(n);n.onanimationend=()=>n.remove();setTimeout(()=>n.remove(),12000)}}
 function renderChat(){let el=$('#chatList');if(!el)return;el.innerHTML='';for(const m of chat){let n=document.createElement('div');n.className='chat-entry'+(m.author===localId?' self':'')+(m.requestAlert?' request-alert':'');n.innerHTML=`<header><b style="color:${esc(m.color)}">${esc(m.name)}</b><time>${new Date(m.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}</time></header><div>${esc(m.text)}</div>`;el.append(n)}el.scrollTop=el.scrollHeight}
-function openChat(){modal('コメント',`<div id="chatList" class="chat-list"></div><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="180" autocomplete="off" placeholder="みんなにメッセージ" aria-label="コメント"><button class="primary">送信</button></form><p class="muted">この部屋のコメント履歴 · 1件180文字まで</p>`);unread=0;$('#unreadBadge').textContent='';renderChat();viewerStateUI();$('#chatForm').onsubmit=e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(chatComposing||!text||!connected||Date.now()-lastChat<700)return;lastChat=Date.now();sendHost({type:'chat',text});$('#chatInput').value='';finishChatEntry()}}
+function openChat(){if(window.ArtShadowChatOpen?.())return;modal('コメント',`<div id="chatList" class="chat-list"></div><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="180" autocomplete="off" placeholder="みんなにメッセージ" aria-label="コメント"><button class="primary">送信</button></form><p class="muted">この部屋のコメント履歴 · 1件180文字まで</p>`);unread=0;$('#unreadBadge').textContent='';renderChat();viewerStateUI();$('#chatForm').onsubmit=e=>{e.preventDefault();let text=$('#chatInput').value.trim();if(chatComposing||!text||!connected||Date.now()-lastChat<700)return;lastChat=Date.now();sendHost({type:'chat',text});$('#chatInput').value='';finishChatEntry()}}
 $('#chatBtn').onclick=$('#mobileChat').onclick=()=>{setChatPanelVisible(true);$('#memberPanel').classList.add('open');$('#inlineChatInput').focus({preventScroll:true})};$('#chatHistoryBtn').onclick=openChat;
 function updateInlineComment(){const el=$('#recentComment'),atBottom=el.scrollHeight-el.scrollTop-el.clientHeight<35,oldTop=el.scrollTop;let list=el.querySelector('.chat-stream');if(!list){el.replaceChildren();list=document.createElement('div');list.className='chat-stream';el.append(list)}const count=Number(list.dataset.count||0),same=count<=chat.length&&(!count||list.dataset.last===chat[count-1]?.id);if(!same)list.replaceChildren();for(const m of chat.slice(same?count:0)){const row=document.createElement('div'),name=document.createElement('b'),body=document.createElement('span');row.className='recent-comment-row'+(m.system?' room-event':'')+(m.requestAlert?' request-alert':'');name.textContent=m.name+'：';name.style.color=m.color;body.textContent=m.text;row.append(name,body);list.append(row)}list.dataset.count=chat.length;list.dataset.last=chat.at(-1)?.id||'';if(atBottom||!same)el.scrollTop=el.scrollHeight;else el.scrollTop=oldTop}
 
@@ -9623,7 +9624,27 @@ window.ArtShadow=(()=>{
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
  function shadowEquip(){if(!host||!['create','collect'].includes(host.phase))return;const players=host.players.filter(p=>p.active&&host.art[p.id]);if(players.length<4){host.phase='create';host.deadline=Date.now()+30000;host.allReadyAt=0;shadowSend(true);return}host.players=players;const killers=new Set(ShadowRules.shuffled(players.map(p=>p.id)).slice(0,ShadowRules.C.players.killer_counts[players.length]||1));host.shadowRoles=Object.fromEntries(players.map(p=>[p.id,killers.has(p.id)?'killer':'artist']));host.phase='equip';host.equipped={};host.deadline=Date.now()+5000;shadowSend(true)}
- function shadowBeginBattle(now){ShadowRules.init(host,now);for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;host.blocks=host.blocks.filter(b=>!host.fighters.some(p=>R.intersects(p.x,p.y,R.R+20,b)));for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
+ function shadowSpawnPositions(count,blocks){
+  const spots=[];
+  // Choose actual walkable floor in the current map, with clearance for the body.
+  for(let i=0;i<count;i++){
+   const preferred=SHADOW_ROOMS[i%SHADOW_ROOMS.length];
+   const rooms=[preferred,...SHADOW_ROOMS.filter(r=>r!==preferred)];
+   let spot=null;
+   for(const room of rooms){
+    const candidates=[];
+    for(let y=room.y+50;y<=room.y+room.h-50;y+=32)
+     for(let x=room.x+50;x<=room.x+room.w-50;x+=32)
+      if(!R.blocked(x,y,blocks,R.R+16)&&spots.every(p=>Math.hypot(x-p.x,y-p.y)>=R.R*2+24))candidates.push({x,y});
+    candidates.sort((a,b)=>Math.hypot(a.x-room.x-room.w/2,a.y-room.y-room.h/2)-Math.hypot(b.x-room.x-room.w/2,b.y-room.y-room.h/2));
+    if(candidates.length){spot=candidates[0];break}
+   }
+   if(!spot)throw Error('安全な開始位置が見つかりませんでした。');
+   spots.push(spot);
+  }
+  return spots;
+ }
+ function shadowBeginBattle(now){ShadowRules.init(host,now);const spawns=shadowSpawnPositions(host.fighters.length,host.blocks);host.fighters.forEach((p,i)=>Object.assign(p,spawns[i]));for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
  // Art Traitor: host-authoritative, all-player meeting. Time is paused; persistent memo is public.
  function shadowMeetingStart(p,now,reason='button',corpse=null){
   const h=host.shadow;if(!h||h.meeting||host.phase!=='battle'||h.phase==='ended'||!ShadowRules.up(p))return false;
@@ -9703,9 +9724,28 @@ window.ArtShadow=(()=>{
   if(p.ink<cost){p.castError='インク不足です。アートマター1でインク5を補給できます。';return false}
   if(isShot&&now<(p.gunReady||0)||isKnife&&now<(p.knifeReady||0)){p.castError='武器の再使用待ちです。';return false}
   p.ink-=cost;
-  const angle=Number.isFinite(shape.angle)?shape.angle:Math.atan2(shape.y||0,shape.x||1),ux=Math.cos(angle),uy=Math.sin(angle);
-  const hits=isShot?[]:host.fighters.filter(q=>q.id!==id&&ShadowRules.living(q)&&q.state==='alive').map(q=>{const dx=q.x-p.x,dy=q.y-p.y;return{q,along:dx*ux+dy*uy,side:Math.abs(dx*uy-dy*ux)}}).filter(v=>v.along>0&&v.along<55&&v.side<45).sort((a,b)=>a.along-b.along);
-  const clear=q=>{for(let t=.1;t<1;t+=.1)if(R.blocked(p.x+(q.x-p.x)*t,p.y+(q.y-p.y)*t,4))return false;return true};
+  const drawnX=Number(shape.x)||0,drawnY=Number(shape.y)||0;
+  const drawnDistance=Math.hypot(drawnX,drawnY);
+  const angle=isKnife&&drawnDistance>=12?Math.atan2(drawnY,drawnX):Number.isFinite(shape.angle)?shape.angle:Math.atan2(drawnY,drawnX||1);
+  const ux=Math.cos(angle),uy=Math.sin(angle);
+  // ART TRAITOR: Arts-style slash hit area, evaluated on the host.
+  // The earlier narrow forward-line check missed targets even when the arc visibly
+  // crossed them. Use a short, wide sweeping arc and the correct wall-data array.
+  const knifeRange=78,knifeHalfAngle=Math.PI*.52;
+  const hits=isShot?[]:host.fighters.filter(q=>q.id!==id&&ShadowRules.living(q)&&q.state==='alive').map(q=>{
+   const dx=q.x-p.x,dy=q.y-p.y,distance=Math.hypot(dx,dy),direction=Math.atan2(dy,dx);
+   const delta=Math.atan2(Math.sin(direction-angle),Math.cos(direction-angle));
+   return{q,distance,delta};
+  }).filter(v=>v.distance<=knifeRange+R.R&&Math.abs(v.delta)<=knifeHalfAngle).sort((a,b)=>a.distance-b.distance);
+  const clear=q=>{
+   const d=Math.hypot(q.x-p.x,q.y-p.y),steps=Math.max(1,Math.ceil(d/8));
+   // Ignore the attacker's own collision at the origin; walls block subsequent samples.
+   for(let i=1;i<steps;i++){
+    const t=i/steps,x=p.x+(q.x-p.x)*t,y=p.y+(q.y-p.y)*t;
+    if(R.attackBlocked(x,y,host.blocks,3))return false;
+   }
+   return true;
+  };
   if(isShot){if(useJudgment)p.ammo--;p.gunReady=now+(useJudgment?3000:1400)}else p.knifeReady=now+(strongKnife?15000:2800);
   p.lastSpecial=now;p.disguiseUntil=0;
   const chosen=hits.find(v=>clear(v.q));
@@ -9716,7 +9756,7 @@ window.ArtShadow=(()=>{
    (host.shadow.weaponShots??=[]).push({id:++host.seq,owner:id,weapon:useJudgment?'judgment':usePistol?'pistol':'airgun',x:spawn.x,y:spawn.y,vx:ux*(useJudgment?850:560),vy:uy*(useJudgment?850:560),created:now,end:now+(useJudgment?900:1100),left:useJudgment?640:300,hit:[]});
   }else if(chosen){const q=chosen.q;if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?100:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(strongKnife&&dealt>0&&['down','dead'].includes(q.state)){strongKnife.charges=0;p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフは命中して壊れました';shadowSyncSkills(p)}}}
   // Only the knife hits crates immediately; bullets are checked during flight.
-  if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<55&&b<42&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);break}}
+  if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<knifeRange&&b<54&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);break}}
   host.effects.push({id:++host.seq,type:isShot?'shadowGunFlash':'shadowKnifeArc',owner:p.id,x:p.x,y:p.y,r:isShot?40:65,angle,start:now,end:now+(isShot?420:530),weapon:isShot?(useJudgment?'judgment':usePistol?'pistol':'airgun'):(strongKnife?'killer':'toy')});
   return true;
  }
@@ -10311,7 +10351,7 @@ window.ArtShadow=(()=>{
   e.end=now+850;e.r=70;
  }
  host.effects.push(e);return true}
- function hostMessage(id,m){if(!enabled())return false;if(host&&host.phase!=='lobby'&&m.type==='chat'){if(host.phase==='battle')shadowAction(id,{action:'chat',text:m.text});return true}if(host&&host.phase!=='lobby'&&['palette','profile','cursor','lock','unlock','draft','draftPatch','draftEnd'].includes(m.type))return true;if(m.type==='gameShadowAction'){if(isHost&&host&&m.gameId===host.id&&!migrationOut)shadowAction(id,m);return true}if(drawTypes.has(m.type))return true;if(!m.type.startsWith('gameShadow'))return false;if(!isHost||!host||m.gameId!==host.id)return true;const player=host.players.find(p=>p.id===id&&p.active&&!p.bot);if(!player)return true;
+ function hostMessage(id,m){if(!enabled())return false;if(host&&m.type==='chat'){if(host.phase==='battle'){shadowAction(id,{action:'chat',text:m.text});return true}if(!['lobby','create','collect'].includes(host.phase))return true}if(host&&host.phase!=='lobby'&&['palette','profile','cursor','lock','unlock','draft','draftPatch','draftEnd'].includes(m.type))return true;if(m.type==='gameShadowAction'){if(isHost&&host&&m.gameId===host.id&&!migrationOut)shadowAction(id,m);return true}if(drawTypes.has(m.type))return true;if(!m.type.startsWith('gameShadow'))return false;if(!isHost||!host||m.gameId!==host.id)return true;const player=host.players.find(p=>p.id===id&&p.active&&!p.bot);if(!player)return true;
  if(m.type==='gameShadowUnready'&&host.phase==='create'&&host.ready[id]&&(!host.deadline||Date.now()<host.deadline)){
   delete host.ready[id];delete host.art[id];host.allReadyAt=0;sendAll(true);return true;
  }
@@ -10897,6 +10937,7 @@ window.ArtShadow=(()=>{
   const chat=data.meetingChat||[],marker=chat.map(x=>x.id).join(',');if(marker!==meetingRenderedChat){meetingRenderedChat=marker;const log=overlay.querySelector('#shadowMeetingMessages');if(log){log.innerHTML=chat.slice(-80).map(x=>'<p><b>'+esc(x.name||'')+'</b> '+esc(x.text||'')+'</p>').join('');log.scrollTop=log.scrollHeight}}
  }
  let shadowPanel='',shadowPanelKey='',shadowPanelTarget='',shadowSeq=0,taskInk=[],taskStroke=null,taskAutoSubmitted=false,shadowTaskDismissed=null;
+ window.ArtShadowChatOpen=()=>{if(!enabled()||view?.phase!=='battle'||!view?.shadow?.me)return false;stopInput();if(view.shadow.meeting){$('#shadowMeetingInput')?.focus({preventScroll:true});return true}shadowHUD();shadowPanel='chat';shadowPanelKey='';shadowRenderPanel();$('#shadowChatInput')?.focus({preventScroll:true});return true};
  window.ArtShadowChatSend=text=>{if(!enabled()||view?.phase!=='battle')return false;shadowRequest('chat',{text});return true};
  let shadowChatLast='',shadowPickupSoundSeq=0,shadowPickupSoundInitialized=false;
  const shadowTitle='アートレイター';
@@ -10916,7 +10957,7 @@ window.ArtShadow=(()=>{
   const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.clearRect(0,0,118,166);mx.fillStyle='#14212a';mx.fillRect(0,0,118,166);const sx=110/R.W,sy=158/R.H;mx.save();mx.translate(4,4);mx.fillStyle='#314c53';mx.strokeStyle='#789099';mx.lineWidth=1;for(const a of SHADOW_ROOMS){mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy)}mx.fillStyle='#46e789';mx.shadowBlur=6;mx.shadowColor='#42ff99';mx.beginPath();mx.arc(p.x*sx,p.y*sy,4,0,Math.PI*2);mx.fill();mx.restore()}
   let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
   const chips=m.inventory.filter(i=>ShadowRules.catalog[i.sku]).map(i=>{const s=ShadowRules.catalog[i.sku];return '<button data-open-item="'+i.id+'" '+(m.state!=='alive'?'disabled':'')+' class="'+(i.on?'on':'')+'" title="'+esc(s.name)+'">'+esc(s.name)+'<small>'+(i.on?'ON':'OFF')+' · '+(i.charges<0?'∞':i.charges)+'</small></button>'}).join('');
-  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div>';if(tools.innerHTML!==html)tools.innerHTML=html;
+  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div><button type="button" class="shadow-near-chat" data-panel="chat">'+(['dead','escaped','forfeit'].includes(m.state)?'幽霊チャット':'近くに話す')+'</button>';if(tools.innerHTML!==html)tools.innerHTML=html;
   if(m.action?.kind!=='task')shadowTaskDismissed=null;
   if(m.action?.kind==='task'&&shadowPanel!=='task'&&shadowTaskDismissed!==m.action.target){shadowPanel='task';shadowPanelKey='';taskInk=[];taskStroke=null;taskAutoSubmitted=false}
   if(shadowPanel==='task'&&m.action?.kind!=='task'){shadowPanel='';shadowPanelKey=''}
@@ -10981,7 +11022,7 @@ window.ArtShadow=(()=>{
   // A touch is confirmed once. Avoid the old persistent data-shadow-handled flag:
   // when iOS suppressed click it could remain on the button and swallow the next purchase.
   let shadowLastPointerActionAt=0;
-  panel.onclick=e=>{e.stopPropagation();const b=e.target.closest('button');if(!b||b.disabled)return;e.preventDefault();if(performance.now()-shadowLastPointerActionAt<480)return;performPanelButton(b)};
+  panel.onclick=e=>{e.stopPropagation();const b=e.target.closest('button[data-action],button[data-close],button[data-guide]');if(!b||b.disabled)return;e.preventDefault();if(performance.now()-shadowLastPointerActionAt<480)return;performPanelButton(b)};
   panel.onpointerup=e=>{const b=e.target.closest('button[data-action],button[data-close]');if(!b||b.disabled||e.pointerType==='mouse')return;e.stopPropagation();e.preventDefault();shadowLastPointerActionAt=performance.now();performPanelButton(b)};
   if($('#shadowChatForm'))$('#shadowChatForm').onsubmit=e=>{
    e.preventDefault();e.stopPropagation();
@@ -11100,9 +11141,10 @@ window.ArtShadow=(()=>{
  }
 
 /* SECTION: arts/input.js — hold button/Space, multi-stroke, actor-relative coordinates */
+ function shadowRoomControlsOpen(){return !!document.querySelector('dialog[open],#roomHubPanel:not([hidden]),#artopiaSocial:not([hidden])')}
  function battleActive(){return !view?.shadow?.meeting&&self()?.state!=='down'&&!view?.shadow?.me?.action&&enabled()&&view?.phase==='battle'&&!view.celebration&&connected&&view.fighters.some(p=>p.id===localId&&p.active&&p.hp>0&&!p.pull&&!(p.stunnedUntil>Date.now()+offset)&&!(p.sleepUntil>Date.now()+offset))}
  const self=()=>view?.fighters.find(p=>p.id===localId);
- function sendInput(){if(!battleActive())return;
+ function sendInput(){if(shadowRoomControlsOpen()){move={x:0,y:0};keys.clear();gesture=null;strokes=[];paintMode=false;holdSource=null;summonCore=null;refreshPaintUI()}if(!battleActive())return;
   // The retained original heart is recognition data, not a visible stroke.
   const previewPaths=[...strokes.slice(summonCore?1:0),...(gesture?[gesture.points]:[])];
   sendHost({type:'gameShadowInput',gameId:view.id,x:move.x,y:move.y,drawing:paintMode||!!gesture||!!strokes.length,
@@ -11110,7 +11152,7 @@ window.ArtShadow=(()=>{
    preview:previewPaths.filter(s=>s.length>=2).slice(0,16).map(s=>R.resample(s,Math.min(16,s.length)).map(p=>({x:Math.round(p.x),y:Math.round(p.y)})))})
  }
  function refreshPaintUI(){$('#shadowField')?.classList.toggle('shadow-inking',paintMode||!!gesture||!!strokes.length)}
- function beginPaint(source){if(!battleActive()||$('#modal').open||self()?.rechargeUntil>Date.now()+offset)return;holdSource=source;if(!paintMode){paintMode=true;strokes=[];summonCore=null;gesture=null;paintStarted=Date.now();hint(view?.privateRole==='killer'?'半円を描くとナイフ攻撃します。':'直線を描くと銃を発射します。');sendInput()}refreshPaintUI()}
+ function beginPaint(source){if(shadowRoomControlsOpen()||!battleActive()||$('#modal').open||self()?.rechargeUntil>Date.now()+offset)return;holdSource=source;if(!paintMode){paintMode=true;strokes=[];summonCore=null;gesture=null;paintStarted=Date.now();hint(view?.privateRole==='killer'?'半円を描くとナイフ攻撃します。':'直線を描くと銃を発射します。');sendInput()}refreshPaintUI()}
  function finishPaint(cancel=false){if(gesture){if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null}const paths=strokes.filter(s=>s.length>=2);if(!cancel&&paths.length&&battleActive()){hint('アーツを判定しています…');sendHost({type:'gameShadowCast',gameId:view.id,strokes:paths})}paintMode=false;holdSource=null;strokes=[];summonCore=null;refreshPaintUI();sendInput()}
  function hint(text){if($('#shadowBattleHint'))$('#shadowBattleHint').textContent=text}
  function stopInput(){move={x:0,y:0};keys.clear();stick=null;gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();$('#shadowJoystick i')?.style.setProperty('transform','translate(0,0)');sendInput()}
@@ -11148,7 +11190,7 @@ window.ArtShadow=(()=>{
  // Each input has its own identifier, so the joystick never captures the Pencil.
  const fingerById=e=>[...e.changedTouches].find(t=>t.identifier===touchStick);
  field.addEventListener('touchstart',e=>{
-  if(!battleActive()||touchStick!==null)return;
+  if(e.target.closest?.('button,input,select,textarea,[role=button],.shadow-weapon-guide')||!battleActive()||touchStick!==null)return;
   const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));
   if(!t)return;
   touchStick=t.identifier;
@@ -11169,7 +11211,7 @@ window.ArtShadow=(()=>{
  },{passive:true,capture:true});
  // Mouse fallback only: no touch pointer capture while the Pencil is active.
  field.addEventListener('pointerdown',e=>{
-  if(e.pointerType!=='mouse'||!inZone(e)||!battleActive()||stick!==null)return;
+  if(e.target.closest?.('button,input,select,textarea,[role=button],.shadow-weapon-guide')||e.pointerType!=='mouse'||!inZone(e)||!battleActive()||stick!==null)return;
   e.preventDefault();e.stopPropagation();stick=e.pointerId;try{field.setPointerCapture(e.pointerId)}catch{}place(e);update(e);
  },true);
  field.addEventListener('pointermove',e=>{if(stick!==e.pointerId||e.pointerType!=='mouse')return;update(e)},true);
@@ -11713,11 +11755,15 @@ finishPaint(false)};
   ctx.globalAlpha=.9;const start=paths[0][0],end=paths.at(-1).at(-1);for(const[p,c,r]of [[start,'#23b99a',7],[end,'#ed805d',6]]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(pos.x+p.x,pos.y+p.y,r,0,Math.PI*2);ctx.fill()};ctx.restore();
  }
  function showSkills(){if(!battleActive())return;stopInput();const p=self(),list=activeSkills(p);modal('アーツ・装備スキル',`<p><b>上位アーツ：一筆・完成形判定版</b></p><p>緑の点から射程円の内側に描きます。丸・三角・四角・星は複数の特徴を加点して判定し、少しの描き残しや丸い角も許容します。上位スキルは完成した図形で判定し、書き順・開始位置・描く方向は自由です。必ず一筆で描き、ペンや指を離すとすぐに発動します。ほかの技は曲がり・折り返し・交差も使って判定します。候補表示を確認してから離すと狙いやすくなります。回転・拡大縮小や逆順の描き方も使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。範囲の数値はゲーム内距離（キャラ直径40）です。描ける距離と技が届く距離は別です。クールダウンは技ごとに管理し、通常技の後は0.15秒、固有技の後は0.35秒の共通待ち時間があります。固有スキルは2つ装備し、どちらも図形を描けば発動します。</p><div class="shadow-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p>${skillDetails(k)}<button type="button" data-shadow-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="shadowGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-shadow-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.shadowGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#shadowGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
- document.addEventListener('keydown',e=>{if(!enabled()||view?.phase!=='battle'||e.target.closest?.('input,textarea,select,[contenteditable=true]')||$('#modal').open)return;e.stopImmediatePropagation();if(e.code==='Space'){if(paintMode||gesture||strokes.length){e.preventDefault();finishPaint(false)}return}if(e.key==='Escape'){gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();hint('アーツをキャンセルしました。');sendInput();return}if(!battleActive())return;const k=e.key.toLowerCase();if(!['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))return;e.preventDefault();keys.add(k);keyMove()},true);
+ document.addEventListener('keydown',e=>{if(!enabled()||view?.phase!=='battle'||e.target.closest?.('input,textarea,select,[contenteditable=true]')||shadowRoomControlsOpen()||(['Enter',' '].includes(e.key)&&e.target.closest?.('button,summary,[role=button]')))return;e.stopImmediatePropagation();if(e.code==='Space'){if(paintMode||gesture||strokes.length){e.preventDefault();finishPaint(false)}return}if(e.key==='Escape'){gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();hint('アーツをキャンセルしました。');sendInput();return}if(!battleActive())return;const k=e.key.toLowerCase();if(!['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))return;e.preventDefault();keys.add(k);keyMove()},true);
  document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(keys.delete(k)){keyMove();if(enabled())e.preventDefault()}},true);
  function keyMove(){move={x:(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y:(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)};const l=Math.max(1,Math.hypot(move.x,move.y));move.x/=l;move.y/=l;sendInput()}
  window.addEventListener('blur',stopInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopInput()});document.addEventListener('focusin',e=>{if(enabled()&&e.target.closest?.('input,textarea,select'))stopInput()});
 
+
+
+ document.addEventListener('pointerdown',e=>{if(enabled()&&e.target.closest?.('.studio-header,#roomHubPanel,dialog,#artopiaSocial'))stopInput()},true);
+ document.addEventListener('focusin',e=>{if(enabled()&&e.target.closest?.('.studio-header,#roomHubPanel,dialog,#artopiaSocial'))stopInput()});
 
 /* SECTION: arts/render.js — world coordinates independent of walk animation */
  function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);frameDelta=Math.min(.05,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;if(!enabled()||view?.phase!=='battle')return;if(!document.hidden)drawArena(time);if(Date.now()-lastMove>100){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
@@ -14881,7 +14927,7 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
     ${row('dms','フレンドチャット','›','','dm')}
     ${row('share','共有','›','hub-entry--share','share')}
    </details>
-   <div class="hub-shortcut">${row('settings','部屋設定','›','','settings')}</div>
+   <div class="hub-shortcut">${row('settings','部屋設定','›','','settings')}${row('leave','退出する')}</div>
    <div class="hub-shortcut">${row('code','合言葉 <span class="hub-code">'+esc(info.code)+'</span>','›','','key')}${row('copy-code','合言葉をコピー','›','','copy')}</div>
    <p class="hub-caption">交流画面を閉じると、この描画画面に戻れます。共有は公開ルームの部屋主のみ利用できます。</p>
   </div>`;
@@ -14896,12 +14942,14 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
  function navigate(action){
   closeHub();
   if(action==='settings')return $('roomSettingsBtn')?.click();
+  if(action==='leave')return $('leaveBtn')?.click();
   if(action==='code')return $('inviteBtn')?.click();
   if(action==='copy-code'){
    const info=window.ArtRoomMenuInfo?.();if(!info)return;
    navigator.clipboard?.writeText(info.code).then(()=>window.ArtRoomHub?.notice('合言葉をコピーしました'),()=>window.prompt('合言葉をコピー',info.code))||window.prompt('合言葉をコピー',info.code);return;
   }
   if(action==='room-chat'){
+   if(window.ArtShadowChatOpen?.())return;
    const studio=$('studio');if(studio.classList.contains('chat-collapsed'))$('toggleChatPanel')?.click();
    if(window.matchMedia('(max-width:1100px)').matches){const m=$('memberPanel');m.classList.add('open');m.removeAttribute('aria-hidden');}
    $('inlineChatInput')?.focus({preventScroll:true});return;
@@ -15484,6 +15532,12 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .shadow-mode #shadowStage #shadowPanel #shadowChatForm{display:flex;flex:0 0 auto;gap:8px;padding:10px 2px 4px;align-items:stretch;position:relative;z-index:20;}
 .shadow-mode #shadowStage #shadowPanel #shadowChatInput{flex:1 1 auto;min-width:0;width:auto;min-height:46px;padding:10px 12px;border:1px solid #8f83aa;border-radius:9px;background:#fff;color:#222;font-size:16px!important;line-height:1.4;pointer-events:auto!important;touch-action:manipulation!important;user-select:text!important;-webkit-user-select:text!important;}
 .shadow-mode #shadowStage #shadowPanel #shadowChatForm button{flex:0 0 auto;min-width:68px;min-height:46px;}
+</style>
+
+<style id="shadow-room-controls-fix">
+#studio.shadow-mode > .studio-header{position:relative;z-index:200;isolation:isolate}
+#studio.shadow-mode > .workspace{position:relative;isolation:isolate;z-index:0}
+#studio.shadow-mode #leaveBtn,#studio.shadow-mode #roomHubToggle{pointer-events:auto;touch-action:manipulation}
 </style>
 </body></html>
 
