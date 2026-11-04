@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.97 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.99 / 研究所2.5D壁面とアートマターHUD修正
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -11246,6 +11246,55 @@ window.ArtShadow=(()=>{
   draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
  }
 
+ // Ver.1.4.99: consistent 2.5D wall mesh generated ONLY from actual collision geometry.
+ // All wall coordinates are unchanged; draw elevation in screen space (negative Y).
+ const SHADOW_WALL_Z=shadowScale(34);
+ const SHADOW_WALL_FACE=[];
+ function shadowWallMesh(ctx,b,z,faceOnly=false,alpha=1){
+  const X=b.x,Y=b.y,W=b.w,H=b.h;
+  // Planar footprint (X,Y) is the ONLY source of the wall's silhouette.
+  // Projection (x,y,z) = (x,y-z), preserving the original floor-plane perspective.
+  ctx.save();ctx.globalAlpha*=alpha;ctx.lineJoin='miter';
+  if(!faceOnly){
+   // Front (south) vertical wall, rendered first; top plane masks its back edge.
+   ctx.fillStyle='#536d7e';ctx.fillRect(X,Y+H-z,W,z);
+   ctx.fillStyle='#7793a3';ctx.fillRect(X+1,Y+H-z,W-2,Math.min(7,z));
+   // Slim edge highlights and uniform metallic wall cap.
+   const g=ctx.createLinearGradient(X,Y-z,X,Y+H-z);
+   g.addColorStop(0,'#c0d1da');g.addColorStop(.5,'#aabec9');g.addColorStop(1,'#839eae');
+   ctx.fillStyle=g;ctx.fillRect(X,Y-z,W,H);
+   ctx.strokeStyle='#415a69';ctx.lineWidth=2;ctx.strokeRect(X,Y-z,W,H);
+   ctx.strokeStyle='#e8f5fb99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X+2,Y-z+3);ctx.lineTo(X+W-2,Y-z+3);ctx.stroke();
+   // Structural bolts located only on genuine wall fragments.
+   if(W>45){ctx.fillStyle='#587588';for(let bx=X+14;bx<X+W-7;bx+=72){ctx.beginPath();ctx.arc(bx,Y-z+Math.min(H*.5,12),2.6,0,Math.PI*2);ctx.fill();}}
+  }else{
+   // Foreground occlusion is a translucent copy of the true south face.
+   ctx.fillStyle='#536d7e';ctx.fillRect(X,Y+H-z,W,z);
+   ctx.strokeStyle='#e1ecf4aa';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X,Y+H-z);ctx.lineTo(X+W,Y+H-z);ctx.stroke();
+  }
+  ctx.restore();
+ }
+ function shadowDrawWall25D(ctx,now){
+  // This layer is rendered BEFORE fighters so their silhouettes remain legible.
+  // A later, selective face pass restores depth wherever it is safe.
+  for(const b of SHADOW_WALLS){
+   if(b.type!=='stone')continue;
+   shadowWallMesh(ctx,b,SHADOW_WALL_Z);
+  }
+ }
+ function shadowDrawFrontOcclusion(ctx,now){
+  const me=self();if(!me||!Number.isFinite(me.x)||!Number.isFinite(me.y))return;
+  const radius=R.R||26;
+  // Only nearby walls that would visually cover the local player get a faint
+  // foreground face. No new collision rectangles, no room-sized overlays.
+  for(const b of SHADOW_WALLS){
+   if(b.type!=='stone')continue;
+   if(me.x<b.x-radius||me.x>b.x+b.w+radius)continue;
+   const frontY=b.y+b.h;
+   if(me.y<frontY-SHADOW_WALL_Z-radius||me.y>frontY+radius)continue;
+   shadowWallMesh(ctx,b,SHADOW_WALL_Z,true,.16);
+  }
+ }
  // 2.5D research interiors: only visual geometry, never a second collision map.
  function shadowLabDecor(ctx,now){
   // Visual pass only: enrich rooms without altering collisions or walkable space.
@@ -11277,8 +11326,7 @@ window.ArtShadow=(()=>{
    const t=roomTheme(r.name),innerX=r.x+10,innerY=r.y+10,innerW=r.w-20,innerH=r.h-20;
    const g=ctx.createLinearGradient(r.x,r.y,r.x,r.y+r.h);g.addColorStop(0,t.top+'bb');g.addColorStop(.45,t.base+'cc');g.addColorStop(1,t.shade+'d4');
    ctx.fillStyle=g;ctx.fillRect(innerX,innerY,innerW,innerH);
-   ctx.fillStyle=t.top;ctx.fillRect(innerX,innerY,innerW,wallH);
-   ctx.fillStyle=t.side;ctx.fillRect(innerX,innerY,sideInset,innerH);
+   // Wall strips are drawn exclusively from SHADOW_WALLS in shadowDrawWall25D.
    ctx.strokeStyle=t.line+'cc';ctx.lineWidth=2;ctx.strokeRect(innerX,innerY,innerW,innerH);
    ctx.strokeStyle=t.line+'30';ctx.lineWidth=1;
    for(let yy=innerY+wallH+42;yy<innerY+innerH-18;yy+=48){ctx.beginPath();ctx.moveTo(innerX+16,yy);ctx.lineTo(innerX+innerW-16,yy);ctx.stroke();}
@@ -12522,10 +12570,11 @@ finishPaint(false)};
  x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
  for(let j=0;j<SHADOW_ROOMS.length;j++){const a=SHADOW_ROOMS[j];x.fillStyle=['#d8e4e0','#e8e3d8','#d5e1e7'][j%3];x.fillRect(a.x,a.y,a.w,a.h);x.strokeStyle='#8eaaa9';x.lineWidth=2;for(let yy=a.y+45;yy<a.y+a.h;yy+=45){x.beginPath();x.moveTo(a.x+6,yy);x.lineTo(a.x+a.w-6,yy);x.stroke()}}
  shadowLabDecor(x,Date.now()+offset);
+ shadowDrawWall25D(x,Date.now()+offset);
  // Meeting room floor decoration only; shop, discussion device, and player movement remain unobstructed.
  {const m=SHADOW_ROOMS[6];x.save();x.strokeStyle='#927cb5';x.lineWidth=5;x.setLineDash([16,12]);x.strokeRect(m.x+38,m.y+75,m.w-76,m.h-145);x.setLineDash([]);x.fillStyle='#66578d';x.textAlign='center';x.font='bold 26px sans-serif';x.fillText('会議・ショップ',m.x+m.w/2,m.y+96);x.restore()}
  x.restore();
- const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(s.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
+ const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(s.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)if(b.type!=='stone')drawArtTerrain(x,b,now);
  const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
@@ -12558,7 +12607,7 @@ finishPaint(false)};
  }
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
- shadowWorld(x,now);drawArtsEffects(x,now);
+ shadowDrawFrontOcclusion(x,now);shadowWorld(x,now);drawArtsEffects(x,now);
  for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||(!p.preview?.length&&!p.summonCore))continue;if(p.mirageHiddenUntil>now&&!(view.settings.teams==='teams'&&me&&p.team===me.team))continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview||[]){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}
  if(p.summonCore){x.globalAlpha=1;x.font='bold 27px sans-serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#fe8db6';x.shadowBlur=11;x.fillStyle='#ff7fac';x.fillText('♥',pos.x+p.summonCore.x,pos.y+p.summonCore.y)}x.restore()}
 
@@ -12569,7 +12618,7 @@ finishPaint(false)};
  if(view.stormStart){const radius=Math.max(0,Math.hypot(R.W,R.H)/2-(now-view.stormStart)/1000*18);x.strokeStyle='#a653bf';x.lineWidth=7;x.beginPath();x.arc(R.W/2,R.H/2,radius,0,Math.PI*2);x.stroke()}
 
   drawBattleOutcome(x,c,now);
- const hud=$('#shadowHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#shadowSkillInfo');for(const id of ['shadowJoystick','shadowJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!battleActive();if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';shadowHUD()}}
+ const hud=$('#shadowHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(!enabled()&&hud.innerHTML!==text)hud.innerHTML=text;const info=$('#shadowSkillInfo');for(const id of ['shadowJoystick','shadowJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!battleActive();if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';shadowHUD()}}
 
 /* SECTION: arts/settings-lifecycle.js */
  function configHTML(s=R.settings()){return shadowConfigHTML(s)}
@@ -16105,4 +16154,28 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #shadowMeetingScreen .shadow-meeting-tools button{min-height:40px;min-width:70px;border-radius:10px;padding:6px 12px;background:#fbf7ff;color:#42365e;border:2px solid #978bb0;touch-action:manipulation}
 #shadowMeetingScreen .shadow-meeting-tools button.selected{background:#7f5cb8;color:#fff;border-color:#e1d3ff}
 @media(max-width:740px){.shadow-mode #shadowTimeBox{top:74px!important;font-size:12px!important}#shadowMeetingScreen .shadow-meeting-head{gap:6px;flex-wrap:wrap}#shadowMeetingScreen .shadow-meeting-tools button{min-width:63px;min-height:36px;padding:4px 8px}}
+</style>
+
+<style>
+/* Ver.1.4.99: Shadow HUD is independent from Arts HUD, readable even on narrow screens. */
+.shadow-mode #shadowHUD{position:absolute!important;top:6px!important;left:6px!important;right:6px!important;display:flex!important;align-items:flex-start!important;gap:6px!important;background:transparent!important;z-index:28!important;pointer-events:none!important}
+.shadow-mode #shadowHUD .shadow-vitals{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:min(690px,calc(100% - 135px))!important;max-width:calc(100% - 135px)!important;min-width:0!important;gap:8px!important;padding:10px!important;box-sizing:border-box!important;background:#172638f0!important;border:1px solid #acc5d866!important;border-radius:12px!important;overflow:visible!important}
+.shadow-mode #shadowHUD .shadow-meter{min-width:0!important;display:flex!important;flex-direction:column!important;gap:3px!important;--meter-color:#7ab7d6}
+.shadow-mode #shadowHUD .shadow-meter.hp{--meter-color:#5ccd88!important}
+.shadow-mode #shadowHUD .shadow-meter.ink{--meter-color:#56b6ed!important}
+.shadow-mode #shadowHUD .shadow-meter.matter{--meter-color:#a26ad9!important}
+.shadow-mode #shadowHUD .shadow-meter label{display:flex!important;flex-wrap:wrap!important;justify-content:space-between!important;gap:2px 6px!important;white-space:normal!important;color:#f4f7ff!important;font-size:clamp(10px,1.3vw,14px)!important;margin:0!important}
+.shadow-mode #shadowHUD .shadow-meter b{font-variant-numeric:tabular-nums!important;color:#fff!important}
+.shadow-mode #shadowHUD .shadow-meter progress{width:100%!important;height:13px!important;min-height:13px!important;display:block!important;appearance:none!important;-webkit-appearance:none!important;border:1px solid #ffffff55!important;background:#0a1725!important;border-radius:5px!important;overflow:hidden!important}
+.shadow-mode #shadowHUD .shadow-meter progress::-webkit-progress-bar{background:#0a1725!important}
+.shadow-mode #shadowHUD .shadow-meter progress::-webkit-progress-value{background:var(--meter-color)!important}
+.shadow-mode #shadowHUD .shadow-meter progress::-moz-progress-bar{background:var(--meter-color)!important}
+.shadow-mode #shadowHUD .shadow-meter.armor{--meter-color:#b7cad7!important}
+@media(max-width:690px){
+ .shadow-mode #shadowHUD .shadow-vitals{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:calc(100% - 102px)!important;max-width:calc(100% - 102px)!important;gap:3px!important;padding:6px 5px!important}
+ .shadow-mode #shadowHUD .shadow-meter label{display:block!important;font-size:10px!important;line-height:1.1!important}
+ .shadow-mode #shadowHUD .shadow-meter b{display:block!important;font-size:10px!important}
+ .shadow-mode #shadowHUD .shadow-meter progress{height:10px!important;min-height:10px!important}
+}
+@media(max-width:390px){.shadow-mode #shadowHUD .shadow-vitals{width:calc(100% - 90px)!important;max-width:calc(100% - 90px)!important}}
 </style>
