@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.99 / 研究所2.5D壁面とアートマターHUD修正
+あーとぴあ 1.5.00 / 研究所の立体家具・通路・マップ表示
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9641,7 +9641,27 @@ window.ArtShadow=(()=>{
  });
 
  const SHADOW_WALLS=shadowWalls();
- R.map=()=>SHADOW_WALLS.map(w=>({...w}));
+ // One footprint supplies both visible furniture and authoritative collision.
+ const SHADOW_FURNITURE=[];
+ const shadowOverlap=(a,b,pad=0)=>a.x<b.x+b.w+pad&&a.x+a.w>b.x-pad&&a.y<b.y+b.h+pad&&a.y+a.h>b.y-pad;
+ for(const [ri,r] of SHADOW_ROOMS.entries()){
+  const kind=['console','console','bed','tank','cabinet','crate','table','fan','bench','console','cabinet'][ri];
+  const w=shadowScale(kind==='bed'?88:kind==='table'?150:72),h=shadowScale(kind==='bed'?55:kind==='table'?80:48);
+  const candidates=[];
+  for(let yy=r.y+70;yy<=r.y+r.h-h-65;yy+=45)for(const xx of [r.x+70,r.x+r.w-w-70])candidates.push({x:xx,y:yy,w,h});
+  for(const xx of [r.x+70,r.x+r.w-w-70])candidates.push({x:xx,y:r.y+r.h-h-65,w,h});
+  for(const b of candidates){
+   if(SHADOW_FURNITURE.filter(f=>f.room===ri).length>=3)break;
+   if(SHADOW_WALLS.some(a=>shadowOverlap(b,a,22)))continue;
+   if(shadowOverlap(b,{x:r.x+r.w/2-28,y:r.y,w:56,h:r.h},20)||shadowOverlap(b,{x:r.x,y:r.y+r.h/2-20,w:r.w,h:40},5))continue;
+   if(shadowFacilityDefs.some(f=>shadowOverlap(b,{x:f.x-60,y:f.y-50,w:120,h:130},20)))continue;
+   if(SHADOW_DOORS.some(d=>shadowOverlap(b,{x:d.x-60,y:d.y-60,w:120,h:120},20)))continue;
+   if(shadowOverlap(b,{x:R.W/2-170,y:R.H/2-150,w:450,h:300}))continue;
+   if(SHADOW_FURNITURE.some(f=>shadowOverlap(b,f,40)))continue;
+   SHADOW_FURNITURE.push({...b,id:'lab-furniture-'+ri+'-'+SHADOW_FURNITURE.length,room:ri,kind,z:shadowScale(kind==='tank'||kind==='cabinet'?48:24),type:'stone',furniture:true,hp:null,maxHp:null});
+  }
+ }
+ R.map=()=>[...SHADOW_WALLS,...SHADOW_FURNITURE].map(w=>({...w}));
  const shadowOnFloor=(x,y,r=R.R)=>[...SHADOW_ROOMS,...SHADOW_HALLS].some(a=>x>=a.x+r*.65&&x<=a.x+a.w-r*.65&&y>=a.y+r*.65&&y<=a.y+a.h-r*.65);
  R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||!shadowOnFloor(x,y,r)||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b))||(host?.shadow?.doors||view?.shadow?.doors||[]).some(d=>d.openUntil<=Date.now()&&!(d.room===3&&d.id==='lab-door-3-0')&&Math.abs(x-d.x)<d.w/2+r*.7&&Math.abs(y-d.y)<d.h/2+r*.7);
  const moves=R.moves;
@@ -11100,7 +11120,9 @@ window.ArtShadow=(()=>{
   if(h){const content='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b>' +(m.state==='down'?'<b>死亡まで '+Math.ceil((m.downHP||0)/10)+'秒</b>':'');if(h._shadowMarkup!==content){h.innerHTML=content;h._shadowMarkup=content}}let timeBox=$('#shadowTimeBox');if(!timeBox){timeBox=document.createElement('div');timeBox.id='shadowTimeBox';$('#shadowField').append(timeBox)}const timeBasis=s.meeting?s.meeting.started:(Date.now()+offset);const remain=Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-timeBasis)/1000));timeBox.textContent=(s.graceAt?'脱出猶予':'出口開放まで')+'  '+Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0')+(s.meeting?' · 会議中は停止':'');
   // Minimap: only own location is visible. Do not disclose killer/player positions.
   let map=$('#shadowMiniMap');if(!map){map=document.createElement('canvas');map.id='shadowMiniMap';map.width=118;map.height=166;map.setAttribute('aria-label','自分の位置を緑の点で表示するミニマップ');$('#shadowField').append(map)}
-  const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.clearRect(0,0,118,166);mx.fillStyle='#14212a';mx.fillRect(0,0,118,166);const sx=110/R.W,sy=158/R.H;mx.save();mx.translate(4,4);mx.fillStyle='#314c53';mx.strokeStyle='#789099';mx.lineWidth=1;for(const a of SHADOW_ROOMS){mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy)}mx.fillStyle='#46e789';mx.shadowBlur=6;mx.shadowColor='#42ff99';mx.beginPath();mx.arc(p.x*sx,p.y*sy,4,0,Math.PI*2);mx.fill();mx.restore()}
+  if(map.width!==472){map.width=472;map.height=664;map.title='タップでマップを拡大／縮小';map.setAttribute('aria-label','区画名と連絡通路。緑の点は自分。タップで拡大');map.onclick=e=>{e.stopPropagation();map.classList.toggle('expanded')}}
+  const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.fillStyle='#14212a';mx.fillRect(0,0,472,664);const sx=440/R.W,sy=632/R.H;mx.save();mx.translate(16,16);mx.fillStyle='#718d98';for(const a of SHADOW_HALLS)mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);for(const a of SHADOW_ROOMS){mx.fillStyle='#314c53';mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeStyle='#a8c3cd';mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.fillStyle='#fff';mx.font='bold 13px sans-serif';mx.textAlign='center';mx.fillText(a.name,(a.x+a.w/2)*sx,(a.y+a.h/2)*sy,a.w*sx-4)}mx.font='10px sans-serif';mx.fillStyle='#ecf4ff';for(const [i,a] of SHADOW_HALLS.entries()){const x=a.x+a.w/2,y=a.y+a.h/2;if(SHADOW_ROOMS.some(r=>x>r.x&&x<r.x+r.w&&y>r.y&&y<r.y+r.h))continue;mx.fillText('通路'+(Math.floor(i/2)+1),x*sx,y*sy)}mx.fillStyle='#46ff95';mx.strokeStyle='#14212a';mx.lineWidth=3;mx.beginPath();mx.arc(p.x*sx,p.y*sy,7,0,Math.PI*2);mx.fill();mx.stroke();mx.restore()}
+
   let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});panel.addEventListener('pointerdown',()=>{shadowPanelPointerDown=true});for(const ev of ['pointerup','pointercancel','lostpointercapture'])panel.addEventListener(ev,()=>{shadowPanelPointerDown=false});tools.addEventListener('pointerdown',e=>{if(e.target.closest('button'))shadowToolsPointerDown=true});const releaseTools=()=>{shadowToolsPointerDown=false};tools.addEventListener('pointerup',releaseTools);tools.addEventListener('pointercancel',releaseTools);tools.addEventListener('lostpointercapture',releaseTools);window.addEventListener('pointerup',()=>{shadowToolsPointerDown=false;shadowPanelPointerDown=false},true);window.addEventListener('pointercancel',()=>{shadowToolsPointerDown=false;shadowPanelPointerDown=false},true);tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
   const chips=m.inventory.filter(i=>ShadowRules.catalog[i.sku]).map(i=>{const s=ShadowRules.catalog[i.sku];return '<button data-open-item="'+i.id+'" '+(m.state!=='alive'?'disabled':'')+' class="'+(i.on?'on':'')+'" title="'+esc(s.name)+'">'+esc(s.name)+'<small>'+(i.on?'ON':'OFF')+' · '+(i.charges<0?'∞':i.charges)+'</small></button>'}).join('');
   const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div><button type="button" class="shadow-near-chat" data-panel="chat">'+(['dead','escaped','forfeit'].includes(m.state)?'幽霊チャット':'近くに話す')+'</button>';if(tools._shadowMarkup!==html&&!shadowToolsPointerDown&&!tools.contains(document.activeElement)){tools.innerHTML=html;tools._shadowMarkup=html;}
@@ -11295,95 +11317,38 @@ window.ArtShadow=(()=>{
    shadowWallMesh(ctx,b,SHADOW_WALL_Z,true,.16);
   }
  }
- // 2.5D research interiors: only visual geometry, never a second collision map.
- function shadowLabDecor(ctx,now){
-  // Visual pass only: enrich rooms without altering collisions or walkable space.
-  const roomTheme=name=>({
-   '管制室':{base:'#d6e4eb',shade:'#b8ced8',line:'#7a96a8',accent:'#6ec3ea',top:'#ebf5fa',side:'#a6becc'},
-   '観測棟':{base:'#e4e5ea',shade:'#ced0da',line:'#8f93ad',accent:'#a8b2ff',top:'#f3f4f8',side:'#bdc2d0'},
-   '医務室':{base:'#e6f0eb',shade:'#d0e2d9',line:'#7ea291',accent:'#7ad0a7',top:'#f6fbf8',side:'#c4d9cf'},
-   'インク研究室':{base:'#e8e1f3',shade:'#d6cae9',line:'#8d78af',accent:'#b995ff',top:'#f5effc',side:'#c9bddf'},
-   '電力室':{base:'#ece1d2',shade:'#dac4a4',line:'#94734f',accent:'#f6c768',top:'#f8efe2',side:'#ccb28d'},
-   '倉庫':{base:'#e3ddd3',shade:'#d1c7b8',line:'#8d7b66',accent:'#d9b26c',top:'#f2ede6',side:'#bfae99'},
-   '中央会議室':{base:'#e7e2f2',shade:'#d6caea',line:'#8265a7',accent:'#c6a8ff',top:'#f4effb',side:'#cabde0'},
-   '空調室':{base:'#dde9ef',shade:'#c8d8e2',line:'#718fa4',accent:'#89c9e8',top:'#eef6fa',side:'#b8cad6'},
-   '整備室':{base:'#e6e0d5',shade:'#d3c7b6',line:'#84745d',accent:'#e3bb72',top:'#f5f0e9',side:'#c0af97'},
-   '通信室':{base:'#dce4f0',shade:'#c7d4e6',line:'#6f86a5',accent:'#80b2ff',top:'#edf3fa',side:'#b5c4d8'},
-   '動力棟':{base:'#e9ddcf',shade:'#d8c3a9',line:'#95744b',accent:'#ffcb78',top:'#f7ecde',side:'#cbb08b'}
-  }[name]||{base:'#dde4e8',shade:'#c9d2d8',line:'#7a8d9b',accent:'#96b7d2',top:'#ecf2f6',side:'#bac6cf'});
-  const topInset=shadowScale(18),sideInset=shadowScale(14),wallH=shadowScale(20);
-  const rect=(x,y,w,h,r=10)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r)};
-  const shadow=(x,y,w,h,blur=18,a=.18)=>{ctx.save();ctx.fillStyle='rgba(20,28,35,'+a+')';ctx.filter='blur('+blur+'px)';ctx.fillRect(x,y,w,h);ctx.restore()};
-  const panel=(x,y,w,h,t,bevel=true)=>{shadow(x+5,y+6,w,h,11,.12);ctx.fillStyle=t.base;rect(x,y,w,h,8);ctx.fill();ctx.strokeStyle=t.line;ctx.lineWidth=2;ctx.stroke();if(bevel){ctx.fillStyle=t.top;rect(x+4,y+4,w-8,Math.max(8,h*.18),6);ctx.fill();ctx.fillStyle=t.side;rect(x+4,y+Math.max(10,h*.72),w-8,Math.max(8,h*.12),6);ctx.fill();}};
-  const consoleDesk=(x,y,w,h,t,screen='#79d4ff')=>{shadow(x+6,y+8,w,h,12,.14);ctx.fillStyle=t.side;rect(x,y,w,h,7);ctx.fill();ctx.fillStyle=t.top;rect(x+6,y+5,w-12,Math.max(12,h*.35),6);ctx.fill();ctx.strokeStyle=t.line;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#203848';ctx.fillRect(x+w*.18,y+10,w*.64,Math.max(14,h*.18));ctx.fillStyle=screen;ctx.fillRect(x+w*.22,y+13,w*.56,Math.max(9,h*.12));};
-  const bed=(x,y,w,h,accent='#8fd2b0')=>{shadow(x+5,y+6,w,h,12,.14);ctx.fillStyle='#dfe8eb';rect(x,y,w,h,8);ctx.fill();ctx.strokeStyle='#7f969d';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f8fbfc';rect(x+8,y+8,w*.52,h-16,7);ctx.fill();ctx.fillStyle=accent;rect(x+w*.63,y+10,w*.21,h-20,6);ctx.fill();ctx.fillStyle='#9fb3ba';ctx.fillRect(x+w-10,y+8,4,h-16);};
-  const shelf=(x,y,w,h,accent='#9fd3ff')=>{shadow(x+4,y+6,w,h,10,.1);ctx.fillStyle='#cfd7dc';rect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#788d98';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#91a4ae';ctx.lineWidth=1.5;for(let yy=y+h*.3;yy<y+h-8;yy+=h*.28){ctx.beginPath();ctx.moveTo(x+6,yy);ctx.lineTo(x+w-6,yy);ctx.stroke()}for(let i=0;i<4;i++){const bx=x+8+(i%2)*(w*.42),by=y+8+Math.floor(i/2)*(h*.26);ctx.fillStyle=i%2?accent:'#e7b46f';ctx.fillRect(bx,by,w*.18,h*.12)}};
-  const tank=(x,y,w,h,liquid='#b88eff')=>{shadow(x+5,y+7,w,h,12,.14);ctx.fillStyle='rgba(237,246,255,.65)';rect(x,y,w,h,12);ctx.fill();ctx.strokeStyle='#7a93a6';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=liquid+'99';ctx.fillRect(x+8,y+h*.42,w-16,h*.46);ctx.strokeStyle='#a9bcc8';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+w*.5,y-10);ctx.lineTo(x+w*.5,y);ctx.moveTo(x+w*.5,y+h);ctx.lineTo(x+w*.5,y+h+14);ctx.stroke();};
-  const fan=(cx,cy,r,accent='#91cfee')=>{shadow(cx-r,cy-r,r*2,r*2,10,.12);ctx.fillStyle='#cfdae1';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#728796';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=accent;for(let i=0;i<4;i++){ctx.save();ctx.translate(cx,cy);ctx.rotate(i*Math.PI/2+Math.sin(now/700)*.08);ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(r*.2,-r*.2,r*.75,-r*.1);ctx.quadraticCurveTo(r*.2,r*.1,0,0);ctx.fill();ctx.restore()}ctx.fillStyle='#6c8291';ctx.beginPath();ctx.arc(cx,cy,r*.18,0,Math.PI*2);ctx.fill();};
-  const meetingTable=(x,y,w,h)=>{shadow(x+10,y+12,w,h,18,.16);ctx.fillStyle='#7f68a5';rect(x,y,w,h,18);ctx.fill();ctx.fillStyle='#d8c9ef';rect(x+16,y+14,w-32,h*.22,14);ctx.fill();ctx.strokeStyle='#5a467a';ctx.lineWidth=3;ctx.stroke();for(const lx of [x+36,x+w-36]){ctx.fillStyle='#624a85';ctx.fillRect(lx,y+h*.22,18,h*.55)}for(let i=0;i<4;i++){const cy=y+35+i*(h-70)/3;ctx.fillStyle='#cfc1ea';rect(x-28,cy-12,22,24,6);ctx.fill();rect(x+w+6,cy-12,22,24,6);ctx.fill();ctx.strokeStyle='#7a68a1';ctx.lineWidth=2;ctx.stroke();}};
-  ctx.save();
-  for(const r of SHADOW_ROOMS){
-   const t=roomTheme(r.name),innerX=r.x+10,innerY=r.y+10,innerW=r.w-20,innerH=r.h-20;
-   const g=ctx.createLinearGradient(r.x,r.y,r.x,r.y+r.h);g.addColorStop(0,t.top+'bb');g.addColorStop(.45,t.base+'cc');g.addColorStop(1,t.shade+'d4');
-   ctx.fillStyle=g;ctx.fillRect(innerX,innerY,innerW,innerH);
-   // Wall strips are drawn exclusively from SHADOW_WALLS in shadowDrawWall25D.
-   ctx.strokeStyle=t.line+'cc';ctx.lineWidth=2;ctx.strokeRect(innerX,innerY,innerW,innerH);
-   ctx.strokeStyle=t.line+'30';ctx.lineWidth=1;
-   for(let yy=innerY+wallH+42;yy<innerY+innerH-18;yy+=48){ctx.beginPath();ctx.moveTo(innerX+16,yy);ctx.lineTo(innerX+innerW-16,yy);ctx.stroke();}
-   ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(innerX+20,innerY+wallH+6,innerW-40,10);
-   panel(r.x+20,r.y+18,Math.min(shadowScale(150),r.w-80),shadowScale(34),{base:'#314856',top:'#476677',side:'#22333e',line:'#9fc7da'},false);
-   ctx.fillStyle='#ebf7ff';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(r.name,r.x+Math.min(shadowScale(95),r.w*.22),r.y+34);
-   if(r.name==='管制室'){
-    consoleDesk(r.x+40,r.y+70,shadowScale(120),shadowScale(56),t,'#79d4ff');
-    consoleDesk(r.x+r.w-shadowScale(170),r.y+80,shadowScale(130),shadowScale(56),t,'#9ee6ff');
-    consoleDesk(r.x+52,r.y+r.h-shadowScale(86),shadowScale(140),shadowScale(48),t,'#8ff6cb');
-   }else if(r.name==='観測棟'){
-    for(let i=0;i<3;i++)consoleDesk(r.x+40+i*shadowScale(170),r.y+82+(i%2)*shadowScale(20),shadowScale(120),shadowScale(52),t,i===1?'#afbbff':'#8ce7ff');
-    panel(r.x+r.w-shadowScale(150),r.y+80,shadowScale(105),shadowScale(105),{base:'#293a4f',top:'#415a77',side:'#1d2a3b',line:'#a8baff'});
-    ctx.fillStyle='#b9c6ff';ctx.beginPath();ctx.arc(r.x+r.w-shadowScale(98),r.y+shadowScale(132),shadowScale(28),0,Math.PI*2);ctx.fill();
-   }else if(r.name==='医務室'){
-    bed(r.x+40,r.y+80,shadowScale(150),shadowScale(70),'#8fd2b0');
-    bed(r.x+40,r.y+170,shadowScale(150),shadowScale(70),'#8fd2b0');
-    shelf(r.x+r.w-shadowScale(84),r.y+74,shadowScale(48),shadowScale(150),'#a5e4be');
-    shelf(r.x+r.w-shadowScale(84),r.y+250,shadowScale(48),shadowScale(150),'#b8eaff');
-   }else if(r.name==='インク研究室'){
-    tank(r.x+48,r.y+84,shadowScale(90),shadowScale(170),'#9d77ff');
-    tank(r.x+160,r.y+84,shadowScale(90),shadowScale(170),'#c472ff');
-    consoleDesk(r.x+r.w-shadowScale(190),r.y+80,shadowScale(150),shadowScale(60),t,'#c9a0ff');
-    shelf(r.x+r.w-shadowScale(80),r.y+170,shadowScale(44),shadowScale(118),'#dc9fff');
-   }else if(r.name==='電力室'){
-    panel(r.x+38,r.y+82,shadowScale(112),shadowScale(120),{base:'#6a563b',top:'#9c7d55',side:'#503d29',line:'#d3b37f'});
-    panel(r.x+r.w-shadowScale(155),r.y+82,shadowScale(110),shadowScale(160),{base:'#5c4e40',top:'#887059',side:'#4a3b30',line:'#f0ca7a'});
-    ctx.strokeStyle='#d4b06c';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(r.x+shadowScale(165),r.y+shadowScale(140));ctx.lineTo(r.x+r.w-shadowScale(145),r.y+shadowScale(140));ctx.stroke();
-   }else if(r.name==='倉庫'){
-    for(const q of [[48,86,86,60],[148,86,86,60],[66,170,98,68],[178,250,94,66]])panel(r.x+shadowScale(q[0]),r.y+shadowScale(q[1]),shadowScale(q[2]),shadowScale(q[3]),{base:'#b8905c',top:'#d6b183',side:'#8e6b43',line:'#6b4e2f'});
-    consoleDesk(r.x+r.w-shadowScale(160),r.y+80,shadowScale(120),shadowScale(50),t,'#ffe097');
-   }else if(r.name==='中央会議室'){
-    meetingTable(r.x+r.w*.5-shadowScale(170),r.y+shadowScale(170),shadowScale(340),shadowScale(180));
-    consoleDesk(r.x+42,r.y+88,shadowScale(120),shadowScale(52),t,'#cdb3ff');
-    consoleDesk(r.x+r.w-shadowScale(165),r.y+88,shadowScale(120),shadowScale(52),t,'#b694ff');
-    panel(r.x+r.w*.5-shadowScale(120),r.y+r.h-shadowScale(104),shadowScale(240),shadowScale(40),{base:'#5c4f79',top:'#8a78af',side:'#493d64',line:'#cdbaff'});
-   }else if(r.name==='空調室'){
-    fan(r.x+shadowScale(120),r.y+shadowScale(120),shadowScale(42));
-    fan(r.x+r.w-shadowScale(120),r.y+shadowScale(120),shadowScale(42));
-    consoleDesk(r.x+r.w*.5-shadowScale(70),r.y+r.h-shadowScale(96),shadowScale(140),shadowScale(54),t,'#8fe1ff');
-   }else if(r.name==='整備室'){
-    consoleDesk(r.x+40,r.y+80,shadowScale(170),shadowScale(56),t,'#f4d487');
-    shelf(r.x+r.w-shadowScale(78),r.y+76,shadowScale(42),shadowScale(132),'#f1cb88');
-    panel(r.x+shadowScale(66),r.y+r.h-shadowScale(92),shadowScale(180),shadowScale(48),{base:'#8f7861',top:'#c9ae91',side:'#705945',line:'#5a4636'});
-   }else if(r.name==='通信室'){
-    consoleDesk(r.x+40,r.y+75,shadowScale(130),shadowScale(52),t,'#87c4ff');
-    consoleDesk(r.x+r.w-shadowScale(170),r.y+75,shadowScale(130),shadowScale(52),t,'#87e3ff');
-    shelf(r.x+r.w*.5-shadowScale(24),r.y+r.h-shadowScale(126),shadowScale(48),shadowScale(88),'#9cd0ff');
-   }else if(r.name==='動力棟'){
-    panel(r.x+42,r.y+74,shadowScale(90),shadowScale(112),{base:'#7d623f',top:'#b99262',side:'#644d31',line:'#f0c17e'});
-    panel(r.x+shadowScale(150),r.y+74,shadowScale(90),shadowScale(112),{base:'#7d623f',top:'#b99262',side:'#644d31',line:'#f0c17e'});
-    consoleDesk(r.x+r.w-shadowScale(160),r.y+78,shadowScale(118),shadowScale(50),t,'#ffd78a');
-   }
-  }
-  // Meeting room memo-zone highlight only, kept subtle to preserve readability.
-  const m=SHADOW_ROOMS[6];ctx.fillStyle='#9582ba1a';ctx.beginPath();ctx.ellipse(m.x+m.w*.50,m.y+m.h*.67,m.w*.24,m.h*.16,0,0,Math.PI*2);ctx.fill();
+ // Projection is shared with walls: (x,y,z) -> (x,y-z).
+ function shadowFurniture(ctx,b){
+  const colors=['#77b8cf','#99a9d4','#9bcbb6','#b094d3','#c4a36f','#bd996e','#b59acc','#91bdcc','#b5a186','#8eadd0','#bd986b'];
+  const col=colors[b.room],z=b.z;ctx.save();
+  ctx.fillStyle='#101c2930';ctx.fillRect(b.x+6,b.y+b.h-5,b.w,z*.45+10);
+  ctx.fillStyle='#435563';ctx.fillRect(b.x,b.y+b.h-z,b.w,z);
+  ctx.fillStyle=col;ctx.fillRect(b.x,b.y-z,b.w,b.h);
+  ctx.strokeStyle='#344956';ctx.lineWidth=2;ctx.strokeRect(b.x,b.y-z,b.w,b.h);ctx.strokeRect(b.x,b.y+b.h-z,b.w,z);
+  ctx.fillStyle='#ffffff66';ctx.fillRect(b.x+3,b.y-z+3,b.w-6,4);
+  const x=b.x+10,y=b.y-z+10,w=b.w-20,h=b.h-20;
+  if(b.kind==='bed'){ctx.fillStyle='#f4fcfa';ctx.fillRect(x,y,w,h);ctx.fillStyle='#abdcd2';ctx.fillRect(x+w*.28,y,w*.72,h);ctx.fillStyle='#fff';ctx.fillRect(x+3,y+4,w*.2,h-8)}
+  else if(b.kind==='console'||b.kind==='bench'){ctx.fillStyle='#213745';ctx.fillRect(x,y,w*.62,h*.65);ctx.fillStyle='#7ce0ee';ctx.fillRect(x+4,y+4,w*.62-8,h*.65-8);ctx.fillStyle='#e2eaf0';for(let i=0;i<5;i++)ctx.fillRect(x+i*12,y+h-7,8,4)}
+  else if(b.kind==='tank'){ctx.fillStyle='#e3d9fc';ctx.fillRect(x,y,w,h);ctx.fillStyle='#9f6bdb';ctx.fillRect(x+5,y+h*.4,w-10,h*.6);ctx.fillStyle='#ffffff88';ctx.fillRect(x+8,y+2,6,h-4)}
+  else if(b.kind==='fan'){ctx.strokeStyle='#344956';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x+w/2,y+h/2,Math.min(w,h)*.42,0,Math.PI*2);ctx.stroke();for(let i=0;i<4;i++){const a=i*Math.PI/2;ctx.beginPath();ctx.moveTo(x+w/2,y+h/2);ctx.lineTo(x+w/2+Math.cos(a)*h*.35,y+h/2+Math.sin(a)*h*.35);ctx.stroke()}}
+  else{ctx.strokeStyle='#ffffff55';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#233644';ctx.fillRect(b.x+b.w*.42,b.y+b.h-z+9,b.w*.16,4)}
   ctx.restore();
+ }
+ function shadowLabDecor(ctx,now){
+  ctx.save();
+  for(const [i,r] of SHADOW_ROOMS.entries()){
+   ctx.fillStyle=['#dce7ec','#e0e1ef','#e0efe8','#e9e0f2'][i%4];ctx.fillRect(r.x+10,r.y+10,r.w-20,r.h-20);
+   ctx.strokeStyle='#647e8b22';ctx.lineWidth=1;for(let y=r.y+45;y<r.y+r.h-12;y+=48){ctx.beginPath();ctx.moveTo(r.x+12,y);ctx.lineTo(r.x+r.w-12,y);ctx.stroke()}
+   ctx.fillStyle='#405466';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.fillText(r.name,r.x+r.w/2,r.y+r.h-90);
+  }
+  ctx.restore();
+ }
+ function shadowHallLabels(ctx){
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 16px sans-serif';ctx.fillStyle='#385665';
+  for(const [i,h] of SHADOW_HALLS.entries()){
+   const x=h.x+h.w/2,y=h.y+h.h/2;if(SHADOW_ROOMS.some(r=>x>r.x-20&&x<r.x+r.w+20&&y>r.y-20&&y<r.y+r.h+20))continue;
+   ctx.save();ctx.translate(x,y);if(h.h>h.w)ctx.rotate(-Math.PI/2);ctx.fillText('連絡通路 '+(Math.floor(i/2)+1),0,0);ctx.restore();
+  }ctx.restore();
  }
  function shadowLabDevices(ctx,now){
   const state=view?.shadow;if(!state)return;
@@ -12567,15 +12532,15 @@ finishPaint(false)};
  }
  function drawArena(time){const c=$('#shadowArena');if(!c)return;const r=c.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);const cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch}for(const p of view.fighters){const pos=positions.get(p.id)||{x:p.x,y:p.y};pos.x+=(p.x-pos.x)*.35;pos.y+=(p.y-pos.y)*.35;positions.set(p.id,pos)}const x=c.getContext('2d'),cam=cameraRect(dpr),scale=cam.scale,left=cam.left,top=cam.top;x.setTransform(1,0,0,1,0,0);const theme={garden:['#dce7d7','#f4ecd6','#d6ccae'],ruins:['#bfc3ce','#e3e0e7','#c7bfce'],forest:['#adbea8','#dce8ce','#b7c9a8'],arena:['#c7d3de','#edf0f5','#d2dae3']}[view.settings.stage]||['#dce7d7','#f4ecd6','#d6ccae'];x.fillStyle='#182631';x.fillRect(0,0,cw,ch);x.setTransform(scale,0,0,scale,-left*scale,-top*scale);x.fillStyle='#182631';x.fillRect(0,0,R.W,R.H);
  // Floors are ONLY inside rooms and accessible corridors; the rest is deep void.
- x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
+ x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#4b6473';x.fillRect(hall.x,hall.y+hall.h,hall.w,12)}for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
  for(let j=0;j<SHADOW_ROOMS.length;j++){const a=SHADOW_ROOMS[j];x.fillStyle=['#d8e4e0','#e8e3d8','#d5e1e7'][j%3];x.fillRect(a.x,a.y,a.w,a.h);x.strokeStyle='#8eaaa9';x.lineWidth=2;for(let yy=a.y+45;yy<a.y+a.h;yy+=45){x.beginPath();x.moveTo(a.x+6,yy);x.lineTo(a.x+a.w-6,yy);x.stroke()}}
- shadowLabDecor(x,Date.now()+offset);
+ shadowLabDecor(x,Date.now()+offset);shadowHallLabels(x);
  shadowDrawWall25D(x,Date.now()+offset);
  // Meeting room floor decoration only; shop, discussion device, and player movement remain unobstructed.
  {const m=SHADOW_ROOMS[6];x.save();x.strokeStyle='#927cb5';x.lineWidth=5;x.setLineDash([16,12]);x.strokeRect(m.x+38,m.y+75,m.w-76,m.h-145);x.setLineDash([]);x.fillStyle='#66578d';x.textAlign='center';x.font='bold 26px sans-serif';x.fillText('会議・ショップ',m.x+m.w/2,m.y+96);x.restore()}
  x.restore();
- const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(s.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)if(b.type!=='stone')drawArtTerrain(x,b,now);
- const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
+ const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(view.shadow?.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)if(b.type!=='stone')drawArtTerrain(x,b,now);
+ const furnitureQueue=[...SHADOW_FURNITURE].sort((a,b)=>(a.y+a.h)-(b.y+b.h));let furnitureIndex=0;const flushFurniture=y=>{while(furnitureIndex<furnitureQueue.length&&furnitureQueue[furnitureIndex].y+furnitureQueue[furnitureIndex].h<=y)shadowFurniture(x,furnitureQueue[furnitureIndex++])};const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of [...view.fighters].sort((a,b)=>(positions.get(a.id)||a).y-(positions.get(b.id)||b).y)){flushFurniture((positions.get(p.id)||p).y);if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
  const ally=me&&(p.id===me.id||(view.settings.teams==='teams'&&p.team===me.team));
@@ -12592,6 +12557,7 @@ finishPaint(false)};
    const status=[...(p.confused>now?['confusion']:[]),...(p.slowFactorUntil>now?['slow']:[]),...(p.trickPoisonUntil>now?['poison']:[])];
    status.forEach((kind,i)=>drawTrickStatusMark(x,kind,pos.x+(i-(status.length-1)/2)*23,pos.y-100,now));
   }if(p.inkLock>now){x.fillStyle='#a33a64';x.font='bold 13px sans-serif';x.fillText('回復禁止',pos.x,pos.y+62)}x.fillStyle=view.settings.teams==='teams'?'#1a293e':'#493e53';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(player?.name||'',pos.x,pos.y-(view.settings.teams==='teams'?79:49));x.fillStyle='#27364b';x.fillRect(pos.x-26,pos.y-43,52,6);x.fillStyle=view.settings.teams==='teams'?(p.team===0?'#43aef8':'#ff6686'):'#7ca865';x.fillRect(pos.x-26,pos.y-43,52*R.clamp(p.hp/(p.maxHp||100),0,1),6);if(p.drawing){x.fillStyle='#c16f3c';x.fillText('描画中',pos.x,pos.y+46)}x.globalAlpha=1;}
+ flushFurniture(Infinity);
  // Gunner launch cues are driven by the authoritative projectile fireAt time.
  // A burst sounds on EVERY round; spread and repulse have just one cue per salvo.
  const presentGunRounds=new Set();
@@ -16178,4 +16144,9 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
  .shadow-mode #shadowHUD .shadow-meter progress{height:10px!important;min-height:10px!important}
 }
 @media(max-width:390px){.shadow-mode #shadowHUD .shadow-vitals{width:calc(100% - 90px)!important;max-width:calc(100% - 90px)!important}}
+</style>
+
+<style>/* 1.5.00 map enlargement stays inside the game field. */
+.shadow-mode #shadowMiniMap{pointer-events:auto!important;cursor:zoom-in;touch-action:manipulation}
+.shadow-mode #shadowMiniMap.expanded{width:min(80%,360px)!important;height:auto!important;max-height:75%!important;object-fit:contain;z-index:45!important;cursor:zoom-out;background:#14212a}
 </style>
