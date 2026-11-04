@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.76 / アートレイターのタスク画面・開始時間・キラーアイコン修正
+あーとぴあ 1.4.77 / アートレイターのタスク画面・開始時間・キラーアイコン修正
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -10756,13 +10756,13 @@ window.ArtShadow=(()=>{
   const log=(m.logs||[]).slice(-60).map(l=>(l.name||'')+'：'+(l.text||'')).join('\n');
   if(log!==shadowChatLast){shadowChatLast=log;const stream=$('#recentComment');if(stream){stream.replaceChildren();const list=document.createElement('div');list.className='chat-stream';for(const item of (m.logs||[]).slice(-60)){const node=document.createElement('div');node.className='recent-comment-row';const name=document.createElement('b');name.textContent=(item.name||'')+'：';const msg=document.createElement('span');msg.textContent=item.text||'';node.append(name,msg);list.append(node)}stream.append(list);stream.scrollTop=stream.scrollHeight}}
   if(h)h.innerHTML='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p)+'<div class="shadow-matter"><div class="shadow-matter-caption">アートマター <strong>'+m.am+' / 100</strong></div><div class="shadow-matter-track" role="progressbar" aria-label="アートマター" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+m.am+'"><span style="width:'+Math.max(0,Math.min(100,m.am))+'%"></span></div></div>'+'<b>弾薬 '+(m.ammo||0)+'発</b><span>'+(view.privateRole==='killer'?'武器：半円でナイフ':'銃：直線で発射（購入後）')+'</span>'+(m.state==='down'?'<b>ダウンHP '+Math.ceil(m.downHP)+'</b>':'')+'<span>'+ (s.graceAt?'脱出猶予 ':'出口まで ')+Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-Date.now()-offset)/1000))+'秒</span>';
-  let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
+  let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
   const chips=m.inventory.map(i=>{const s=ShadowRules.catalog[i.sku];return '<button data-open-item="'+i.id+'" '+(m.state!=='alive'?'disabled':'')+' class="'+(i.on?'on':'')+'" title="'+esc(s.name)+'">'+esc(s.name)+'<small>'+(i.on?'ON':'OFF')+' · '+(i.charges<0?'∞':i.charges)+'</small></button>'}).join('');
   const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>!['judgment_gun','killer_knife'].includes(i.sku)).length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div>';if(tools.innerHTML!==html)tools.innerHTML=html;
   if(m.action?.kind!=='task')shadowTaskDismissed=null;
   if(m.action?.kind==='task'&&shadowPanel!=='task'&&shadowTaskDismissed!==m.action.target){shadowPanel='task';shadowPanelKey='';taskInk=[];taskStroke=null;taskAutoSubmitted=false}
   if(shadowPanel==='task'&&m.action?.kind!=='task'){shadowPanel='';shadowPanelKey=''}
-  shadowRenderPanel();const timer=$('#shadowTaskTimer');if(timer&&m.action)timer.textContent=(Date.now()+offset<m.action.end?'残り '+Math.max(0,Math.ceil((m.action.end-Date.now()-offset)/1000))+'秒（描き終えたら提出できます）':'提出できます');
+  shadowRenderPanel();const timer=$('#shadowTaskTimer');if(timer&&m.action)timer.textContent=(Date.now()+offset<m.action.end?'残り '+Math.max(0,Math.ceil((m.action.end-Date.now()-offset)/1000))+'秒 · 描き終えたら自動判定':'判定待ち');
  }
  function shadowItemIcon(item){
   const sku=item.id||item.sku||'';const skill=item.skill;
@@ -10778,7 +10778,7 @@ window.ArtShadow=(()=>{
   };
   const d=paths[sku];return '<svg viewBox="0 0 40 40" width="42" height="42" aria-hidden="true"><path d="'+(d||'M12 14 H28 M12 21 H28 M12 28 H28')+'" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
  }
- function shadowClosePanel(){if(shadowPanel==='task'){shadowTaskDismissed=view?.shadow?.me?.action?.target||null;shadowRequest('cancel')}shadowPanel='';shadowPanelKey='';taskInk=[];taskStroke=null;const panel=$('#shadowPanel'),shade=$('#shadowPanelShade');if(panel)panel.hidden=true;if(shade)shade.hidden=true;}
+ function shadowClosePanel(){if(shadowPanel==='task'){shadowTaskDismissed=view?.shadow?.me?.action?.target||null;shadowRequest('cancel')}shadowPanel='';shadowPanelKey='';taskInk=[];taskStroke=null;taskAutoSubmitted=false;const panel=$('#shadowPanel'),shade=$('#shadowPanelShade');if(panel)panel.hidden=true;if(shade)shade.hidden=true;}
  function shadowRenderPanel(){const panel=$('#shadowPanel'),s=view?.shadow,m=s?.me,p=self();if(!panel||!m)return;panel.hidden=!shadowPanel;const shade=$('#shadowPanelShade');if(shade)shade.hidden=!shadowPanel;if(!shadowPanel)return;
   if(shadowPanel==='chat'&&document.activeElement?.id==='shadowChatInput')return;
   const key=shadowPanel+':'+(shadowPanel==='task'?m.action?.target+':'+m.action?.rev:JSON.stringify([m.am,m.inventory,m.state,m.notice,s.crates.map(c=>[c.id,c.opened,c.loot]),s.tasks.map(t=>t.readyAt),m.logs?.length,Math.round(p.x/35),Math.round(p.y/35)]));if(key===shadowPanelKey)return;shadowPanelKey=key;
@@ -10813,14 +10813,35 @@ window.ArtShadow=(()=>{
   if(m.notice&&shadowPanel!=='task')html+='<p role="status">'+esc(m.notice)+'</p>';panel.innerHTML=html;
   panel.onclick=e=>{e.stopPropagation();const b=e.target.closest('button');if(!b)return;e.preventDefault();if(b.hasAttribute('data-close')||b.dataset.action==='cancel'){shadowClosePanel();return}if(b.dataset.action){shadowRequest(b.dataset.action,{target:b.dataset.target,sku:b.dataset.sku,itemId:b.dataset.itemId,text:b.dataset.text});if(b.dataset.action==='buy'){b.disabled=true;setTimeout(()=>{if(b.isConnected)b.disabled=false},400);}return}if(b.dataset.guide){const id=b.dataset.guide;if(moves[id])modal(moves[id].name,guideSVG(id)+skillDetails(id))}};
   if($('#shadowChatForm'))$('#shadowChatForm').onsubmit=e=>{e.preventDefault();shadowRequest('chat',{text:$('#shadowChatInput').value});$('#shadowChatInput').value=''};
-  if(shadowPanel==='task')shadowBindTask();
+  if(shadowPanel==='task'){
+   shadowBindTask();
+   // A touch release can be consumed by the drawing gesture manager on mobile.
+   // Handle the task close control at pointer-down, before any canvas gesture can capture it.
+   const close=panel.querySelector('button[data-close]');
+   if(close){close.addEventListener('pointerdown',e=>{
+     if(e.pointerType==='mouse'&&e.button!==0)return;
+     e.preventDefault();e.stopImmediatePropagation();shadowClosePanel();
+   },{passive:false});}
+   // Tapping outside the dialog always closes it; only the task canvas accepts drawing.
+   panel.addEventListener('keydown',e=>{if(e.key==='Escape'&&shadowPanel==='task'){e.preventDefault();e.stopPropagation();shadowClosePanel();}},{once:true});
+  }
  }
  function shadowBindTask(){const canvas=$('#shadowTaskCanvas'),t=view.shadow.tasks.find(t=>t.id===view.shadow.me.action?.target);if(!canvas||!t)return;const model=ShadowRules.taskModel(t.kind,t.rev);let pointer=null;
   const draw=()=>{if(!canvas.isConnected)return;const x=canvas.getContext('2d');x.clearRect(0,0,400,400);x.fillStyle='#f5f0e6';x.fillRect(0,0,400,400);const path=(p,color,width=2,dash=[])=>{x.strokeStyle=color;x.lineWidth=width;x.setLineDash(dash);x.beginPath();p.forEach((q,i)=>i?x.lineTo(q.x*4,q.y*4):x.moveTo(q.x*4,q.y*4));x.stroke();x.setLineDash([])};
    if(t.kind==='FILL_01'){x.fillStyle='#d9e7dc';x.fillRect(100,100,200,200)}else if(t.kind==='MEM_01'){if(Date.now()+offset-view.shadow.me.action.start<3000)path(model.paths[0],'#839e9a',3)}else if(t.kind==='PAIR_01'){path(model.paths[0].map(p=>({x:100-p.x,y:p.y})),'#839e9a',3);path([{x:50,y:5},{x:50,y:95}],'#b9a877',2,[6,5])}else if(t.kind!=='MIX_01'){model.paths.forEach((p,i)=>{path(p,['#d87b72','#6b91b8','#76a788'][i%3],3,[6,6]);p.forEach((q,j)=>{if(t.kind==='DOT_01'){x.fillStyle='#435957';x.font='16px sans-serif';x.fillText(j+1,q.x*4,q.y*4-10)}})})}else{const current=Math.min(2,taskInk.length);path(model.paths[current],'#839e9a',3,[6,6])}
    taskInk.forEach(p=>path(p,'#253a48',t.kind==='FILL_01'?20:4));if(taskStroke)path(taskStroke,'#253a48',t.kind==='FILL_01'?20:4);
   };const point=e=>{const r=canvas.getBoundingClientRect();return{x:R.clamp((e.clientX-r.left)/r.width*100,0,100),y:R.clamp((e.clientY-r.top)/r.height*100,0,100)}};
-  canvas.onpointerdown=e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;try{canvas.setPointerCapture(pointer)}catch{}taskStroke=[point(e)];draw()};canvas.onpointermove=e=>{if(pointer!==e.pointerId)return;e.preventDefault();if(taskStroke.length<1200)taskStroke.push(point(e));draw()};const checkAuto=()=>{if(taskAutoSubmitted||!view?.shadow?.me?.action||taskInk.length===0)return;if(ShadowRules.taskCheck(t.kind,t.rev,taskInk)){taskAutoSubmitted=true;shadowRequest('taskSubmit',{paths:taskInk});const hintEl=$('#shadowTaskTimer');if(hintEl)hintEl.textContent='成功！ 処理しています…'}};canvas.onpointerup=e=>{if(pointer!==e.pointerId)return;if(taskStroke?.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw();checkAuto()};canvas.onpointercancel=()=>{taskStroke=null;pointer=null;draw()};canvas.onlostpointercapture=()=>{if(pointer!==null){if(taskStroke?.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw();checkAuto()}};$('#shadowTaskClear').onclick=()=>{taskInk=[];taskAutoSubmitted=false;draw()};draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
+  canvas.onpointerdown=e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;try{canvas.setPointerCapture(pointer)}catch{}taskStroke=[point(e)];draw()};canvas.onpointermove=e=>{if(pointer!==e.pointerId)return;e.preventDefault();if(taskStroke.length<1200)taskStroke.push(point(e));draw()};const checkAuto=()=>{if(taskAutoSubmitted||!view?.shadow?.me?.action||taskInk.length===0)return;if(ShadowRules.taskCheck(t.kind,t.rev,taskInk)){taskAutoSubmitted=true;shadowRequest('taskSubmit',{paths:taskInk});const hintEl=$('#shadowTaskTimer');if(hintEl)hintEl.textContent='成功！ 処理しています…'}};canvas.onpointerup=e=>{if(pointer!==e.pointerId)return;if(taskStroke?.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw();checkAuto()};canvas.onpointercancel=()=>{taskStroke=null;pointer=null;draw()};canvas.onlostpointercapture=()=>{if(pointer!==null){if(taskStroke?.length>1&&taskInk.length<80)taskInk.push(taskStroke);taskStroke=null;pointer=null;draw();checkAuto()}};const clear=$('#shadowTaskClear');
+  const clearStrokes=()=>{taskInk=[];taskStroke=null;taskAutoSubmitted=false;draw()};
+  clear.onclick=clearStrokes;
+  clear.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();clearStrokes();
+    // Ignore the follow-up synthetic click, which would otherwise run the reset twice.
+    clear.dataset.handledPointer='1';
+  },{passive:false});
+  clear.onclick=e=>{if(clear.dataset.handledPointer==='1'){delete clear.dataset.handledPointer;return}clearStrokes()};
+  draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
  }
  function shadowWorld(x,now){if(!view.shadow)return;const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dist(me,q)<=90;
  // The actual floor is painted in drawArena BELOW the walls and characters.
@@ -15327,4 +15348,18 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .shadow-shop-icon{width:54px;min-width:54px;height:54px;display:grid;place-items:center;border-radius:12px;border:1px solid #d4cae5;background:#eee7f8;color:#64458e}
 .shadow-shop-copy{min-width:0;flex:1}.shadow-shop-copy p{margin:3px 0!important}.shadow-shop-copy button{margin:4px 0 0!important}
 @media(max-height:550px){.shadow-mode #shadowStage #shadowPanel .shadow-task-layout{max-height:calc(100dvh - 70px)}.shadow-mode #shadowStage #shadowPanel #shadowTaskCanvas{width:min(100%,calc(100dvh - 195px))!important;max-height:calc(100dvh - 195px)!important}.shadow-mode #shadowStage #shadowPanel .shadow-task-instruction{font-size:11px!important}}
+</style>
+
+<style>
+/* Ver.1.4.77: reliable task touch controls without changing the drawing UI. */
+.shadow-mode #shadowStage #shadowPanel button[data-close],
+.shadow-mode #shadowStage #shadowPanel #shadowTaskClear{
+  user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  touch-action:none!important;pointer-events:auto!important;
+}
+.shadow-mode #shadowStage #shadowPanel button[data-close]{
+  flex:none;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important;
+  font-size:27px!important;line-height:1!important;z-index:22!important;
+}
+.shadow-mode #shadowStage #shadowPanel #shadowTaskClear{min-height:38px!important;padding:6px 12px!important;z-index:22!important}
 </style>
