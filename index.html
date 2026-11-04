@@ -11154,7 +11154,7 @@ window.ArtShadow=(()=>{
  function shadowRoomControlsOpen(){return !!document.querySelector('dialog[open],#roomHubPanel:not([hidden]),#artopiaSocial:not([hidden])')}
  function battleActive(){return !view?.shadow?.meeting&&self()?.state!=='down'&&!view?.shadow?.me?.action&&enabled()&&view?.phase==='battle'&&!view.celebration&&connected&&view.fighters.some(p=>p.id===localId&&p.active&&p.hp>0&&!p.pull&&!(p.stunnedUntil>Date.now()+offset)&&!(p.sleepUntil>Date.now()+offset))}
  const self=()=>view?.fighters.find(p=>p.id===localId);
- function sendInput(){if(shadowRoomControlsOpen()){move={x:0,y:0};keys.clear();gesture=null;strokes=[];paintMode=false;holdSource=null;summonCore=null;refreshPaintUI()}if(!battleActive())return;
+ function sendInput(){if(shadowRoomControlsOpen()){move={x:0,y:0};keys.clear();clearPaintInput()}if(!battleActive())return;
   // The retained original heart is recognition data, not a visible stroke.
   const previewPaths=[...strokes.slice(summonCore?1:0),...(gesture?[gesture.points]:[])];
   sendHost({type:'gameShadowInput',gameId:view.id,x:move.x,y:move.y,drawing:paintMode||!!gesture||!!strokes.length,
@@ -11163,9 +11163,23 @@ window.ArtShadow=(()=>{
  }
  function refreshPaintUI(){$('#shadowField')?.classList.toggle('shadow-inking',paintMode||!!gesture||!!strokes.length)}
  function beginPaint(source){if(shadowRoomControlsOpen()||!battleActive()||$('#modal').open||self()?.rechargeUntil>Date.now()+offset)return;holdSource=source;if(!paintMode){paintMode=true;strokes=[];summonCore=null;gesture=null;paintStarted=Date.now();hint(view?.privateRole==='killer'?'半円を描くとナイフ攻撃します。':'直線を描くと銃を発射します。');sendInput()}refreshPaintUI()}
- function finishPaint(cancel=false){if(gesture){if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null}const paths=strokes.filter(s=>s.length>=2);if(!cancel&&paths.length&&battleActive()){hint('アーツを判定しています…');sendHost({type:'gameShadowCast',gameId:view.id,strokes:paths})}paintMode=false;holdSource=null;strokes=[];summonCore=null;refreshPaintUI();sendInput()}
+ function clearPaintInput(){
+  const ids=new Set([gesture?.id,holdSource]);
+  // Clear first: releasing capture and sending to the host can re-enter event handlers.
+  gesture=null;paintMode=false;holdSource=null;strokes=[];summonCore=null;
+  refreshPaintUI();
+  const canvas=$('#shadowArena');
+  for(const id of ids)if(Number.isInteger(id))try{if(canvas?.hasPointerCapture(id))canvas.releasePointerCapture(id)}catch{}
+ }
+ function finishPaint(cancel=false){
+  const paths=[...strokes,...(gesture?.points.length>=2?[gesture.points]:[])].filter(s=>s.length>=2);
+  const gameId=view?.id,shouldCast=!cancel&&paths.length&&battleActive();
+  clearPaintInput();
+  try{if(shouldCast){hint('アーツを判定しています…');sendHost({type:'gameShadowCast',gameId,strokes:paths})}}
+  finally{sendInput()}
+ }
  function hint(text){if($('#shadowBattleHint'))$('#shadowBattleHint').textContent=text}
- function stopInput(){move={x:0,y:0};keys.clear();stick=null;gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();$('#shadowJoystick i')?.style.setProperty('transform','translate(0,0)');sendInput()}
+ function stopInput(){move={x:0,y:0};keys.clear();const oldStick=stick;stick=null;clearPaintInput();try{const field=$('#shadowField');if(Number.isInteger(oldStick)&&field?.hasPointerCapture(oldStick))field.releasePointerCapture(oldStick)}catch{}$('#shadowJoystick i')?.style.setProperty('transform','translate(0,0)');sendInput()}
  function cameraFighter(){const me=self();if(me?.state==='down'||me?.active&&me.hp>0)return me;let next=me,seen=new Set();while(next?.killedBy&&!seen.has(next.id)){seen.add(next.id);next=view.fighters.find(p=>p.id===next.killedBy);if(next?.active&&next.hp>0)return next}return view?.fighters.find(p=>p.active&&p.hp>0)||me}
  function ensureEquipChoice(a){const pool=R.skills(a?.class||'')||[];let picks=[...(equipChoice||[])].filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i);if(!picks.length)picks=[...(Array.isArray(a?.skills)?a.skills:[])].filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i);for(const k of pool)if(!picks.includes(k)&&picks.length<2)picks.push(k);equipChoice=picks.slice(0,2);return equipChoice}
  function toggleEquipChoice(skill){const a=view?.art?.[localId];if(!a)return;const current=ensureEquipChoice(a);equipChoice=current.includes(skill)?current.filter(k=>k!==skill):[...current,skill].filter((k,i,self)=>self.indexOf(k)===i).slice(-2)}
@@ -11251,16 +11265,16 @@ window.ArtShadow=(()=>{
   return false;
  };
  let shadowCrateHold=null;const clearShadowCrateHold=()=>{if(shadowCrateHold){clearTimeout(shadowCrateHold.timer);shadowCrateHold=null}};
- c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;const w=worldPoint(e),me=self(),crate=view?.shadow?.crates?.find(q=>q.hp>0&&me&&R.dist(me,q)<=95&&R.dist(w,q)<=43);if(crate&&e.pointerType!=='pen'){clearShadowCrateHold();const hold={id:e.pointerId,target:crate.id,x:e.clientX,y:e.clientY,timer:null};shadowCrateHold=hold;hint('クレートを長押しで開封…');try{c.setPointerCapture(e.pointerId)}catch{}hold.timer=setTimeout(()=>{if(shadowCrateHold!==hold||!battleActive())return;shadowRequest('open',{target:hold.target});window.ArtSound?.play('arts_new_build',2);hint('クレートを開封しています');clearShadowCrateHold()},650);return}if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale,startedAt:performance.now()};refreshPaintUI()};
+ c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;const w=worldPoint(e),me=self(),crate=view?.shadow?.crates?.find(q=>q.hp>0&&me&&R.dist(me,q)<=95&&R.dist(w,q)<=43);if(crate&&e.pointerType!=='pen'){clearShadowCrateHold();const hold={id:e.pointerId,target:crate.id,x:e.clientX,y:e.clientY,timer:null};shadowCrateHold=hold;hint('クレートを長押しで開封…');try{c.setPointerCapture(e.pointerId)}catch{}hold.timer=setTimeout(()=>{if(shadowCrateHold!==hold||!battleActive())return;shadowRequest('open',{target:hold.target});window.ArtSound?.play('arts_new_build',2);hint('クレートを開封しています');clearShadowCrateHold()},650);return}if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);if(!paintMode)return;try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale,startedAt:performance.now()};refreshPaintUI()};
  c.onpointermove=e=>{if(shadowCrateHold?.id===e.pointerId){if(Math.hypot(e.clientX-shadowCrateHold.x,e.clientY-shadowCrateHold.y)>16)clearShadowCrateHold();return}if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
  c.onpointerup=e=>{if(shadowCrateHold?.id===e.pointerId){clearShadowCrateHold();return}if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;const tap=e.pointerType!=='pen'&&performance.now()-gesture.startedAt<420&&Math.hypot(e.clientX-gesture.clientX,e.clientY-gesture.clientY)<13&&R.length([gesture.points])<12;
   if(tap&&shadowInteract(e)){finishPaint(true);return}
-  if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null;refreshPaintUI();
-finishPaint(false)};
- c.onpointercancel=e=>{if(shadowCrateHold?.id===e.pointerId){clearShadowCrateHold();return}if(gesture?.id===e.pointerId){const g=gesture;const validEnd=g.points.length>=5&&R.length([g.points])>=13;if(validEnd&&g.pointerType!=='pen'){c.onpointerup(e)}else{if(g.pointerType==='pen')hint('ペン入力が端末側で中断されました。移動指はそのまま、ペンで描き直してください。');gesture=null;finishPaint(true)}}};
+  finishPaint(false)};
+ c.onpointercancel=e=>{if(shadowCrateHold?.id===e.pointerId)clearShadowCrateHold();if(gesture?.id===e.pointerId)finishPaint(true)};
  c.addEventListener('lostpointercapture',e=>{
-  // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
-  if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
+  if(shadowCrateHold?.id===e.pointerId)clearShadowCrateHold();
+  // A pressed Pencil may continue via document events, but a released pointer is stale.
+  if(gesture?.id===e.pointerId&&e.buttons===0)finishPaint(true)
  });
  // The arena is a single canvas (rooms and characters are painted, not DOM overlays).
  // Never redirect pointerdown from UI descendants to the drawing canvas: capturing the
@@ -11271,6 +11285,7 @@ finishPaint(false)};
  // Capture phase works even if a child stops propagation in the bubble phase.
  document.addEventListener('pointermove',e=>{
   if(!enabled()||view?.phase!=='battle'||gesture?.id!==e.pointerId)return;
+  if(e.buttons===0){finishPaint(true);return}
   // Canvas already handles this event; forwarding it a second time scrambles sampled paths.
   if(e.target===$('#shadowArena'))return;
   $('#shadowArena')?.onpointermove?.(e);
@@ -11770,8 +11785,8 @@ finishPaint(false)};
 
 
 
- document.addEventListener('pointerdown',e=>{if(enabled()&&e.target.closest?.('.studio-header,#roomHubPanel,dialog,#artopiaSocial'))stopInput()},true);
- document.addEventListener('focusin',e=>{if(enabled()&&e.target.closest?.('.studio-header,#roomHubPanel,dialog,#artopiaSocial'))stopInput()});
+ document.addEventListener('pointerdown',e=>{if(enabled()&&e.target.closest?.('button,input,textarea,select,summary,a,label,form,dialog,[role=button],.studio-header,#roomHubPanel,#artopiaSocial'))stopInput()},true);
+ document.addEventListener('focusin',e=>{if(enabled()&&e.target.closest?.('button,input,textarea,select,summary,a,label,form,dialog,[role=button],.studio-header,#roomHubPanel,#artopiaSocial'))stopInput()});
 
 /* SECTION: arts/render.js — world coordinates independent of walk animation */
  function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);frameDelta=Math.min(.05,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;if(!enabled()||view?.phase!=='battle')return;if(!document.hidden)drawArena(time);if(Date.now()-lastMove>100){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
