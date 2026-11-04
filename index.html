@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.92 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.96 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9464,7 +9464,7 @@ const ShadowRules=(()=>{
  const goods=[
   {id:'judgment_gun',name:'ジャッジメントガン',price_am:32,charges:-1,faction:'artist',rarity:'rare',on_effect:'直線を描いて発砲。弾薬が必要。キラーに100ダメージ、誤射すると自分に30ダメージ。',category:'weapon'},
   {id:'bullet_pack',name:'ジャッジメント弾（1発）',price_am:7,charges:1,faction:'artist',rarity:'common',on_effect:'ジャッジメントガンのレーザーを1発補充。購入すると即時装填される。',category:'consumable'},
-  {id:'killer_knife',name:'キラーナイフ',price_am:32,charges:1,faction:'killer',rarity:'rare',on_effect:'半円で100ダメージ。1人をダウンさせると破損する使い切り武器。',category:'weapon'},
+  {id:'killer_knife',name:'キラーナイフ',price_am:32,charges:3,faction:'killer',rarity:'rare',on_effect:'半円で50ダメージ。命中3回で破損する強力な近接武器。',category:'weapon'},
   {id:'toy_knife',name:'おもちゃのナイフ',price_am:0,charges:-1,faction:'killer',rarity:'base',on_effect:'キラーの初期装備。半円で10ダメージ。',category:'weapon'},
   {id:'ink_pistol',name:'ピストル',price_am:16,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク10で35ダメージ。弾薬不要。ジャッジメント弾があればレーザーが優先されます。',category:'weapon'},
   {id:'air_gun',name:'エアガン',price_am:8,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク5で10ダメージ。弾薬不要。',category:'weapon'},
@@ -9476,14 +9476,16 @@ const ShadowRules=(()=>{
   {id:'emergency_medkit',name:'緊急回復薬',price_am:20,charges:1,faction:'both',rarity:'common',on_effect:'HPを40回復する。',category:'utility'},
   {id:'evidence_kit',name:'証拠検査キット',price_am:16,charges:2,faction:'both',rarity:'common',on_effect:'近くの箱に細工の痕跡がないか調べる。',category:'utility'},
   {id:'trap_kit',name:'トラップキット',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に罠を仕掛ける。箱を開けた相手へ25ダメージ。',category:'utility'},
-  {id:'poison_vial',name:'ポイズンバイアル',price_am:19,charges:1,faction:'killer',rarity:'rare',on_effect:'箱の回復アイテムに毒を仕込む。',category:'utility'},
+  {id:'poison_vial',name:'インク汚染毒',price_am:19,charges:1,faction:'killer',rarity:'rare',on_effect:'箱の回復物資、インクポンプ、リカバリーポッドを汚染する。',category:'utility'},
+  {id:'phantom_cloak',name:'ファントムクローク',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'6秒間、透明になって移動。攻撃すると解除。',category:'utility'},
+  {id:'blink_beacon',name:'ブリンクビーコン',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'現在の移動方向へ最大350px瞬間移動。ワープ地点には残光が残る。',category:'utility'},
   {id:'forgery_kit',name:'フェイクエビデンス',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に偽の痕跡を残す。',category:'utility'},
   {id:'fake_alarm',name:'フェイクアラーム',price_am:15,charges:1,faction:'killer',rarity:'common',on_effect:'周囲に偽の警報を発生させる。',category:'utility'},
   {id:'jammer',name:'ジャマー',price_am:22,charges:1,faction:'killer',rarity:'rare',on_effect:'8秒間、周囲の調査機器の使用を妨害する。',category:'utility'}
  ];
  const catalog=Object.fromEntries(goods.map(s=>[s.id,s]));
  function shuffled(a,random=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
- function settings(s={}){return {gateMin:[10,15,20,30].includes(+s.gateMin)?+s.gateMin:15,graceMin:[2,3,5].includes(+s.graceMin)?+s.graceMin:3,accelerate:s.accelerate!==false,createSeconds:clamp(+s.createSeconds||90,30,300),stage:s.stage||'garden',meetingCost:clamp(Number.isFinite(+s.meetingCost)?+s.meetingCost:6,0,100),meetingSeconds:60,characterWidth:512,characterHeight:512,teams:'solo',battleSeconds:1800}}
+ function settings(s={}){return {gateMin:[10,15,20,30].includes(+s.gateMin)?+s.gateMin:15,graceMin:[2,3,5].includes(+s.graceMin)?+s.graceMin:3,accelerate:s.accelerate!==false,createSeconds:clamp(+s.createSeconds||90,30,300),stage:s.stage||'lab',meetingCost:clamp(Number.isFinite(+s.meetingCost)?+s.meetingCost:6,0,100),meetingSeconds:60,characterWidth:512,characterHeight:512,teams:'solo',battleSeconds:1800}}
  function job(paths,rgba){const score={police:0,doctor:0,engineer:0,thief:0,detective:0,courier:0},valid=paths.filter(p=>p.length>=3),boxes=[];
   for(const path of valid){const p=path.filter(q=>Number.isFinite(q.x)&&Number.isFinite(q.y));if(p.length<3)continue;let len=0,turn=0,curve=0,sharp=0,right=0;for(let i=1;i<p.length;i++)len+=dist(p[i-1],p[i]);if(len<3)continue;
    const stride=Math.max(1,Math.floor(p.length/14));for(let i=stride;i<p.length-stride;i+=stride){const a=p[i-stride],b=p[i],c=p[i+stride],u=Math.atan2(b.y-a.y,b.x-a.x),v=Math.atan2(c.y-b.y,c.x-b.x),d=Math.atan2(Math.sin(v-u),Math.cos(v-u));turn+=d;const t=Math.abs(d);if(t>1.85)sharp++;if(t>1.05&&t<1.9)right++;if(t>.07&&t<.85)curve++}
@@ -9501,7 +9503,7 @@ const ShadowRules=(()=>{
  function init(h,now,random=Math.random){h.shadow={version:1,phase:'active',started:now,gateAt:now+h.settings.gateMin*60000,graceAt:0,shortened:0,initialArtists:h.players.length-(C.players.killer_counts[h.players.length]||1),sales:{},tasks:[],crates:[],drops:[],logs:[],nextCrate:now+45000,meeting:null,meetingCount:0,meetingNotes:[],meetingChat:[],meetingUsedBodies:[]};
   const killers=new Set(h.shadowRoles?Object.keys(h.shadowRoles).filter(id=>h.shadowRoles[id]==='killer'):shuffled(h.players.map(p=>p.id),random).slice(0,C.players.killer_counts[h.players.length]||1));
   h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.ammo=0;p.knifeReady=0;p.shieldUntil=0;p.jammedUntil=0;p.taskBoost=false;p.taskProgress={};p.taskSuccessSeq=0;p.downHP=100;p.downUntil=0;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.reviveCount=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.alignment==='killer'){p.inventory.push({id:'initial-knife-'+p.id,sku:'toy_knife',charges:-1,on:true})}else if(p.job==='police'){p.inventory.push({id:'initial-pistol-'+p.id,sku:'ink_pistol',charges:-1,on:true})}});
-  const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,1260],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
+  const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,735],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
  }
  function buy(h,p,sku){if(!up(p))return '行動できません';if(sku==='slot'){if(p.slots>=5)return '最大5枠です';const cost=p.slots===3?20:35;if(p.am<cost)return 'アートマター不足';p.am-=cost;p.slots++;return ''}
   const s=catalog[sku];if(!available(p,s))return '購入できません';if(sku==='bullet_pack'){if(p.ammo>=12)return '弾薬は12発までです';if(p.am<price(p,s))return 'アートマター不足';p.am-=price(p,s);p.ammo=Math.min(12,(p.ammo||0)+1);return ''}if(p.inventory.some(i=>i.sku===sku)&&sku!=='bullet_pack')return '同じ装備は1枠までです';if(p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots)return '所持枠が満杯です';const cost=price(p,s);if(p.am<cost)return 'アートマター不足';p.am-=cost;p.inventory.push({id:'item-'+(++h.seq),sku,charges:s.charges,on:true});h.shadow.sales[sku]=(h.shadow.sales[sku]||0)+1;return '';
@@ -9528,25 +9530,31 @@ const ShadowRules=(()=>{
 window.ArtShadow=(()=>{
  const previous=window.ArtGame,R={...window.ArtsRules,settings:ShadowRules.settings,skills:()=>SHADOW_DATA.skills.items.filter(s=>s.availability==='shop').map(s=>s.source_skill_id),classNames:{...window.ArtsRules.classNames,...Object.fromEntries(ShadowRules.J.map(j=>[j.id,j.name]))}};
  const names=['素早さ','攻撃力','防御力','インク量','射程'];
- // An independent exploration world: 12 themed rooms connected by broad corridors.
+ // An independent exploration world: 11 themed rooms connected by broad corridors.
+ // 1.4.96: enlarged layout, 2.5D room furnishings, doors and facilities.
  // Avoid changing ArtsRules: only the Shadow-specific shallow copy is enlarged.
- const SHADOW_W=1900,SHADOW_H=2600;
+ const SHADOW_SCALE=1.25;
+ const SHADOW_W=2375,SHADOW_H=3250;
+ const shadowScale=v=>Math.round(v*SHADOW_SCALE);
+ const shadowMapPoint=(x,y)=>({x:shadowScale(x),y:shadowScale(y)});
  R.W=SHADOW_W;R.H=SHADOW_H;
  // Asymmetric research complex. Broken wings and free corridors, not a rectangular grid.
- const SHADOW_ROOMS=[
+ const SHADOW_ROOM_SOURCE=[
   {name:'管制室',x:110,y:100,w:430,h:350},{name:'観測棟',x:1060,y:95,w:560,h:360},
-  {name:'医務室',x:95,y:630,w:380,h:430},{name:'研究区画',x:620,y:520,w:520,h:385},
+  {name:'医務室',x:95,y:630,w:380,h:430},{name:'インク研究室',x:620,y:520,w:520,h:385},
   {name:'電力室',x:1420,y:705,w:370,h:510},{name:'倉庫',x:170,y:1260,w:490,h:580},
-  {name:'中央ホール',x:790,y:1090,w:510,h:460},{name:'貨物庫',x:1370,y:1550,w:390,h:455},
-  {name:'整備工房',x:750,y:1850,w:470,h:400},{name:'通信室',x:170,y:2160,w:370,h:300},
+  {name:'中央会議室',x:685,y:1000,w:705,h:760},{name:'空調室',x:1450,y:1570,w:360,h:430},
+  {name:'整備室',x:750,y:1850,w:470,h:400},{name:'通信室',x:170,y:2160,w:370,h:300},
   {name:'動力棟',x:1390,y:2260,w:370,h:260}
  ];
+ const SHADOW_ROOMS=SHADOW_ROOM_SOURCE.map(r=>({...r,x:shadowScale(r.x),y:shadowScale(r.y),w:shadowScale(r.w),h:shadowScale(r.h)}));
  // Navigation graph: each connector is a continuous, visible corridor, not merely a door cut in a wall.
- const SHADOW_LINKS=[[0,3],[0,2],[2,5],[3,1],[3,6],[1,4],[4,7],[5,6],[5,9],[6,7],[6,8],[7,10],[8,9],[8,10],[2,3],[1,6]];
+ // 1.4.95: remove the redundant top vertical passage from the observatory to meeting room.
+ const SHADOW_LINKS=[[0,3],[0,2],[2,5],[3,1],[3,6],[1,4],[4,7],[5,6],[5,9],[6,7],[6,8],[7,10],[8,9],[8,10],[2,3]];
  const SHADOW_HALLS=[];
  for(const [ai,bi] of SHADOW_LINKS){
   const a=SHADOW_ROOMS[ai],b=SHADOW_ROOMS[bi],ax=a.x+a.w/2,ay=a.y+a.h/2,bx=b.x+b.w/2,by=b.y+b.h/2;
-  const cx=(ax+bx)/2,cy=(ay+by)/2,th=108;
+  const cx=(ax+bx)/2,cy=(ay+by)/2,th=shadowScale(108);
   // L-shaped links (perpendicular sections). Some vary orientation to break the grid rhythm.
   const joints=(ai+bi)%2?[[ax,ay],[bx,ay],[bx,by]]:[[ax,ay],[ax,by],[bx,by]];
   for(let i=1;i<joints.length;i++){
@@ -9558,13 +9566,13 @@ window.ArtShadow=(()=>{
   const walls=[];let id=0;
   const add=(x,y,w,h)=>walls.push({id:'shadow-wall-'+(++id),type:'stone',x,y,w,h,hp:null,maxHp:null});
   const roomWalls=(a,doors)=>{
-   const thick=22;
+   const thick=shadowScale(22);
    // At least two open edges for each room; layouts vary in width and direction.
-   const sx=a.x+a.w*.43,sy=a.y+a.h*.42;
-   if(!doors.includes('N'))add(a.x,a.y,a.w,thick);else{add(a.x,a.y,sx-a.x-70,thick);add(sx+70,a.y,a.x+a.w-(sx+70),thick)}
-   if(!doors.includes('S'))add(a.x,a.y+a.h-thick,a.w,thick);else{add(a.x,a.y+a.h-thick,sx-a.x-70,thick);add(sx+70,a.y+a.h-thick,a.x+a.w-(sx+70),thick)}
-   if(!doors.includes('W'))add(a.x,a.y,thick,a.h);else{add(a.x,a.y,thick,sy-a.y-70);add(a.x,sy+70,thick,a.y+a.h-(sy+70))}
-   if(!doors.includes('E'))add(a.x+a.w-thick,a.y,thick,a.h);else{add(a.x+a.w-thick,a.y,thick,sy-a.y-70);add(a.x+a.w-thick,sy+70,thick,a.y+a.h-(sy+70))}
+   const sx=a.x+a.w*.43,sy=a.y+a.h*.42;const aperture=shadowScale(70);
+   if(!doors.includes('N'))add(a.x,a.y,a.w,thick);else{add(a.x,a.y,sx-a.x-aperture,thick);add(sx+aperture,a.y,a.x+a.w-(sx+aperture),thick)}
+   if(!doors.includes('S'))add(a.x,a.y+a.h-thick,a.w,thick);else{add(a.x,a.y+a.h-thick,sx-a.x-aperture,thick);add(sx+aperture,a.y+a.h-thick,a.x+a.w-(sx+aperture),thick)}
+   if(!doors.includes('W'))add(a.x,a.y,thick,a.h);else{add(a.x,a.y,thick,sy-a.y-aperture);add(a.x,sy+aperture,thick,a.y+a.h-(sy+aperture))}
+   if(!doors.includes('E'))add(a.x+a.w-thick,a.y,thick,a.h);else{add(a.x+a.w-thick,a.y,thick,sy-a.y-aperture);add(a.x+a.w-thick,sy+aperture,thick,a.y+a.h-(sy+aperture))}
   };
   const openings=['ES','SW','NSE','EW','WS','NES','EW','NW','NS','NE','NW'];
   SHADOW_ROOMS.forEach((r,i)=>roomWalls(r,openings[i]));
@@ -9572,10 +9580,10 @@ window.ArtShadow=(()=>{
   for(const [x,y,w,h] of [[205,188,83,42],[385,325,60,90],[1170,195,145,48],[1510,355,75,54],
    [205,735,106,72],[368,914,40,80],[785,635,75,65],[1010,785,86,40],
    [1530,825,88,105],[1670,1075,82,52],[265,1390,94,75],[470,1555,100,82],
-   [280,1690,84,58],[1010,1215,100,54],[935,1405,105,60],[1500,1670,90,95],
+   [280,1690,84,58],[1500,1670,90,95],
    [1680,1855,65,92],[825,1980,90,58],[1085,2160,65,55],[230,2290,100,64],
    [1490,2355,86,64],[415,106,40,48],[1260,510,50,90],[550,1135,76,45],
-   [1290,1330,72,95],[590,2020,85,50]])add(x,y,w,h);
+   [1290,1330,72,95],[590,2020,85,50]].map(row=>row.map(shadowScale)))add(x,y,w,h);
   // Cut continuous openings wherever a real hallway crosses a wall. Keep wall fragments.
   let carved=walls.filter(b=>Math.hypot(b.x+b.w/2-SHADOW_W/2,b.y+b.h/2-SHADOW_H/2)>140);
   for(const hall of SHADOW_HALLS){
@@ -9596,9 +9604,50 @@ window.ArtShadow=(()=>{
   }
   return carved.filter(b=>b.w>4&&b.h>4);
  };
+
+ // Ver.1.4.96: doors are derived from the same hall/room intersections as the floor.
+ // They do not introduce a second independent map coordinate system.
+ const SHADOW_DOORS=[];
+ for(let ri=0;ri<SHADOW_ROOMS.length;ri++){
+  const r=SHADOW_ROOMS[ri],choices=[];
+  for(const hall of SHADOW_HALLS){
+   const left=r.x,right=r.x+r.w,top=r.y,bottom=r.y+r.h;
+   if(hall.x<left-5&&hall.x+hall.w>left+5&&hall.y<bottom-40&&hall.y+hall.h>top+40)
+    choices.push({x:left,y:Math.max(top+65,Math.min(bottom-65,(Math.max(hall.y,top)+Math.min(hall.y+hall.h,bottom))/2)),axis:'V'});
+   if(hall.x<right-5&&hall.x+hall.w>right+5&&hall.y<bottom-40&&hall.y+hall.h>top+40)
+    choices.push({x:right,y:Math.max(top+65,Math.min(bottom-65,(Math.max(hall.y,top)+Math.min(hall.y+hall.h,bottom))/2)),axis:'V'});
+   if(hall.y<top-5&&hall.y+hall.h>top+5&&hall.x<right-40&&hall.x+hall.w>left+40)
+    choices.push({y:top,x:Math.max(left+65,Math.min(right-65,(Math.max(hall.x,left)+Math.min(hall.x+hall.w,right))/2)),axis:'H'});
+   if(hall.y<bottom-5&&hall.y+hall.h>bottom+5&&hall.x<right-40&&hall.x+hall.w>left+40)
+    choices.push({y:bottom,x:Math.max(left+65,Math.min(right-65,(Math.max(hall.x,left)+Math.min(hall.x+hall.w,right))/2)),axis:'H'});
+  }
+  const kept=[];
+  for(const q of choices){if(kept.some(v=>Math.hypot(v.x-q.x,v.y-q.y)<90))continue;
+   const w=q.axis==='H'?100:16,h=q.axis==='V'?100:16;
+   // Existing solid wall may still cut this location: only mount a door at a navigable gap.
+   if(shadowWalls().some(b=>q.x>b.x-12&&q.x<b.x+b.w+12&&q.y>b.y-12&&q.y<b.y+b.h+12))continue;
+   kept.push({...q,w,h,id:'lab-door-'+ri+'-'+kept.length,room:ri});
+  }
+  SHADOW_DOORS.push(...kept.slice(0,4));
+ }
+ // Some rooms connect to an internal hall and have no perimeter-crossing candidate.
+ // Visualize one accessible opening at the existing southern research-corridor link.
+ if(!SHADOW_DOORS.some(d=>d.room===3)){
+  const r=SHADOW_ROOMS[3],x=r.x+r.w*.43,y=r.y+r.h;
+  SHADOW_DOORS.push({id:'lab-door-3-0',room:3,x,y,w:100,h:16,axis:'H',openUntil:0});
+ }
+ const shadowFacilityDefs=[
+  {id:'camera',room:0,label:'監視カメラ',kind:'camera',color:'#83d9f2'},
+  {id:'med',room:2,label:'リカバリーポッド',kind:'med',color:'#7cdeaf'},
+  {id:'ink',room:3,label:'インクポンプ',kind:'ink',color:'#bba2ef'},
+  {id:'reactor',room:4,label:'メインリアクター',kind:'reactor',color:'#83d8fb'},
+  {id:'vent',room:7,label:'空調制御盤',kind:'vent',color:'#93c4e1'},
+  {id:'work',room:8,label:'整備ステーション',kind:'work',color:'#e5b777'}
+ ].map(q=>{const r=SHADOW_ROOMS[q.room];return {...q,x:r.x+r.w/2,y:r.y+r.h*.60}});
+
  R.map=()=>shadowWalls();
  const shadowOnFloor=(x,y,r=R.R)=>[...SHADOW_ROOMS,...SHADOW_HALLS].some(a=>x>=a.x+r*.65&&x<=a.x+a.w-r*.65&&y>=a.y+r*.65&&y<=a.y+a.h-r*.65);
- R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||!shadowOnFloor(x,y,r)||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b));
+ R.blocked=(x,y,blocks,r=R.R)=>x<r||x>R.W-r||y<r||y>R.H-r||!shadowOnFloor(x,y,r)||(blocks||[]).some(b=>b.type!=='bush'&&(b.type!=='wall'||b.hp>0)&&R.intersects(x,y,r,b))||(host?.shadow?.doors||view?.shadow?.doors||[]).some(d=>d.openUntil<=Date.now()&&!(d.room===3&&d.id==='lab-door-3-0')&&Math.abs(x-d.x)<d.w/2+r*.7&&Math.abs(y-d.y)<d.h/2+r*.7);
  const moves=R.moves;
  const drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  let host=null,view=null,offset=0,capturing=false,submitted='',lastFrame=0,lastNet=0,lastMove=0,raf=0,uiKey='',rosterKey='',paintMode=false,gesture=null,strokes=[],summonCore=null,holdSource=null,paintStarted=0,guide=null,stick=null,move={x:0,y:0},keys=new Set(),images=new Map(),positions=new Map(),walk=new Map(),damageShakes=new Map(),uploading=new Set(),imageRev='',lastPreview=0,lastAnimation=0,frameDelta=.016,hudText='',previousFx=new Set(),impactSounds=new Set(),heardBuffWaves=new Set(),heardGunRounds=new Set(),characterPaths=[],characterFacing=1,equipChoice=[];
@@ -9619,8 +9668,8 @@ window.ArtShadow=(()=>{
  // Adapter for the existing combat implementation, scoped to this closure.
  function shadowSyncSkills(p){p.skills=ShadowRules.enabledSkills(p);p.skill=p.skills[0]||''}
  function shadowPublic(id,images){const s=publicState(images),me=host.fighters.find(p=>p.id===id),ghost=me&&!ShadowRules.living(me);s.testMode=!!(room.offline&&room.shadowTest);s.testBotsMove=!!host.testBotsMove;s.shadowSettings=host.settings;s.privateRole=host.shadowRoles?.[id]||null;s.killerFriends=s.privateRole==='killer'?Object.keys(host.shadowRoles).filter(k=>host.shadowRoles[k]==='killer'):[];
-  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),meetingUsedBodies:[...(h.meetingUsedBodies||[])],weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
-  s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.state=q.state;p.corpseX=q.corpseX;p.corpseY=q.corpseY;p.diedAt=q.diedAt;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
+  if(host.shadow){const h=host.shadow;s.shadow={doors:(h.doors||[]).map(d=>({id:d.id,x:d.x,y:d.y,w:d.w,h:d.h,axis:d.axis,room:d.room,openUntil:d.openUntil})),facilities:(h.facilities||[]).map(d=>({id:d.id,x:d.x,y:d.y,room:d.room,label:d.label,kind:d.kind,color:d.color,hp:d.hp,maxHp:d.maxHp,poisoned:d.poisoned,enhancedUntil:d.enhancedUntil,disabledUntil:d.disabledUntil})),phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),meetingUsedBodies:[...(h.meetingUsedBodies||[])],weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,cameraUntil:me.cameraUntil||0,cameraRoom:me.cameraRoom??0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
+  s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.invisibleUntil=q.invisibleUntil||0;p.state=q.state;p.corpseX=q.corpseX;p.corpseY=q.corpseY;p.diedAt=q.diedAt;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
  function shadowEquip(){if(!host||!['create','collect'].includes(host.phase))return;const players=host.players.filter(p=>p.active&&host.art[p.id]);if(players.length<4){host.phase='create';host.deadline=Date.now()+30000;host.allReadyAt=0;shadowSend(true);return}host.players=players;const killers=new Set(ShadowRules.shuffled(players.map(p=>p.id)).slice(0,ShadowRules.C.players.killer_counts[players.length]||1));host.shadowRoles=Object.fromEntries(players.map(p=>[p.id,killers.has(p.id)?'killer':'artist']));host.phase='equip';host.equipped={};host.deadline=Date.now()+5000;shadowSend(true)}
@@ -9644,7 +9693,11 @@ window.ArtShadow=(()=>{
   }
   return spots;
  }
- function shadowBeginBattle(now){ShadowRules.init(host,now);const spawns=shadowSpawnPositions(host.fighters.length,host.blocks);host.fighters.forEach((p,i)=>Object.assign(p,spawns[i]));for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
+ function shadowBeginBattle(now){ShadowRules.init(host,now);
+  host.shadow.doors=SHADOW_DOORS.map(d=>({...d,openUntil:now+8000}));
+  host.shadow.facilities=shadowFacilityDefs.map(d=>({...d,hp:d.kind==='reactor'?50:null,maxHp:d.kind==='reactor'?50:null,poisoned:false,enhancedUntil:0,disabledUntil:0,repairingUntil:0}));
+  // Original task anchors are reprojected to the enlarged facility layout.
+  for(const t of host.shadow.tasks){t.x=shadowScale(t.x);t.y=shadowScale(t.y)}const spawns=shadowSpawnPositions(host.fighters.length,host.blocks);host.fighters.forEach((p,i)=>Object.assign(p,spawns[i]));for(const p of host.fighters){p.alignment=host.shadowRoles[p.id];p.maxHp=p.hp=p.alignment==='killer'?120:100;p.class=p.job;shadowSyncSkills(p)}host.deadline=host.shadow.gateAt;for(const t of host.shadow.tasks){if(R.blocked(t.x,t.y,host.blocks,40)){for(let d=40;d<250;d+=30){let found=false;for(let i=0;i<8;i++){const a=i*Math.PI/4,q={x:R.clamp(t.x+Math.cos(a)*d,50,R.W-50),y:R.clamp(t.y+Math.sin(a)*d,50,R.H-50)};if(!R.blocked(q.x,q.y,host.blocks,40)){Object.assign(t,q);found=true;break}}if(found)break}}}if(room.offline&&room.shadowTest){host.testBotsMove=false;host.fighters.find(p=>p.id===localId).am=100}shadowSpawnCrate(now);}
  // Art Traitor: host-authoritative, all-player meeting. Time is paused; persistent memo is public.
  function shadowMeetingStart(p,now,reason='button',corpse=null){
   const h=host.shadow;if(!h||h.meeting||host.phase!=='battle'||h.phase==='ended'||!ShadowRules.up(p))return false;
@@ -9750,16 +9803,19 @@ window.ArtShadow=(()=>{
    return true;
   };
   if(isShot&&useJudgment)p.ammo--; // No weapon cooldown; ink, ammo and single-use limits still apply.
-  p.lastSpecial=now;p.disguiseUntil=0;
+  p.lastSpecial=now;p.disguiseUntil=0;p.invisibleUntil=0;
+  let knifeUseSpent=false;
+  const spendKnifeUse=()=>{if(!strongKnife||knifeUseSpent)return;knifeUseSpent=true;strongKnife.charges=Math.max(0,(strongKnife.charges||3)-1);if(strongKnife.charges===0){p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフが壊れました';shadowSyncSkills(p)}};
   const chosen=hits.find(v=>clear(v.q));
   if(isShot){
    // Shadow projectiles travel through the map at a visible speed. The host alone
    // resolves cover, hits, BOT targets, damage and one-use ammunition.
    const spawn={x:p.x+ux*17,y:p.y+uy*17};
    (host.shadow.weaponShots??=[]).push({id:++host.seq,owner:id,weapon:useJudgment?'judgment':usePistol?'pistol':'airgun',x:spawn.x,y:spawn.y,vx:ux*(useJudgment?850:560),vy:uy*(useJudgment?850:560),created:now,end:now+(useJudgment?900:1100),left:useJudgment?640:300,hit:[]});
-  }else if(chosen){const q=chosen.q;if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?100:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(strongKnife&&dealt>0&&['down','dead'].includes(q.state)){strongKnife.charges=0;p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフは命中して壊れました';shadowSyncSkills(p)}}}
+  }else if(chosen){const q=chosen.q;if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?50:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(dealt>0)spendKnifeUse()}}
   // Only the knife hits crates immediately; bullets are checked during flight.
-  if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<knifeRange&&b<54&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);break}}
+  if(isKnife){const f=host.shadow.facilities?.find(q=>q.kind==='reactor');if(f&&f.hp>0){const dx=f.x-p.x,dy=f.y-p.y,dist=Math.hypot(dx,dy),delta=Math.atan2(Math.sin(Math.atan2(dy,dx)-angle),Math.cos(Math.atan2(dy,dx)-angle));if(dist<knifeRange+65&&Math.abs(delta)<=knifeHalfAngle&&clear(f)){f.hp=Math.max(0,f.hp-(strongKnife?50:10));spendKnifeUse();if(f.hp===0){f.disabledUntil=now+60000;host.effects.push({id:++host.seq,type:'shadowCrateBreak',x:f.x,y:f.y,start:now,end:now+950})}}}}
+  if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<knifeRange&&b<54&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);spendKnifeUse();break}}
   host.effects.push({id:++host.seq,type:isShot?'shadowGunFlash':'shadowKnifeArc',owner:p.id,x:p.x,y:p.y,r:isShot?40:65,angle,start:now,end:now+(isShot?420:530),weapon:isShot?(useJudgment?'judgment':usePistol?'pistol':'airgun'):(strongKnife?'killer':'toy')});
   return true;
  }
@@ -9780,6 +9836,59 @@ window.ArtShadow=(()=>{
   if(h.meeting){if(m.action==='meetingStroke'&&ShadowRules.up(p)){const path=Array.isArray(m.path)?m.path:[],tool=m.tool==='eraser'?'eraser':'pen';if(path.length>=2&&path.length<=220&&path.every(pt=>Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=0&&pt.x<=1000&&pt.y>=0&&pt.y<=600)&&h.meetingNotes.length<600){const stride=Math.max(1,Math.ceil(path.length/72));const points=path.filter((_,i)=>i%stride===0||i===path.length-1);h.meetingNotes.push({id:++host.seq,from:id,tool,path:points.map(pt=>({x:Math.round(pt.x),y:Math.round(pt.y)}))});shadowSend()}return true}return true}
   if(room.offline&&room.shadowTest&&id===localId&&m.action?.startsWith('test')){if(m.action==='testAM')p.am=100;if(m.action==='testGate'){h.gateAt=now;h.graceAt=now+180000;h.phase='escape_grace';host.deadline=h.graceAt}if(m.action==='testHeal'){p.state='alive';p.active=true;p.hp=p.maxHp;p.ink=p.maxInk;p.downHP=100;p.downUntil=0;p.poison=null;p.action=null}if(m.action==='testBots')host.testBotsMove=!host.testBotsMove;shadowSend();return true}
   if(!ShadowRules.up(p)||!Number.isSafeInteger(m.seq)||m.seq<=p.lastSeq)return true;p.lastSeq=m.seq;const center={x:R.W/2,y:R.H/2};
+  // Shared room devices: single host-authoritative state, independent of client rendering.
+  if(m.action==='doorOpen'){
+   const d=h.doors?.find(q=>q.id===m.target);
+   if(d&&ShadowRules.living(p)&&shadowNear(p,d,125)){d.openUntil=now+6500;p.notice='ドアを開けました';shadowSend();}
+   return true;
+  }
+  if(m.action==='facility'){
+   const f=h.facilities?.find(q=>q.id===m.target),operation=m.operation;
+   if(!f||!ShadowRules.up(p)||!shadowNear(p,f,155))return true;
+   if(operation==='camera'&&f.kind==='camera'){
+    if(f.disabledUntil>now||h.facilities?.some(q=>q.kind==='reactor'&&q.hp<=0))return shadowReply(p,'監視設備は停電中です');
+    p.cameraUntil=now+12000;p.cameraRoom=Number.isInteger(Number(m.room))?Math.min(10,Math.max(0,Number(m.room))):1;
+    return shadowReply(p,'監視モニターを12秒間起動しました');
+   }
+   if(operation==='poison'&&p.alignment==='killer'&&['ink','med'].includes(f.kind)){
+    const item=p.inventory.find(i=>i.sku==='poison_vial'&&i.on);
+    if(!item)return shadowReply(p,'インク汚染毒が必要です');
+    if(f.poisoned)return shadowReply(p,'すでに汚染されています');
+    f.poisoned=true;ShadowRules.consume(p,item);shadowSyncSkills(p);return shadowReply(p,'装置に汚染毒を仕込みました');
+   }
+   if(operation==='clean'&&['ink','med'].includes(f.kind)){
+    if(!f.poisoned)return shadowReply(p,'汚染はありません');
+    if(p.am<3)return shadowReply(p,'浄化にはアートマター3が必要です');
+    p.am-=3;f.poisoned=false;return shadowReply(p,'装置を浄化しました');
+   }
+   if(operation==='med'&&f.kind==='med'){
+    if(p.am<3)return shadowReply(p,'治療にはアートマター3が必要です');
+    p.am-=3;if(f.poisoned){shadowHurt(p,15,now,{id:'contaminated_med',owner:'system'},true);f.poisoned=false;return shadowReply(p,'汚染されたポッド！ 15ダメージを受けました')}
+    p.hp=Math.min(p.maxHp,p.hp+35);return shadowReply(p,'HPを35回復しました');
+   }
+   if(operation==='ink'&&f.kind==='ink'){
+    if(p.am<1)return shadowReply(p,'アートマターが足りません');
+    if(p.ink>=p.maxInk)return shadowReply(p,'インクは満タンです');
+    p.am--;const gain=f.poisoned?2:f.enhancedUntil>now?7:5;p.ink=Math.min(p.maxInk,p.ink+gain);return shadowReply(p,'インクを'+gain+'補給しました');
+   }
+   if(operation==='repair'&&f.kind==='reactor'){
+    if(f.hp>=50)return shadowReply(p,'リアクターは正常です');
+    if(p.action)return shadowReply(p,'別の操作中です');
+    const helpers=host.fighters.filter(q=>ShadowRules.up(q)&&R.dist(q,f)<150).length;
+    p.action={kind:'facilityRepair',target:f.id,start:now,end:now+Math.ceil(12000/Math.max(1,1+Math.min(2,helpers-1)*.65)),x:p.x,y:p.y,hit:p.lastHitSeq};return shadowReply(p,'リアクターの修理を開始しました');
+   }
+   if(operation==='enhance'&&['reactor','ink','vent'].includes(f.kind)){
+    if(p.am<8)return shadowReply(p,'強化にはアートマター8が必要です');
+    if(f.kind==='reactor'&&f.hp<=0)return shadowReply(p,'先にリアクターを修理してください');
+    p.am-=8;f.enhancedUntil=now+60000;return shadowReply(p,'施設を60秒間強化しました');
+   }
+   if(operation==='vent'&&f.kind==='vent'){
+    if(p.alignment==='killer')f.disabledUntil=now+20000;
+    else f.disabledUntil=0;
+    return shadowReply(p,p.alignment==='killer'?'空調を20秒間妨害しました':'空調を復旧しました');
+   }
+   return true;
+  }
   if(m.action==='meetingStart'){if(!shadowMeetingStart(p,now,'button'))shadowReply(p,'中央の会議装置で必要なアートマターを確認してください');return true}
   if(m.action==='reportBody'){const body=host.fighters.find(f=>f.id===m.target);if(!shadowMeetingStart(p,now,'body',body))shadowReply(p,'近くに通報できる死体がありません');return true}
   if(m.action==='cancel'){p.action=null;shadowSend();return true}
@@ -9796,7 +9905,7 @@ window.ArtShadow=(()=>{
   }}
   if(m.action==='clock'){if(!host.settings.accelerate||!shadowNear(p,center,125)||p.am<15||h.graceAt||h.gateAt-now<180000||h.shortened+60000>host.settings.gateMin*60000*.2)return true;p.am-=15;h.gateAt-=60000;h.shortened+=60000;host.deadline=h.gateAt}
   if(m.action==='treat'){const cost=p.job==='doctor'?12:15;if(!shadowNear(p,center,125)||p.downTreats>=2||p.downHP>=100||p.am<cost)return true;p.am-=cost;p.downTreats++;p.downHP=Math.min(100,p.downHP+20)}
-  if(m.action==='revive'){const target=host.fighters.find(q=>q.id===m.target);if(!shadowNear(p,target)||target.state!=='down'||p.am<12)return true;p.action={kind:'revive',target:target.id,start:now,end:now+10000,x:p.x,y:p.y,hit:p.lastHitSeq}}
+  if(m.action==='revive'){const target=host.fighters.find(q=>q.id===m.target);if(!shadowNear(p,target)||target.state!=='down'||p.am<12)return true;p.action={kind:'revive',target:target.id,start:now,end:now+(p.job==='doctor'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq}}
   if(m.action==='escape'){const gate={x:m.target==='west'?35:R.W-35,y:R.H/2};if(!h.graceAt||p.alignment!=='artist'||!shadowNear(p,gate))return true;p.action={kind:'escape',target:m.target,start:now,end:now+4000,x:p.x,y:p.y,hit:p.lastHitSeq}}
   if(m.action==='taskStart'){const t=h.tasks.find(t=>t.id===m.target);if(!shadowNear(p,t))return true;const progress=p.taskProgress?.[t.id]||{rev:0,readyAt:0};if(progress.readyAt>now)return true;const model=ShadowRules.taskModel(t.kind,progress.rev);p.action={kind:'task',target:t.id,rev:progress.rev,start:now,end:now+(model.seconds-(p.job==='engineer'&&['WIR_01','REPAIR_01'].includes(t.kind)?3:0))*(p.taskBoost?1.5:1)*1000,x:p.x,y:p.y,hit:p.lastHitSeq};p.taskBoost=false;p.taskStartedSeq=(p.taskStartedSeq||0)+1}
   if(m.action==='taskSubmit'){const a=p.action,t=a&&h.tasks.find(t=>t.id===a.target);if(a?.kind!=='task'||!shadowNear(p,t)||a.rev!==(p.taskProgress?.[t.id]?.rev||0)||(p.taskProgress?.[t.id]?.readyAt||0)>now||now>a.end+30000||!ShadowRules.taskCheck(t.kind,a.rev,m.paths))return shadowReply(p,'まだ完成していません。お手本と経過時間を確認してください。');p.am=Math.min(100,p.am+ShadowRules.taskModel(t.kind,a.rev).reward);p.action=null;const progress=(p.taskProgress??={})[t.id]??={rev:0,readyAt:0};progress.rev++;progress.readyAt=now+30000;p.notice='タスク完了！ アートマターを獲得しました';p.taskSuccessSeq=(p.taskSuccessSeq||0)+1}
@@ -9815,6 +9924,18 @@ window.ArtShadow=(()=>{
    else if(sku==='smoke_bomb'){host.effects.push({id:++host.seq,type:'smoke',owner:p.id,x:p.x,y:p.y,r:140,start:now,end:now+6000});ShadowRules.consume(p,item)}
    else if(sku==='trace_scanner'){if(p.jammedUntil>now)return shadowReply(p,'調査機器が妨害されています');const targets=host.fighters.filter(q=>q.id!==p.id&&ShadowRules.living(q)&&R.dist(q,p)<200);p.notice=targets.length?'近くに'+targets.length+'人分の気配を確認しました（陣営不明）':'近くに足跡や気配はありません';ShadowRules.consume(p,item)}
    else if(sku==='disguise'){p.disguiseUntil=now+8000;ShadowRules.consume(p,item);p.notice='8秒間の偽装を開始'}
+   else if(sku==='phantom_cloak'&&p.alignment==='killer'){
+    p.invisibleUntil=now+6000;ShadowRules.consume(p,item);p.notice='6秒間透明になりました';
+   }
+   else if(sku==='blink_beacon'&&p.alignment==='killer'){
+    const input=host.inputs[p.id],dx=input?.x||p.facing||1,dy=input?.y||0,dist=Math.hypot(dx,dy)||1;
+    let goal=null;for(let d=350;d>=80;d-=15){const nx=p.x+dx/dist*d,ny=p.y+dy/dist*d;
+     if(!R.blocked(nx,ny,host.blocks,R.R+5)){goal={x:nx,y:ny};break}}
+    if(!goal)return shadowReply(p,'安全な転送先がありません');
+    const from={x:p.x,y:p.y};p.x=goal.x;p.y=goal.y;
+    host.effects.push({id:++host.seq,type:'shadowCrateRespawn',x:from.x,y:from.y,start:now,end:now+1600});
+    ShadowRules.consume(p,item);p.notice='ワープしました';
+   }
    else if(sku==='fake_alarm'&&p.alignment==='killer'){for(const q of host.fighters)if(ShadowRules.living(q)&&R.dist(q,p)<350)q.notice='近くで異常警報が鳴りました';ShadowRules.consume(p,item)}
    else if(sku==='jammer'&&p.alignment==='killer'){for(const q of host.fighters)if(q.id!==p.id&&ShadowRules.living(q)&&R.dist(q,p)<250)q.jammedUntil=now+8000;ShadowRules.consume(p,item)}
    else if(['judgment_gun','killer_knife','toy_knife','ink_pistol','air_gun'].includes(sku)){p.notice='武器は画面に図形を描いて使います'}
@@ -9837,6 +9958,8 @@ window.ArtShadow=(()=>{
     b.left-=step;
     if(b.weapon!=='judgment'&&R.blocked(nx,ny,host.blocks,4)){host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:13,start:now,end:now+260,weapon:b.weapon});return false;}
     b.x=nx;b.y=ny;
+    const reactor=h.facilities?.find(q=>q.kind==='reactor'&&q.hp>0&&Math.hypot(q.x-b.x,q.y-b.y)<55);
+    if(reactor){reactor.hp=Math.max(0,reactor.hp-(b.weapon==='airgun'?10:b.weapon==='pistol'?35:100));if(reactor.hp===0){reactor.disabledUntil=now+60000;host.effects.push({id:++host.seq,type:'shadowCrateBreak',x:reactor.x,y:reactor.y,start:now,end:now+950})}return false;}
     const victim=host.fighters.find(q=>q.id!==b.owner&&ShadowRules.living(q)&&q.state==='alive'&&R.dist(q,b)<R.R+8);
     if(victim){
      if(b.weapon==='judgment'){
@@ -9852,11 +9975,14 @@ window.ArtShadow=(()=>{
    }
    return true;
   });
-  for(const p of host.fighters){if(!ShadowRules.living(p))continue;const member=members.get(p.id),testBot=host.players.some(q=>q.id===p.id&&q.bot);if(!testBot&&(!member||member.disconnected)){p.disconnectedAt??=now;delete host.inputs[p.id];if(now-p.disconnectedAt>=60000){shadowDead(p,now,'forfeit');continue}}else p.disconnectedAt=null;
+  for(const p of host.fighters){if(!ShadowRules.living(p))continue;
+   for(const d of h.doors||[])if(R.dist(p,d)<85&&d.openUntil<now+900)d.openUntil=now+2200;
+   const member=members.get(p.id),testBot=host.players.some(q=>q.id===p.id&&q.bot);if(!testBot&&(!member||member.disconnected)){p.disconnectedAt??=now;delete host.inputs[p.id];if(now-p.disconnectedAt>=60000){shadowDead(p,now,'forfeit');continue}}else p.disconnectedAt=null;
    if(p.state==='down'){p.downHP=Math.max(0,100*(Math.max(0,(p.downUntil||now)-now)/10000));p.hp=.0001;p.moving=false;if(now>=(p.downUntil||now)||p.downHP<=0)shadowDead(p,now);continue}
    if(p.poison){if(now>=p.poison.to)p.poison=null;else if(now>=p.poison.from)shadowHurt(p,dt*3,now,{id:'poison',type:'magic'},true)}
    const a=p.action;if(!a)continue;delete host.inputs[p.id];p.dash=null;if(R.dist(p,a)>8||p.lastHitSeq!==a.hit){p.action=null;continue}if(a.kind==='task')continue;
    const q=a.kind==='revive'?host.fighters.find(q=>q.id===a.target):a.kind==='trap'?h.crates.find(c=>c.id===a.target):null;if(['revive','trap'].includes(a.kind)&&!shadowNear(p,q)){p.action=null;continue}if(now<a.end)continue;p.action=null;
+   if(a.kind==='facilityRepair'){const f=h.facilities?.find(v=>v.id===a.target);if(f&&f.kind==='reactor'){f.hp=50;f.disabledUntil=0;host.effects.push({id:++host.seq,type:'shadowCrateRespawn',x:f.x,y:f.y,start:now,end:now+950})}continue}
    if(a.kind==='revive'&&q.state==='down'&&q.downHP>0&&p.am>=12){p.am-=12;q.hp=30;q.state='alive';q.protectUntil=now+600;q.downBlocked=[];q.reviveCount=(q.reviveCount||0)+1;q.reviveProgress=0;q.downUntil=0}
    if(a.kind==='escape'&&p.alignment==='artist'&&h.graceAt){p.state='escaped';p.escapedAt=now;p.hp=0;p.active=false;host.effects=host.effects.filter(e=>e.owner!==p.id);host.shots=host.shots.filter(s=>s.owner!==p.id)}
    if(a.kind==='trap'&&q&&!q.opened){const item=p.inventory.find(i=>i.id===a.itemId);if(item){q.trap=true;q.trapOwner=p.id;ShadowRules.consume(p,item)}}
@@ -10947,8 +11073,8 @@ window.ArtShadow=(()=>{
  let shadowChatLast='',shadowPickupSoundSeq=0,shadowPickupSoundInitialized=false;
  const shadowTitle='アートレイター';
  function shadowRequest(action,extra={}){shadowSeq=Math.max(shadowSeq,view?.shadow?.me?.lastSeq||0);sendHost({type:'gameShadowAction',gameId:view.id,seq:++shadowSeq,action,...extra})}
- function shadowInfo(){modal(shadowTitle,'<p>描いたキャラの職業は公開、陣営は秘密。タスクでアートマターを集め、装備を購入し、出口の開放を待ちましょう。</p><p>4〜5人はキラー1人、6〜8人は2人。キラーはアーティストの脱出を妨害します。通常攻撃3種はありません。アーティストはジャッジメントガン（別売り弾薬）、キラーはおもちゃのナイフを初期所持し、キラーナイフを購入できます。ピストルはインクで射撃します。</p><p>HPが0になるとダウン。残りのダウンHPは蘇生しても引き継ぎます。救助は毎回10秒、費用12アートマターです。完全死亡・脱出後は観戦と幽霊チャットだけです。</p><p>通常時のチャットは距離制です。中央の会議装置か死体の通報から全員会議を開き、共有メモを作れます。会議中は全員にチャットが届き、出口タイマーは停止します。P2Pの部屋主はゲーム状態を管理するため、部屋主からも陣営を隠せる仕組みではありません。</p><p>開発版：価格・職業判定・対戦バランスは試遊用の初期値です。実端末のオンライン対戦・ホスト交代は未検証です。オンライン対戦・職業固有機能の検証は今後も必要です。画像貼り付けが職業判定に影響する場合があります。同じ円のワープと地雷を両方ONにした場合、装備順が優先されます。</p>')}
- function shadowConfigHTML(s=ShadowRules.settings()){return '<label class="form-field">出口まで<select id="shadowGate">'+[10,15,20,30].map(n=>'<option '+(s.gateMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">出口開放後の猶予<select id="shadowGrace">'+[2,3,5].map(n=>'<option '+(s.graceMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">キャラ作成（秒）<input id="shadowCreateTime" type="number" min="30" max="300" value="'+s.createSeconds+'"></label><label class="check"><input id="shadowAccelerate" type="checkbox" '+(s.accelerate?'checked':'')+'>アートマターで出口開放を早める</label><label class="form-field">会議の必要アートマター<input id="shadowMeetingCost" type="number" min="0" max="100" step="1" value="'+s.meetingCost+'"></label><label class="form-field">ステージ<select id="shadowMap">'+Object.entries({garden:'庭園',ruins:'遺跡',forest:'森',arena:'闘技場'}).map(([k,v])=>'<option value="'+k+'" '+(s.stage===k?'selected':'')+'>'+esc(v.name||v)+'</option>').join('')+'</select></label><p>4〜8人。全員が同じバージョンを使用してください。</p>'}
+ function shadowInfo(){modal(shadowTitle,'<p>描いたキャラの職業は公開、陣営は秘密。タスクでアートマターを集め、装備を購入し、出口の開放を待ちましょう。</p><p>4〜5人はキラー1人、6〜8人は2人。キラーはアーティストの脱出を妨害します。通常攻撃3種はありません。アーティストはジャッジメントガン（別売り弾薬）、キラーはおもちゃのナイフを初期所持し、キラーナイフを購入できます。ピストルはインクで射撃します。</p><p>HPが0になるとダウン。残りのダウンHPは蘇生しても引き継ぎます。救助に必要な時間は通常4秒、医者は2秒、費用12アートマターです。ダウンすると10秒後に死亡します。完全死亡・脱出後は観戦と幽霊チャットだけです。</p><p>通常時のチャットは距離制です。中央の会議装置か死体の通報から全員会議を開き、共有メモを作れます。会議中は全員にチャットが届き、出口タイマーは停止します。P2Pの部屋主はゲーム状態を管理するため、部屋主からも陣営を隠せる仕組みではありません。</p><p>開発版：価格・職業判定・対戦バランスは試遊用の初期値です。実端末のオンライン対戦・ホスト交代は未検証です。オンライン対戦・職業固有機能の検証は今後も必要です。画像貼り付けが職業判定に影響する場合があります。同じ円のワープと地雷を両方ONにした場合、装備順が優先されます。</p>')}
+ function shadowConfigHTML(s=ShadowRules.settings()){return '<label class="form-field">出口まで<select id="shadowGate">'+[10,15,20,30].map(n=>'<option '+(s.gateMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">出口開放後の猶予<select id="shadowGrace">'+[2,3,5].map(n=>'<option '+(s.graceMin===n?'selected':'')+'>'+n+'</option>').join('')+'</select>分</label><label class="form-field">キャラ作成（秒）<input id="shadowCreateTime" type="number" min="30" max="300" value="'+s.createSeconds+'"></label><label class="check"><input id="shadowAccelerate" type="checkbox" '+(s.accelerate?'checked':'')+'>アートマターで出口開放を早める</label><label class="form-field">会議の必要アートマター<input id="shadowMeetingCost" type="number" min="0" max="100" step="1" value="'+s.meetingCost+'"></label><label class="form-field">ステージ<select id="shadowMap">'+Object.entries({lab:'研究所',garden:'庭園（旧）',ruins:'遺跡（旧）',forest:'森（旧）',arena:'闘技場（旧）'}).map(([k,v])=>'<option value="'+k+'" '+(s.stage===k?'selected':'')+'>'+esc(v.name||v)+'</option>').join('')+'</select></label><p>4〜8人。全員が同じバージョンを使用してください。</p>'}
  function shadowReadSettings(){return ShadowRules.settings({gateMin:+$('#shadowGate').value,graceMin:+$('#shadowGrace').value,createSeconds:+$('#shadowCreateTime').value,accelerate:$('#shadowAccelerate').checked,meetingCost:+$('#shadowMeetingCost').value,stage:$('#shadowMap').value})}
  function shadowSettingsDialog(){const edit=isHost&&host?.phase==='lobby';modal(shadowTitle+'の設定','<form id="shadowConfigForm"><fieldset '+(!edit?'disabled':'')+'>'+shadowConfigHTML(view?.settings)+'</fieldset>'+(edit?'<button class="primary">保存</button>':'')+'</form>');$('#shadowConfigForm').onsubmit=e=>{e.preventDefault();if(edit&&e.target.reportValidity()){host.settings=shadowReadSettings();room.shadowSettings=host.settings;sendAll(true);$('#modal').close()}}}
  function shadowEquipUI(){const own=view.art?.[localId],role=view.privateRole;if(!own)return '<h2>キャラクターを準備しています</h2>';const job=ShadowRules.J.find(j=>j.id===own.shadowJob);const killer=role==='killer';const roleIcon=killer?'<div class="shadow-intro-roleicon is-killer" aria-hidden="true"><svg viewBox="0 0 96 96"><path d="M79 10Q81 9 80 13L70 39 49 60 40 51 61 30Z"/><path d="M35 56L45 66M29 62L40 73"/><path d="M38 63L19 83Q16 86 12 82Q9 78 13 74L31 56"/><path d="M11 82L17 88"/></svg></div>':'<div class="shadow-intro-roleicon is-artist" aria-hidden="true"><svg viewBox="0 0 96 96"><path d="M50 12C28 12 12 29 12 51C12 73 29 84 48 84C59 84 64 75 60 68C57 62 60 55 69 56C80 57 86 49 83 39C79 23 66 12 50 12Z"></path><circle cx="32" cy="37" r="5"></circle><circle cx="48" cy="27" r="5"></circle><circle cx="65" cy="35" r="5"></circle><circle cx="29" cy="55" r="5"></circle><path d="M48 68Q53 61 61 65"/></svg></div>';return '<div class="shadow-intro '+(killer?'is-killer':'is-artist')+'"><div class="shadow-intro-halo"></div><div class="shadow-intro-content"><small>SECRET ROLE · この陣営は自分だけに表示されます</small>'+roleIcon+'<h2>'+(killer?'キラー':'アーティスト')+'</h2><p class="shadow-intro-job">'+esc(job?.name||'職業')+'</p><div class="shadow-intro-art">'+(own.image?'<img src="'+esc(own.image)+'" alt="あなたが描いたキャラクター">':'<div class="shadow-intro-noart">キャラクター</div>')+'</div><p class="shadow-intro-description">'+esc(job?.visible_bonus||'')+'</p><p class="shadow-intro-goal">'+(killer?'正体を隠し、アーティストの脱出を阻止せよ':'仲間と協力し、キラーの正体を暴いて脱出せよ')+'</p>'+(killer&&view.killerFriends?.length>1?'<p class="shadow-intro-teammates">仲間：'+view.killerFriends.filter(id=>id!==localId).map(id=>esc(view.players.find(p=>p.id===id)?.name||'')).join('・')+'</p>':'')+'</div></div>'}
@@ -10986,6 +11112,9 @@ window.ArtShadow=(()=>{
  function shadowRenderPanel(){const panel=$('#shadowPanel'),s=view?.shadow,m=s?.me,p=self();if(!panel||!m)return;panel.hidden=!shadowPanel;const shade=$('#shadowPanelShade');if(shade)shade.hidden=!shadowPanel;if(!shadowPanel)return;
   // Keep the chat form mounted while chat is open: rebuilding it every time
   // players move destroys the mobile keyboard focus and uncommitted Japanese IME text.
+  if(shadowPanel==='actions'&&m.cameraUntil>Date.now()+offset&&m.notice==='監視モニターを12秒間起動しました'){
+    shadowPanel='camera';shadowPanelKey='';
+  }
   if(shadowPanel==='chat'&&panel.querySelector('#shadowChatInput')){
    const log=panel.querySelector('.shadow-chat-log');
    const entries=(m.logs||[]).slice(-50);
@@ -11001,6 +11130,23 @@ window.ArtShadow=(()=>{
    if(m.state==='down')html+='<p>救助を待っています。</p>'+button('近くに助けを求める','chat','data-text="助けてください！"');else if(m.state!=='alive')html+='<p>観戦中です。生存者へ干渉できません。</p>';else{
     if(m.action)html+='<p>操作中…</p>'+button('中断する','cancel');
     const near=q=>q&&R.dist(p,q)<90;for(const q of view.fighters.filter(q=>q.state==='down'&&near(q)))html+=button(esc(view.players.find(a=>a.id===q.id)?.name||'')+'を救助 · 12アートマター','revive','data-target="'+q.id+'"');
+    for(const d of s.doors||[])if(near(d)&&d.openUntil<Date.now()+offset)html+=button('ドアを開く','doorOpen','data-target="'+d.id+'"');
+    for(const f of s.facilities||[])if(R.dist(p,f)<155){
+     html+='<article><b>'+esc(f.label)+'</b>';
+     const add=(text,action)=>button(text,'facility','data-target="'+f.id+'" data-operation="'+action+'"');
+     if(f.kind==='camera'){
+      html+='<p>監視したい区画を選択（12秒間・陣営情報は非表示）</p>';
+      for(const [i,r] of SHADOW_ROOMS.entries())if(i!==0)html+=button(esc(r.name),'facility','data-target="'+f.id+'" data-operation="camera" data-room="'+i+'"');
+      if(m.cameraUntil>Date.now()+offset)html+=button('監視映像を再表示','cameraView');
+     }
+     if(f.kind==='med')html+=add('治療 · 3アートマター','med')+add('汚染を除去 · 3アートマター','clean');
+     if(f.kind==='ink')html+=add('インク補給 · 1アートマター','ink')+add('強化 · 8アートマター','enhance')+add('汚染を除去 · 3アートマター','clean');
+     if(f.kind==='reactor')html+=add('リアクター修理','repair')+add('施設強化 · 8アートマター','enhance');
+     if(f.kind==='vent')html+=add('空調を操作','vent')+add('施設強化 · 8アートマター','enhance');
+     if(f.kind==='work')html+='<p>設備の点検と資材の準備ができます。</p>';
+     if(['med','ink'].includes(f.kind)&&view.privateRole==='killer')html+=add('インク汚染毒を投入','poison');
+     html+='</article>';
+    }
     for(const t of s.tasks.filter(t=>near(t)))html+=button(esc(ShadowRules.taskNames[t.kind])+' · '+ShadowRules.taskModel(t.kind).reward+'アートマター','taskStart','data-target="'+t.id+'" '+(t.readyAt>Date.now()+offset?'disabled':''));
     if(R.dist(p,{x:R.W/2,y:R.H/2})<125)html+='<p>中央の準備装置・ショップ</p>'+button('15アートマター → 出口を60秒短縮','clock')+button('ダウンHPを治療','treat');
     for(const c of s.crates.filter(c=>near(c)&&c.hp>0))html+='<p>クレート（HP '+Math.ceil(c.hp)+'）</p>'+'<span class="shadow-crate-hold-tip">マップ上の箱を0.65秒長押しで開封</span>'+(m.job==='detective'?button('調べる','inspect','data-target="'+c.id+'"'):'')+(view.privateRole==='killer'?button('罠を仕掛ける','trap','data-target="'+c.id+'"')+button('毒を仕込む','poison','data-target="'+c.id+'"'):'');
@@ -11018,12 +11164,29 @@ window.ArtShadow=(()=>{
    for(const item of m.inventory){const g=ShadowRules.catalog[item.sku];if(!g)continue;html+='<article><b>'+esc(g.name)+'</b><p>'+esc(g.source_effect||g.on_effect)+'</p>'+button(item.on?'OFFにする':'ONにする','toggle','data-item-id="'+item.id+'"')+(g.skill?'<button data-guide="'+g.skill+'">図形・CD</button>':button('使用','use','data-item-id="'+item.id+'"'))+button('地面に置く','drop','data-item-id="'+item.id+'"')+'</article>'}
   }else if(shadowPanel==='chat'){
    html+='<div class="shadow-chat-log">'+(m.logs||[]).slice(-50).map(l=>'<p><b>'+esc(l.name)+'</b> '+esc(l.text)+'</p>').join('')+'</div><form id="shadowChatForm"><input id="shadowChatInput" type="text" maxlength="120" placeholder="近くの人に話す" autocomplete="off" enterkeyhint="send" aria-label="近くの人に送るメッセージ"><button type="submit">送信</button></form>';
+  }else if(shadowPanel==='camera'){
+   if(m.cameraUntil<=Date.now()+offset){html+='<p>監視時間が終了しました。</p>'}
+   else{
+    const roomIndex=Math.max(0,Math.min(SHADOW_ROOMS.length-1,m.cameraRoom||0)),r=SHADOW_ROOMS[roomIndex];
+    html+='<article><h3>監視映像 · '+esc(r.name)+'</h3><p>名前・陣営は表示されません。</p><canvas id="shadowCameraCanvas" width="460" height="260" style="display:block;width:100%;height:auto;border:2px solid #57748d;border-radius:10px;background:#152d3c"></canvas></article>';
+   }
   }else if(shadowPanel==='task'){
    const a=m.action,t=s.tasks.find(t=>t.id===a?.target);if(!t){shadowClosePanel();return}
    html+='<div class="shadow-task-layout"><div class="shadow-task-info"><h3>'+ShadowRules.taskNames[t.kind]+'</h3><p class="shadow-task-instruction">'+({MEM_01:'最初の3秒だけ見える形を覚えて描こう。',PAIR_01:'左の形を鏡に映すように、右側へ描こう。',FILL_01:'何筆でも描き足せます。緑の枠内を約76%塗ろう。線の長さで20%以内なら赤い枠外へのはみ出しも許容します。指やペンを離してから判定します。',MIX_01:'四角 → 丸 → 三角の順で描こう。',WIR_01:'同じ色の端子を赤・青・緑の順で結ぼう。',REPAIR_01:'点線の回路をなぞろう。折れ曲がる1本の線でも、3本に分けてもOK。'}[t.kind]||'点線と点の順番に沿って描こう。')+'</p><p id="shadowTaskTimer" role="status"></p></div><div class="shadow-task-board"><canvas id="shadowTaskCanvas" width="400" height="400" aria-label="タスクの描画場所"></canvas></div><div class="shadow-task-actions"><button type="button" id="shadowTaskClear">描き直す</button><span class="shadow-task-autohint">一筆を書き終えた時にだけ判定します</span></div></div>';
   }
   if(m.notice&&shadowPanel!=='task')html+='<p role="status">'+esc(m.notice)+'</p>';panel.innerHTML=html;
-  const performPanelButton=(b)=>{shadowPanelPointerDown=false;if(b.hasAttribute('data-close')||b.dataset.action==='cancel'){shadowClosePanel();return}if(b.dataset.action){const action=b.dataset.action;shadowRequest(action,{target:b.dataset.target,sku:b.dataset.sku,itemId:b.dataset.itemId,text:b.dataset.text});if(action==='buy'||action==='inkExchange'){window.ArtSound?.play('tap',2);shadowPanelKey='';}return}if(b.dataset.guide){const id=b.dataset.guide;if(moves[id])modal(moves[id].name,guideSVG(id)+skillDetails(id))}};
+  if(shadowPanel==='camera'){
+   const monitor=panel.querySelector('#shadowCameraCanvas');if(monitor){
+    const camera=monitor.getContext('2d'),ri=Math.max(0,Math.min(10,m.cameraRoom||0)),r=SHADOW_ROOMS[ri];
+    camera.fillStyle='#152d3c';camera.fillRect(0,0,460,260);camera.fillStyle='#385b69';camera.fillRect(20,20,420,220);
+    camera.strokeStyle='#b2dbe0';camera.lineWidth=6;camera.strokeRect(20,20,420,220);
+    for(const q of view.fighters||[])if(q.state==='alive'&&q.x>=r.x&&q.x<=r.x+r.w&&q.y>=r.y&&q.y<=r.y+r.h){
+     const x=20+(q.x-r.x)/r.w*420,y=20+(q.y-r.y)/r.h*220;
+     camera.fillStyle='#d9e8eb';camera.beginPath();camera.arc(x,y,9,0,Math.PI*2);camera.fill();
+    }
+   }
+  }
+  const performPanelButton=(b)=>{shadowPanelPointerDown=false;if(b.dataset.action==='cameraView'){shadowPanel='camera';shadowPanelKey='';shadowRenderPanel();return}if(b.hasAttribute('data-close')||b.dataset.action==='cancel'){shadowClosePanel();return}if(b.dataset.action){const action=b.dataset.action;shadowRequest(action,{target:b.dataset.target,sku:b.dataset.sku,itemId:b.dataset.itemId,room:b.dataset.room,operation:b.dataset.operation,text:b.dataset.text});if(action==='buy'||action==='inkExchange'){window.ArtSound?.play('tap',2);shadowPanelKey='';}return}if(b.dataset.guide){const id=b.dataset.guide;if(moves[id])modal(moves[id].name,guideSVG(id)+skillDetails(id))}};
   // A touch is confirmed once. Avoid the old persistent data-shadow-handled flag:
   // when iOS suppressed click it could remain on the button and swallow the next purchase.
   let shadowLastPointerActionAt=0;
@@ -11067,7 +11230,68 @@ window.ArtShadow=(()=>{
   clear.onclick=e=>{if(clear.dataset.handledPointer==='1'){delete clear.dataset.handledPointer;return}clearStrokes()};
   draw();if(t.kind==='MEM_01')setTimeout(draw,Math.max(0,3000-(Date.now()+offset-view.shadow.me.action.start)));
  }
- function shadowWorld(x,now){if(!view.shadow)return;const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dist(me,q)<=90;
+
+ // 2.5D research interiors: only visual geometry, never a second collision map.
+ function shadowLabDecor(ctx,now){
+  ctx.save();
+  const machine=(x,y,w,h,color)=>{
+   ctx.save();ctx.fillStyle='#20394335';ctx.beginPath();ctx.ellipse(x+w*.53,y+h+12,w*.60,13,0,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#344956';ctx.fillRect(x,y,w,h);ctx.fillStyle=color;ctx.fillRect(x,y,w,Math.max(8,h*.34));
+   ctx.fillStyle='#253944';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+13,y-17);ctx.lineTo(x+w+13,y-17);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();
+   ctx.strokeStyle='#adc4cf';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.restore();
+  };
+  for(let i=0;i<SHADOW_ROOMS.length;i++){
+   const r=SHADOW_ROOMS[i],a=r.x,b=r.y,w=r.w,h=r.h;
+   ctx.save();ctx.strokeStyle='#546f7e44';ctx.lineWidth=2;
+   // Decorative floor seams, all drawn beneath gameplay objects.
+   for(let yy=b+110;yy<b+h-15;yy+=110){ctx.beginPath();ctx.moveTo(a+16,yy);ctx.lineTo(a+w-16,yy);ctx.stroke()}
+   if(i===6){ // Largest room: discussion table, shop and call switch.
+    ctx.fillStyle='#ded8e8';ctx.beginPath();ctx.ellipse(a+w*.52,b+h*.58,w*.32,h*.25,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#8674a4';ctx.lineWidth=4;ctx.stroke();
+    for(let j=0;j<8;j++){const t=j*Math.PI/4;const xx=a+w*.52+Math.cos(t)*w*.38,yy=b+h*.58+Math.sin(t)*h*.31;ctx.fillStyle='#647c8c';ctx.fillRect(xx-20,yy-11,40,22)}
+    machine(a+66,b+h*.30,115,55,'#74c7e7');
+   } else if(i===0){for(let k=0;k<3;k++)machine(a+60+k*(w-110)/3,b+70,Math.min(105,w*.2),46,'#6bbde5')}
+   else if(i===2){for(let k=0;k<2;k++){const xx=a+w*(.16+k*.42);ctx.fillStyle='#e4f4ed';ctx.fillRect(xx,b+100,w*.28,122);ctx.strokeStyle='#5ab58c';ctx.lineWidth=5;ctx.strokeRect(xx,b+100,w*.28,122)}}
+   else if(i===3){for(let k=0;k<3;k++){const xx=a+w*(.13+k*.26);machine(xx,b+95,w*.17,110,'#aa86e2')}}
+   else if(i===4){ctx.strokeStyle='#42c9f1';ctx.lineWidth=11;ctx.shadowColor='#43d6f4';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(a+w*.52,b+h*.59,Math.min(w,h)*.19,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#92e4f9';ctx.fillRect(a+w*.45,b+h*.54,w*.14,h*.10)}
+   else if(i===7){for(let k=0;k<2;k++){const xx=a+w*(.25+k*.43),yy=b+h*.42;ctx.strokeStyle='#728e9d';ctx.lineWidth=8;ctx.beginPath();ctx.arc(xx,yy,49,0,Math.PI*2);ctx.stroke();for(let q=0;q<4;q++){const t=q*Math.PI/2+now/3500;ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx+Math.cos(t)*38,yy+Math.sin(t)*38);ctx.stroke()}}}
+   else if(i===8){for(let k=0;k<2;k++)machine(a+65+k*w*.45,b+100,w*.30,76,'#c4a069')}
+   else if(i===5||i===9||i===10){machine(a+60,b+100,w*.22,74,'#8ba2ae');machine(a+w*.66,b+h*.61,w*.18,55,'#7cabb0')}
+   else {machine(a+90,b+100,w*.22,52,'#8ac7bd')}
+   ctx.restore();
+  }
+  // Side shading provides subtle depth without changing top-down movement geometry.
+  for(const r of SHADOW_ROOMS){ctx.save();ctx.fillStyle='#253b4b9c';ctx.fillRect(r.x,r.y,13,r.h);ctx.fillStyle='#344d5aa8';ctx.fillRect(r.x,r.y, r.w,17);ctx.strokeStyle='#f2ffff92';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(r.x+3,r.y+3);ctx.lineTo(r.x+r.w-3,r.y+3);ctx.stroke();ctx.restore()}
+  ctx.restore();
+ }
+ function shadowLabDevices(ctx,now){
+  const state=view?.shadow;if(!state)return;
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const f of state.facilities||[]){
+   const cx=f.x,cy=f.y,bad=f.poisoned||f.hp===0;
+   ctx.save();ctx.translate(cx,cy);ctx.shadowColor=bad?'#f26771':f.color;ctx.shadowBlur=15;ctx.fillStyle='#263f50';ctx.strokeStyle=bad?'#df6970':f.color;ctx.lineWidth=4;
+   ctx.beginPath();ctx.roundRect(-34,-32,68,64,9);ctx.fill();ctx.stroke();
+   ctx.fillStyle=bad?'#e27c8c':f.color;
+   if(f.kind==='reactor'){ctx.beginPath();ctx.arc(0,-7,17,0,Math.PI*2);ctx.fill()}else if(f.kind==='camera'){ctx.fillRect(-18,-19,36,21)}else if(f.kind==='med'){ctx.fillRect(-4,-22,8,29);ctx.fillRect(-15,-12,30,8)}else if(f.kind==='ink'){for(let j=-1;j<=1;j++)ctx.fillRect(j*15-5,-22,10,33)}else if(f.kind==='vent'){ctx.beginPath();ctx.arc(0,-6,17,0,Math.PI*2);ctx.stroke()}else{ctx.fillRect(-17,-15,34,22)}
+   ctx.shadowBlur=0;ctx.font='bold 12px sans-serif';ctx.fillStyle='#f7fbff';ctx.fillText(f.label,0,44);
+   if(f.kind==='reactor'){ctx.fillStyle='#1f2733';ctx.fillRect(-38,-49,76,7);ctx.fillStyle=f.hp>0?'#60d6f3':'#d75b62';ctx.fillRect(-38,-49,76*Math.max(0,f.hp||0)/50,7)}
+   const me=self();if(me?.state==='alive'&&R.dist(me,f)<155){ctx.strokeStyle='#fbe8a1';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,53+Math.sin(now/300)*3,0,Math.PI*2);ctx.stroke()}
+   ctx.restore();
+  }
+  for(const door of state.doors||[]){const open=door.openUntil>now;ctx.save();ctx.translate(door.x,door.y);ctx.fillStyle=open?'#81d9c3':'#354753';ctx.strokeStyle=open?'#e0fff3':'#b3d9ec';ctx.lineWidth=3;
+   if(door.axis==='H'){ctx.fillRect(-door.w/2,-9,door.w,18);ctx.strokeRect(-door.w/2,-9,door.w,18)}else{ctx.fillRect(-9,-door.h/2,18,door.h);ctx.strokeRect(-9,-door.h/2,18,door.h)}
+   ctx.restore()}
+  ctx.restore();
+ }
+
+ function shadowWorld(x,now){if(!view.shadow)return;shadowLabDevices(x,now);
+ const monitor=document.getElementById('shadowCameraCanvas'),mc=view.shadow.me;
+ if(monitor&&mc?.cameraUntil>now){const i=Math.min(10,Math.max(0,mc.cameraRoom||0)),r=SHADOW_ROOMS[i],c=monitor.getContext('2d');
+  c.fillStyle='#152d3c';c.fillRect(0,0,460,260);c.fillStyle='#385b69';c.fillRect(20,20,420,220);c.strokeStyle='#b2dbe0';c.lineWidth=4;c.strokeRect(20,20,420,220);
+  for(const p of view.fighters)if(p.state==='alive'&&p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h){
+   const px=20+(p.x-r.x)/r.w*420,py=20+(p.y-r.y)/r.h*220;c.fillStyle='#dceef0';c.beginPath();c.arc(px,py,9,0,Math.PI*2);c.fill();}
+ }
+const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dist(me,q)<=90;
  // The actual floor is painted in drawArena BELOW the walls and characters.
  // No opaque room/corridor overlays here: corridors must look like walkable floor.
  x.save();
@@ -11077,7 +11301,15 @@ window.ArtShadow=(()=>{
  x.restore();
  x.save();x.textAlign='center';x.font='bold 13px sans-serif';
  const halo=(q,r)=>{if(!close(q))return;x.save();x.shadowColor='#ffee92';x.shadowBlur=20+Math.sin(now/260)*5;x.strokeStyle='#fff1a1';x.lineWidth=4;x.beginPath();x.arc(q.x,q.y,r,0,Math.PI*2);x.stroke();x.restore()};
- for(const t of s.tasks){const ready=t.readyAt<=now;x.fillStyle=ready?'#bce4ce':'#b9bfc0';x.strokeStyle=ready?'#317562':'#6c8584';x.lineWidth=3;x.beginPath();x.arc(t.x,t.y,23,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#24473b';x.fillText('✎',t.x,t.y+5);x.fillText(ShadowRules.taskNames[t.kind],t.x,t.y+41);if(ready)halo(t,29)}
+ for(const t of s.tasks){const ready=t.readyAt<=now;x.fillStyle=ready?'#bce4ce':'#b9bfc0';x.strokeStyle=ready?'#317562':'#6c8584';x.lineWidth=3;x.beginPath();x.arc(t.x,t.y,23,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#24473b';x.save();x.translate(t.x,t.y);x.strokeStyle='#24473b';x.fillStyle='#24473b';x.lineWidth=3;
+  if(t.kind==='WIR_01'||t.kind==='REPAIR_01'){x.beginPath();x.moveTo(-12,-9);x.lineTo(0,5);x.lineTo(12,-9);x.stroke();for(const a of [-12,0,12]){x.beginPath();x.arc(a,a===0?5:-9,3,0,Math.PI*2);x.fill()}}
+  else if(t.kind==='FILL_01'){x.strokeRect(-9,-10,18,22);x.fillRect(-7,1,14,8)}
+  else if(t.kind==='MIX_01'){x.strokeRect(-12,-12,9,9);x.beginPath();x.arc(8,-7,5,0,Math.PI*2);x.stroke();x.beginPath();x.moveTo(-2,12);x.lineTo(12,12);x.lineTo(5,1);x.closePath();x.stroke()}
+  else if(t.kind==='DOT_01'){for(let i=0;i<4;i++){x.beginPath();x.arc((i%2)*13-6,Math.floor(i/2)*13-6,3,0,Math.PI*2);x.fill()}}
+  else if(t.kind==='MAZE_01'){x.beginPath();x.moveTo(-12,-10);x.lineTo(11,-10);x.lineTo(11,0);x.lineTo(-5,0);x.lineTo(-5,11);x.lineTo(11,11);x.stroke()}
+  else if(t.kind==='MEM_01'){x.strokeRect(-11,-10,22,20);x.beginPath();x.moveTo(-5,-4);x.lineTo(5,-4);x.moveTo(-5,2);x.lineTo(5,2);x.stroke()}
+  else{x.beginPath();x.arc(0,0,11,0,Math.PI*2);x.stroke();x.beginPath();x.moveTo(-8,5);x.lineTo(8,-5);x.stroke()}
+  x.restore();x.fillText(ShadowRules.taskNames[t.kind],t.x,t.y+41);if(ready)halo(t,29)}
  for(const b of s.weaponShots||[]){
   const a=Math.atan2(b.vy,b.vx),col=b.weapon==='judgment'?'#ffe69a':b.weapon==='pistol'?'#7fd5ff':'#b5f5dd';
   if(b.weapon==='judgment'){
@@ -11124,7 +11356,19 @@ window.ArtShadow=(()=>{
   const shop={x:R.W/2,y:R.H/2};const meetingSpot={x:shop.x+114,y:shop.y};x.save();x.fillStyle='#e5d0f2';x.strokeStyle='#6c468f';x.lineWidth=3;x.beginPath();x.arc(meetingSpot.x,meetingSpot.y,40,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#4b2c70';x.font='bold 14px sans-serif';x.fillText('会議',meetingSpot.x,meetingSpot.y+5);x.fillText(''+(view.settings.meetingCost??6)+' アートマター',meetingSpot.x,meetingSpot.y+57);x.restore();if(me?.state==='alive'&&R.dist(me,meetingSpot)<135)halo(meetingSpot,45);x.fillStyle='#f1d68e';x.strokeStyle='#765c33';x.lineWidth=3;x.fillRect(shop.x-38,shop.y-31,76,62);x.strokeRect(shop.x-38,shop.y-31,76,62);x.fillStyle='#4a3c29';x.font='bold 15px sans-serif';x.font='bold 11px sans-serif';x.fillText('アート',shop.x,shop.y);x.fillText('マター',shop.x,shop.y+14);x.font='bold 13px sans-serif';x.fillText('ショップ',shop.x,shop.y+49);if(me?.state==='alive'&&R.dist(me,shop)<=125)halo(shop,53);
   for(const gx of [35,R.W-35]){x.fillStyle=s.graceAt?'#80d4ab':'#8f9caa';x.fillRect(gx-22,R.H/2-45,44,90);x.fillStyle='#233e3c';x.fillText(s.graceAt?'脱出':'出口',gx,R.H/2-57)}
   for(const p of view.fighters)if(p.state==='down'){x.fillStyle='#b84b57';x.fillText('ダウン · '+Math.ceil((p.downHP||0)/10)+'秒',p.x,p.y+45)}
-  for(const l of s.me?.logs||[]){if(l.ghost||l.range!=='near'||now-l.at>6000)continue;const p=view.fighters.find(p=>p.id===l.author);if(!p)continue;const text=l.text.slice(0,22);x.fillStyle='#fffffff0';x.fillRect(p.x-92,p.y-90,184,27);x.fillStyle='#24384c';x.fillText(text,p.x,p.y-72)}x.restore();
+  for(const l of s.me?.logs||[]){if(l.ghost||l.range!=='near'||now-l.at>6000)continue;const p=view.fighters.find(p=>p.id===l.author);if(!p)continue;const text=l.text.slice(0,22);x.fillStyle='#fffffff0';x.fillRect(p.x-92,p.y-90,184,27);x.fillStyle='#24384c';x.fillText(text,p.x,p.y-72)}
+  // Closed private rooms hide their interiors, including character silhouettes.
+  // Your own room is always visible to avoid concealing drawing targets.
+  for(const [i,r] of SHADOW_ROOMS.entries()){
+   const doors=(s.doors||[]).filter(d=>d.room===i);
+   if(!doors.length||doors.some(d=>d.openUntil>now))continue;
+   if(me&&me.x>=r.x&&me.x<=r.x+r.w&&me.y>=r.y&&me.y<=r.y+r.h)continue;
+   x.save();x.fillStyle='#172934ed';x.fillRect(r.x+18,r.y+18,r.w-36,r.h-36);
+   x.fillStyle='#aac1d0';x.font='bold 18px sans-serif';x.fillText('ドアを開けて内部を確認',r.x+r.w/2,r.y+r.h/2);x.restore();
+  }
+  // Keep door handle visible on top of the room concealment layer.
+  for(const d of s.doors||[]){x.save();x.fillStyle=d.openUntil>now?'#95ecd2':'#e0c38c';x.fillRect(d.x-9,d.y-9,18,18);x.restore()}
+  x.restore();
  }
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('shadow-mode');$('#studio').classList.toggle('shadow-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';if(phase==='create'&&participant()&&!view.ready[localId]){stage.hidden=true;stage.className='';stage.style.pointerEvents='none';stage.innerHTML=''}else{stage.style.pointerEvents=''}const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+JSON.stringify(view?.teamAssignments)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
@@ -11235,6 +11479,10 @@ window.ArtShadow=(()=>{
  const shadowInteract=e=>{
   if(!battleActive()||e.pointerType==='pen'||inZone(e)||!view?.shadow)return false;
   const me=self(),w=worldPoint(e),near=(obj,range=92)=>obj&&R.dist(me,obj)<=range;
+  const fac=view.shadow.facilities?.find(f=>near(f,155)&&R.dist(w,f)<64);
+  if(fac){shadowPanel='actions';shadowPanelKey='';shadowRenderPanel();hint(fac.label+'の操作を開きました');return true}
+  const door=view.shadow.doors?.find(d=>near(d,125)&&R.dist(w,d)<70);
+  if(door){shadowRequest('doorOpen',{target:door.id});return true}
   const task=view.shadow.tasks.find(t=>t.readyAt<=Date.now()+offset&&near(t)&&R.dist(w,t)<=46);
   if(task){shadowRequest('taskStart',{target:task.id});hint('タスクを開始します');return true}
   const shop={x:R.W/2,y:R.H/2};
@@ -12176,16 +12424,21 @@ finishPaint(false)};
  // Floors are ONLY inside rooms and accessible corridors; the rest is deep void.
  x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
  for(let j=0;j<SHADOW_ROOMS.length;j++){const a=SHADOW_ROOMS[j];x.fillStyle=['#d8e4e0','#e8e3d8','#d5e1e7'][j%3];x.fillRect(a.x,a.y,a.w,a.h);x.strokeStyle='#8eaaa9';x.lineWidth=2;for(let yy=a.y+45;yy<a.y+a.h;yy+=45){x.beginPath();x.moveTo(a.x+6,yy);x.lineTo(a.x+a.w-6,yy);x.stroke()}}
+ shadowLabDecor(x,Date.now()+offset);
+ // Meeting room floor decoration only; shop, discussion device, and player movement remain unobstructed.
+ {const m=SHADOW_ROOMS[6];x.save();x.strokeStyle='#927cb5';x.lineWidth=5;x.setLineDash([16,12]);x.strokeRect(m.x+38,m.y+75,m.w-76,m.h-145);x.setLineDash([]);x.fillStyle='#66578d';x.textAlign='center';x.font='bold 26px sans-serif';x.fillText('会議・ショップ',m.x+m.w/2,m.y+96);x.restore()}
  x.restore();
  const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(s.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
  const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
  const ally=me&&(p.id===me.id||(view.settings.teams==='teams'&&p.team===me.team));
+ const cloakInvisible=p.invisibleUntil>now&&p.id!==localId&&!view.celebration;
+  if(cloakInvisible&&(!me||R.dist(me,p)>80))continue;
  const mirageInvisible=p.mirageHiddenUntil>now&&!view.celebration;
   const mirageRevealAlpha=mirageInvisible&&!ally&&p.mirageRevealAt>0&&now>=p.mirageRevealAt&&now<p.mirageRevealAt+1000?Math.max(0,1-(now-p.mirageRevealAt)/1000):0;
   if(mirageInvisible&&!ally&&mirageRevealAlpha<=0)continue; // Only the 1s offensive reveal is visible to enemies.
- if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=p.state==='down'?.43:(mirageInvisible?(ally?.24:mirageRevealAlpha):(inBush?.5:hidden?.65:1));x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=p.state==='down'?.43:(mirageInvisible?(ally?.24:mirageRevealAlpha):1);if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
+ if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=p.state==='down'?.43:(cloakInvisible?.16:(mirageInvisible?(ally?.24:mirageRevealAlpha):(inBush?.5:hidden?.65:1)));x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=p.state==='down'?.43:(cloakInvisible?.16:(mirageInvisible?(ally?.24:mirageRevealAlpha):1));if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
   if(view.settings.teams==='teams'){
    const tint=p.team===0?'#43aef8':'#ff6686';x.save();x.shadowColor=tint;x.shadowBlur=14;x.strokeStyle=tint;x.lineWidth=p.id===localId?5:4;x.beginPath();x.ellipse(pos.x,pos.y-6,35,40,0,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.fillStyle=tint;x.beginPath();x.roundRect(pos.x-32,pos.y-74,64,18,5);x.fill();x.textAlign='center';x.font='bold 11px sans-serif';x.fillStyle='#fff';x.fillText(p.team===0?'青チーム':'赤チーム',pos.x,pos.y-61);x.restore();
   }
