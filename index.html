@@ -9509,7 +9509,7 @@ const ShadowRules=(()=>{
   const s=catalog[sku];if(!available(p,s))return '購入できません';if(sku==='bullet_pack'){if(p.ammo>=12)return '弾薬は12発までです';if(p.am<price(p,s))return 'アートマター不足';p.am-=price(p,s);p.ammo=Math.min(12,(p.ammo||0)+1);return ''}if(p.inventory.some(i=>i.sku===sku)&&sku!=='bullet_pack')return '同じ装備は1枠までです';if(p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots)return '所持枠が満杯です';const cost=price(p,s);if(p.am<cost)return 'アートマター不足';p.am-=cost;p.inventory.push({id:'item-'+(++h.seq),sku,charges:s.charges,on:true});h.shadow.sales[sku]=(h.shadow.sales[sku]||0)+1;return '';
  }
  function consume(p,item){if(item.charges>0&&--item.charges===0)p.inventory=p.inventory.filter(i=>i!==item)}
- function enabledSkills(p){return ['star','heal','build']} // Basic shapes: star, circle, square; weapon strokes remain dedicated
+ function enabledSkills(p){return [...new Set((p.inventory||[]).filter(i=>i.on&&i.charges!==0).map(i=>catalog[i.sku]?.skill).filter(Boolean))]} // Only ON, owned items may authorize their gesture; never grant arbitrary shapes.
  function result(h,now){const f=h.fighters,s=h.shadow,artists=f.filter(p=>p.alignment==='artist'),killers=f.filter(p=>p.alignment==='killer');let why='';if(killers.every(p=>!living(p)))why='killers_eliminated';else if(artists.every(p=>!living(p)))why='artists_finished';else if(s.graceAt&&now>=s.graceAt)why='grace_timeout';if(!why)return null;const E=artists.filter(p=>p.state==='escaped').length,N=s.initialArtists;const artistVictory=why==='killers_eliminated'||(why!=='artists_finished'&&2*E>N);const killerVictory=why!=='killers_eliminated'&&(why==='artists_finished'&&E===0||2*E<N);return {reason:why,escaped:E,totalArtists:N,winningSide:artistVictory?'artist':killerVictory?'killer':'draw',killerResult:killerVictory?'勝利':artistVictory?'敗北':'引き分け',winners:(artistVictory?artists:killerVictory?killers:[]).map(p=>p.id),players:f.map(p=>({id:p.id,job:p.job,alignment:p.alignment,state:p.state,escapedAt:p.escapedAt||null,diedAt:p.diedAt||null,am:p.am,damageDealt:p.damageDealt||0}))}}
  function chat(h,id,text,now){const p=h.fighters.find(p=>p.id===id);if(!p||now-(p.lastChat||0)<700)return [];p.lastChat=now;text=String(text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,120);if(!text)return [];if(p.state==='down')text='助けてください！';const ghost=!living(p),m={id:'chat-'+(++h.seq),author:id,name:h.players.find(q=>q.id===id)?.name||'',text,at:now,ghost};h.shadow.logs.push(m);h.shadow.logs=h.shadow.logs.slice(-3000);return h.fighters.flatMap(q=>{if(!living(q))return [{to:q.id,message:m}];if(ghost)return [];const d=dist(p,q),limit=p.state==='down'?220:440;if(d>limit)return [];return [{to:q.id,message:{...m,text:d<=220?text:text.slice(0,Math.max(3,Math.floor(text.length*.45)))+'…',range:d<=220?'near':'mid',direction:d<=220?null:Math.atan2(p.y-q.y,p.x-q.x)}}]})}
  const taskNames={WIR_01:'色の配線',OUT_01:'点線をなぞる',DOT_01:'順番に結ぶ',MEM_01:'図形を記憶',PAIR_01:'鏡の絵',REPAIR_01:'回路の修復',FILL_01:'塗りつぶし',MIX_01:'図形を順番に',MAZE_01:'迷路を通る'};
@@ -9548,6 +9548,7 @@ window.ArtShadow=(()=>{
   {name:'動力棟',x:1390,y:2260,w:370,h:260}
  ];
  const SHADOW_ROOMS=SHADOW_ROOM_SOURCE.map(r=>({...r,x:shadowScale(r.x),y:shadowScale(r.y),w:shadowScale(r.w),h:shadowScale(r.h)}));
+ const SHADOW_SHOP={x:1080,y:1910}; // Lower-left area of the central meeting room, away from the meeting terminal.
  // Navigation graph: each connector is a continuous, visible corridor, not merely a door cut in a wall.
  // 1.4.95: remove the redundant top vertical passage from the observatory to meeting room.
  const SHADOW_LINKS=[[0,3],[0,2],[2,5],[3,1],[3,6],[1,4],[4,7],[5,6],[5,9],[6,7],[6,8],[7,10],[8,9],[8,10],[2,3]];
@@ -9791,7 +9792,7 @@ window.ArtShadow=(()=>{
  function shadowCast(id,shape,now=Date.now()){
   const p=host.fighters.find(f=>f.id===id);if(!ShadowRules.up(p)||p.action||!shape)return false;
   const armed=sku=>p.inventory.find(i=>i.sku===sku&&i.on),isShot=shape.type==='magic',isKnife=shape.type==='slash';
-  if(!isShot&&!isKnife){const basic=['star','heal','build'].includes(shape.type);const item=basic?null:p.inventory.find(i=>i.on&&i.charges!==0&&ShadowRules.catalog[i.sku]?.skill===shape.type);if(!basic&&!item){p.castError='対応するスキル装備がありません。';return false;}const cost=basic?(shape.type==='star'?20:shape.type==='heal'?18:15):R.cost(shape);if(p.ink<cost){p.castError='インク不足です';return false;}p.ink-=cost;const aim={x:p.x+(shape.x||0),y:p.y+(shape.y||0)},radius=Math.max(40,Math.min(160,shape.radius||70));if(['heal','recharge'].includes(shape.type)){p.hp=Math.min(p.maxHp,p.hp+20);p.ink=Math.min(p.maxInk,p.ink+20)}else if(['build','guard','iron','reactor'].includes(shape.type)){p.shieldUntil=now+3000}else{for(const q of host.fighters){if(q.id===p.id||!ShadowRules.up(q)||q.alignment===p.alignment||R.dist(q,aim)>radius)continue;shadowHurt(q,shape.type==='star'?25:14,now,{owner:p.id,type:shape.type},false)}}host.effects.push({id:++host.seq,type:shape.type,owner:p.id,x:aim.x,y:aim.y,r:radius,start:now,end:now+650});if(item)ShadowRules.consume(p,item);shadowSyncSkills(p);return true;}
+  if(!isShot&&!isKnife){const item=p.inventory.find(i=>i.on&&i.charges!==0&&ShadowRules.catalog[i.sku]?.skill===shape.type);if(!item){p.castError='その図形に対応するONの所持アイテムがありません。';return false;}const cost=R.cost(shape);if(p.ink<cost){p.castError='インク不足です';return false;}p.ink-=cost;const aim={x:p.x+(shape.x||0),y:p.y+(shape.y||0)},radius=Math.max(40,Math.min(160,shape.radius||70));if(['heal','recharge'].includes(shape.type)){p.hp=Math.min(p.maxHp,p.hp+20);p.ink=Math.min(p.maxInk,p.ink+20)}else if(['build','guard','iron','reactor'].includes(shape.type)){p.shieldUntil=now+3000}else{for(const q of host.fighters){if(q.id===p.id||!ShadowRules.up(q)||q.alignment===p.alignment||R.dist(q,aim)>radius)continue;shadowHurt(q,shape.type==='star'?25:14,now,{owner:p.id,type:shape.type},false)}}host.effects.push({id:++host.seq,type:shape.type,owner:p.id,x:aim.x,y:aim.y,r:radius,start:now,end:now+650});if(item)ShadowRules.consume(p,item);shadowSyncSkills(p);return true;}
   const strongKnife=armed('killer_knife'),toyKnife=armed('toy_knife'),judge=armed('judgment_gun'),pistol=armed('ink_pistol'),airgun=armed('air_gun');
   if(isShot&&p.alignment!=='artist'){p.castError='銃はアーティスト専用です。';return false}
   if(isKnife&&p.alignment!=='killer'){p.castError='ナイフはキラー専用です。';return false}
@@ -9955,9 +9956,9 @@ window.ArtShadow=(()=>{
   if(m.action==='reportBody'){const body=host.fighters.find(f=>f.id===m.target);if(!shadowMeetingStart(p,now,'body',body))shadowReply(p,'近くに通報できる死体がありません');return true}
   if(m.action==='cancel'){p.action=null;shadowSend();return true}
   if(m.action==='reviveHold'){if(p.action?.kind==='revive'&&p.action.target===m.target)p.action.heldUntil=now+700;return true}
-   if(m.action==='crateHold'){if(p.action?.kind==='crateOpen'&&p.action.target===m.target)p.action.heldUntil=now+650;return true}
+   if(m.action==='crateHold'){if(p.action?.kind==='crateOpen'&&p.action.target===m.target)p.action.heldUntil=now+1300;return true}
   if(p.action&&m.action!=='taskSubmit'){return shadowReply(p,'操作中です。右上の×で中断してください。')}
-  if(m.action==='buy'){if(m.sku==='slot')return shadowReply(p,'装備枠は倉庫の拡張ロッカーで増やせます');if(!shadowNear(p,center,135))return shadowReply(p,'ショップの近くで購入してください');const err=ShadowRules.buy(host,p,m.sku);p.buySignal=(p.buySignal||0)+1;p.buySucceeded=!err;shadowSyncSkills(p);shadowReply(p,err||'購入しました');return true}
+  if(m.action==='buy'){if(m.sku==='slot')return shadowReply(p,'装備枠は倉庫の拡張ロッカーで増やせます');if(!shadowNear(p,{x:SHADOW_SHOP.x,y:SHADOW_SHOP.y+45},165))return shadowReply(p,'中央会議室のショップで購入してください');const err=ShadowRules.buy(host,p,m.sku);p.buySignal=(p.buySignal||0)+1;p.buySucceeded=!err;shadowSyncSkills(p);shadowReply(p,err||'購入しました');return true}
   if(m.action==='inkExchange')return shadowReply(p,'インクの交換はインク研究室のポンプで行えます');
   if(m.action==='toggle'){const i=p.inventory.find(i=>i.id===m.itemId);if(i)i.on=!i.on;shadowSyncSkills(p)}
   if(m.action==='drop'){const i=p.inventory.find(i=>i.id===m.itemId);if(i){h.drops.push({...i,id:'drop-'+(++host.seq),x:p.x,y:p.y});p.inventory=p.inventory.filter(q=>q!==i);shadowSyncSkills(p)}}
@@ -9975,7 +9976,7 @@ window.ArtShadow=(()=>{
   if(m.action==='taskStart'){const t=h.tasks.find(t=>t.id===m.target);if(!shadowNear(p,t))return true;const progress=p.taskProgress?.[t.id]||{rev:0,readyAt:0};if(progress.readyAt>now)return true;const model=ShadowRules.taskModel(t.kind,progress.rev);p.action={kind:'task',target:t.id,rev:progress.rev,start:now,end:now+(model.seconds-(p.job==='engineer'&&['WIR_01','REPAIR_01'].includes(t.kind)?3:0))*(p.taskBoost?1.5:1)*1000,x:p.x,y:p.y,hit:p.lastHitSeq};p.taskBoost=false;p.taskStartedSeq=(p.taskStartedSeq||0)+1}
   if(m.action==='taskSubmit'){const a=p.action,t=a&&h.tasks.find(t=>t.id===a.target);if(a?.kind!=='task'||!shadowNear(p,t)||a.rev!==(p.taskProgress?.[t.id]?.rev||0)||(p.taskProgress?.[t.id]?.readyAt||0)>now||now>a.end+30000||!ShadowRules.taskCheck(t.kind,a.rev,m.paths))return shadowReply(p,'まだ完成していません。お手本と経過時間を確認してください。');p.am=Math.min(100,p.am+ShadowRules.taskModel(t.kind,a.rev).reward);p.action=null;const progress=(p.taskProgress??={})[t.id]??={rev:0,readyAt:0};progress.rev++;progress.readyAt=now+30000;p.notice='タスク完了！ アートマターを獲得しました';p.taskSuccessSeq=(p.taskSuccessSeq||0)+1}
   if(['open','take','steal','inspect','trap','poison','disarm'].includes(m.action)){const c=h.crates.find(c=>c.id===m.target);if(!shadowNear(p,c))return true;
-   if(m.action==='open'){if(c.hp<=0||c.opened||p.action)return true;const multiplier=c.crateType==='gold'?3:c.crateType==='iron'?2:1;p.action={kind:'crateOpen',target:c.id,start:now,end:now+650*multiplier,heldUntil:now+650,x:p.x,y:p.y,hit:p.lastHitSeq};return shadowReply(p,'クレートを開封中…');}
+   if(m.action==='open'){if(c.hp<=0||c.opened||p.action)return true;const multiplier=c.crateType==='gold'?3:c.crateType==='iron'?2:1;p.action={kind:'crateOpen',target:c.id,start:now,end:now+650*multiplier,heldUntil:now+1300,x:p.x,y:p.y,hit:p.lastHitSeq};return shadowReply(p,'クレートを開封中…');}
    if(m.action==='inspect'){if(p.job!=='detective'&&!p.inventory.some(i=>i.sku==='evidence_kit'&&i.on))return true;p.notice=c.trap||c.poison||c.stolen||c.forged?'細工または開封の痕跡があります。犯人は特定できません。':'目立った細工の痕跡はありません';const item=p.inventory.find(i=>i.sku==='evidence_kit'&&i.on);if(p.job!=='detective'&&item)ShadowRules.consume(p,item)}
    if(m.action==='trap'){const item=p.inventory.find(i=>i.sku==='trap_kit'&&i.on);if(p.alignment!=='killer'||!item||c.opened)return true;p.action={kind:'trap',target:c.id,start:now,end:now+(p.job==='engineer'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq,itemId:item.id}}
    if(m.action==='poison'){const item=p.inventory.find(i=>i.sku==='poison_vial'&&i.on);if(p.alignment!=='killer'||!item||!c.loot.some(i=>['pickup_hp','emergency_medkit'].includes(i.sku)))return true;c.poison=true;ShadowRules.consume(p,item)}
@@ -10045,7 +10046,7 @@ window.ArtShadow=(()=>{
    const member=members.get(p.id),testBot=host.players.some(q=>q.id===p.id&&q.bot);if(!testBot&&(!member||member.disconnected)){p.disconnectedAt??=now;delete host.inputs[p.id];if(now-p.disconnectedAt>=60000){shadowDead(p,now,'forfeit');continue}}else p.disconnectedAt=null;
    if(p.state==='down'){p.downHP=Math.max(0,100*(Math.max(0,(p.downUntil||now)-now)/10000));p.hp=.0001;p.moving=false;if(now>=(p.downUntil||now)||p.downHP<=0)shadowDead(p,now);continue}
    if(p.poison){if(now>=p.poison.to)p.poison=null;else if(now>=p.poison.from)shadowHurt(p,dt*3,now,{id:'poison',type:'magic'},true)}
-   const a=p.action;if(!a)continue;delete host.inputs[p.id];p.dash=null;if(R.dist(p,a)>8||p.lastHitSeq!==a.hit){p.action=null;continue}if(a.kind==='task')continue;if(['revive','crateOpen'].includes(a.kind)&&now>(a.heldUntil||0)){p.action=null;continue}
+   const a=p.action;if(!a)continue;delete host.inputs[p.id];p.dash=null;if(R.dist(p,a)>(a.kind==='crateOpen'?24:8)||p.lastHitSeq!==a.hit){p.action=null;continue}if(a.kind==='task')continue;if(['revive','crateOpen'].includes(a.kind)&&now>(a.heldUntil||0)){p.action=null;continue}
    const q=a.kind==='revive'?host.fighters.find(q=>q.id===a.target):['trap','crateOpen'].includes(a.kind)?h.crates.find(c=>c.id===a.target):null;if(['revive','trap','crateOpen'].includes(a.kind)&&!shadowNear(p,q)){p.action=null;continue}if(now<a.end)continue;p.action=null;
    if(a.kind==='crateOpen'){if(q&&q.hp>0&&!q.opened){if(q.trap&&p.alignment!=='killer')shadowHurt(p,25,now,{owner:q.trapOwner||'trap',type:'crateTrap'},true);shadowDamageCrate(q,q.hp,now,p.id);}continue}
    if(a.kind==='facilityRepair'){const f=h.facilities?.find(v=>v.id===a.target);if(f&&f.kind==='reactor'){f.hp=50;f.disabledUntil=0;host.effects.push({id:++host.seq,type:'shadowCrateRespawn',x:f.x,y:f.y,start:now,end:now+950})}continue}
@@ -10064,7 +10065,7 @@ window.ArtShadow=(()=>{
  function shadowRecognize(paths,skills){
   // Dedicated Shadow gesture reader. ArtsRules.recognize() used to veto simple
   // gun strokes in the previous version (especially straight strokes).
-  const arts=R.recognize(paths,skills||[]);if(arts&&['star','heal','build'].includes(arts.type))return arts;
+  const ownedSkills=Array.isArray(skills)?skills.filter(Boolean):[];const arts=ownedSkills.length?R.recognize(paths,ownedSkills):null;if(arts&&ownedSkills.includes(arts.type))return arts;
   if(!Array.isArray(paths)||paths.length!==1)return null;
   const p=paths[0];if(!Array.isArray(p)||p.length<3||p.length>1200)return null;
   if(p.some(q=>!Number.isFinite(q.x)||!Number.isFinite(q.y)))return null;
@@ -11218,14 +11219,14 @@ window.ArtShadow=(()=>{
      html+='</article>';
     }
     for(const t of s.tasks.filter(t=>near(t)))html+=button(esc(ShadowRules.taskNames[t.kind])+' · '+ShadowRules.taskModel(t.kind).reward+'アートマター','taskStart','data-target="'+t.id+'" '+(t.readyAt>Date.now()+offset?'disabled':''));
-    if(R.dist(p,{x:R.W/2,y:R.H/2})<125)html+='<p>中央の準備装置・ショップ</p>'+button('15アートマター → 出口を60秒短縮','clock')+button('ダウンHPを治療','treat');
+    if(R.dist(p,{x:R.W/2,y:R.H/2})<125)html+='<p>中央の準備装置</p>'+button('15アートマター → 出口を60秒短縮','clock')+button('ダウンHPを治療','treat');
     for(const c of s.crates.filter(c=>near(c)&&c.hp>0))html+='<p>クレート（HP '+Math.ceil(c.hp)+'）</p>'+'<span class="shadow-crate-hold-tip">箱を押し続けて開封（木0.65秒／鉄1.3秒／金1.95秒）</span>'+(m.job==='detective'?button('調べる','inspect','data-target="'+c.id+'"'):'')+(view.privateRole==='killer'?button('罠を仕掛ける','trap','data-target="'+c.id+'"')+button('毒を仕込む','poison','data-target="'+c.id+'"'):'');
     for(const d of s.drops.filter(near))if(['pickup_hp','pickup_ink','pickup_rainbow'].includes(d.sku)||ShadowRules.catalog[d.sku])html+=button('拾う：'+esc(d.sku==='pickup_hp'?'HP回復粒':d.sku==='pickup_ink'?'インク回復粒':d.sku==='pickup_rainbow'?'虹色の全回復粒':ShadowRules.catalog[d.sku].name),'pickup','data-target="'+d.id+'"');
     if(s.graceAt)for(const [name,x]of [['west',35],['east',R.W-35]])if(near({x,y:R.H/2}))html+=button('出口で脱出する（4秒）','escape','data-target="'+name+'"');
     html+='<p class="muted">近くにある対象が表示されます。タスク・箱・出口は地図上のマークへ。</p>';
    }
   }else if(shadowPanel==='shop'){
-   html+='<p>中央の販売端末で購入できます。インク交換はインク研究室、装備枠の拡張は倉庫へ。</p>';
+   html+='<p>中央会議室の大型ショップで購入できます。インク交換はインク研究室、装備枠の拡張は倉庫のロッカーへ。</p>';
    for(const item of ShadowRules.goods.filter(g=>g.id!=='toy_knife'&&ShadowRules.available({job:m.job,alignment:view.privateRole},g))){
     const usable=ShadowRules.price({job:m.job},item)<=m.am;
     html+='<article class="shadow-shop-item"><div class="shadow-shop-icon">'+shadowItemIcon(item)+'</div><div class="shadow-shop-copy"><b>'+esc(item.name)+'</b><span>'+ShadowRules.price({job:m.job},item)+' アートマター · '+(item.charges<0?'常設':item.charges+'回')+'</span><p>'+esc(item.source_effect||item.on_effect||'')+'</p>'+button('購入','buy','data-sku="'+item.id+'" '+(!usable?'disabled title="アートマターが不足しています"':''))+'</div></article>';
@@ -11391,10 +11392,43 @@ window.ArtShadow=(()=>{
   ctx.fillStyle=open?'#6cf1c3':'#f5c568';ctx.fillRect(-16,-z-6,32,4);
   ctx.fillStyle='#dac37d';for(let x=-span/2;x<span/2;x+=16)ctx.fillRect(x,3,8,4);ctx.restore();
  }
+function shadowLargeShop(ctx,x,y,s=1){
+function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h)}
+function line(x,y,x2,y2,color,width=2){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke()}
+function rr(x,y,w,h,r,fill,stroke,lw=2){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
+function text(t,x,y,size=16,color='#eaffff',align='left',weight='bold'){ctx.font=`${weight} ${size}px system-ui,sans-serif`;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(t,x,y)}
+ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ // shadow / footprint
+ ctx.fillStyle='rgba(1,12,20,.55)';ctx.beginPath();ctx.ellipse(170,116,174,120,0,0,Math.PI*2);ctx.fill();
+ // shop wall and floor footprint
+ rr(0,0,340,222,9,'#304859','#111f2b',6);rr(13,14,314,193,5,'#496476','#7899a7',2);
+ // floor tiles
+ for(let xx=18;xx<327;xx+=31)line(xx,22,xx,204,'#405a69',1);
+ for(let yy=22;yy<204;yy+=30)line(18,yy,322,yy,'#405a69',1);
+ // back fascia sign
+ rr(-8,-29,356,57,8,'#1e3749','#659cb3',4);rr(2,-21,336,42,4,'#17455e','#32cde6',2);
+ rect(8,-24,325,4,'#8af4fc');text('A R T O P I A   S U P P L Y',170,7,17,'#d9faff','center');
+ // upper display shelves
+ const areas=[{x:22,c:'#62d5c6',title:'HP',items:['✚','✚','✚']},{x:104,c:'#6fcbff',title:'INK',items:['◉','◉','◉']},{x:186,c:'#f1b273',title:'GEAR',items:['◆','◆','◆']},{x:268,c:'#f7d876',title:'RARE',items:['✦','✦','✦']}];
+ for(const a of areas){rr(a.x,37,69,96,6,'#243848','#8aa8b4',2);rr(a.x+4,41,61,24,4,a.c,'#d7fcff',1);text(a.title,a.x+34,58,12,'#172e3d','center');for(let i=0;i<3;i++){rr(a.x+5+i*20,74,17,31,3,'#607a8b','#bcd2dc',1);text(a.items[i],a.x+13+i*20,95,16,a.c,'center')}rect(a.x+7,113,55,4,a.c)}
+ // side storage cabinets
+ rr(19,145,65,53,6,'#274250','#a7b5c3',2);rr(256,145,65,53,6,'#274250','#a7b5c3',2);
+ for(const k of [30,267])for(let i=0;i<3;i++){rr(k+i*16,156,13,28,3,['#74d2ea','#c4e492','#d5a7e3'][i],'#192b35',1)}
+ // front checkout counter with cash register
+ rr(98,151,146,52,7,'#203b50','#9bc1d0',3);rect(103,154,136,7,'#35b8c7');rr(138,159,68,29,5,'#1b5668','#4adee0',2);text('SHOP',172,179,15,'#e5fdff','center');
+ // scanner / glow register
+ rr(211,163,22,17,3,'#152b3e','#c2f4ff',2);rect(214,166,16,10,'#7af4cf');
+ // entrance gap in front wall, door threshold
+ rect(132,208,81,15,'#8bddea');rect(135,212,75,7,'#243d4a');
+ // corner posts
+ for(const [px,py] of [[0,8],[326,8],[0,198],[326,198]]){rr(px,py,14,18,2,'#759cad','#142d3e',2);rect(px+3,py+2,8,3,'#b4f6fb')}
+ // floor approach arrows
+ text('▲',170,247,22,'#5de1de','center');text('入口',170,270,13,'#accbd3','center');
+ ctx.restore();}
+
  function shadowCentralDevices(ctx,now){
-  const shop={x:R.W/2,y:R.H/2},meeting={x:shop.x+114,y:shop.y};ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';
-  shadowFurniture(ctx,{x:shop.x-38,y:shop.y-25,w:76,h:50,z:52,room:4,kind:'console'});
-  ctx.fillStyle='#61e5d7';ctx.fillRect(shop.x-28,shop.y-64,56,25);ctx.fillStyle='#173d43';ctx.font='bold 13px sans-serif';ctx.fillText('SHOP',shop.x,shop.y-47);ctx.fillStyle='#e4f5fa';ctx.fillText('販売端末',shop.x,shop.y+47);
+  const shop=SHADOW_SHOP,meeting={x:R.W/2+114,y:R.H/2};ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';
+  shadowLargeShop(ctx,shop.x-170,shop.y-125,1);
   shadowFurniture(ctx,{x:meeting.x-32,y:meeting.y-23,w:64,h:46,z:30,room:1,kind:'table'});
   ctx.fillStyle='#652e45';ctx.beginPath();ctx.ellipse(meeting.x,meeting.y-30,22,12,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ed6579';ctx.beginPath();ctx.ellipse(meeting.x,meeting.y-36,22,12,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffb9c5';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.fillText('!',meeting.x,meeting.y-31);ctx.fillStyle='#e4f5fa';ctx.font='bold 13px sans-serif';ctx.fillText('会議 · '+(view.settings.meetingCost??6)+' AM',meeting.x,meeting.y+47);ctx.restore();
  }
@@ -11703,10 +11737,10 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
   if(door){shadowRequest('doorOpen',{target:door.id});return true}
   const task=view.shadow.tasks.find(t=>t.readyAt<=Date.now()+offset&&near(t)&&R.dist(w,t)<=46);
   if(task){shadowRequest('taskStart',{target:task.id});hint('タスクを開始します');return true}
-  const shop={x:R.W/2,y:R.H/2};
-  const meetingSpot={x:shop.x+114,y:shop.y};if(near(meetingSpot,135)&&R.dist(w,meetingSpot)<=46){shadowRequest('meetingStart');return true}
+  const shop=SHADOW_SHOP;
+  const meetingSpot={x:R.W/2+114,y:R.H/2};if(near(meetingSpot,135)&&R.dist(w,meetingSpot)<=46){shadowRequest('meetingStart');return true}
   const body=view.fighters.find(q=>q.state==='dead'&&q.diedAt&&!view.shadow.meetingUsedBodies?.includes(q.id)&&near({x:q.corpseX??q.x,y:q.corpseY??q.y},100)&&R.dist(w,{x:q.corpseX??q.x,y:q.corpseY??q.y})<=46);if(body){shadowRequest('reportBody',{target:body.id});return true}
-  if(near(shop,130)&&R.dist(w,shop)<=68){window.ArtSound?.play('tap',2);shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();hint('ショップを開きました');return true}
+  if(near(shop,170)&&R.dist(w,{x:shop.x,y:shop.y+45})<=90){window.ArtSound?.play('tap',2);shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();hint('ショップを開きました');return true}
   const down=view.fighters.find(q=>q.state==='down'&&near(q)&&R.dist(w,q)<=46);
   if(down){hint('倒れている人を長押しで救助（10アートマター）');return true}
   const crate=view.shadow.crates.find(q=>q.hp>0&&near(q,95)&&R.dist(w,q)<=43);if(crate){hint('クレートは長押しで開封します');return true}
@@ -11723,8 +11757,8 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
  window.addEventListener('blur',endReviveHold,{signal:shadowInputAbort.signal});
  shadowInputAbort.signal.addEventListener('abort',endReviveHold,{once:true});
  for(const ev of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(ev,e=>{if(reviveHold?.id===e.pointerId){e.stopImmediatePropagation();endReviveHold()}},{capture:true,signal:shadowInputAbort.signal});
- let shadowCrateHold=null;const clearShadowCrateHold=()=>{if(!shadowCrateHold)return;clearInterval(shadowCrateHold.timer);shadowCrateHold=null;shadowRequest('cancel')};window.addEventListener('blur',clearShadowCrateHold,{signal:shadowInputAbort.signal});shadowInputAbort.signal.addEventListener('abort',clearShadowCrateHold,{once:true});for(const ev of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(ev,e=>{if(shadowCrateHold?.id===e.pointerId){e.stopImmediatePropagation();clearShadowCrateHold()}},{capture:true,signal:shadowInputAbort.signal});
- c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(startReviveHold(e))return;const w=worldPoint(e),me=self(),crate=view?.shadow?.crates?.find(q=>q.hp>0&&me&&R.dist(me,q)<=95&&R.dist(w,q)<=43);if(crate&&e.pointerType!=='pen'){clearShadowCrateHold();const hold={id:e.pointerId,target:crate.id,x:e.clientX,y:e.clientY,timer:null};shadowCrateHold=hold;hint('押している間だけクレートを開封…');try{c.setPointerCapture(e.pointerId)}catch{}shadowRequest('open',{target:hold.target});window.ArtSound?.play('arts_new_build',2);hold.timer=setInterval(()=>{if(shadowCrateHold!==hold)return;if(!battleActive()){clearShadowCrateHold();return}shadowRequest('crateHold',{target:hold.target});if(view.shadow?.crates?.find(q=>q.id===hold.target)?.hp<=0){clearShadowCrateHold()}},200);return}if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale,startedAt:performance.now()};refreshPaintUI()};
+ let shadowCrateHold=null;const clearShadowCrateHold=()=>{if(!shadowCrateHold)return;clearInterval(shadowCrateHold.timer);shadowCrateHold=null;shadowRequest('cancel')};window.addEventListener('blur',clearShadowCrateHold,{signal:shadowInputAbort.signal});shadowInputAbort.signal.addEventListener('abort',clearShadowCrateHold,{once:true});for(const ev of ['pointerup','pointercancel'])window.addEventListener(ev,e=>{if(shadowCrateHold?.id===e.pointerId){clearShadowCrateHold()}},{capture:true,signal:shadowInputAbort.signal});
+ c.onpointerdown=e=>{if(self()?.rechargeUntil>Date.now()+offset){hint('インク回復に集中しています。移動はできます。');return}if(e.pointerType==='touch'&&(inZone(e)||gesture?.pointerType==='pen'))return;e.preventDefault();if(!battleActive()||strokes.length>=16)return;if(startReviveHold(e))return;const w=worldPoint(e),me=self(),crate=view?.shadow?.crates?.find(q=>q.hp>0&&me&&R.dist(me,q)<=95&&R.dist(w,q)<=43);if(crate&&e.pointerType!=='pen'){clearShadowCrateHold();const hold={id:e.pointerId,target:crate.id,x:e.clientX,y:e.clientY,timer:null};shadowCrateHold=hold;hint('押している間だけクレートを開封…');try{c.setPointerCapture(e.pointerId)}catch{}shadowRequest('open',{target:hold.target});window.ArtSound?.play('arts_new_build',2);hold.timer=setInterval(()=>{if(shadowCrateHold!==hold)return;if(!battleActive()){clearShadowCrateHold();return}shadowRequest('crateHold',{target:hold.target});if(view.shadow?.crates?.find(q=>q.id===hold.target)?.hp<=0){clearShadowCrateHold()}},120);return}if(gesture){if(e.pointerType!=='pen'||gesture.pointerType==='pen')return;finishPaint(true)}beginPaint(e.pointerId);try{c.setPointerCapture(e.pointerId)}catch{}gesture={id:e.pointerId,pointerType:e.pointerType,points:[relativePoint(e)],clientX:e.clientX,clientY:e.clientY,scale:cameraRect().scale,startedAt:performance.now()};refreshPaintUI()};
  c.onpointermove=e=>{if(reviveHold?.id===e.pointerId){if(Math.hypot(e.clientX-reviveHold.x,e.clientY-reviveHold.y)>18)endReviveHold();return}if(shadowCrateHold?.id===e.pointerId){if(Math.hypot(e.clientX-shadowCrateHold.x,e.clientY-shadowCrateHold.y)>20)clearShadowCrateHold();return}if(gesture?.id!==e.pointerId)return;e.preventDefault();drawPoint(e)};
  c.onpointerup=e=>{if(shadowCrateHold?.id===e.pointerId){clearShadowCrateHold();return}if(gesture?.id!==e.pointerId)return;drawPoint(e);if(!gesture)return;const tap=e.pointerType!=='pen'&&performance.now()-gesture.startedAt<420&&Math.hypot(e.clientX-gesture.clientX,e.clientY-gesture.clientY)<13&&R.length([gesture.points])<12;
   if(tap&&shadowInteract(e)){finishPaint(true);return}
@@ -11754,7 +11788,7 @@ finishPaint(false)};
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#shadowArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,self()?.skills||[]);hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'星・丸・四角、または武器のお手本どおりに描いてください。失敗時はインクを消費しません。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,self()?.skills||[]);hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'現在ONの所持アイテムに対応する図形か、装備した銃・ナイフの形を描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
