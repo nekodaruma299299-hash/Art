@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.89 / アートレイターのチャット・お手本・新武器・貫通レーザー
+あーとぴあ 1.4.91 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9500,7 +9500,7 @@ const ShadowRules=(()=>{
  const living=p=>p&&p.active&&!['dead','escaped','forfeit'].includes(p.state),up=p=>living(p)&&p.state==='alive';
  function init(h,now,random=Math.random){h.shadow={version:1,phase:'active',started:now,gateAt:now+h.settings.gateMin*60000,graceAt:0,shortened:0,initialArtists:h.players.length-(C.players.killer_counts[h.players.length]||1),sales:{},tasks:[],crates:[],drops:[],logs:[],nextCrate:now+45000,meeting:null,meetingCount:0,meetingNotes:[],meetingChat:[],meetingUsedBodies:[]};
   const killers=new Set(h.shadowRoles?Object.keys(h.shadowRoles).filter(id=>h.shadowRoles[id]==='killer'):shuffled(h.players.map(p=>p.id),random).slice(0,C.players.killer_counts[h.players.length]||1));
-  h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.ammo=0;p.knifeReady=0;p.shieldUntil=0;p.jammedUntil=0;p.taskBoost=false;p.taskProgress={};p.taskSuccessSeq=0;p.downHP=100;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.reviveCount=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.alignment==='killer'){p.inventory.push({id:'initial-knife-'+p.id,sku:'toy_knife',charges:-1,on:true})}else if(p.job==='police'){p.inventory.push({id:'initial-pistol-'+p.id,sku:'ink_pistol',charges:-1,on:true})}});
+  h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.ammo=0;p.knifeReady=0;p.shieldUntil=0;p.jammedUntil=0;p.taskBoost=false;p.taskProgress={};p.taskSuccessSeq=0;p.downHP=100;p.downUntil=0;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.reviveCount=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.alignment==='killer'){p.inventory.push({id:'initial-knife-'+p.id,sku:'toy_knife',charges:-1,on:true})}else if(p.job==='police'){p.inventory.push({id:'initial-pistol-'+p.id,sku:'ink_pistol',charges:-1,on:true})}});
   const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,1260],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
  }
  function buy(h,p,sku){if(!up(p))return '行動できません';if(sku==='slot'){if(p.slots>=5)return '最大5枠です';const cost=p.slots===3?20:35;if(p.am<cost)return 'アートマター不足';p.am-=cost;p.slots++;return ''}
@@ -9508,7 +9508,7 @@ const ShadowRules=(()=>{
  }
  function consume(p,item){if(item.charges>0&&--item.charges===0)p.inventory=p.inventory.filter(i=>i!==item)}
  function enabledSkills(p){return []} // weapons have dedicated stroke handling
- function result(h,now){const f=h.fighters,s=h.shadow,artists=f.filter(p=>p.alignment==='artist'),killers=f.filter(p=>p.alignment==='killer');let why='';if(killers.every(p=>!living(p)))why='killers_eliminated';else if(artists.every(p=>!living(p)))why='artists_finished';else if(s.graceAt&&now>=s.graceAt)why='grace_timeout';if(!why)return null;const E=artists.filter(p=>p.state==='escaped').length,N=s.initialArtists;return {reason:why,escaped:E,totalArtists:N,killerResult:why==='killers_eliminated'?'敗北':2*E<N?'勝利':2*E===N?'引き分け':'敗北',winners:artists.filter(p=>p.state==='escaped'||why==='killers_eliminated'&&living(p)).map(p=>p.id),players:f.map(p=>({id:p.id,job:p.job,alignment:p.alignment,state:p.state,escapedAt:p.escapedAt||null,diedAt:p.diedAt||null,am:p.am,damageDealt:p.damageDealt||0}))}}
+ function result(h,now){const f=h.fighters,s=h.shadow,artists=f.filter(p=>p.alignment==='artist'),killers=f.filter(p=>p.alignment==='killer');let why='';if(killers.every(p=>!living(p)))why='killers_eliminated';else if(artists.every(p=>!living(p)))why='artists_finished';else if(s.graceAt&&now>=s.graceAt)why='grace_timeout';if(!why)return null;const E=artists.filter(p=>p.state==='escaped').length,N=s.initialArtists;const artistVictory=why==='killers_eliminated'||(why!=='artists_finished'&&2*E>N);const killerVictory=why!=='killers_eliminated'&&(why==='artists_finished'&&E===0||2*E<N);return {reason:why,escaped:E,totalArtists:N,winningSide:artistVictory?'artist':killerVictory?'killer':'draw',killerResult:killerVictory?'勝利':artistVictory?'敗北':'引き分け',winners:(artistVictory?artists:killerVictory?killers:[]).map(p=>p.id),players:f.map(p=>({id:p.id,job:p.job,alignment:p.alignment,state:p.state,escapedAt:p.escapedAt||null,diedAt:p.diedAt||null,am:p.am,damageDealt:p.damageDealt||0}))}}
  function chat(h,id,text,now){const p=h.fighters.find(p=>p.id===id);if(!p||now-(p.lastChat||0)<700)return [];p.lastChat=now;text=String(text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,120);if(!text)return [];if(p.state==='down')text='助けてください！';const ghost=!living(p),m={id:'chat-'+(++h.seq),author:id,name:h.players.find(q=>q.id===id)?.name||'',text,at:now,ghost};h.shadow.logs.push(m);h.shadow.logs=h.shadow.logs.slice(-3000);return h.fighters.flatMap(q=>{if(!living(q))return [{to:q.id,message:m}];if(ghost)return [];const d=dist(p,q),limit=p.state==='down'?220:440;if(d>limit)return [];return [{to:q.id,message:{...m,text:d<=220?text:text.slice(0,Math.max(3,Math.floor(text.length*.45)))+'…',range:d<=220?'near':'mid',direction:d<=220?null:Math.atan2(p.y-q.y,p.x-q.x)}}]})}
  const taskNames={WIR_01:'色の配線',OUT_01:'点線をなぞる',DOT_01:'順番に結ぶ',MEM_01:'図形を記憶',PAIR_01:'鏡の絵',REPAIR_01:'回路の修復',FILL_01:'塗りつぶし',MIX_01:'図形を順番に',MAZE_01:'迷路を通る'};
  function taskModel(kind,rev=0){const square=[{x:25,y:25},{x:75,y:25},{x:75,y:75},{x:25,y:75},{x:25,y:25}],circle=Array.from({length:33},(_,i)=>({x:50+25*Math.cos(i*Math.PI/16),y:50+25*Math.sin(i*Math.PI/16)}));const line=(a,b)=>Array.from({length:25},(_,i)=>({x:a.x+(b.x-a.x)*i/24,y:a.y+(b.y-a.y)*i/24}));
@@ -9619,7 +9619,7 @@ window.ArtShadow=(()=>{
  // Adapter for the existing combat implementation, scoped to this closure.
  function shadowSyncSkills(p){p.skills=ShadowRules.enabledSkills(p);p.skill=p.skills[0]||''}
  function shadowPublic(id,images){const s=publicState(images),me=host.fighters.find(p=>p.id===id),ghost=me&&!ShadowRules.living(me);s.testMode=!!(room.offline&&room.shadowTest);s.testBotsMove=!!host.testBotsMove;s.shadowSettings=host.settings;s.privateRole=host.shadowRoles?.[id]||null;s.killerFriends=s.privateRole==='killer'?Object.keys(host.shadowRoles).filter(k=>host.shadowRoles[k]==='killer'):[];
-  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
+  if(host.shadow){const h=host.shadow;s.shadow={phase:h.phase,gateAt:h.gateAt,graceAt:h.graceAt,shortened:h.shortened,tasks:h.tasks.map(t=>({id:t.id,kind:t.kind,x:t.x,y:t.y,readyAt:me?.taskProgress?.[t.id]?.readyAt||0,rev:me?.taskProgress?.[t.id]?.rev||0})),crates:h.crates.map(c=>({id:c.id,x:c.x,y:c.y,hp:c.hp??60,maxHp:c.maxHp||60,respawnAt:c.respawnAt||0,opened:c.opened,loot:[]})),drops:h.drops.map(d=>({id:d.id,sku:d.sku,x:d.x,y:d.y})),meeting:h.meeting?{id:h.meeting.id,started:h.meeting.started,until:h.meeting.until,caller:h.meeting.caller,reason:h.meeting.reason}:null,meetingNotes:(h.meetingNotes||[]).slice(-220),meetingChat:(h.meetingChat||[]).slice(-80),meetingUsedBodies:[...(h.meetingUsedBodies||[])],weaponShots:(h.weaponShots||[]).map(b=>({id:b.id,x:b.x,y:b.y,vx:b.vx,vy:b.vy,weapon:b.weapon,owner:b.owner,created:b.created})),me:me?{lastSeq:me.lastSeq||0,am:me.am,slots:me.slots,inventory:me.inventory.map(({poison,...i})=>i),downHP:me.downHP,job:me.job,state:me.state,taskSuccessSeq:me.taskSuccessSeq||0,taskStartedSeq:me.taskStartedSeq||0,action:me.action,notice:me.notice||'',ammo:me.ammo||0,buySignal:me.buySignal||0,buySucceeded:!!me.buySucceeded,pickupEvent:me.pickupEvent||0,pickupKind:me.pickupKind||'',logs:ghost?h.logs.slice(-500):me.chatLog||[]}:null};}
   s.fighters=s.fighters.map(p=>{const q=host.fighters.find(f=>f.id===p.id);p.class=q.job||p.class;p.state=q.state;p.corpseX=q.corpseX;p.corpseY=q.corpseY;p.diedAt=q.diedAt;p.downHP=q.state==='down'?q.downHP:undefined;p.hp=q.state==='down'?0:p.hp;if(p.id!==id){p.maxHp=100;p.hp=q.maxHp?100*p.hp/q.maxHp:0;p.skills=[];p.skill='';p.artCooldowns={};p.nextSkill=0;p.ink=0;p.maxInk=100;p.damageDealt=0;p.blessingStacks=0;}return p});return s;
  }
  function shadowSend(images=false){if(!host||!isHost)return;for(const id of members.keys()){const packet={type:'gameShadowState',state:shadowPublic(id,images)};if(id===localId)receive(structuredClone(packet));else sendWire(connections.get(id),packet)}}
@@ -9668,6 +9668,8 @@ window.ArtShadow=(()=>{
   const pause=Math.max(0,m.until-m.started);
   h.gateAt+=pause;if(h.graceAt)h.graceAt+=pause;
   h.nextCrate+=pause;if(host.deadline)host.deadline+=pause;
+  // The downed player timer is also frozen while everybody is in the meeting.
+  for(const f of host.fighters)if(f.state==='down'&&f.downUntil)f.downUntil+=pause;
   // Move participants to open spots near meeting table; never teleport them inside walls.
   const center={x:R.W/2,y:R.H/2};
   for(const [i,p] of host.fighters.filter(f=>ShadowRules.living(f)).entries()){
@@ -9676,6 +9678,8 @@ window.ArtShadow=(()=>{
     if(!R.blocked(q.x,q.y,host.blocks,R.R+3)){found=q;break}
    }if(found){p.x=found.x;p.y=found.y}p.action=null;p.preview=[];p.drawing=false;
   }
+  // A finished meeting closes all prior corpse reports, even bodies not reported yet.
+  for(const corpse of host.fighters)if(corpse.state==='dead'&&corpse.diedAt&&!h.meetingUsedBodies.includes(corpse.id))h.meetingUsedBodies.push(corpse.id);
   h.meeting=null;h.meetingChat.push({id:++host.seq,from:'system',name:'システム',text:'会議終了。中央から再開します',at:now});
   shadowSend(true);return true;
  }
@@ -9683,7 +9687,7 @@ window.ArtShadow=(()=>{
  function shadowHurt(target,damage,now,source,armorPierce=false,knockback=0){if(!ShadowRules.living(target)||target.protectUntil>now)return 0;const owner=host.fighters.find(p=>p.id===(source?.owner||source?.id)),key=String(source?.castId||source?.group||source?.id||'world');
   if(target.state==='down'){if(target.downBlocked.includes(key))return 0;const actual=Math.min(target.downHP,Math.max(0,damage));target.downHP-=actual;if(owner&&owner!==target)owner.damageDealt=(owner.damageDealt||0)+actual;if(target.downHP<=0)shadowDead(target,now);return actual}
   const mult=target.shieldUntil>now?.5:1;const actual=originalHurt(target,damage*mult,now,source,armorPierce,knockback);if(actual>0)target.action=null;
-  if(target.hp<=0&&actual>0){target.state='down';target.downUsed=true;target.downBlocked=[key];target.hp=.0001;target.dash=null;target.guard=0;target.drawing=false;target.preview=[];target.action=null;delete host.inputs[target.id]}return actual;
+  if(target.hp<=0&&actual>0){target.state='down';target.downUsed=true;target.downUntil=now+10000;target.downHP=100;target.downBlocked=[key];target.hp=.0001;target.dash=null;target.guard=0;target.drawing=false;target.preview=[];target.action=null;delete host.inputs[target.id]}return actual;
  }
  function shadowCrateArtsHit(p,shape,now){
   const type=shape.type;if(!['slash','magic','cross','thrust','feint','inkcut','star','nova','ray','charge','execution','judgment','rapid','burst'].includes(type))return;
@@ -9722,7 +9726,6 @@ window.ArtShadow=(()=>{
   if(isShot&&!useJudgment&&!usePistol&&!useAirgun){p.castError=judge?'弾薬がありません。ピストルかエアガンを装備してください。':'ジャッジメントガン・ピストル・エアガンのいずれかを購入してください。';return false}
   if(isKnife&&!strongKnife&&!toyKnife){p.castError='ナイフがありません。';return false}
   if(p.ink<cost){p.castError='インク不足です。アートマター1でインク5を補給できます。';return false}
-  if(isShot&&now<(p.gunReady||0)||isKnife&&now<(p.knifeReady||0)){p.castError='武器の再使用待ちです。';return false}
   p.ink-=cost;
   const drawnX=Number(shape.x)||0,drawnY=Number(shape.y)||0;
   const drawnDistance=Math.hypot(drawnX,drawnY);
@@ -9746,7 +9749,7 @@ window.ArtShadow=(()=>{
    }
    return true;
   };
-  if(isShot){if(useJudgment)p.ammo--;p.gunReady=now+(useJudgment?3000:1400)}else p.knifeReady=now+(strongKnife?15000:2800);
+  if(isShot&&useJudgment)p.ammo--; // No weapon cooldown; ink, ammo and single-use limits still apply.
   p.lastSpecial=now;p.disguiseUntil=0;
   const chosen=hits.find(v=>clear(v.q));
   if(isShot){
@@ -9772,10 +9775,10 @@ window.ArtShadow=(()=>{
  function shadowNear(p,q,r=90){return q&&R.dist(p,q)<=r}
  function shadowReply(p,text){p.notice=text;shadowSend()}
  function shadowAction(id,m){if(!host||host.phase!=='battle'||!host.shadow)return true;const p=host.fighters.find(p=>p.id===id),h=host.shadow,now=Date.now();if(!p)return true;
-  if(m.action==='chat'&&h.meeting){const msg=String(m.text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,120);if(msg){h.meetingChat.push({id:++host.seq,from:p.id,name:host.players.find(q=>q.id===id)?.name||members.get(id)?.profile?.name||'参加者',text:msg,at:now});h.meetingChat=h.meetingChat.slice(-100)}shadowSend();return true}
+  if(m.action==='chat'&&h.meeting){if(!ShadowRules.up(p))return true;const msg=String(m.text||'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,120);if(msg){h.meetingChat.push({id:++host.seq,from:p.id,name:host.players.find(q=>q.id===id)?.name||members.get(id)?.profile?.name||'参加者',text:msg,at:now});h.meetingChat=h.meetingChat.slice(-100)}shadowSend();return true}
   if(m.action==='chat'){for(const packet of ShadowRules.chat(host,id,m.text,now)){const q=host.fighters.find(p=>p.id===packet.to);q.chatLog=[...(q.chatLog||[]),packet.message].slice(-100)}shadowSend();return true}
-  if(h.meeting){if(m.action==='meetingStroke'&&ShadowRules.living(p)){const path=Array.isArray(m.path)?m.path:[],tool=m.tool==='eraser'?'eraser':'pen';if(path.length>=2&&path.length<=220&&path.every(pt=>Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=0&&pt.x<=1000&&pt.y>=0&&pt.y<=600)&&h.meetingNotes.length<600){const stride=Math.max(1,Math.ceil(path.length/72));const points=path.filter((_,i)=>i%stride===0||i===path.length-1);h.meetingNotes.push({id:++host.seq,from:id,tool,path:points.map(pt=>({x:Math.round(pt.x),y:Math.round(pt.y)}))});shadowSend()}return true}return true}
-  if(room.offline&&room.shadowTest&&id===localId&&m.action?.startsWith('test')){if(m.action==='testAM')p.am=100;if(m.action==='testGate'){h.gateAt=now;h.graceAt=now+180000;h.phase='escape_grace';host.deadline=h.graceAt}if(m.action==='testHeal'){p.state='alive';p.active=true;p.hp=p.maxHp;p.ink=p.maxInk;p.downHP=100;p.poison=null;p.action=null}if(m.action==='testBots')host.testBotsMove=!host.testBotsMove;shadowSend();return true}
+  if(h.meeting){if(m.action==='meetingStroke'&&ShadowRules.up(p)){const path=Array.isArray(m.path)?m.path:[],tool=m.tool==='eraser'?'eraser':'pen';if(path.length>=2&&path.length<=220&&path.every(pt=>Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=0&&pt.x<=1000&&pt.y>=0&&pt.y<=600)&&h.meetingNotes.length<600){const stride=Math.max(1,Math.ceil(path.length/72));const points=path.filter((_,i)=>i%stride===0||i===path.length-1);h.meetingNotes.push({id:++host.seq,from:id,tool,path:points.map(pt=>({x:Math.round(pt.x),y:Math.round(pt.y)}))});shadowSend()}return true}return true}
+  if(room.offline&&room.shadowTest&&id===localId&&m.action?.startsWith('test')){if(m.action==='testAM')p.am=100;if(m.action==='testGate'){h.gateAt=now;h.graceAt=now+180000;h.phase='escape_grace';host.deadline=h.graceAt}if(m.action==='testHeal'){p.state='alive';p.active=true;p.hp=p.maxHp;p.ink=p.maxInk;p.downHP=100;p.downUntil=0;p.poison=null;p.action=null}if(m.action==='testBots')host.testBotsMove=!host.testBotsMove;shadowSend();return true}
   if(!ShadowRules.up(p)||!Number.isSafeInteger(m.seq)||m.seq<=p.lastSeq)return true;p.lastSeq=m.seq;const center={x:R.W/2,y:R.H/2};
   if(m.action==='meetingStart'){if(!shadowMeetingStart(p,now,'button'))shadowReply(p,'中央の会議装置で必要なアートマターを確認してください');return true}
   if(m.action==='reportBody'){const body=host.fighters.find(f=>f.id===m.target);if(!shadowMeetingStart(p,now,'body',body))shadowReply(p,'近くに通報できる死体がありません');return true}
@@ -9850,11 +9853,11 @@ window.ArtShadow=(()=>{
    return true;
   });
   for(const p of host.fighters){if(!ShadowRules.living(p))continue;const member=members.get(p.id),testBot=host.players.some(q=>q.id===p.id&&q.bot);if(!testBot&&(!member||member.disconnected)){p.disconnectedAt??=now;delete host.inputs[p.id];if(now-p.disconnectedAt>=60000){shadowDead(p,now,'forfeit');continue}}else p.disconnectedAt=null;
-   if(p.state==='down'){p.downHP=Math.max(0,p.downHP-3*dt);p.hp=.0001;p.moving=false;if(p.downHP<=0)shadowDead(p,now);continue}
+   if(p.state==='down'){p.downHP=Math.max(0,100*(Math.max(0,(p.downUntil||now)-now)/10000));p.hp=.0001;p.moving=false;if(now>=(p.downUntil||now)||p.downHP<=0)shadowDead(p,now);continue}
    if(p.poison){if(now>=p.poison.to)p.poison=null;else if(now>=p.poison.from)shadowHurt(p,dt*3,now,{id:'poison',type:'magic'},true)}
    const a=p.action;if(!a)continue;delete host.inputs[p.id];p.dash=null;if(R.dist(p,a)>8||p.lastHitSeq!==a.hit){p.action=null;continue}if(a.kind==='task')continue;
    const q=a.kind==='revive'?host.fighters.find(q=>q.id===a.target):a.kind==='trap'?h.crates.find(c=>c.id===a.target):null;if(['revive','trap'].includes(a.kind)&&!shadowNear(p,q)){p.action=null;continue}if(now<a.end)continue;p.action=null;
-   if(a.kind==='revive'&&q.state==='down'&&q.downHP>0&&p.am>=12){p.am-=12;q.hp=30;q.state='alive';q.protectUntil=now+600;q.downBlocked=[];q.reviveCount=(q.reviveCount||0)+1;q.reviveProgress=0}
+   if(a.kind==='revive'&&q.state==='down'&&q.downHP>0&&p.am>=12){p.am-=12;q.hp=30;q.state='alive';q.protectUntil=now+600;q.downBlocked=[];q.reviveCount=(q.reviveCount||0)+1;q.reviveProgress=0;q.downUntil=0}
    if(a.kind==='escape'&&p.alignment==='artist'&&h.graceAt){p.state='escaped';p.escapedAt=now;p.hp=0;p.active=false;host.effects=host.effects.filter(e=>e.owner!==p.id);host.shots=host.shots.filter(s=>s.owner!==p.id)}
    if(a.kind==='trap'&&q&&!q.opened){const item=p.inventory.find(i=>i.id===a.itemId);if(item){q.trap=true;q.trapOwner=p.id;ShadowRules.consume(p,item)}}
   }
@@ -10934,6 +10937,7 @@ window.ArtShadow=(()=>{
   }
   const remaining=Math.max(0,Math.ceil((meeting.until-Date.now()-offset)/1000));const clock=overlay.querySelector('#shadowMeetingClock');if(clock)clock.textContent=remaining+'秒';
   const notes=data.meetingNotes||[];if(notes.length!==meetingRenderedNotes){meetingRenderedNotes=notes.length;if(!meetingDraw)shadowMeetingCanvasPaint(overlay.querySelector('#shadowMeetingPaper'),notes)}
+  const meetingInput=overlay.querySelector('#shadowMeetingInput'),meetingSend=overlay.querySelector('#shadowMeetingForm button');const canSpeak=view.shadow.me?.state==='alive';if(meetingInput){meetingInput.disabled=!canSpeak;meetingInput.placeholder=canSpeak?'全員にメッセージ':'死亡者は会議で発言できません';}if(meetingSend)meetingSend.disabled=!canSpeak;
   const chat=data.meetingChat||[],marker=chat.map(x=>x.id).join(',');if(marker!==meetingRenderedChat){meetingRenderedChat=marker;const log=overlay.querySelector('#shadowMeetingMessages');if(log){log.innerHTML=chat.slice(-80).map(x=>'<p><b>'+esc(x.name||'')+'</b> '+esc(x.text||'')+'</p>').join('');log.scrollTop=log.scrollHeight}}
  }
  let shadowPanel='',shadowPanelKey='',shadowPanelTarget='',shadowSeq=0,taskInk=[],taskStroke=null,taskAutoSubmitted=false,shadowTaskDismissed=null;
@@ -10951,13 +10955,13 @@ window.ArtShadow=(()=>{
   if(!shadowPickupSoundInitialized){shadowPickupSoundInitialized=true;shadowPickupSoundSeq=m.pickupEvent||0}else if((m.pickupEvent||0)>shadowPickupSoundSeq){shadowPickupSoundSeq=m.pickupEvent;window.ArtSound?.play(m.pickupKind==='pickup_hp'?'arts_new_heal':m.pickupKind==='pickup_ink'?'arts_new_quiet':'arts_new_cute',2)}
   const log=(m.logs||[]).slice(-60).map(l=>(l.name||'')+'：'+(l.text||'')).join('\n');
   if(log!==shadowChatLast){shadowChatLast=log;const stream=$('#recentComment');if(stream){stream.replaceChildren();const list=document.createElement('div');list.className='chat-stream';for(const item of (m.logs||[]).slice(-60)){const node=document.createElement('div');node.className='recent-comment-row';const name=document.createElement('b');name.textContent=(item.name||'')+'：';const msg=document.createElement('span');msg.textContent=item.text||'';node.append(name,msg);list.append(node)}stream.append(list);stream.scrollTop=stream.scrollHeight}}
-  if(h)h.innerHTML='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b>' +(m.state==='down'?'<b>ダウンHP '+Math.ceil(m.downHP)+'</b>':'');let timeBox=$('#shadowTimeBox');if(!timeBox){timeBox=document.createElement('div');timeBox.id='shadowTimeBox';$('#shadowField').append(timeBox)}const timeBasis=s.meeting?s.meeting.started:(Date.now()+offset);const remain=Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-timeBasis)/1000));timeBox.textContent=(s.graceAt?'脱出猶予':'出口開放まで')+'  '+Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0')+(s.meeting?' · 会議中は停止':'');
+  if(h)h.innerHTML='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b>' +(m.state==='down'?'<b>死亡まで '+Math.ceil((m.downHP||0)/10)+'秒</b>':'');let timeBox=$('#shadowTimeBox');if(!timeBox){timeBox=document.createElement('div');timeBox.id='shadowTimeBox';$('#shadowField').append(timeBox)}const timeBasis=s.meeting?s.meeting.started:(Date.now()+offset);const remain=Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-timeBasis)/1000));timeBox.textContent=(s.graceAt?'脱出猶予':'出口開放まで')+'  '+Math.floor(remain/60)+':'+String(remain%60).padStart(2,'0')+(s.meeting?' · 会議中は停止':'');
   // Minimap: only own location is visible. Do not disclose killer/player positions.
   let map=$('#shadowMiniMap');if(!map){map=document.createElement('canvas');map.id='shadowMiniMap';map.width=118;map.height=166;map.setAttribute('aria-label','自分の位置を緑の点で表示するミニマップ');$('#shadowField').append(map)}
   const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.clearRect(0,0,118,166);mx.fillStyle='#14212a';mx.fillRect(0,0,118,166);const sx=110/R.W,sy=158/R.H;mx.save();mx.translate(4,4);mx.fillStyle='#314c53';mx.strokeStyle='#789099';mx.lineWidth=1;for(const a of SHADOW_ROOMS){mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy)}mx.fillStyle='#46e789';mx.shadowBlur=6;mx.shadowColor='#42ff99';mx.beginPath();mx.arc(p.x*sx,p.y*sy,4,0,Math.PI*2);mx.fill();mx.restore()}
   let tools=$('#shadowTools');if(!tools){tools=document.createElement('div');tools.id='shadowTools';$('#shadowField').append(tools);const panel=document.createElement('section');panel.id='shadowPanel';panel.hidden=true;shadowPanelKey='';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','アートレイター操作画面');$('#shadowStage').append(panel);const shade=document.createElement('div');shade.id='shadowPanelShade';shade.hidden=true;panel.before(shade);shade.addEventListener('click',e=>{e.stopPropagation();shadowClosePanel()});for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])shade.addEventListener(ev,e=>e.stopPropagation(),{passive:true});for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel','wheel'])panel.addEventListener(ev,e=>e.stopPropagation(),{passive:true});tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openItem){shadowPanel='items';shadowPanelKey='';shadowRenderPanel();return}if(b.dataset.toggle)shadowRequest('toggle',{itemId:b.dataset.toggle});if(b.dataset.panel){shadowPanel=shadowPanel===b.dataset.panel?'':b.dataset.panel;shadowPanelKey='';shadowRenderPanel()}}}
   const chips=m.inventory.filter(i=>ShadowRules.catalog[i.sku]).map(i=>{const s=ShadowRules.catalog[i.sku];return '<button data-open-item="'+i.id+'" '+(m.state!=='alive'?'disabled':'')+' class="'+(i.on?'on':'')+'" title="'+esc(s.name)+'">'+esc(s.name)+'<small>'+(i.on?'ON':'OFF')+' · '+(i.charges<0?'∞':i.charges)+'</small></button>'}).join('');
-  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div><button type="button" class="shadow-near-chat" data-panel="chat">'+(['dead','escaped','forfeit'].includes(m.state)?'幽霊チャット':'近くに話す')+'</button>';if(tools.innerHTML!==html)tools.innerHTML=html;
+  const html='<div class="shadow-items">'+chips+Array.from({length:Math.max(0,m.slots-m.inventory.filter(i=>i.sku!=='toy_knife').length)},()=>'<span class="shadow-empty">空き</span>').join('')+'</div><button type="button" class="shadow-near-chat" data-panel="chat">'+(['dead','escaped','forfeit'].includes(m.state)?'幽霊チャット':'近くに話す')+'</button>';if(tools.innerHTML!==html&&!tools.contains(document.activeElement))tools.innerHTML=html;
   if(m.action?.kind!=='task')shadowTaskDismissed=null;
   if(m.action?.kind==='task'&&shadowPanel!=='task'&&shadowTaskDismissed!==m.action.target){shadowPanel='task';shadowPanelKey='';taskInk=[];taskStroke=null;taskAutoSubmitted=false}
   if(shadowPanel==='task'&&m.action?.kind!=='task'){shadowPanel='';shadowPanelKey=''}
@@ -11118,7 +11122,7 @@ window.ArtShadow=(()=>{
  }
   const shop={x:R.W/2,y:R.H/2};const meetingSpot={x:shop.x+114,y:shop.y};x.save();x.fillStyle='#e5d0f2';x.strokeStyle='#6c468f';x.lineWidth=3;x.beginPath();x.arc(meetingSpot.x,meetingSpot.y,40,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#4b2c70';x.font='bold 14px sans-serif';x.fillText('会議',meetingSpot.x,meetingSpot.y+5);x.fillText(''+(view.settings.meetingCost??6)+' アートマター',meetingSpot.x,meetingSpot.y+57);x.restore();if(me?.state==='alive'&&R.dist(me,meetingSpot)<135)halo(meetingSpot,45);x.fillStyle='#f1d68e';x.strokeStyle='#765c33';x.lineWidth=3;x.fillRect(shop.x-38,shop.y-31,76,62);x.strokeRect(shop.x-38,shop.y-31,76,62);x.fillStyle='#4a3c29';x.font='bold 15px sans-serif';x.font='bold 11px sans-serif';x.fillText('アート',shop.x,shop.y);x.fillText('マター',shop.x,shop.y+14);x.font='bold 13px sans-serif';x.fillText('ショップ',shop.x,shop.y+49);if(me?.state==='alive'&&R.dist(me,shop)<=125)halo(shop,53);
   for(const gx of [35,R.W-35]){x.fillStyle=s.graceAt?'#80d4ab':'#8f9caa';x.fillRect(gx-22,R.H/2-45,44,90);x.fillStyle='#233e3c';x.fillText(s.graceAt?'脱出':'出口',gx,R.H/2-57)}
-  for(const p of view.fighters)if(p.state==='down'){x.fillStyle='#b84b57';x.fillText('ダウン · '+Math.ceil(p.downHP),p.x,p.y+45)}
+  for(const p of view.fighters)if(p.state==='down'){x.fillStyle='#b84b57';x.fillText('ダウン · '+Math.ceil((p.downHP||0)/10)+'秒',p.x,p.y+45)}
   for(const l of s.me?.logs||[]){if(l.ghost||l.range!=='near'||now-l.at>6000)continue;const p=view.fighters.find(p=>p.id===l.author);if(!p)continue;const text=l.text.slice(0,22);x.fillStyle='#fffffff0';x.fillRect(p.x-92,p.y-90,184,27);x.fillStyle='#24384c';x.fillText(text,p.x,p.y-72)}x.restore();
  }
 
@@ -11133,7 +11137,13 @@ window.ArtShadow=(()=>{
  let body='';if(phase==='lobby'){const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);body='<h2>アートレイター</h2><p>描いたキャラクターで、秘密の陣営に分かれるサバイバル。<br>タスクで装備を集め、出口からの脱出を目指しましょう。</p><p>'+people.map(p=>esc(p.profile.name)).join(' ・ ')+' · 人数不足はBOTで4人まで補充'+'</p>'+teamLobbyHTML(people)+'<p>作成 '+view.settings.createSeconds+'秒 / 対戦 '+view.settings.battleSeconds+'秒</p><div class="modal-actions">'+(isHost?'<button id="shadowStart" class="primary">キャラクター作成へ</button><button id="shadowSettings">部屋設定</button>':'部屋主の開始を待っています。')+'</div>'+instructions}
  else if(phase==='equip'){body=shadowEquipUI()+'<p class="shadow-transition-note">全員のキャラクターが揃いました。まもなくサバイバルが始まります。</p>'}
   else if(phase==='create'||phase==='collect')body='<h2>'+(participant()?'準備完了！':'観戦中')+'</h2><p>みんなのキャラクターが揃うのを待っています。</p><p>'+Object.values(view.ready).filter(Boolean).length+' / '+view.players.filter(p=>p.active).length+'人 準備完了</p>'+(phase==='create'&&participant()&&view.ready[localId]&&!room.characterOnly&&view.deadline>Date.now()+offset?'<p>全員が準備完了になると5秒後にスキル選択へ進みます。</p><button type="button" id="shadowCancelReady">準備完了を取り消して描き直す</button>':'');
- else if(phase==='finished'){const winners=view.result?.winners||[];body='<h2>'+(winners.length?winners.map(id=>esc(view.players.find(p=>p.id===id)?.name||'参加者')).join('・')+' の勝利！':'引き分け')+'</h2>'+view.fighters.slice().sort((a,b)=>b.hp-a.hp).map(p=>'<article class="shadow-result-player">'+(view.art?.[p.id]?.image?'<img src="'+esc(view.art[p.id].image)+'" alt="'+esc(view.players.find(q=>q.id===p.id)?.name||'参加者')+'のキャラ">':'<div class="shadow-result-placeholder">'+(view.players.find(q=>q.id===p.id)?.bot?'練習くん':'画像なし')+'</div>')+'<div><b>'+esc(view.players.find(q=>q.id===p.id)?.name||'参加者')+'</b><p>'+esc(ShadowRules.J.find(j=>j.id===p.class)?.name||p.class)+' · '+esc(view.result?.players?.find(q=>q.id===p.id)?.alignment==='killer'?'キラー':'アーティスト')+' · '+esc(p.state||'')+' · HP '+Math.ceil(p.hp)+(p.active?'':'（退出）')+'</p>'+statsHTML(p.stats)+'</div></article>').join('')+'<section class="shadow-result-memo"><h3>会議の共有メモ</h3><button id="shadowDownloadMeetingNotes" type="button">会議メモをPNGで保存</button></section>'+(view.art?.[localId]?.image?'<section class="shadow-result-character"><h3>今回使ったキャラクター</h3><img src="'+esc(view.art[localId].image)+'" alt="今回使ったキャラ"><button id="shadowSaveResultCharacter" class="primary">このキャラを絵画展に保存</button></section>':'')+'<p>キラー陣営：'+esc(view.result?.killerResult||'')+' · 脱出 '+(view.result?.escaped||0)+' / '+(view.result?.totalArtists||0)+'人</p><div class="modal-actions">'+(isHost?'<button id="shadowAgain" class="primary">待機室へ戻る</button>':'')+'<button id="shadowExit">退出</button></div>'}
+ else if(phase==='finished'){
+  const side=view.result?.winningSide||((view.result?.reason==='killers_eliminated')?'artist':(view.result?.reason==='artists_finished'&&view.result?.escaped===0)?'killer':'draw');
+  const title=side==='killer'?'キラー陣営の勝利！':side==='artist'?'アーティスト陣営の勝利！':'引き分け';
+  const roster=view.result?.players||[];
+  const membersHtml=roster.map(r=>{const player=view.players.find(p=>p.id===r.id),pic=view.art?.[r.id]?.image,name=player?.name||'参加者',job=ShadowRules.J.find(j=>j.id===r.job)?.name||r.job||'職業不明';const icon=pic?'<img src="'+esc(pic)+'" alt="">':'<span class="shadow-result-avatar-empty">'+esc((name||'?').slice(0,1))+'</span>';return '<article class="shadow-result-mini '+(r.alignment==='killer'?'killer':'artist')+'">'+icon+'<div><b>'+esc(name)+'</b><small>'+esc(job)+' · '+(r.alignment==='killer'?'キラー':'アーティスト')+'</small><small>'+esc(({dead:'死亡',down:'ダウン',escaped:'脱出',forfeit:'退出',alive:'生存'})[r.state]||r.state||'')+'</small></div></article>'}).join('');
+  body='<div class="shadow-result-full"><header class="shadow-result-header"><h2>'+title+'</h2><span>脱出 '+(view.result?.escaped||0)+' / '+(view.result?.totalArtists||0)+'人</span></header><div class="shadow-result-roster">'+membersHtml+'</div><footer class="shadow-result-actions"><button id="shadowDownloadMeetingNotes" type="button">会議メモを保存</button>'+(view.art?.[localId]?.image?'<button id="shadowSaveResultCharacter" type="button">キャラを保存</button>':'')+(isHost?'<button id="shadowAgain" class="primary" type="button">待機室へ</button>':'')+'<button id="shadowExit" type="button">退出</button></footer></div>';
+ }
  stage.innerHTML='<div class="shadow-sheet">'+body+'</div>';document.querySelectorAll('[data-shadow-pick]').forEach(b=>b.onclick=()=>{toggleEquipChoice(b.dataset.shadowPick);uiKey='';renderUI()});document.querySelectorAll('[data-shadow-detail]').forEach(b=>b.onclick=()=>{const k=b.dataset.shadowDetail;modal(moves[k].name,guideSVG(k)+'<p>'+esc(moves[k].text)+'</p>'+skillDetails(k))});if($('#shadowEquipConfirm'))$('#shadowEquipConfirm').onclick=()=>sendHost({type:'gameShadowEquip',gameId:view.id,skills:ensureEquipChoice(view.art?.[localId]).slice(0,2)});if($('#shadowCancelReady'))$('#shadowCancelReady').onclick=cancelReady;if($('#shadowStart'))$('#shadowStart').onclick=begin;if($('#shadowSettings'))$('#shadowSettings').onclick=settingsDialog;
  if($('#shadowTeamAssignMode'))$('#shadowTeamAssignMode').onchange=e=>{host.settings.teamAssignMode=e.target.value==='manual'?'manual':'random';room.shadowSettings=host.settings;if(host.settings.teamAssignMode==='random')randomizeTeams();else{for(const [i,p] of [...members.values()].filter(p=>!p.spectator&&!p.disconnected).entries())if(![0,1].includes(host.teamAssignments?.[p.peerId]))(host.teamAssignments??={})[p.peerId]=i%2;sendAll(true)}};
  if($('#shadowTeamShuffle'))$('#shadowTeamShuffle').onclick=randomizeTeams;
@@ -11179,7 +11189,7 @@ window.ArtShadow=(()=>{
   overlay.addEventListener('click',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close'))overlay.remove()});
   field.appendChild(overlay);
  }
- function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');const guideButton=$('#shadowSkillInfo');guideButton.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();e.stopPropagation();shadowWeaponGuide();},{capture:true});guideButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(e.detail===0)shadowWeaponGuide()});
+ function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');const guideButton=$('#shadowSkillInfo');guideButton.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();e.stopPropagation();shadowWeaponGuide();},{capture:true});guideButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(e.detail===0)shadowWeaponGuide()});
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
  const place=e=>{const r=field.getBoundingClientRect(),radius=joy.offsetWidth/2;origin={x:R.clamp(e.clientX-r.left,radius,r.width-radius),y:R.clamp(e.clientY-r.top,radius,r.height-radius)};joy.style.left=(origin.x-radius)+'px';joy.style.top=(origin.y-radius)+'px';joy.style.bottom='auto';joy.classList.add('is-active')};
@@ -11190,7 +11200,7 @@ window.ArtShadow=(()=>{
  // Each input has its own identifier, so the joystick never captures the Pencil.
  const fingerById=e=>[...e.changedTouches].find(t=>t.identifier===touchStick);
  field.addEventListener('touchstart',e=>{
-  if(e.target.closest?.('button,input,select,textarea,[role=button],.shadow-weapon-guide')||!battleActive()||touchStick!==null)return;
+  if(e.target.closest?.('button,input,select,textarea,a,label,form,dialog,[role=button],.shadow-weapon-guide,#shadowTools,#shadowPanel,#shadowMeetingScreen')||!battleActive()||touchStick!==null)return;
   const t=[...e.changedTouches].find(t=>t.touchType!=='stylus'&&inZone(t));
   if(!t)return;
   touchStick=t.identifier;
@@ -11211,7 +11221,7 @@ window.ArtShadow=(()=>{
  },{passive:true,capture:true});
  // Mouse fallback only: no touch pointer capture while the Pencil is active.
  field.addEventListener('pointerdown',e=>{
-  if(e.target.closest?.('button,input,select,textarea,[role=button],.shadow-weapon-guide')||e.pointerType!=='mouse'||!inZone(e)||!battleActive()||stick!==null)return;
+  if(e.target.closest?.('button,input,select,textarea,a,label,form,dialog,[role=button],.shadow-weapon-guide,#shadowTools,#shadowPanel,#shadowMeetingScreen')||e.pointerType!=='mouse'||!inZone(e)||!battleActive()||stick!==null)return;
   e.preventDefault();e.stopPropagation();stick=e.pointerId;try{field.setPointerCapture(e.pointerId)}catch{}place(e);update(e);
  },true);
  field.addEventListener('pointermove',e=>{if(stick!==e.pointerId||e.pointerType!=='mouse')return;update(e)},true);
@@ -11228,7 +11238,7 @@ window.ArtShadow=(()=>{
   if(task){shadowRequest('taskStart',{target:task.id});hint('タスクを開始します');return true}
   const shop={x:R.W/2,y:R.H/2};
   const meetingSpot={x:shop.x+114,y:shop.y};if(near(meetingSpot,135)&&R.dist(w,meetingSpot)<=46){shadowRequest('meetingStart');return true}
-  const body=view.fighters.find(q=>q.state==='dead'&&q.diedAt&&near({x:q.corpseX??q.x,y:q.corpseY??q.y},100)&&R.dist(w,{x:q.corpseX??q.x,y:q.corpseY??q.y})<=46);if(body){shadowRequest('reportBody',{target:body.id});return true}
+  const body=view.fighters.find(q=>q.state==='dead'&&q.diedAt&&!view.shadow.meetingUsedBodies?.includes(q.id)&&near({x:q.corpseX??q.x,y:q.corpseY??q.y},100)&&R.dist(w,{x:q.corpseX??q.x,y:q.corpseY??q.y})<=46);if(body){shadowRequest('reportBody',{target:body.id});return true}
   if(near(shop,130)&&R.dist(w,shop)<=68){window.ArtSound?.play('tap',2);shadowPanel='shop';shadowPanelKey='';shadowRenderPanel();hint('ショップを開きました');return true}
   const down=view.fighters.find(q=>q.state==='down'&&near(q)&&R.dist(w,q)<=46);
   if(down){shadowRequest('revive',{target:down.id});return true}
@@ -11252,12 +11262,10 @@ finishPaint(false)};
   // Losing capture is not equivalent to lifting Apple Pencil. Global pointerup finishes it.
   if(gesture?.id===e.pointerId&&gesture.pointerType!=='pen'&&gesture.points.length>=4)c.onpointerup(e)
  });
- // Allow weapon drawing from any non-interactive map surface, even room overlays.
- field.addEventListener('pointerdown',e=>{
-  if(e.target===c||e.target.closest('.shadow-weapon-guide,button,input,select,textarea,[role=button]')||inZone(e))return;
-  if(gesture?.id===e.pointerId)return;
-  e.stopPropagation();c.onpointerdown(e);
- },true);
+ // The arena is a single canvas (rooms and characters are painted, not DOM overlays).
+ // Never redirect pointerdown from UI descendants to the drawing canvas: capturing the
+ // pointer on the canvas before a button receives pointerup suppresses its click entirely.
+ // Drawing is bound directly to #shadowArena above, including on top of map characters.
  }
  // Track Pencil across overlay elements even when Safari doesn't capture the pointer to canvas.
  // Capture phase works even if a child stops propagation in the bubble phase.
@@ -12168,7 +12176,7 @@ finishPaint(false)};
  x.save();for(const hall of SHADOW_HALLS){x.fillStyle='#b5c8c3';x.fillRect(hall.x,hall.y,hall.w,hall.h);x.strokeStyle='#90a9a6';x.lineWidth=3;x.strokeRect(hall.x+5,hall.y+5,hall.w-10,hall.h-10)}
  for(let j=0;j<SHADOW_ROOMS.length;j++){const a=SHADOW_ROOMS[j];x.fillStyle=['#d8e4e0','#e8e3d8','#d5e1e7'][j%3];x.fillRect(a.x,a.y,a.w,a.h);x.strokeStyle='#8eaaa9';x.lineWidth=2;for(let yy=a.y+45;yy<a.y+a.h;yy+=45){x.beginPath();x.moveTo(a.x+6,yy);x.lineTo(a.x+a.w-6,yy);x.stroke()}}
  x.restore();
- const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText('タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
+ const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(s.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)drawArtTerrain(x,b,now);
  const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of view.fighters){if(!p.active||(p.hp<=0&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
@@ -12176,7 +12184,7 @@ finishPaint(false)};
  const mirageInvisible=p.mirageHiddenUntil>now&&!view.celebration;
   const mirageRevealAlpha=mirageInvisible&&!ally&&p.mirageRevealAt>0&&now>=p.mirageRevealAt&&now<p.mirageRevealAt+1000?Math.max(0,1-(now-p.mirageRevealAt)/1000):0;
   if(mirageInvisible&&!ally&&mirageRevealAlpha<=0)continue; // Only the 1s offensive reveal is visible to enemies.
- if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=mirageInvisible?(ally?.24:mirageRevealAlpha):(inBush?.5:hidden?.65:1);x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=mirageInvisible?(ally?.24:mirageRevealAlpha):1;if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
+ if(p.id!==localId&&me&&me.hp>0&&!ally&&(smokeHidden||(bushHidden&&R.dist(p,me)>160))&&!view.celebration)continue;let pos=positions.get(p.id)||{x:p.x,y:p.y};const player=view.players.find(v=>v.id===p.id);let phase=walk.get(p.id)||0;if(p.moving)phase+=frameDelta*13;else phase=0;walk.set(p.id,phase);const bob=p.moving?-Math.abs(Math.sin(phase))*7:0,tilt=p.moving?Math.sin(phase)*.045:0;x.globalAlpha=p.state==='down'?.43:(mirageInvisible?(ally?.24:mirageRevealAlpha):(inBush?.5:hidden?.65:1));x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt);x.scale((p.facing||1)*(p.artFacing===-1?-1:1),1);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=p.state==='down'?.43:(mirageInvisible?(ally?.24:mirageRevealAlpha):1);if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
   if(view.settings.teams==='teams'){
    const tint=p.team===0?'#43aef8':'#ff6686';x.save();x.shadowColor=tint;x.shadowBlur=14;x.strokeStyle=tint;x.lineWidth=p.id===localId?5:4;x.beginPath();x.ellipse(pos.x,pos.y-6,35,40,0,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.fillStyle=tint;x.beginPath();x.roundRect(pos.x-32,pos.y-74,64,18,5);x.fill();x.textAlign='center';x.font='bold 11px sans-serif';x.fillStyle='#fff';x.fillText(p.team===0?'青チーム':'赤チーム',pos.x,pos.y-61);x.restore();
   }
@@ -15538,6 +15546,26 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #studio.shadow-mode > .studio-header{position:relative;z-index:200;isolation:isolate}
 #studio.shadow-mode > .workspace{position:relative;isolation:isolate;z-index:0}
 #studio.shadow-mode #leaveBtn,#studio.shadow-mode #roomHubToggle{pointer-events:auto;touch-action:manipulation}
+</style>
+<style>
+/* Artopia 1.4.91: Shadow results fit viewport, with a compact scroll-free roster for 4-8 members. */
+#shadowStage:has(.shadow-result-full){overflow:hidden!important;}
+#shadowStage .shadow-sheet:has(.shadow-result-full){box-sizing:border-box;width:100%;max-width:100%;height:100%;padding:8px 12px;overflow:hidden;}
+.shadow-result-full{height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.shadow-result-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;border-bottom:1px solid #d8cadf;padding:4px 6px 8px;}
+#shadowStage .shadow-result-header h2{margin:0;font-size:clamp(16px,2.8vmin,28px);}
+.shadow-result-header span{font-size:12px;white-space:nowrap;}
+.shadow-result-roster{min-height:0;flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:6px;}
+.shadow-result-mini{min-height:0;display:flex;gap:8px;align-items:center;box-sizing:border-box;padding:4px 8px;border:1px solid #c8c5d5;border-radius:10px;background:#fffaf5;text-align:left;overflow:hidden;}
+.shadow-result-mini.killer{border-left:5px solid #bd5572;}.shadow-result-mini.artist{border-left:5px solid #619ecc;}
+.shadow-result-mini img,.shadow-result-avatar-empty{width:clamp(30px,8vh,64px);height:clamp(30px,8vh,64px);flex-shrink:0;object-fit:contain;border-radius:8px;background:#f4eff6;}
+.shadow-result-avatar-empty{display:grid;place-items:center;color:#735d8e;}
+.shadow-result-mini>div{min-width:0;display:flex;flex-direction:column;gap:2px;}
+.shadow-result-mini b{font-size:clamp(11px,1.7vw,15px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shadow-result-mini small{font-size:clamp(9px,1.35vw,12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shadow-result-actions{flex:0 0 auto;display:flex;gap:7px;justify-content:center;flex-wrap:wrap;}
+.shadow-result-actions button{min-height:38px;padding:5px 12px;font-size:clamp(11px,1.6vw,14px);}
+@media(max-width:540px){.shadow-result-roster{gap:4px}.shadow-result-mini{gap:4px;padding:3px 5px}.shadow-result-mini img,.shadow-result-avatar-empty{width:clamp(26px,6vh,42px);height:clamp(26px,6vh,42px)}.shadow-result-mini small{font-size:9px}}
 </style>
 </body></html>
 
