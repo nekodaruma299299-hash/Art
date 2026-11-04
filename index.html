@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.85 / アートレイターのタスク画面・開始時間・キラーアイコン修正
+あーとぴあ 1.4.86 / アートレイターのチャット・お手本・新武器・貫通レーザー
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -3719,7 +3719,7 @@ window.visualViewport?.addEventListener('scroll',onChatViewportChange);
  schedule();
 })();
 
-$('#inlineChatForm').onsubmit=e=>{e.preventDefault();const input=$('#inlineChatInput'),text=input.value.trim();if(chatComposing||!text||!connected||Date.now()-lastChat<700)return;lastChat=Date.now();if(!window.ArtShadowChatSend?.(text))sendHost({type:'chat',text});input.value='';finishChatEntry()};
+$('#inlineChatForm').onsubmit=e=>{e.preventDefault();const input=$('#inlineChatInput'),text=input.value.trim();if(chatComposing||!text||Date.now()-lastChat<700)return;const shadowChat=window.ArtShadowChatSend?.(text)===true;if(!shadowChat&&!connected)return;lastChat=Date.now();if(!shadowChat)sendHost({type:'chat',text});input.value='';finishChatEntry()};
 
 
 /* SECTION: app/33-display-reload.js */
@@ -9462,10 +9462,11 @@ const ShadowRules=(()=>{
  // Shadow items are independent of Art Arts' skills: no legacy combat items.
  const goods=[
   {id:'judgment_gun',name:'ジャッジメントガン',price_am:32,charges:-1,faction:'artist',rarity:'rare',on_effect:'直線を描いて発砲。弾薬が必要。キラーに100ダメージ、誤射すると自分に30ダメージ。',category:'weapon'},
-  {id:'bullet_pack',name:'ジャッジメント弾（3発）',price_am:18,charges:1,faction:'artist',rarity:'common',on_effect:'使用すると銃の弾薬を3発補充。',category:'consumable'},
+  {id:'bullet_pack',name:'ジャッジメント弾（1発）',price_am:7,charges:1,faction:'artist',rarity:'common',on_effect:'ジャッジメントガンのレーザーを1発補充。購入すると即時装填される。',category:'consumable'},
   {id:'killer_knife',name:'キラーナイフ',price_am:32,charges:1,faction:'killer',rarity:'rare',on_effect:'半円で100ダメージ。1人をダウンさせると破損する使い切り武器。',category:'weapon'},
   {id:'toy_knife',name:'おもちゃのナイフ',price_am:0,charges:-1,faction:'killer',rarity:'base',on_effect:'キラーの初期装備。半円で10ダメージ。',category:'weapon'},
-  {id:'ink_pistol',name:'ピストル',price_am:16,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク10で20ダメージ。弾薬不要。ジャッジメントガンもONのときは弾薬が優先されます。',category:'weapon'},
+  {id:'ink_pistol',name:'ピストル',price_am:16,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク10で35ダメージ。弾薬不要。ジャッジメント弾があればレーザーが優先されます。',category:'weapon'},
+  {id:'air_gun',name:'エアガン',price_am:8,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク5で10ダメージ。弾薬不要。',category:'weapon'},
   {id:'trace_scanner',name:'トレーススキャナー',price_am:18,charges:2,faction:'both',rarity:'common',on_effect:'近くに最近いたプレイヤーの足跡・気配を調査（陣営は表示しません）。',category:'utility'},
   {id:'smoke_bomb',name:'スモークボム',price_am:16,charges:1,faction:'both',rarity:'common',on_effect:'自分の周りに6秒間の煙幕を展開。',category:'utility'},
   {id:'safety_shield',name:'セーフティシールド',price_am:20,charges:1,faction:'both',rarity:'rare',on_effect:'3秒間、受けるダメージを半減。',category:'utility'},
@@ -9502,7 +9503,7 @@ const ShadowRules=(()=>{
   const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,1260],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
  }
  function buy(h,p,sku){if(!up(p))return '行動できません';if(sku==='slot'){if(p.slots>=5)return '最大5枠です';const cost=p.slots===3?20:35;if(p.am<cost)return 'アートマター不足';p.am-=cost;p.slots++;return ''}
-  const s=catalog[sku];if(!available(p,s))return '購入できません';if(sku==='bullet_pack'){if(p.ammo>=12)return '弾薬は12発までです';if(p.am<price(p,s))return 'アートマター不足';p.am-=price(p,s);p.ammo=Math.min(12,(p.ammo||0)+3);return ''}if(p.inventory.some(i=>i.sku===sku)&&sku!=='bullet_pack')return '同じ装備は1枠までです';if(p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots)return '所持枠が満杯です';const cost=price(p,s);if(p.am<cost)return 'アートマター不足';p.am-=cost;p.inventory.push({id:'item-'+(++h.seq),sku,charges:s.charges,on:true});h.shadow.sales[sku]=(h.shadow.sales[sku]||0)+1;return '';
+  const s=catalog[sku];if(!available(p,s))return '購入できません';if(sku==='bullet_pack'){if(p.ammo>=12)return '弾薬は12発までです';if(p.am<price(p,s))return 'アートマター不足';p.am-=price(p,s);p.ammo=Math.min(12,(p.ammo||0)+1);return ''}if(p.inventory.some(i=>i.sku===sku)&&sku!=='bullet_pack')return '同じ装備は1枠までです';if(p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots)return '所持枠が満杯です';const cost=price(p,s);if(p.am<cost)return 'アートマター不足';p.am-=cost;p.inventory.push({id:'item-'+(++h.seq),sku,charges:s.charges,on:true});h.shadow.sales[sku]=(h.shadow.sales[sku]||0)+1;return '';
  }
  function consume(p,item){if(item.charges>0&&--item.charges===0)p.inventory=p.inventory.filter(i=>i!==item)}
  function enabledSkills(p){return []} // weapons have dedicated stroke handling
@@ -9655,12 +9656,12 @@ window.ArtShadow=(()=>{
   const p=host.fighters.find(f=>f.id===id);if(!ShadowRules.up(p)||p.action||!shape)return false;
   const armed=sku=>p.inventory.find(i=>i.sku===sku&&i.on),isShot=shape.type==='magic',isKnife=shape.type==='slash';
   if(!isShot&&!isKnife){p.castError='武器の図形ではありません。';return false}
-  const strongKnife=armed('killer_knife'),toyKnife=armed('toy_knife'),judge=armed('judgment_gun'),pistol=armed('ink_pistol');
+  const strongKnife=armed('killer_knife'),toyKnife=armed('toy_knife'),judge=armed('judgment_gun'),pistol=armed('ink_pistol'),airgun=armed('air_gun');
   if(isShot&&p.alignment!=='artist'){p.castError='銃はアーティスト専用です。';return false}
   if(isKnife&&p.alignment!=='killer'){p.castError='ナイフはキラー専用です。';return false}
-  const useJudgment=!!(judge&&p.ammo>0);const usePistol=!!(!useJudgment&&pistol);
-  const cost=isShot?(useJudgment?12:10):8;
-  if(isShot&&!useJudgment&&!usePistol){p.castError=judge?'弾薬がありません。ピストルならインクで撃てます。':'ジャッジメントガンかピストルを購入してください。';return false}
+  const useJudgment=!!(judge&&p.ammo>0);const usePistol=!!(!useJudgment&&pistol);const useAirgun=!!(!useJudgment&&!usePistol&&airgun);
+  const cost=isShot?(useJudgment?12:usePistol?10:5):8;
+  if(isShot&&!useJudgment&&!usePistol&&!useAirgun){p.castError=judge?'弾薬がありません。ピストルかエアガンを装備してください。':'ジャッジメントガン・ピストル・エアガンのいずれかを購入してください。';return false}
   if(isKnife&&!strongKnife&&!toyKnife){p.castError='ナイフがありません。';return false}
   if(p.ink<cost){p.castError='インク不足です。アートマター1でインク5を補給できます。';return false}
   if(isShot&&now<(p.gunReady||0)||isKnife&&now<(p.knifeReady||0)){p.castError='武器の再使用待ちです。';return false}
@@ -9675,11 +9676,11 @@ window.ArtShadow=(()=>{
    // Shadow projectiles travel through the map at a visible speed. The host alone
    // resolves cover, hits, BOT targets, damage and one-use ammunition.
    const spawn={x:p.x+ux*17,y:p.y+uy*17};
-   (host.shadow.weaponShots??=[]).push({id:++host.seq,owner:id,weapon:useJudgment?'judgment':'pistol',x:spawn.x,y:spawn.y,vx:ux*560,vy:uy*560,created:now,end:now+1100,left:300});
+   (host.shadow.weaponShots??=[]).push({id:++host.seq,owner:id,weapon:useJudgment?'judgment':usePistol?'pistol':'airgun',x:spawn.x,y:spawn.y,vx:ux*(useJudgment?850:560),vy:uy*(useJudgment?850:560),created:now,end:now+(useJudgment?900:1100),left:useJudgment?640:300,hit:[]});
   }else if(chosen){const q=chosen.q;if(q.alignment==='artist'){const dealt=shadowHurt(q,strongKnife?100:10,now,{owner:p.id,type:strongKnife?'killerKnife':'toyKnife'},!!strongKnife);if(strongKnife&&dealt>0&&['down','dead'].includes(q.state)){strongKnife.charges=0;p.inventory=p.inventory.filter(i=>i!==strongKnife);p.notice='キラーナイフは命中して壊れました';shadowSyncSkills(p)}}}
   // Only the knife hits crates immediately; bullets are checked during flight.
   if(isKnife)for(const c of host.shadow.crates){if(c.hp<=0)continue;const dx=c.x-p.x,dy=c.y-p.y,a=dx*ux+dy*uy,b=Math.abs(dx*uy-dy*ux);if(a>0&&a<55&&b<42&&clear(c)){shadowDamageCrate(c,strongKnife?35:8,now,p.id);break}}
-  host.effects.push({id:++host.seq,type:isShot?'shadowGunFlash':'shadowKnifeArc',owner:p.id,x:p.x,y:p.y,r:isShot?40:65,angle,start:now,end:now+(isShot?420:530),weapon:isShot?(useJudgment?'judgment':'pistol'):(strongKnife?'killer':'toy')});
+  host.effects.push({id:++host.seq,type:isShot?'shadowGunFlash':'shadowKnifeArc',owner:p.id,x:p.x,y:p.y,r:isShot?40:65,angle,start:now,end:now+(isShot?420:530),weapon:isShot?(useJudgment?'judgment':usePistol?'pistol':'airgun'):(strongKnife?'killer':'toy')});
   return true;
  }
  // Only the dedicated, actually implemented Shadow consumables may be generated.
@@ -9724,7 +9725,7 @@ window.ArtShadow=(()=>{
    if(m.action==='take'||m.action==='steal'){if(m.action==='steal'&&(p.job!=='thief'||p.stealReady>now))return true;if(m.action==='take'&&!c.opened)return true;const item=m.action==='steal'?c.loot[0]:c.loot.find(i=>i.id===m.itemId);if(!item)return true;if(!['pickup_hp','pickup_ink'].includes(item.sku)&&!ShadowRules.catalog[item.sku])return shadowReply(p,'このアイテムは現在使用できません');const poison=c.poison&&['pickup_hp','emergency_medkit'].includes(item.sku);if(item.sku==='pickup_hp'){if(poison)p.poison={from:now+3000,to:now+11000};else p.hp=Math.min(p.maxHp,p.hp+30)}else if(item.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+40);else{if(!ShadowRules.catalog[item.sku]||!ShadowRules.available(p,ShadowRules.catalog[item.sku])||p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots||p.inventory.some(i=>i.sku===item.sku))return shadowReply(p,'所持枠が満杯か、取得できない道具です');p.inventory.push({id:'item-'+(++host.seq),sku:item.sku,on:true,charges:ShadowRules.catalog[item.sku].charges,poison})}c.loot=c.loot.filter(i=>i!==item);if(m.action==='steal'){c.opened=false;c.stolen=true;p.stealReady=now+60000}if(!c.loot.length&&c.opened)h.crates=h.crates.filter(q=>q!==c);shadowSyncSkills(p)}
   }
   if(m.action==='use'){const item=p.inventory.find(i=>i.id===m.itemId&&i.on),sku=item?.sku;if(!item)return true;
-   if(sku==='bullet_pack'){p.ammo=Math.min(12,(p.ammo||0)+3);ShadowRules.consume(p,item);p.notice='弾薬を3発補充しました'}
+   if(sku==='bullet_pack'){p.ammo=Math.min(12,(p.ammo||0)+1);ShadowRules.consume(p,item);p.notice='弾薬を1発補充しました'}
    else if(sku==='safety_shield'){p.shieldUntil=now+3000;ShadowRules.consume(p,item);p.notice='3秒間のシールドを展開'}
    else if(sku==='task_booster'){p.taskBoost=true;ShadowRules.consume(p,item);p.notice='次のタスクの時間が1.5倍になります'}
    else if(sku==='smoke_bomb'){host.effects.push({id:++host.seq,type:'smoke',owner:p.id,x:p.x,y:p.y,r:140,start:now,end:now+6000});ShadowRules.consume(p,item)}
@@ -9732,7 +9733,7 @@ window.ArtShadow=(()=>{
    else if(sku==='disguise'){p.disguiseUntil=now+8000;ShadowRules.consume(p,item);p.notice='8秒間の偽装を開始'}
    else if(sku==='fake_alarm'&&p.alignment==='killer'){for(const q of host.fighters)if(ShadowRules.living(q)&&R.dist(q,p)<350)q.notice='近くで異常警報が鳴りました';ShadowRules.consume(p,item)}
    else if(sku==='jammer'&&p.alignment==='killer'){for(const q of host.fighters)if(q.id!==p.id&&ShadowRules.living(q)&&R.dist(q,p)<250)q.jammedUntil=now+8000;ShadowRules.consume(p,item)}
-   else if(['judgment_gun','killer_knife','toy_knife','ink_pistol'].includes(sku)){p.notice='武器は画面に図形を描いて使います'}
+   else if(['judgment_gun','killer_knife','toy_knife','ink_pistol','air_gun'].includes(sku)){p.notice='武器は画面に図形を描いて使います'}
    else
    if(sku==='emergency_medkit'&&p.hp<p.maxHp){if(item.poison)p.poison={from:now+3000,to:now+11000};else{p.hp=Math.min(p.maxHp,p.hp+40);p.poison=null}ShadowRules.consume(p,item)}
    else if(sku==='scanner'&&p.am>=6&&!(p.scanReady>now)){p.am-=6;p.scanReady=now+30000;const q=host.fighters.filter(q=>q!==p&&ShadowRules.up(q)&&R.dist(p,q)<260).sort((a,b)=>R.dist(p,a)-R.dist(p,b))[0];p.notice=q?'近くの人物に'+(q.lastSpecial>now-90000?'特殊装備の反応があります':'最近の特殊装備の反応はありません'):'近くに反応はありません'}
@@ -9750,19 +9751,19 @@ window.ArtShadow=(()=>{
    for(let i=0;i<steps;i++){
     const speed=Math.hypot(b.vx,b.vy),step=Math.min(travel/steps,b.left),nx=b.x+b.vx/speed*step,ny=b.y+b.vy/speed*step;
     b.left-=step;
-    if(R.blocked(nx,ny,host.blocks,4)){host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:13,start:now,end:now+260,weapon:b.weapon});return false;}
+    if(b.weapon!=='judgment'&&R.blocked(nx,ny,host.blocks,4)){host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:13,start:now,end:now+260,weapon:b.weapon});return false;}
     b.x=nx;b.y=ny;
     const victim=host.fighters.find(q=>q.id!==b.owner&&ShadowRules.living(q)&&q.state==='alive'&&R.dist(q,b)<R.R+8);
     if(victim){
      if(b.weapon==='judgment'){
       if(victim.alignment==='killer'){owner.damageDealt=(owner.damageDealt||0)+victim.hp;shadowDead(victim,now)}
       else shadowHurt(owner,30,now,{owner:owner.id,type:'misfire'},true);
-     }else shadowHurt(victim,20,now,{owner:b.owner,type:'pistol'},false);
+     }else shadowHurt(victim,b.weapon==='airgun'?10:35,now,{owner:b.owner,type:b.weapon},false);
      host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:22,start:now,end:now+360,weapon:b.weapon});
      return false;
     }
     const crate=h.crates.find(c=>c.hp>0&&Math.abs(c.x-b.x)<28&&Math.abs(c.y-b.y)<23);
-    if(crate){shadowDamageCrate(crate,b.weapon==='judgment'?40:20,now,b.owner);host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:17,start:now,end:now+260,weapon:b.weapon});return false;}
+    if(crate&&b.weapon!=='judgment'){shadowDamageCrate(crate,b.weapon==='airgun'?10:35,now,b.owner);host.effects.push({id:++host.seq,type:'shadowBulletImpact',x:b.x,y:b.y,r:17,start:now,end:now+260,weapon:b.weapon});return false;}
     if(b.left<=0)return false;
    }
    return true;
@@ -10820,7 +10821,7 @@ window.ArtShadow=(()=>{
   if(!shadowPickupSoundInitialized){shadowPickupSoundInitialized=true;shadowPickupSoundSeq=m.pickupEvent||0}else if((m.pickupEvent||0)>shadowPickupSoundSeq){shadowPickupSoundSeq=m.pickupEvent;window.ArtSound?.play(m.pickupKind==='pickup_hp'?'arts_new_heal':m.pickupKind==='pickup_ink'?'arts_new_quiet':'arts_new_cute',2)}
   const log=(m.logs||[]).slice(-60).map(l=>(l.name||'')+'：'+(l.text||'')).join('\n');
   if(log!==shadowChatLast){shadowChatLast=log;const stream=$('#recentComment');if(stream){stream.replaceChildren();const list=document.createElement('div');list.className='chat-stream';for(const item of (m.logs||[]).slice(-60)){const node=document.createElement('div');node.className='recent-comment-row';const name=document.createElement('b');name.textContent=(item.name||'')+'：';const msg=document.createElement('span');msg.textContent=item.text||'';node.append(name,msg);list.append(node)}stream.append(list);stream.scrollTop=stream.scrollHeight}}
-  if(h)h.innerHTML='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b><span>'+(view.privateRole==='killer'?'武器：半円でナイフ（強化版は購入）':'銃：直線で発射（ピストルはインク消費）')+'</span>'+(m.state==='down'?'<b>ダウンHP '+Math.ceil(m.downHP)+'</b>':'')+'<span>'+ (s.graceAt?'脱出猶予 ':'出口まで ')+Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-Date.now()-offset)/1000))+'秒</span>';
+  if(h)h.innerHTML='<span>'+esc(ShadowRules.J.find(j=>j.id===m.job)?.name||'')+'</span>'+vitalsHTML(p,m.am)+'<b>弾薬 '+(m.ammo||0)+'発</b><span>'+(view.privateRole==='killer'?'武器：半円でナイフ（強化版は購入）':'銃：直線で発射（レーザー／ピストル／エアガン）')+'</span>'+(m.state==='down'?'<b>ダウンHP '+Math.ceil(m.downHP)+'</b>':'')+'<span>'+ (s.graceAt?'脱出猶予 ':'出口まで ')+Math.max(0,Math.ceil(((s.graceAt||s.gateAt)-Date.now()-offset)/1000))+'秒</span>';
   // Minimap: only own location is visible. Do not disclose killer/player positions.
   let map=$('#shadowMiniMap');if(!map){map=document.createElement('canvas');map.id='shadowMiniMap';map.width=118;map.height=166;map.setAttribute('aria-label','自分の位置を緑の点で表示するミニマップ');$('#shadowField').append(map)}
   const mx=map.getContext('2d');if(mx&&Date.now()-(map._paintAt||0)>140){map._paintAt=Date.now();mx.clearRect(0,0,118,166);mx.fillStyle='#14212a';mx.fillRect(0,0,118,166);const sx=110/R.W,sy=158/R.H;mx.save();mx.translate(4,4);mx.fillStyle='#314c53';mx.strokeStyle='#789099';mx.lineWidth=1;for(const a of SHADOW_ROOMS){mx.fillRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy);mx.strokeRect(a.x*sx,a.y*sy,a.w*sx,a.h*sy)}mx.fillStyle='#46e789';mx.shadowBlur=6;mx.shadowColor='#42ff99';mx.beginPath();mx.arc(p.x*sx,p.y*sy,4,0,Math.PI*2);mx.fill();mx.restore()}
@@ -10836,7 +10837,7 @@ window.ArtShadow=(()=>{
   const sku=item.id||item.sku||'';const skill=item.skill;
   if(skill&&typeof artIconSVG==='function')return artIconSVG(skill);
   const paths={
-   judgment_gun:'M7 32 L33 8',ink_pistol:'M6 34 L34 6',killer_knife:'M8 28 Q20 8 32 28',toy_knife:'M7 29 Q20 14 33 29',
+   judgment_gun:'M7 32 L33 8',ink_pistol:'M6 34 L34 6',air_gun:'M9 31 L31 9',killer_knife:'M8 28 Q20 8 32 28',toy_knife:'M7 29 Q20 14 33 29',
    smoke_bomb:'M27 13 A13 13 0 1 0 28 15',safety_shield:'M9 9 H31 V31 H9 Z',
    trace_scanner:'M5 20 Q12 7 19 20 T33 20',task_booster:'M20 5 L24 16 L35 20 L24 24 L20 35 L16 24 L5 20 L16 16Z',
    disguise:'M9 11 Q30 5 20 21 T31 31',trap_kit:'M8 29 L20 9 L32 29 Z',
@@ -10943,14 +10944,28 @@ window.ArtShadow=(()=>{
  const halo=(q,r)=>{if(!close(q))return;x.save();x.shadowColor='#ffee92';x.shadowBlur=20+Math.sin(now/260)*5;x.strokeStyle='#fff1a1';x.lineWidth=4;x.beginPath();x.arc(q.x,q.y,r,0,Math.PI*2);x.stroke();x.restore()};
  for(const t of s.tasks){const ready=t.readyAt<=now;x.fillStyle=ready?'#bce4ce':'#b9bfc0';x.strokeStyle=ready?'#317562':'#6c8584';x.lineWidth=3;x.beginPath();x.arc(t.x,t.y,23,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#24473b';x.fillText('✎',t.x,t.y+5);x.fillText(ShadowRules.taskNames[t.kind],t.x,t.y+41);if(ready)halo(t,29)}
  for(const b of s.weaponShots||[]){
-  const a=Math.atan2(b.vy,b.vx),col=b.weapon==='pistol'?'#7fd5ff':'#ffe8a0';
-  x.save();x.translate(b.x,b.y);x.rotate(a);x.shadowColor=col;x.shadowBlur=16;x.strokeStyle=col;x.fillStyle='#fffef2';x.lineWidth=4;x.lineCap='round';
-  x.beginPath();x.moveTo(-17,0);x.lineTo(-3,0);x.stroke();x.beginPath();x.ellipse(0,0,7,4,0,0,Math.PI*2);x.fill();x.restore();
+  const a=Math.atan2(b.vy,b.vx),col=b.weapon==='judgment'?'#ffe69a':b.weapon==='pistol'?'#7fd5ff':'#b5f5dd';
+  if(b.weapon==='judgment'){
+   // Draw the full travelled laser shaft in world coordinates. Walls never mask it.
+   const origin=view.fighters?.find(p=>p.id===b.owner),sx=origin?.x??(b.x-Math.cos(a)*110),sy=origin?.y??(b.y-Math.sin(a)*110);
+   x.save();x.lineCap='round';x.shadowColor='#ffcb71';x.shadowBlur=36;
+   x.strokeStyle='#ffc76b';x.globalAlpha=.25;x.lineWidth=38;x.beginPath();x.moveTo(sx,sy);x.lineTo(b.x,b.y);x.stroke();
+   x.strokeStyle='#ffe8a6';x.globalAlpha=.83;x.lineWidth=19;x.beginPath();x.moveTo(sx,sy);x.lineTo(b.x,b.y);x.stroke();
+   x.strokeStyle='#fffef4';x.globalAlpha=1;x.lineWidth=7;x.beginPath();x.moveTo(sx,sy);x.lineTo(b.x,b.y);x.stroke();x.restore();
+  }
+  x.save();x.translate(b.x,b.y);x.rotate(a);x.shadowColor=col;x.strokeStyle=col;x.fillStyle='#fffef2';x.lineCap='round';
+  if(b.weapon==='judgment'){
+   x.shadowBlur=35;x.lineWidth=29;x.globalAlpha=.35;x.beginPath();x.moveTo(-125,0);x.lineTo(14,0);x.stroke();
+   x.shadowBlur=28;x.globalAlpha=.86;x.lineWidth=15;x.beginPath();x.moveTo(-125,0);x.lineTo(16,0);x.stroke();
+   x.strokeStyle='#fffef5';x.shadowBlur=13;x.globalAlpha=1;x.lineWidth=6;x.beginPath();x.moveTo(-125,0);x.lineTo(20,0);x.stroke();
+   for(let i=0;i<5;i++){const yy=Math.sin(now/80+i)*15,px=-100+i*29;x.strokeStyle='#ffcc7d';x.lineWidth=2;x.beginPath();x.moveTo(px,yy);x.lineTo(px+18,yy*1.3);x.stroke()}
+  }else{x.shadowBlur=16;x.lineWidth=b.weapon==='airgun'?3:4;x.beginPath();x.moveTo(-17,0);x.lineTo(-3,0);x.stroke();x.beginPath();x.ellipse(0,0,b.weapon==='airgun'?4:7,3,0,0,Math.PI*2);x.fill();}
+  x.restore();
  }
- for(const e of view.effects||[])if(e.type==='shadowBulletImpact'&&e.end>now){const q=Math.min(1,(now-e.start)/(e.end-e.start));x.save();x.globalAlpha=1-q;x.strokeStyle=e.weapon==='pistol'?'#7fd5ff':'#ffdb78';x.lineWidth=3;x.beginPath();x.arc(e.x,e.y,4+(e.r||15)*q,0,Math.PI*2);x.stroke();x.restore();}
+ for(const e of view.effects||[])if(e.type==='shadowBulletImpact'&&e.end>now){const q=Math.min(1,(now-e.start)/(e.end-e.start));x.save();x.globalAlpha=1-q;x.strokeStyle=e.weapon==='pistol'?'#7fd5ff':e.weapon==='airgun'?'#b5f5dd':'#ffdb78';x.lineWidth=3;x.beginPath();x.arc(e.x,e.y,4+(e.r||15)*q,0,Math.PI*2);x.stroke();x.restore();}
  for(const e of view.effects||[])if(['shadowGunFlash','shadowKnifeArc'].includes(e.type)&&e.end>now){
-  const t=Math.min(1,(now-e.start)/Math.max(1,e.end-e.start));x.save();x.translate(e.x,e.y);x.rotate(e.angle||0);x.globalAlpha=1-t;x.strokeStyle=e.type==='shadowGunFlash'?(e.weapon==='pistol'?'#79caff':'#eac177'):(e.weapon==='toy'?'#a6ccd0':'#e65a71');x.shadowColor=x.strokeStyle;x.shadowBlur=19;x.lineCap='round';
-  if(e.type==='shadowGunFlash'){x.lineWidth=4;x.beginPath();x.moveTo(10,0);x.lineTo(27+12*t,0);x.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;x.beginPath();x.moveTo(16*Math.cos(a),16*Math.sin(a));x.lineTo((28+35*t)*Math.cos(a),(28+35*t)*Math.sin(a));x.stroke()}}
+  const t=Math.min(1,(now-e.start)/Math.max(1,e.end-e.start));x.save();x.translate(e.x,e.y);x.rotate(e.angle||0);x.globalAlpha=1-t;x.strokeStyle=e.type==='shadowGunFlash'?(e.weapon==='pistol'?'#79caff':e.weapon==='airgun'?'#b0f8dd':'#ffe69a'):(e.weapon==='toy'?'#a6ccd0':'#e65a71');x.shadowColor=x.strokeStyle;x.shadowBlur=19;x.lineCap='round';
+  if(e.type==='shadowGunFlash'){x.lineWidth=e.weapon==='judgment'?9:4;x.beginPath();x.moveTo(10,0);x.lineTo(e.weapon==='judgment'?92+35*t:27+12*t,0);x.stroke();for(let i=0;i<(e.weapon==='judgment'?12:6);i++){const a=i*Math.PI/(e.weapon==='judgment'?6:3);x.beginPath();x.moveTo(16*Math.cos(a),16*Math.sin(a));x.lineTo((28+35*t)*Math.cos(a),(28+35*t)*Math.sin(a));x.stroke()}}
   else{x.lineWidth=8;x.beginPath();x.arc(0,0,55,-1.2+1.7*t,1.2+1.7*t);x.stroke();x.lineWidth=2;x.strokeStyle='#ffe3dc';x.beginPath();x.arc(0,0,45,-1.2+1.7*t,1.2+1.7*t);x.stroke()}
   x.restore();
  }
@@ -11026,13 +11041,13 @@ window.ArtShadow=(()=>{
   const killer=view?.privateRole==='killer';
   const overlay=document.createElement('div');overlay.className='shadow-weapon-guide';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','武器の描き方');
   const path=killer?'M 21 70 Q 59 9 100 70':'M 20 78 L 100 15';
-  overlay.innerHTML='<div class="shadow-weapon-card"><button type="button" class="shadow-weapon-close" aria-label="お手本を閉じる">×</button><h3>'+(killer?'ナイフ':'銃')+'のお手本</h3><svg viewBox="0 0 120 95" aria-hidden="true"><path d="'+path+'" fill="none" stroke="#9254b2" stroke-width="6" stroke-linecap="round"/></svg><p>'+(killer?'半円を一筆で描くと攻撃。おもちゃのナイフ10ダメージ／キラーナイフ100ダメージ。':'自分から撃ちたい方向へ直線を一筆。ピストルはインク10で20ダメージ。')+'</p></div>';
+  overlay.innerHTML='<div class="shadow-weapon-card"><button type="button" class="shadow-weapon-close" aria-label="お手本を閉じる">×</button><h3>'+(killer?'ナイフ':'銃')+'のお手本</h3><svg viewBox="0 0 120 95" aria-hidden="true"><path d="'+path+'" fill="none" stroke="#9254b2" stroke-width="6" stroke-linecap="round"/></svg><p>'+(killer?'半円を一筆で描くと攻撃。おもちゃのナイフ10ダメージ／キラーナイフ100ダメージ。':'自分から撃ちたい方向へ直線を一筆。ピストルはインク10で35ダメージ／エアガンはインク5で10ダメージ。レーザーは壁貫通・弾薬1発消費。')+'</p></div>';
   overlay.addEventListener('pointerdown',e=>{e.stopPropagation()},{capture:true});
   overlay.addEventListener('pointerup',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close')){e.preventDefault();overlay.remove()}},{capture:true});
   overlay.addEventListener('click',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close'))overlay.remove()});
   field.appendChild(overlay);
  }
- function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');$('#shadowSkillInfo').addEventListener('pointerdown',e=>{e.stopPropagation();},{capture:true});$('#shadowSkillInfo').onclick=e=>{e.preventDefault();e.stopPropagation();shadowWeaponGuide()};
+ function bindBattle(){const c=$('#shadowArena'),joy=$('#shadowJoystick'),field=$('#shadowField');const guideButton=$('#shadowSkillInfo');guideButton.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();e.stopPropagation();shadowWeaponGuide();},{capture:true});guideButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(e.detail===0)shadowWeaponGuide()});
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
  const place=e=>{const r=field.getBoundingClientRect(),radius=joy.offsetWidth/2;origin={x:R.clamp(e.clientX-r.left,radius,r.width-radius),y:R.clamp(e.clientY-r.top,radius,r.height-radius)};joy.style.left=(origin.x-radius)+'px';joy.style.top=(origin.y-radius)+'px';joy.style.bottom='auto';joy.classList.add('is-active')};
@@ -15386,7 +15401,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 @media(max-width:720px){.shadow-mode #shadowSkillInfo{left:auto!important;right:8px!important;bottom:8px!important;width:106px!important;max-width:106px!important}}
 </style>
 
-<!-- Artopia 1.4.31: detached tool return, drag lift feedback, native chat selection. -->
+<!-- Artopia 1.4.86: Shadow laser, air gun, pistol balance and chat fixes. -->
 
 <style>
 /* Ver.1.4.75 – Art Traitor private full-screen role reveal / BOT start hotfix */
