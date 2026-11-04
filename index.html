@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.4.84 / アートレイターのタスク画面・開始時間・キラーアイコン修正
+あーとぴあ 1.4.85 / アートレイターのタスク画面・開始時間・キラーアイコン修正
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -10977,7 +10977,7 @@ window.ArtShadow=(()=>{
   for(const l of s.me?.logs||[]){if(l.ghost||l.range!=='near'||now-l.at>6000)continue;const p=view.fighters.find(p=>p.id===l.author);if(!p)continue;const text=l.text.slice(0,22);x.fillStyle='#fffffff0';x.fillRect(p.x-92,p.y-90,184,27);x.fillStyle='#24384c';x.fillText(text,p.x,p.y-72)}x.restore();
  }
 
- function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('shadow-mode');$('#studio').classList.toggle('shadow-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+JSON.stringify(view?.teamAssignments)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
+ function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('shadow-mode');$('#studio').classList.toggle('shadow-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';if(phase==='create'&&participant()&&!view.ready[localId]){stage.hidden=true;stage.className='';stage.style.pointerEvents='none';stage.innerHTML=''}else{stage.style.pointerEvents=''}const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+JSON.stringify(view?.teamAssignments)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
  bar.hidden=false;bar.innerHTML='<b>アートレイター</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'秘密の陣営を確認',battle:'サバイバル',finished:'結果'}[phase])+'</span><strong id="shadowClock" class="shadow-time"></strong><button id="shadowClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="shadowHelp">遊び方</button>';
  $('#shadowClassHelp').onclick=()=>modal('6つの職業',ShadowRules.J.map(j=>'<h3>'+esc(j.name)+'</h3><p>'+esc(j.signature)+' · '+esc(j.visible_bonus)+'</p>').join(''));
  $('#shadowHelp').onclick=shadowInfo;stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'shadow-battle':phase==='equip'?'shadow-equipping':'';
@@ -15527,4 +15527,15 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .shadow-mode #shadowField .shadow-weapon-card h3{margin:4px 38px 8px;font-size:22px}
 .shadow-mode #shadowField .shadow-weapon-card p{font-size:14px;line-height:1.5}
 .shadow-mode #shadowField .shadow-weapon-close{position:absolute;top:8px;right:8px;min-width:44px;min-height:44px;border-radius:10px;font-size:24px;cursor:pointer;touch-action:manipulation}
+</style>
+
+<style>
+/* Art Traitor 1.4.85: isolate the character editor from battle-only hit targets. */
+#studio.shadow-mode.shadow-creating #shadowStage,
+#studio.shadow-mode.shadow-creating #shadowField,
+#studio.shadow-mode.shadow-creating .shadow-weapon-guide{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+#studio.shadow-mode.shadow-creating #viewport,
+#studio.shadow-mode.shadow-creating #canvasSurface{pointer-events:auto!important;}
+#studio.shadow-mode.shadow-creating #canvasSurface #display,
+#studio.shadow-mode.shadow-creating #canvasSurface #overlay{pointer-events:none!important;}
 </style>
