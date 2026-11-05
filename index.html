@@ -4948,7 +4948,7 @@ window.ArtsRules=(()=>{
  });
  Object.assign(moves,{trick_mine:{name:'トリックマイン',class:'trickster',fixedCost:24,rate:0,cooldown:10000,text:'丸を描いた位置に2秒かけて地雷を仕掛ける。設置中は魔法陣が見えるが、完成後は誰からも見えない。敵が踏むと1.2秒スタン＋10秒毒（毎秒HP2）。同時2個まで。',effect:'設置2秒、完成後は透明。敵が踏むとスタン1.2秒＋毒10秒（毎秒HP2）、同時設置2個、地雷の寿命25秒',range:'描いた円の中心。障害物内には設置不可',gesture:'閉じた丸・楕円を一筆で描く'}});
  moves.smoke.class=undefined; // 古い渦巻きの煙幕はコンフュージョンへ置き換える
- const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径140〜260"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径45〜140"],"heal":["図形の中心に最も近い生存中の味方1人（自分を含む）をHP20回復","描画可能範囲内に描いた図形の中心から、最も近い味方1人を選択"],"build":["時間で消えない専用のペイントブロック（HP50）。攻撃で破壊可能","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["10秒間透明化（被弾で解除・攻撃で1秒間姿を現して徐々に消える）。偽装分身は8秒間持続","移動距離90〜190。壁に当たると停止。クールダウン8秒"],"decoy":["本体の姿・HP・バフ外見を偽装する分身3体。攻撃されると周囲の敵へ45ダメージ","3体が6秒間動く。爆発半径75"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.055秒間隔で12連射。1発の威力6＋攻撃力×0.19。射線に±9度程度のばらつき","弾の移動距離1000、弾半径10。ノックバックを抑え連続で当てやすくした"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
+ const moveDetails={"slash":["半円の斬撃1回。攻撃力と描画サイズで威力変化","自分を中心とした前方半円。半径は描画可能な最大射程の1/2（95〜300）"],"guard":["1秒間、正面の弾を防ぐ。近接攻撃は防げない","描いた線の位置、盾の半幅30〜150"],"magic":["装甲無視・ノックバック付きの弾。壁と盾で停止","弾の移動距離は線の長さに応じ最大740、弾半径16"],"thrust":["直線突進。接触した敵に1回、威力は12＋攻撃力×0.5","移動距離220固定、接触判定は自分から45未満"],"cross":["0.17秒間隔の2連斬撃。攻撃力・描画サイズで威力変化","描いた中心から半径75〜140の前方半円"],"feint":["Z字の線をなぞる移動攻撃。敵ごとに1回命中","描いた経路を移動、接触判定45未満"],"inkcut":["斬撃＋命中した敵のインク回復を5秒停止","描いた中心から半径65〜170の前方半円"],"star":["2秒後に着弾する装甲無視の範囲攻撃。大きく描くと威力増加","描いた中心から半径95〜195（最大でも回避できる大きさ）"],"ray":["0.7秒後に装甲無視の貫通光線","描いた位置から長さ440、光線半幅12〜28"],"nova":["0.8秒後に装甲無視の爆発","しずくの中心から半径65〜125（最大でも回避できる大きさ）"],"heal":["図形の中心に最も近い生存中の味方1人（自分を含む）をHP20回復","描画可能範囲内に描いた図形の中心から、最も近い味方1人を選択"],"build":["時間で消えない専用のペイントブロック（HP50）。攻撃で破壊可能","描いた四角の位置と大きさ。全体で同時12個まで"],"iron":["15秒間、魔法90%・物理50%軽減","自分のみ"],"anchor":["範囲攻撃＋命中した敵を2秒減速","描いた中心から最大半径170"],"reactor":["6秒間、受けた実ダメージの1.5倍をインクに変換","自分のみ。HPダメージは受ける"],"mirage":["10秒間透明化（被弾で解除・攻撃で1秒間姿を現して徐々に消える）。偽装分身は8秒間持続","移動距離90〜190。壁に当たると停止。クールダウン8秒"],"decoy":["本体の姿・HP・バフ外見を偽装する分身3体。攻撃されると周囲の敵へ45ダメージ","3体が6秒間動く。爆発半径75"],"smoke":["4秒間、煙内の味方を敵から隠す。攻撃時は一瞬露見","描いた中心から半径90〜170"],"warp":["描いた丸の中心へ瞬間移動。障害物内は不可","射程ステータスで決まる描画可能範囲内"],"burst":["0.055秒間隔で12連射。1発の威力6＋攻撃力×0.19。射線に±9度程度のばらつき","弾の移動距離1000、弾半径10。ノックバックを抑え連続で当てやすくした"],"ghost":["0.8秒の照準後、弾速100で追尾。壁を貫通し敵1人に命中すると消滅。威力25＋攻撃力×0.75","弾の移動距離1300、弾半径11"],"spread":["扇状に5発同時発射。1発の威力5＋攻撃力×0.22","弾の移動距離570、扇の開き約37度、弾半径9"],"ricochet":["10秒間跳弾。再命中可能、威力12＋攻撃力×0.37","毎秒385で移動。壁・外周で反射、弾半径11"]};
  Object.assign(moveDetails,{hook:['飛翔フック。命中した敵を引き寄せ、終了後2秒間行動不能','自分から描いたJの位置まで'],summon:['ハートのコアからペットを召喚（HP30・時間制限なし・1人2体まで）','コアの近く / 索敵半径280'],reflect:['通常弾を反射する盾を6秒設置','盾の近く'],confusion:['10秒混乱。移動方向を2秒おきに反転・通常へ切替','描いた中心から半径90〜285'],charge:['1秒予告後に幅90の高威力ビーム','壁か画面端まで'],newSmoke:['4秒間の毒霧。敵のみ0.5秒ごとに基本威力2＋攻撃力×0.05のダメージ','中心から半径140〜240']});
  for(const [key,formula] of Object.entries({star:'22＋攻撃力×0.6',ray:'20＋攻撃力×0.5',nova:'17＋攻撃力×0.4',anchor:'4＋攻撃力×0.2'})){moveDetails[key][0]+='。基本威力（'+formula+'）×描画倍率';moves[key].text+=' 威力は攻撃力と線の長さに応じて増加。'}
  moveDetails.summon[0]+='。突進は0.5秒前に警告。描き込みインクが多いほどHPと攻撃力が上がる';
@@ -7496,7 +7496,7 @@ window.ArtArts=(()=>{
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
- if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=(shape.type==='ray'?R.clamp(shape.radius*.2,12,28):shape.type==='star'?R.clamp(shape.radius*1.8+50,140,290):R.clamp(shape.radius*1.55+35,85,270))*sizeArea;e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
+ if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28)*sizeArea:shape.type==='star'?R.clamp((shape.radius*1.8+50)*sizeArea,95,195):R.clamp((shape.radius*1.55+35)*sizeArea,65,125);e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
  if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20*artsSingleFactor(shape));showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;q.reactorGrowInCast=0;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
@@ -16772,9 +16772,9 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 /* Arts only: make the drawing-order button reachable and move skill icons down. */
 #artsField #artsSkillIcons{bottom:10px;left:50%;max-width:calc(100% - 310px);gap:6px;z-index:16}
 #artsField #artsSkillInfo{position:absolute;left:auto;right:12px;bottom:10px;transform:none;max-width:142px;min-height:44px;z-index:25}
-#artsField .arts-cool-icon{width:60px;height:61px;border-radius:10px}
-#artsField .arts-icon-shape svg{width:29px;height:29px}
-#artsField .arts-cool-icon small{font-size:9px;max-width:56px}
+#artsField .arts-cool-icon{width:76px;height:78px;border-radius:13px}
+#artsField .arts-icon-shape svg{width:36px;height:36px}
+#artsField .arts-cool-icon small{font-size:10px;max-width:72px}
 #artsStage.arts-equipping .arts-equip-guide{margin:0 6px;border-top:1px solid #e3d9ed;flex:none;text-align:center;color:#705590;font-size:11px}
 #artsStage.arts-equipping .arts-equip-guide summary{padding:4px 8px;font-weight:700;cursor:pointer;color:#63438d}
 #artsStage.arts-equipping .arts-equip-guide[open]{overflow-y:auto;max-height:min(190px,35vh);padding-bottom:6px}
@@ -16783,10 +16783,10 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #artsStage.arts-equipping .arts-equip-guide .arts-guide-legend{font-size:10px}
 #artsStage.arts-equipping .arts-equip-guide .arts-guide-tip{font-size:10px}
 @media(max-width:750px){
- #artsField #artsSkillIcons{left:51%;bottom:9px;max-width:calc(100% - 220px);gap:3px}
- #artsField .arts-cool-icon{width:41px;height:49px;border-width:1px}
- #artsField .arts-icon-shape svg{width:22px;height:22px}
- #artsField .arts-cool-icon small{font-size:8px;max-width:39px}
+ #artsField #artsSkillIcons{left:50%;bottom:58px;max-width:calc(100% - 24px);gap:6px}
+ #artsField .arts-cool-icon{width:76px;height:78px;border-width:2px}
+ #artsField .arts-icon-shape svg{width:36px;height:36px}
+ #artsField .arts-cool-icon small{font-size:10px;max-width:72px}
  #artsField #artsSkillInfo{right:5px;bottom:8px;max-width:105px;padding:5px;font-size:11px;min-height:40px}
  #artsStage.arts-equipping .arts-equip-guide svg{height:72px;max-height:72px}
 }
