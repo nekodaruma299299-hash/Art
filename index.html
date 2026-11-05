@@ -16014,7 +16014,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
  if(!['default','brush','pencil','nib','cross','star','circle','xmark','triangle'].includes(petShape))petShape='default';
  let petSize=clamp(safeRead('artopia-pet-cursor-size-v164','48'));
  let petImage=safeRead('artopia-pet-cursor-image-v164','');
- if(!imagePattern.test(petImage)||petImage.length>25000)petImage='';
+ if(!imagePattern.test(petImage)||petImage.length>120000)petImage='';
  let petUsingImage=safeRead('artopia-pet-cursor-mode-v164','shape')==='image'&&!!petImage;
  let petFlip=safeRead('artopia-pet-cursor-flip-v164','0')==='1';
  let petBaseDir=safeRead('artopia-pet-cursor-base-dir-v164','right')==='left'?'left':'right';
@@ -16029,7 +16029,7 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
  const skin=()=>pet?{image:petUsingImage?petImage:'',shape:petShape,size:petSize,flip:petFlip,baseDir:petBaseDir}:{image:usingImage?imageData:'',shape:prefs.current,size:cursorSize(),flip,baseDir};
  const safeSkin=s=>{
   if(!s||typeof s!=='object')return null;
-  const image=typeof s.image==='string'&&s.image.length<=25000&&imagePattern.test(s.image)?s.image:'';
+  const image=typeof s.image==='string'&&s.image.length<=120000&&imagePattern.test(s.image)?s.image:'';
   const shapes=['default','brush','pencil','nib','cross','star','circle','xmark','triangle'];
   return{image,shape:shapes.includes(s.shape)?s.shape:'default',size:clamp(s.size),flip:s.flip===true,baseDir:s.baseDir==='left'?'left':'right'};
  };
@@ -16220,7 +16220,39 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
   root.querySelector('#pet-flip').onchange=e=>{petFlip=e.target.checked;petDir=petBaseDir;save()};
   root.querySelector('#pet-base-dir').onchange=e=>{petBaseDir=e.target.value==='left'?'left':'right';petDir=petBaseDir;save()};
   const file=root.querySelector('#pet-file');root.querySelector('#pet-upload').onclick=()=>file.click();
-  file.onchange=async()=>{const f=file.files?.[0];file.value='';if(!f)return;const status=root.querySelector('#pet-status');if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>12*1024*1024){status.textContent='PNG/JPEG/WebP・12MB以下を選択してください';return}try{const url=URL.createObjectURL(f),img=new Image();try{await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url})}finally{URL.revokeObjectURL(url)}const c=document.createElement('canvas');c.width=c.height=96;const ctx=c.getContext('2d'),scale=Math.min(96/img.width,96/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(96-w)/2,(96-h)/2,w,h);let data=c.toDataURL('image/webp',.76);if(!imagePattern.test(data)||data.length>24000)data=c.toDataURL('image/png');if(data.length>24000){const small=document.createElement('canvas');small.width=small.height=64;small.getContext('2d').drawImage(c,0,0,64,64);data=small.toDataURL('image/webp',.6)}if(!imagePattern.test(data)||data.length>25000)throw Error('画像が大きすぎます');petImage=data;petUsingImage=true;status.textContent='なでなで用画像を保存しました';save()}catch(err){status.textContent='画像の読み込みに失敗しました：'+(err.message||err)}};
+  file.onchange=async()=>{
+   const f=file.files?.[0];file.value='';if(!f)return;
+   const status=root.querySelector('#pet-status');
+   if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>12*1024*1024){status.textContent='PNG/JPEG/WebP・12MB以下を選択してください';return}
+   try{
+    const url=URL.createObjectURL(f),img=new Image();
+    try{await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url})}
+    finally{URL.revokeObjectURL(url)}
+    if(!img.naturalWidth||!img.naturalHeight)throw Error('画像の大きさを取得できません');
+    // Keep enough source detail for the largest 248px pet cursor. Never
+    // abruptly downscale to 64px just because the first encode is too large.
+    let data='';
+    for(const side of [320,256,192]){
+     const c=document.createElement('canvas');c.width=c.height=side;
+     const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+     const scale=Math.min(1,side/img.naturalWidth,side/img.naturalHeight),w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+     ctx.drawImage(img,(side-w)/2,(side-h)/2,w,h);
+     for(const quality of [.94,.86,.78]){
+      const encoded=c.toDataURL('image/webp',quality);
+      if(imagePattern.test(encoded)&&encoded.length<=120000){data=encoded;break}
+     }
+     if(!data){const png=c.toDataURL('image/png');if(imagePattern.test(png)&&png.length<=120000)data=png}
+     c.width=c.height=0;
+     if(data)break;
+    }
+    if(!data)throw Error('画質を保って保存できませんでした。別の画像をお試しください');
+    // Store first: avoid reporting success when localStorage quota is exceeded.
+    try{localStorage.setItem('artopia-pet-cursor-image-v164',data)}
+    catch{throw Error('保存容量が不足しています')}
+    petImage=data;petUsingImage=true;
+    status.textContent='高画質のなでなで画像を保存しました';save();
+   }catch(err){status.textContent='画像の読み込みに失敗しました：'+(err.message||err)}
+  };
   refresh();
  }
  function openCursor(){if(pet){openPetCursor();return;}if(typeof modal!=='function')return;modal('カーソル設定',prefs.settingsHtml());prefs.bindSettings($('#art-cursor-settings'))}
