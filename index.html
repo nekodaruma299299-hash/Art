@@ -8827,10 +8827,44 @@ finishPaint(false)};
    x.strokeStyle='#ffbd81';x.lineWidth=9*(1-t)+2;x.shadowColor='#ff9c5f';x.shadowBlur=17;x.stroke();
    x.strokeStyle='#fff9e9';x.lineWidth=2;x.shadowBlur=3;x.stroke();
   }else if(['slash','inkcut','cross'].includes(e.type)){
-   x.rotate(e.angle||0);const sweep=(a,b)=>{x.fillStyle=e.type==='inkcut'?'#8957c177':'#ffd1aa88';x.beginPath();x.arc(0,0,r,a,b);x.arc(-r*.13,0,r*.78,b,a,true);x.closePath();x.fill();x.strokeStyle='#fff8ef';x.lineWidth=2;ring(r,a,b)};
-  if(e.type==='cross'){for(const sign of [-1,1]){x.save();x.rotate(sign*Math.PI/4);x.strokeStyle='#ffb295';x.lineWidth=11*(1-t)+2;segment(-r,0,r,0);x.strokeStyle='#fff8e9';x.lineWidth=2;segment(-r,0,r,0);x.restore()}}
-  else sweep(-1.65+t*.5,1.6+t*.5);
-  burst(9,r*(.65+.3*t));
+  x.rotate(e.angle||0);
+  if(e.type==='cross'){
+   for(const sign of [-1,1]){x.save();x.rotate(sign*Math.PI/4);x.strokeStyle='#ffb295';x.lineWidth=11*(1-t)+2;segment(-r,0,r,0);x.strokeStyle='#fff8e9';x.lineWidth=2;segment(-r,0,r,0);x.restore()}
+   burst(9,r*(.65+.3*t));
+  }else{
+   // Visual-only ellipse-like blade. Both tips converge; the user stroke still
+   // determines the authoritative hitbox, damage, direction and ink cost.
+   const rx=Math.max(17,r*(.80+.12*t));
+   const ry=Math.max(9,rx*(e.type==='inkcut'?.49:.39));
+   const slashColor=e.type==='inkcut'?'#b789ed':'#ffb66b';
+   const bright=e.type==='inkcut'?'#f8eaff':'#fffaf1';
+   const swept=(back=0,opacity=1,scale=1)=>{
+    x.save();x.translate(-back*(1-t),0);x.scale(scale,scale);x.globalAlpha*=opacity;
+    const ax=-rx*.77,ay=-ry*.98,bx=rx*.76,by=ry*.98;
+    x.beginPath();x.moveTo(ax,ay);
+    x.bezierCurveTo(rx*.55,-ry*1.55,rx*1.25,ry*.13,bx,by);
+    x.bezierCurveTo(rx*.28,ry*.42,rx*.24,-ry*.49,ax,ay);
+    x.closePath();
+    const g=x.createLinearGradient(-rx,-ry,rx,ry);
+    if(e.type==='inkcut'){
+     g.addColorStop(0,'#512078cc');g.addColorStop(.42,'#a76dddc9');g.addColorStop(1,'#ead7ff88');
+    }else{
+     g.addColorStop(0,'#7f3219cc');g.addColorStop(.48,'#ffad69e0');g.addColorStop(1,'#fff0c99e');
+    }
+    x.fillStyle=g;x.shadowColor=slashColor;x.shadowBlur=15;x.fill();x.shadowBlur=0;
+    x.beginPath();x.moveTo(ax,ay);x.bezierCurveTo(rx*.55,-ry*1.55,rx*1.25,ry*.13,bx,by);
+    x.strokeStyle=bright;x.lineWidth=Math.max(1.1,rx*.025);x.stroke();
+    x.restore();
+   };
+   swept(16,.16,.82);swept(8,.30,.91);swept(0,1,1);
+   // Light streaks follow the blade rather than straight scribble segments.
+   x.save();x.strokeStyle=slashColor;x.lineWidth=1.4;x.globalAlpha*=.45*(1-t);
+   for(let j=0;j<2;j++){
+    x.beginPath();x.moveTo(-rx*(.72+j*.2),-ry*(.7+j*.2));
+    x.quadraticCurveTo(-rx*.15, -ry*(1.35+j*.18),rx*(.58-j*.13),-ry*.18);x.stroke();
+   }
+   x.restore();
+  }
  }else if(['thrust','feint','mirage'].includes(e.type)){
   const owner=view.fighters.find(p=>p.id===e.owner),dx=(owner?.x??e.x)-e.x,dy=(owner?.y??e.y)-e.y;
   x.strokeStyle=e.type==='mirage'?'#afcaff88':color+'88';x.lineWidth=13*(1-t)+2;segment(0,0,dx,dy);x.strokeStyle='#fff5e8';x.lineWidth=2;segment(0,0,dx,dy);
@@ -12676,10 +12710,59 @@ finishPaint(false)};
   x.rotate(e.angle||0);x.fillStyle='#64d7ff28';x.beginPath();x.moveTo(-8,-r);x.quadraticCurveTo(27,0,-8,r);x.lineTo(-16,r*.8);x.quadraticCurveTo(8,0,-16,-r*.8);x.closePath();x.fill();x.lineWidth=5;x.stroke();x.strokeStyle='#edffff';x.lineWidth=1.6;segment(-7,-r*.88,-7,r*.88);
   for(let i=-2;i<=2;i++){x.save();x.translate(0,i*r*.32);polygon(6,Math.min(12,r*.13));x.stroke();x.restore()}
  }else if(['slash','inkcut','cross'].includes(e.type)){
-  x.rotate(e.angle||0);const sweep=(a,b)=>{x.fillStyle=e.type==='inkcut'?'#8957c177':'#ffd1aa88';x.beginPath();x.arc(0,0,r,a,b);x.arc(-r*.13,0,r*.78,b,a,true);x.closePath();x.fill();x.strokeStyle='#fff8ef';x.lineWidth=2;ring(r,a,b)};
-  if(e.type==='cross'){for(const sign of [-1,1]){x.save();x.rotate(sign*Math.PI/4);x.strokeStyle='#ffb295';x.lineWidth=11*(1-t)+2;segment(-r,0,r,0);x.strokeStyle='#fff8e9';x.lineWidth=2;segment(-r,0,r,0);x.restore()}}
-  else sweep(-1.65+t*.5,1.6+t*.5);
-  burst(9,r*(.65+.3*t));
+  x.rotate(e.angle||0);
+  const drawSlashCrescent=(rx,ry,thickness,drift=0,alpha=1)=>{
+   const startA=-1.42+t*.22,endA=1.18+t*.22,innerRx=Math.max(2,rx-thickness),innerRy=Math.max(2,ry-thickness*.62);
+   x.save();
+   x.translate(drift,0);
+   x.globalAlpha*=alpha;
+   x.beginPath();
+   x.ellipse(0,0,rx,ry,0,startA,endA,false);
+   x.ellipse(-thickness*.72,0,innerRx,innerRy,0,endA,startA,true);
+   x.closePath();
+   const glow=x.createLinearGradient(-rx,-ry,rx,ry);
+   if(e.type==='inkcut'){
+    glow.addColorStop(0,'#46215fcc');
+    glow.addColorStop(.45,'#9f67d8bb');
+    glow.addColorStop(1,'#ead5ff11');
+    x.fillStyle=glow;
+    x.strokeStyle='#f3e5ff';
+    x.shadowColor='#be86ff';
+   }else{
+    glow.addColorStop(0,'#7a2f0acc');
+    glow.addColorStop(.42,'#ff9e56cc');
+    glow.addColorStop(1,'#fff0d833');
+    x.fillStyle=glow;
+    x.strokeStyle='#fff8ef';
+    x.shadowColor='#ffb367';
+   }
+   x.shadowBlur=16;
+   x.fill();
+   x.lineWidth=2.1;
+   x.stroke();
+   x.shadowBlur=0;
+   x.strokeStyle='#fffdf8';
+   x.lineWidth=1.4;
+   x.beginPath();
+   x.ellipse(thickness*.08,0,Math.max(2,rx-thickness*.28),Math.max(2,ry-thickness*.18),0,startA+.08,endA-.06,false);
+   x.stroke();
+   x.restore();
+  };
+  if(e.type==='cross'){
+   for(const sign of [-1,1]){x.save();x.rotate(sign*Math.PI/4);x.strokeStyle='#ffb295';x.lineWidth=11*(1-t)+2;segment(-r,0,r,0);x.strokeStyle='#fff8e9';x.lineWidth=2;segment(-r,0,r,0);x.restore()}
+  }else{
+   const rx=Math.max(18,r*(.82+.12*t)),ry=Math.max(8,rx*(e.type==='inkcut'?.46:.36)),thickness=Math.max(8,rx*(e.type==='inkcut'?.34:.28));
+   drawSlashCrescent(rx*.86,ry*.86,thickness*.94,-8*(1-t),.28);
+   drawSlashCrescent(rx*.95,ry*.95,thickness*.98,-4*(1-t),.56);
+   drawSlashCrescent(rx,ry,thickness,0,1);
+   x.strokeStyle=e.type==='inkcut'?'#c99aff':'#ffd199';
+   x.lineWidth=1.6;
+   for(let i=0;i<3;i++){
+    const trail=i*9+12*t;
+    segment(-rx*.14-trail,-ry*.18-i*2,-rx*.33-trail,-ry*.46-i*5);
+   }
+  }
+  burst(9,r*(.62+.26*t));
  }else if(['thrust','feint','mirage'].includes(e.type)){
   const owner=view.fighters.find(p=>p.id===e.owner),dx=(owner?.x??e.x)-e.x,dy=(owner?.y??e.y)-e.y;
   x.strokeStyle=e.type==='mirage'?'#afcaff88':color+'88';x.lineWidth=13*(1-t)+2;segment(0,0,dx,dy);x.strokeStyle='#fff5e8';x.lineWidth=2;segment(0,0,dx,dy);
