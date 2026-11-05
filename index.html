@@ -10028,7 +10028,31 @@ window.ArtShadow=(()=>{
   }
   shadowSend();return true;
  }
+  // Deliver recent spoken messages when players meet AFTER the original speech.
+  // Keep chat proximity-based: distant players still cannot read those messages.
+  // Reuse the original chat ID so a formerly abbreviated message is upgraded, not duplicated.
+  function shadowDeliverNearbyChat(now){
+   const h=host?.shadow;if(!h||!Array.isArray(h.logs))return;
+   const recent=h.logs.filter(m=>!m.ghost&&now-m.at>=0&&now-m.at<=15000);
+   if(!recent.length)return;
+   for(const listener of host.fighters){
+    if(!ShadowRules.living(listener))continue;
+    let log=listener.chatLog||[],changed=false;
+    for(const message of recent){
+     if(message.author===listener.id)continue;
+     const speaker=host.fighters.find(p=>p.id===message.author);
+     if(!speaker||!ShadowRules.living(speaker)||ShadowRules.dist(listener,speaker)>220)continue;
+     const index=log.findIndex(item=>item.id===message.id);
+     if(index<0){log=[...log,{...message,range:'near',direction:null}];changed=true;}
+     else if(log[index].text!==message.text||log[index].range!=='near'){
+      log=[...log];log[index]={...message,range:'near',direction:null};changed=true;
+     }
+    }
+    if(changed){log.sort((a,b)=>(a.at||0)-(b.at||0));listener.chatLog=log.slice(-100)}
+   }
+  }
  function shadowUpdate(dt,now){const h=host.shadow;if(!h)return;
+   shadowDeliverNearbyChat(now);
   // Host-authoritative bullets: physical flight, map collision and first target hit.
   h.weaponShots=(h.weaponShots||[]).filter(b=>{
    if(b.end<=now||b.left<=0)return false;
