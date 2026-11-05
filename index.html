@@ -4836,9 +4836,9 @@ window.ArtsRules=(()=>{
  const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,100,30,600),teams:s?.teams==='teams'?'teams':'solo',teamAssignMode:s?.teamAssignMode==='manual'?'manual':'random',stage:['garden','ruins','forest','arena','portal','mine','factory'].includes(s?.stage)?s.stage:'arena',stageSize:['small','medium','large'].includes(s?.stageSize)?s.stageSize:'medium',skillSlots:int(s?.skillSlots,2,0,6),npcEnabled:!!s?.npcEnabled});
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
- guard:{name:'ガード',rate:.035,cooldown:1400,text:'線の位置に1秒の盾。正面から来るマジックの弾を消し、ダメージとノックバックを防ぎます。近接攻撃は盾を貫通します。'},
- slash:{name:'スラッシュ',rate:.055,cooldown:450,text:'弧は射程円全体のどこにでも描けます（外側の半分も可）。描いた場所を中心に斬撃が出ます。遠くに描いた場合は、同じ方角の最大射程の半分の位置に中心を収めます。通常攻撃の基礎威力は10〜20中心。攻撃力で威力が変化し、描線の長さで少し増減します。'},
- magic:{name:'マジック',rate:.16,cooldown:900,text:'射程内で描いた直線から外向きに太い弾を放ちます。攻撃力とインク量で威力が変わり、射程が高いほど遠くまで飛びます。描線を大きくすると弾が太くなります。装甲は無視しますが、壁と正面のガードに止められます。'},
+ guard:{name:'ガード',rate:.035,cooldown:0,text:'クールダウンなし。大きく描くほど長時間（0.5〜3秒）維持でき、耐久力が増します。耐久力以下のマジック・スラッシュを吸収してインク回復。限界を超える攻撃では破壊されます。敵も味方も通れません。'},
+ slash:{name:'スラッシュ',rate:.055,cooldown:0,text:'クールダウンなし。描いた線そのものが斬撃の攻撃範囲です。短い斬撃は低威力・省インクで連撃向き。長い斬撃は高威力・高コストで、ガードの耐久力を超えると破壊して貫通します。'},
+ magic:{name:'マジック',rate:.16,cooldown:0,text:'クールダウンなし。弾の大きさは固定。短い線は少ないインクで連射できる代わりに、威力・速度・ノックバックが低く少しブレます。長い線は高威力・高速・強ノックバックで正確に飛びます。射程は描画可能範囲と同じです。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
  cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→右上→左下と一筆で描くと2連斬撃。×の右端同士を縦線でつなぐ形。'},
  feint:{name:'フェイントステップ',class:'attacker',rate:.065,cooldown:3000,text:'進路上にZを描き、その線をなぞって移動攻撃。射程外はキャンセル。'},
@@ -7026,10 +7026,77 @@ window.ArtArts=(()=>{
    if(R.dist(d,pt)<=r+(d.r||25))triggerTrickDecoy(d,attacker,now);
   }
  }
- function melee(p,e,now){const ux=Math.cos(e.angle),uy=Math.sin(e.angle);hitArtsResource(p,e.x+ux*e.r*.55,e.y+uy*e.r*.55,e.r*.7,e.power||10,now);
- for(const d of host.effects)if(d.type==='decoyBody'&&d.end>now&&d.owner!==p.id&&R.dist(d,e)<e.r+d.r&&((d.x-e.x)*ux+(d.y-e.y)*uy)>=-5&&lineClear(e,d))triggerTrickDecoy(d,p,now);
- for(const pet of host.effects)if(pet.type==='summonBody'&&pet.end>now&&pet.hp>0&&pet.owner!==p.id){const owner=host.fighters.find(q=>q.id===pet.owner);if(owner&&!friendly(p,owner)&&R.dist(pet,e)<e.r+pet.r&&((pet.x-e.x)*ux+(pet.y-e.y)*uy)>=-5&&lineClear(e,pet)){petHurt(pet,e.power,now,e);if(e.debuff==='ink')pet.inkLock=now+5000;if(e.debuff==='slow')pet.slow=now+2000}}
- for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r+R.R&&((q.x-e.x)*ux+(q.y-e.y)*uy)>=-5&&lineClear(e,q)){hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0&&R.intersects(e.x+ux*e.r*.65,e.y+uy*e.r*.65,e.r*.65,b))damageWall(b,e.power,now)}
+ // Shield interactions: each hit compares its damage with the shield's intact capacity.
+ function artsGuardLine(q){
+  const angle=q.guardAngle||0,ux=-Math.sin(angle),uy=Math.cos(angle),r=q.guardRadius||40;
+  return [{x:(q.guardX??q.x)-ux*r,y:(q.guardY??q.y)-uy*r},
+          {x:(q.guardX??q.x)+ux*r,y:(q.guardY??q.y)+uy*r}];
+ }
+ function artsSegmentDistance(a,b,c,d){
+  const cross=(x,y)=>x.x*y.y-x.y*y.x;
+  const ab={x:b.x-a.x,y:b.y-a.y},cd={x:d.x-c.x,y:d.y-c.y},ca={x:c.x-a.x,y:c.y-a.y};
+  const den=cross(ab,cd);
+  if(Math.abs(den)>1e-8){const t=cross(ca,cd)/den,u=cross(ca,ab)/den;if(t>=0&&t<=1&&u>=0&&u<=1)return 0;}
+  const point=(p,v,w)=>{const dx=w.x-v.x,dy=w.y-v.y,t=R.clamp(((p.x-v.x)*dx+(p.y-v.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-v.x-t*dx,p.y-v.y-t*dy)};
+  return Math.min(point(a,c,d),point(b,c,d),point(c,a,b),point(d,a,b));
+ }
+ function artsGuardHit(q,amount,now,kind){
+  const intact=amount<=Math.max(0,q.guardValue||0);
+  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));}
+  else{q.guard=0;q.guardValue=0;
+   for(const e of host.effects)if(e.type==='guard'&&e.owner===q.id&&e.end>now)e.end=now;
+  }
+  host.effects.push({id:++host.seq,type:intact?(kind==='slash'?'artsSlashParry':'artsMagicParry'):'artsGuardBreak',
+   owner:q.id,x:q.guardX??q.x,y:q.guardY??q.y,r:Math.min(95,q.guardRadius||50),start:now,end:now+380});
+  return intact;
+ }
+ function artsSlashShield(p,e,now){
+  const path=e.path||[];
+  for(const q of host.fighters){
+   if(friendly(p,q)||!q.active||q.hp<=0||q.guard<=now)continue;
+   const [a,b]=artsGuardLine(q);
+   let touched=false;
+   for(let i=1;i<path.length;i++)if(artsSegmentDistance(path[i-1],path[i],a,b)<=e.r+3){touched=true;break}
+   if(!touched)continue;
+   if(artsGuardHit(q,e.power,now,'slash'))return true;
+  }
+  return false;
+ }
+ function artsGuardBlocksMovement(p,x,y,now){
+  for(const q of host.fighters){
+   if(!q.active||q.hp<=0||q.guard<=now)continue;
+   const [a,b]=artsGuardLine(q),current={x:p.x,y:p.y},next={x,y};
+   const before=artsSegmentDistance(current,current,a,b),after=artsSegmentDistance(next,next,a,b);
+   // Allow a player already intersecting a freshly summoned shield to escape.
+   if(after<R.R+5&&after<before-.001)return true;
+   if(after<R.R+5&&before>=R.R+5)return true;
+  }
+  return false;
+ }
+ function melee(p,e,now){
+  if(e.type==='slash'&&artsSlashShield(p,e,now)){
+   e.end=now;e.cancelled=true;return;
+  }
+  const path=e.type==='slash'&&e.path?.length>=2?e.path:null;
+  const touched=(obj,r=0)=>path?path.some((v,i)=>i&&artsSegmentDistance(path[i-1],v,obj,obj)<=(e.r+r)):
+    R.dist(obj,e)<e.r+r&&((obj.x-e.x)*Math.cos(e.angle)+(obj.y-e.y)*Math.sin(e.angle))>=-5;
+  if(path)for(let i=1;i<path.length;i++)hitArtsResource(p,path[i].x,path[i].y,e.r,e.power||10,now);
+  else hitArtsResource(p,e.x+Math.cos(e.angle)*e.r*.55,e.y+Math.sin(e.angle)*e.r*.55,e.r*.7,e.power||10,now);
+  for(const d of host.effects)if(d.type==='decoyBody'&&d.end>now&&d.owner!==p.id&&touched(d,d.r)&&(!path||lineClear(e,d)))triggerTrickDecoy(d,p,now);
+  for(const pet of host.effects)if(pet.type==='summonBody'&&pet.end>now&&pet.hp>0&&pet.owner!==p.id){
+   const owner=host.fighters.find(q=>q.id===pet.owner);
+   if(owner&&!friendly(p,owner)&&touched(pet,pet.r)&&(!path||lineClear(e,pet))){
+    petHurt(pet,e.power,now,e);if(e.debuff==='ink')pet.inkLock=now+5000;if(e.debuff==='slow')pet.slow=now+2000;
+   }
+  }
+  for(const q of host.fighters)if(!friendly(p,q)&&touched(q,R.R)&&(!path||lineClear(e,q))){
+   hurt(q,e.power,now,e);if(e.debuff==='ink')q.inkLock=now+5000;if(e.debuff==='slow')q.slow=now+2000;
+  }
+  for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){
+   const hit=path?path.some(v=>R.intersects(v.x,v.y,e.r,b)):R.intersects(e.x+Math.cos(e.angle)*e.r*.65,e.y+Math.sin(e.angle)*e.r*.65,e.r*.65,b);
+   if(hit)damageWall(b,e.power,now);
+  }
+ }
  // A completed gesture is an atomic cast request. Do not require the independent
  // drawing=true input packet to have arrived first (multiplayer latency/reordering).
  function setAwakening(p,on,now){
@@ -7247,7 +7314,7 @@ window.ArtArts=(()=>{
  if(shape.type==='ricochet'&&host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(p.x+shape.x,p.y+shape.y,11,b))){p.castError='壁の中からは跳弾を撃てません。';return false}
  if(shape.type==='trick_mine'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R)){p.castError='障害物の上には地雷を設置できません。';return false;}
  if(shape.type==='summon'&&host.effects.filter(v=>v.type==='summonBody'&&v.owner===id&&v.hp>0&&v.end>now).length>=2){p.castError='ペットは同時に2体まで召喚できます。';return false}
- const sizeFactor=artsSizeFactor(shape),sizeArea=artsSizeArea(shape),sizeBuff=artsSingleFactor(shape);const cost=m.class?Math.ceil(R.cost(shape)*R.clamp(.88+(sizeFactor-1)*.7,.80,1.45)):R.cost(shape),readyAt=Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(shape.type==='blood_slash'&&p.hp<=25){p.castError='HPが26以上必要です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;(p.artCooldowns??={})[shape.type]=now+(p.class==='vampire'&&['ghost','drain'].includes(shape.type)?m.cooldown*.5:m.cooldown);p.nextCast=now+(m.class?350:150);if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
+ const sizeFactor=artsSizeFactor(shape),sizeArea=artsSizeArea(shape),sizeBuff=artsSingleFactor(shape);const basicArt=['guard','slash','magic'].includes(shape.type);const cost=m.class?Math.ceil(R.cost(shape)*R.clamp(.88+(sizeFactor-1)*.7,.80,1.45)):R.cost(shape),readyAt=basicArt?0:Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(shape.type==='blood_slash'&&p.hp<=25){p.castError='HPが26以上必要です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;if(!basicArt){(p.artCooldowns??={})[shape.type]=now+(p.class==='vampire'&&['ghost','drain'].includes(shape.type)?m.cooldown*.5:m.cooldown);p.nextCast=now+(m.class?350:150);}else{(p.artCooldowns??={})[shape.type]=0;p.nextCast=0;}if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
  if(p.mirageHiddenUntil>now&&MIRAGE_OFFENSIVE_ARTS.has(shape.type))p.mirageRevealAt=now;
  const attack=(p.stats[1]+(p.beastUntil>now?(p.beastPower||20):0)+(p.carbuncleUntil>now?10:0)-(p.attackDebuffUntil>now?20:0))*(p.auraUntil>now?1.5:1);
  const power=R.clamp(shape.length/220,.45,2.6),aim=Number.isFinite(shape.angle)?shape.angle:Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):-Math.PI/2,dx=shape.x,dy=shape.y,len=Math.hypot(dx,dy)||1,target={x:R.clamp(p.x+dx,20,R.W-20),y:R.clamp(p.y+dy,20,R.H-20)};
@@ -7265,9 +7332,38 @@ window.ArtArts=(()=>{
   e.x=p.x;e.y=p.y;e.r=55;e.end=now+650;host.volleyHits??={};host.volleyHits[e.id]={ids:[],end:now+3500};
   for(let i=0;i<16;i++){const a=i*Math.PI*2/16;host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,vx:Math.cos(a)*120,vy:Math.sin(a)*120,power:6+attack*.15,radius:10,knockback:100,left:400,end:now+3500,hit:[],pierce:false,passWalls:false,style:'repulse',group:e.id})}
  }
- if(shape.type==='guard'){p.guard=now+1000;p.guardAngle=aim;p.guardWidth=R.clamp(shape.length/160,.4,1.55);p.guardValue=8+p.stats[2]*.35+power*3;p.guardX=target.x;p.guardY=target.y;p.guardRadius=R.clamp(shape.length/2*(1+p.stats[2]*.006),30,190);e.r=p.guardRadius;e.end=p.guard}
- if(shape.type==='slash'){const distance=Math.hypot(dx,dy),limit=R.placementRange('slash',p.stats)*.5,scale=distance>limit?limit/distance:1;e.x=p.x+dx*scale;e.y=p.y+dy*scale;e.tx=e.x;e.ty=e.y;e.angle=distance>1?Math.atan2(dy,dx):aim;e.r=R.clamp(shape.radius||30,15,140);e.power=R.clamp(8+attack*.32,7,40)*R.basicStrokeScale(shape.length);melee(p,e,now)}
- if(shape.type==='magic'){const practice=!!host.players.find(q=>q.id===id)?.bot,range=(practice?300:Math.min(260+shape.length*1.8,740))*artsRangeFactor(p),speed=practice?200:224+Math.min(shape.length,500)*.96;host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,vx:Math.cos(aim)*speed,vy:Math.sin(aim)*speed,power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*R.basicStrokeScale(shape.length)*(practice?.65:1),radius:(practice?10:16)*sizeArea,knockback:practice?16:60+attack*.8,left:range,end:now+range/speed*1000+100,hit:[],pierce:true})}
+ if(shape.type==='guard'){
+   for(const old of host.effects)if(old.type==='guard'&&old.owner===id&&old.end>now)old.end=now;
+   const strength=R.clamp(((shape.length||20)-20)/400,0,1);
+   p.guard=now+500+2500*strength;p.guardAngle=aim;
+   p.guardWidth=R.clamp(shape.length/160,.4,1.55);
+   p.guardValue=R.clamp(8+cost*2.2+p.stats[2]*.3,8,500);
+   p.guardInkCost=cost;p.guardX=target.x;p.guardY=target.y;
+   p.guardRadius=R.clamp(shape.length/2*(1+p.stats[2]*.006),24,190);
+   e.r=p.guardRadius;e.end=p.guard;
+  }
+ if(shape.type==='slash'){
+   const path=(shape.strokes||[]).flat().filter(v=>Number.isFinite(v.x)&&Number.isFinite(v.y)).map(v=>({x:p.x+v.x,y:p.y+v.y}));
+   e.path=path.length>=2?path:[{x:p.x,y:p.y},{x:target.x,y:target.y}];
+   e.x=target.x;e.y=target.y;e.angle=aim;
+   e.r=R.clamp(6+(shape.length||20)*.014,6,22);
+   e.power=R.clamp(8+attack*.32,7,40)*R.clamp(Math.sqrt(Math.max(12,shape.length||12)/220),.30,2.3);
+   melee(p,e,now);
+  }
+ if(shape.type==='magic'){
+   const practice=!!host.players.find(q=>q.id===id)?.bot;
+   const strength=R.clamp((shape.length||20)/420,0,1);
+   const range=R.placementRange('magic',p.stats)*artsRangeFactor(p);
+   const speed=(practice?200:145+430*strength);
+   // Short quick strokes have slight inaccuracy, long strokes are accurate.
+   const spread=practice?0:(1-strength)*.065;
+   const direction=aim+(Math.random()*2-1)*spread;
+   host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,
+    vx:Math.cos(direction)*speed,vy:Math.sin(direction)*speed,
+    power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*(.36+1.55*strength)*(practice?.65:1),
+    radius:practice?10:13,knockback:practice?16:12+115*strength,
+    left:Math.max(0,range-Math.hypot(target.x-p.x,target.y-p.y)),end:now+Math.max(0,range-Math.hypot(target.x-p.x,target.y-p.y))/speed*1000+100,hit:[],pierce:true});
+  }
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
@@ -7348,7 +7444,7 @@ window.ArtArts=(()=>{
  if(host.phase!=='battle'||migrationOut)return true;const f=host.fighters.find(p=>p.id===id);if(!f||f.hp<=0||!f.active)return true;if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameArtsCast'){const reply={type:'gameArtsFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameArtsInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now(),sentAt:Number.isFinite(m.sentAt)?m.sentAt:0};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
  if(m.type==='gameArtsCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=R.valid(m.strokes),outside=valid&&!R.inRange({strokes:m.strokes},f.stats);const shape=outside?null:R.recognize(m.strokes,f.skills||[f.skill]);if(!outside&&!shape&&valid)f.ink=Math.max(0,f.ink-Math.ceil(Math.min(R.length(m.strokes),2600)*.035));f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?moves[shape.type].name+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameArtsFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
- function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameArtsFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
+ function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)||artsGuardBlocksMovement(p,nx,ny,now)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameArtsFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
  function practiceBotInput(p,now){
  const target=host.fighters.find(q=>!friendly(p,q)&&q.active&&q.hp>0);if(!target){p.botAttack=null;p.drawing=false;return{x:0,y:0,at:now}}
  const distance=R.dist(p,target),angle=Math.atan2(target.y-p.y,target.x-p.x);
@@ -7751,7 +7847,7 @@ window.ArtArts=(()=>{
  // Once the soul reaches the vortex core it cannot escape by raw movement speed.
  if(host.effects.some(e=>e.type==='soul_eater'&&e.end>now&&e.trappedIds?.includes(p.id))){p.dash=null;p.moving=false;continue;}
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+(p.stats[0]+(p.beastUntil>now?30:0))*4)*(p.stageSpeed||1)*(p.slowFactorUntil>now?.2:p.slow>now?.5:1),ox=p.x,oy=p.y;
- if(p.dash)advanceDash(p,dt,now);else{const confusedReverse=p.confused>now&&Math.floor((now-(p.confusedFrom||now))/2000)%2===0;const vx=mx*speed*dt*(confusedReverse?-1:1),vy=my*speed*dt*(confusedReverse?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks))p.y+=vy/steps}}
+ if(p.dash)advanceDash(p,dt,now);else{const confusedReverse=p.confused>now&&Math.floor((now-(p.confusedFrom||now))/2000)%2===0;const vx=mx*speed*dt*(confusedReverse?-1:1),vy=my*speed*dt*(confusedReverse?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks)&&!artsGuardBlocksMovement(p,p.x+vx/steps,p.y,now))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks)&&!artsGuardBlocksMovement(p,p.x,p.y+vy/steps,now))p.y+=vy/steps}}
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
  }
  updateHooks(dt,now);
@@ -7818,7 +7914,7 @@ window.ArtArts=(()=>{
    const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature&&s.style==='bloodSeeker'){s.latchKind='pet';s.latchId=creature.id;s.nextBiteAt=now;return true;}if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);
     if(s.style==='catOrb'&&!(creature.lastCatPushAt>now-500)){creature.lastCatPushAt=now;const len=Math.hypot(s.vx,s.vy)||1,nx=creature.x+s.vx/len*20,ny=creature.y+s.vy/len*20;if(!R.blocked(nx,ny,host.blocks,creature.r)) {creature.x=nx;creature.y=ny;}}if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
    const guarding=host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
-   if(guarding){if(now-(guarding.artsGuardRewardAt||0)>800){guarding.artsGuardRewardAt=now;guarding.ink=Math.min(guarding.maxInk,guarding.ink+Math.min(6,2+(guarding.stats?.[2]||0)*.1));}return false;}
+   if(guarding){if(artsGuardHit(guarding,s.power,now,'magic'))return false;}
    const decoy=host.effects.find(e=>e.type==='decoyBody'&&e.end>now&&e.owner!==s.owner&&R.dist(e,s)<e.r+r);
    if(decoy){triggerTrickDecoy(decoy,owner,now);return false}
    for(const q of host.fighters){
@@ -7958,7 +8054,7 @@ window.ArtArts=(()=>{
     if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
-      window.ArtSound?.play(advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
+      window.ArtSound?.play(['artsSlashParry','artsGuardBreak'].includes(e.type)?'arts_new_heavy_slash':e.type==='artsMagicParry'?'artsGuard':advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
       if(e.type==='nightmare_dispel')heardBuffWaves.add(e.buffWaveId??e.id);
      }
     }
@@ -8714,11 +8810,21 @@ finishPaint(false)};
   if(e.type==='recharge'){x.strokeStyle='#b4a9ff';for(let i=0;i<9;i++){const a=i*Math.PI*2/9+t*2,rr=r*(1-t)+5;x.beginPath();x.arc(Math.cos(a)*rr,Math.sin(a)*rr,3,0,Math.PI*2);x.stroke()}ring(r*(1-t)+5)}
   if(e.type==='repulse'){x.strokeStyle='#8ee8ec';ring(r*(.3+t));for(let i=0;i<16;i++){const a=i*Math.PI/8;segment(Math.cos(a)*r*.5,Math.sin(a)*r*.5,Math.cos(a)*r,Math.sin(a)*r)}}
   if(e.type==='drain'){x.rotate(e.angle||0);x.strokeStyle='#ff7aa8';x.shadowColor='#ff7aa8';x.lineWidth=7*(1-t)+2;ring(r,-1.4,1.4);x.strokeStyle='#9cf3d0';x.lineWidth=2;for(let i=0;i<5;i++){const a=-1+i*.5,rr=r*(1-t);segment(Math.cos(a)*rr,Math.sin(a)*rr,Math.cos(a)*(rr+10),Math.sin(a)*(rr+10))}}
- }else if(e.type==='guard'){
-  x.rotate(e.angle||0);x.fillStyle='#64d7ff28';x.beginPath();x.moveTo(-8,-r);x.quadraticCurveTo(27,0,-8,r);x.lineTo(-16,r*.8);x.quadraticCurveTo(8,0,-16,-r*.8);x.closePath();x.fill();x.lineWidth=5;x.stroke();x.strokeStyle='#edffff';x.lineWidth=1.6;segment(-7,-r*.88,-7,r*.88);
+ }else if(['artsSlashParry','artsMagicParry','artsGuardBreak'].includes(e.type)){
+   const crash=e.type==='artsGuardBreak',slash=e.type==='artsSlashParry';
+   x.strokeStyle=crash?'#ffa6aa':slash?'#ffe0a0':'#94eaff';x.shadowColor=x.strokeStyle;
+   x.lineWidth=5*(1-t)+1;ring((12+r*.8)*t+6);burst(crash?18:12,(r*.35+20)*t);
+   if(crash){for(let i=0;i<9;i++){const a=i*Math.PI*2/9;x.save();x.rotate(a);x.strokeRect(15+t*r,-4,8,7);x.restore()}}
+  }else if(e.type==='guard'){
+   x.rotate(e.angle||0);x.fillStyle='#64d7ff28';x.beginPath();x.moveTo(-8,-r);x.quadraticCurveTo(27,0,-8,r);x.lineTo(-16,r*.8);x.quadraticCurveTo(8,0,-16,-r*.8);x.closePath();x.fill();x.lineWidth=5;x.stroke();x.strokeStyle='#edffff';x.lineWidth=1.6;segment(-7,-r*.88,-7,r*.88);
   for(let i=-2;i<=2;i++){x.save();x.translate(0,i*r*.32);polygon(6,Math.min(12,r*.13));x.stroke();x.restore()}
- }else if(['slash','inkcut','cross'].includes(e.type)){
-  x.rotate(e.angle||0);const sweep=(a,b)=>{x.fillStyle=e.type==='inkcut'?'#8957c177':'#ffd1aa88';x.beginPath();x.arc(0,0,r,a,b);x.arc(-r*.13,0,r*.78,b,a,true);x.closePath();x.fill();x.strokeStyle='#fff8ef';x.lineWidth=2;ring(r,a,b)};
+ }else if(e.type==='slash'&&e.path?.length){
+   x.globalAlpha=fade;x.lineCap='round';x.lineJoin='round';
+   x.beginPath();e.path.forEach((p,i)=>i?x.lineTo(p.x-e.x,p.y-e.y):x.moveTo(p.x-e.x,p.y-e.y));
+   x.strokeStyle='#ffbd81';x.lineWidth=9*(1-t)+2;x.shadowColor='#ff9c5f';x.shadowBlur=17;x.stroke();
+   x.strokeStyle='#fff9e9';x.lineWidth=2;x.shadowBlur=3;x.stroke();
+  }else if(['slash','inkcut','cross'].includes(e.type)){
+   x.rotate(e.angle||0);const sweep=(a,b)=>{x.fillStyle=e.type==='inkcut'?'#8957c177':'#ffd1aa88';x.beginPath();x.arc(0,0,r,a,b);x.arc(-r*.13,0,r*.78,b,a,true);x.closePath();x.fill();x.strokeStyle='#fff8ef';x.lineWidth=2;ring(r,a,b)};
   if(e.type==='cross'){for(const sign of [-1,1]){x.save();x.rotate(sign*Math.PI/4);x.strokeStyle='#ffb295';x.lineWidth=11*(1-t)+2;segment(-r,0,r,0);x.strokeStyle='#fff8e9';x.lineWidth=2;segment(-r,0,r,0);x.restore()}}
   else sweep(-1.65+t*.5,1.6+t*.5);
   burst(9,r*(.65+.3*t));
