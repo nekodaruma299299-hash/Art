@@ -7528,7 +7528,7 @@ window.ArtArts=(()=>{
  const drawnDiagonal=Math.hypot(Math.max(0,shape.w||0),Math.max(0,shape.h||0));
  const areaProgress=R.clamp((drawnDiagonal-35)/265,0,1);
  e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28)*sizeArea:
-     shape.type==='star'?95+100*areaProgress:65+60*areaProgress;e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
+     shape.type==='star'?95+190*areaProgress:65+130*areaProgress;e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
  if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20*artsSingleFactor(shape));showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;q.reactorGrowInCast=0;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
