@@ -4901,10 +4901,10 @@ window.ArtsRules=(()=>{
   beast_boost:{name:'ビーストブースト',class:'kemono',fixedCost:26,cooldown:35000,effect:'12秒間、自身の攻撃力+20・素早さ+30',gesture:'3つの山をつないだ王冠の輪郭を一筆'},
   force_heal:{name:'フォースヒール',class:'kemono',fixedCost:36,cooldown:30000,effect:'8秒の範囲回復。自分以外の味方とペットに2秒で40HP',gesture:'一筆の左右対称なハート形を描き、中心まで折り返す'},
   fur_coat:{name:'ファーコート',class:'kemono',fixedCost:34,cooldown:35000,effect:'範囲内の自分と味方とペットに装甲30を15秒付与',gesture:'4つ以上の半円状のもこもこを一筆で連ねる'},
-  summon_bat:{name:'サモンバット',class:'vampire',fixedCost:24,cooldown:14000,effect:'HP50の吸血コウモリを時間制限なしで召喚。命中すると自身を回復',gesture:'左右の三角を中央の交差でつないだ⋈を一筆'},
+  summon_bat:{name:'サモンバット',class:'vampire',fixedCost:24,cooldown:14000,effect:'HP30の吸血コウモリを時間制限なしで召喚。命中すると自身を回復',gesture:'左右の三角を中央の交差でつないだ⋈を一筆'},
   blood_seeker:{name:'ブラッドスウォーム',class:'vampire',fixedCost:35,cooldown:8000,effect:'深紅のコウモリ3匹を同時に放つ。1匹につき最大10回、1回約1ダメージの連続吸血攻撃（全命中時、合計約30ダメージ）。緩い追尾なので回避可能',gesture:'2つの山と内側の谷を持つ左右対称の羽根型を一筆'},
   blood_slash:{name:'クリムゾンリーパー',class:'vampire',fixedCost:0,cooldown:12500,effect:'HP25を支払い高威力の赤い斬撃。敵にランダムな弱体化を与える',gesture:'大きな鎌の外側から内側へ戻る一筆'},
-  blood_ritual:{name:'サングインサークル',class:'vampire',fixedCost:45,cooldown:22500,effect:'10秒間、範囲内の敵から毎秒最大24インクを奪い、奪取量の25%を自身の最大HPへ（1回60/1試合150まで）',gesture:'円とその内側の三角の角をつなげた魔法陣を一筆'}
+  blood_ritual:{name:'サングインサークル',class:'vampire',fixedCost:45,cooldown:22500,effect:'10秒間、範囲内の敵から毎秒最大24インクを奪い、奪取量の100%だけ自身の現在HPを回復（最大HPは増加しない）',gesture:'円とその内側の三角の角をつなげた魔法陣を一筆'}
  });
  for(const m of Object.values(advancedMoves)){m.rate=0;m.text=m.effect+'。'+m.gesture;}
  Object.assign(moves,advancedMoves);
@@ -7444,7 +7444,7 @@ window.ArtArts=(()=>{
  }
  function creatureDamageTarget(src,target,damage,now,meta={}){return target.type==='summonBody'?petHurt(target,damage,now,{owner:src.id,...meta}):hurt(target,damage,now,{owner:src.id,x:src.x,y:src.y,...meta},!!meta.pierce)}
  function createCreature(owner,kind,at,now,override={}){
-  const conf={dog:[50,3,1.2,26],cat:[50,2,.55,19],carbuncle:[50,0,3,20],bat:[50,5,.9,18]}[kind];
+  const conf={dog:[50,3,1.2,26],cat:[50,2,.55,19],carbuncle:[50,0,3,20],bat:[30,5,.9,18]}[kind];
   if(!conf)return null;
   // Kemono summons now allow up to three pets; replace the oldest only when the cap is exceeded.
   const own=livePets(now).filter(e=>e.owner===owner.id&&(['dog','cat'].includes(kind)?e.petKind===kind:true)).sort((x,y)=>x.start-y.start);
@@ -7552,8 +7552,10 @@ window.ArtArts=(()=>{
       const ink=Math.min(24,Math.max(0,q.ink||0));if(ink<=0)continue;q.ink-=ink;inkGained+=ink;
       host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:q.x,y:q.y,tx:owner.x,ty:owner.y,r:9,start:now,end:now+550});
      }
-     const hpAdd=Math.min(inkGained*.25,60-e.gained,150-(owner.bloodBonus||0));
-     if(hpAdd>0){e.gained+=hpAdd;owner.bloodBonus=(owner.bloodBonus||0)+hpAdd;owner.maxHp=(owner.maxHp||100)+hpAdd;owner.hp=Math.min(owner.maxHp,owner.hp+hpAdd);showArtsNumber(owner,'heal',hpAdd,now)}
+     const hpBefore=owner.hp;
+      owner.hp=Math.min(owner.maxHp||100,owner.hp+inkGained);
+      const hpHealed=Math.max(0,owner.hp-hpBefore);
+      if(hpHealed>0)showArtsNumber(owner,'heal',hpHealed,now)
     }
    }
   }
