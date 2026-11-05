@@ -10101,10 +10101,33 @@ window.ArtShadow=(()=>{
   if(h.crates.filter(c=>c.hp>0).length<3&&h.crates.length<3)shadowSpawnCrate(now)
   const result=ShadowRules.result(host,now);if(result){host.result=result;host.phase='finished';h.phase='ended';host.deadline=null;host.effects=[];host.shots=[];host.inputs={};shadowSend(true)}
  }
+ function shadowAvailableGestures(p){
+  // Special weapon strokes are not Arts shop skills. Derive permission from ON
+  // inventory so the pistol/knife still works after the owned-skill filter.
+  const owned=[...(Array.isArray(p?.skills)?p.skills:[])];
+  for(const item of p?.inventory||[]){
+   if(!item.on||item.charges===0)continue;
+   const sku=item.sku;
+   if(['ink_pistol','judgment_gun','air_gun'].includes(sku)&&p.alignment==='artist')owned.push('magic');
+   if(['killer_knife','toy_knife'].includes(sku)&&p.alignment==='killer')owned.push('slash');
+  }
+  return [...new Set(owned.filter(Boolean))];
+ }
  function shadowRecognize(paths,skills){
   // Dedicated Shadow gesture reader. ArtsRules.recognize() used to veto simple
   // gun strokes in the previous version (especially straight strokes).
-  const ownedSkills=Array.isArray(skills)?skills.filter(Boolean):[];const arts=ownedSkills.length?R.recognize(paths,ownedSkills):null;if(arts&&ownedSkills.includes(arts.type))return arts;
+  const ownedSkills=Array.isArray(skills)?skills.filter(Boolean):[];
+   // Priority for weapon lines: Arts shape-matching must never steal a straight
+   // pistol stroke just because another ON item has a rough template match.
+   if(ownedSkills.includes('magic')&&paths?.length===1&&paths[0]?.length>=2){
+    const path=paths[0],first=path[0],last=path.at(-1);
+    const chord=Math.hypot(last.x-first.x,last.y-first.y),len=R.length(paths);
+    if(Number.isFinite(len)&&len>=14&&len<=5800&&chord>=13&&chord/len>=.70){
+     const cx=path.reduce((n,q)=>n+q.x,0)/path.length,cy=path.reduce((n,q)=>n+q.y,0)/path.length;
+     return {type:'magic',strokes:paths,x:cx,y:cy,length:len,radius:len/Math.PI,angle:Math.atan2(last.y-first.y,last.x-first.x)};
+    }
+   }
+   const arts=ownedSkills.length?R.recognize(paths,ownedSkills):null;if(arts&&ownedSkills.includes(arts.type))return arts;
   // Forgiving geometric fallback for ON, owned circle / square / star items only.
   // This supplements ArtsRules without weakening the item ownership/ON/charge checks in shadowCast.
   if(Array.isArray(paths)&&paths.length===1&&Array.isArray(paths[0])&&paths[0].length>=12&&ownedSkills.length){
@@ -10621,7 +10644,7 @@ window.ArtShadow=(()=>{
  if(m.type==='gameShadowReady'&&['create','collect'].includes(host.phase)&&!host.ready[id]){acceptArt(id,m.image,m.drawingPaths,m.artFacing);return true}
  if(host.phase!=='battle'||migrationOut||host.shadow?.meeting)return true;const f=host.fighters.find(p=>p.id===id);if(!f||!ShadowRules.up(f)||f.action)return true;if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameShadowCast'){const reply={type:'gameShadowFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameShadowInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now()};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
- if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length>=1&&m.strokes.length<=16;const shape=valid?shadowRecognize(m.strokes,f.skills||[f.skill]):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':shape.type==='slash'?'ナイフで攻撃':(moves[shape.type]?.name||shape.type)+'を発動')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
+ if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length>=1&&m.strokes.length<=16;const shape=valid?shadowRecognize(m.strokes,shadowAvailableGestures(f)):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':shape.type==='slash'?'ナイフで攻撃':(moves[shape.type]?.name||shape.type)+'を発動')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
  function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameShadowFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
 
  // ARTLATER BOT: roles are fixed by the host, movement uses the same collision map.
@@ -11205,21 +11228,34 @@ window.ArtShadow=(()=>{
  window.ArtShadowChatOpen=()=>{if(!enabled()||view?.phase!=='battle'||!view?.shadow?.me)return false;stopInput();if(view.shadow.meeting){$('#shadowMeetingInput')?.focus({preventScroll:true});return true}shadowHUD();shadowPanel='chat';shadowPanelKey='';shadowRenderPanel();$('#shadowChatInput')?.focus({preventScroll:true});return true};
  window.ArtShadowChatSend=text=>{if(!enabled()||view?.phase!=='battle')return false;shadowRequest('chat',{text});return true};
  // User-supplied footsteps. One loop for the local fighter, not one voice per state packet.
- let shadowStepAudio=null,shadowStepPlaying=false,shadowLastMovingAt=0;
- function shadowStepStop(){if(!shadowStepAudio)return;shadowStepAudio.pause();shadowStepPlaying=false;try{shadowStepAudio.currentTime=0}catch{}}
- function shadowStepUpdate(){
-  const me=view?.fighters?.find(p=>p.id===localId),sfx=window.ArtSound?.getSettings?.()||{muted:false,volume:.45};
-  // Movement is received in discrete network snapshots; briefly missing a moving flag
-  // must not cut and restart the entire sample every packet. True stops still quiet down.
-  const now=performance.now();
-  const allowed=!!(view?.phase==='battle'&&!view?.shadow?.meeting&&me?.active&&me.hp>0&&me.state==='alive'&&!document.hidden&&!sfx.muted&&sfx.volume>0);
-  if(allowed&&me?.moving)shadowLastMovingAt=now;
-  const active=allowed&&(!!me?.moving||(shadowStepPlaying&&now-shadowLastMovingAt<180));
-  if(!active){if(shadowStepPlaying)shadowStepStop();return}
-  if(!shadowStepAudio){const src=document.getElementById('shadowFootstepsWav')?.textContent?.trim();if(!src)return;shadowStepAudio=new Audio('data:audio/wav;base64,'+src);shadowStepAudio.loop=true;shadowStepAudio.preload='auto';shadowStepAudio.setAttribute('playsinline','');}
-  shadowStepAudio.volume=Math.min(1,Math.max(0,sfx.volume*.5));
-  if(!shadowStepPlaying){shadowStepPlaying=true;const promise=shadowStepAudio.play();promise?.catch?.(()=>{shadowStepPlaying=false});}
- }
+  let shadowStepAudio=null,shadowStepPlaying=false,shadowLastMovingAt=0;
+  let shadowStepFadeTimer=null,shadowStepFadeStart=0;
+  const shadowStepTargetVolume=()=>Math.min(1,Math.max(0,(window.ArtSound?.getSettings?.().volume??.45)*.5));
+  function shadowStepClearFade(){if(shadowStepFadeTimer!==null){clearInterval(shadowStepFadeTimer);shadowStepFadeTimer=null}}
+  function shadowStepStop(immediate=false){
+   if(!shadowStepAudio)return;
+   if(immediate){shadowStepClearFade();shadowStepAudio.pause();shadowStepPlaying=false;try{shadowStepAudio.currentTime=0}catch{}return}
+   if(!shadowStepPlaying||shadowStepFadeTimer!==null)return;
+   // Let the last impact finish rather than abruptly muting the sample.
+   shadowStepFadeStart=performance.now();const startVolume=shadowStepAudio.volume;
+   shadowStepFadeTimer=setInterval(()=>{
+    const t=Math.min(1,(performance.now()-shadowStepFadeStart)/210);
+    shadowStepAudio.volume=startVolume*(1-t)*(1-t);
+    if(t>=1)shadowStepStop(true);
+   },20);
+  }
+  function shadowStepUpdate(){
+   const me=view?.fighters?.find(p=>p.id===localId),sfx=window.ArtSound?.getSettings?.()||{muted:false,volume:.45};
+   const now=performance.now();
+   const allowed=!!(view?.phase==='battle'&&!view?.shadow?.meeting&&me?.active&&me.hp>0&&me.state==='alive'&&!document.hidden&&!sfx.muted&&sfx.volume>0);
+   if(allowed&&me?.moving)shadowLastMovingAt=now;
+   const active=allowed&&(!!me?.moving||(shadowStepPlaying&&now-shadowLastMovingAt<180));
+   if(!active){if(shadowStepPlaying)shadowStepStop(!allowed);return}
+   shadowStepClearFade();
+   if(!shadowStepAudio){const src=document.getElementById('shadowFootstepsWav')?.textContent?.trim();if(!src)return;shadowStepAudio=new Audio('data:audio/wav;base64,'+src);shadowStepAudio.loop=true;shadowStepAudio.preload='auto';shadowStepAudio.setAttribute('playsinline','');}
+   shadowStepAudio.volume=shadowStepTargetVolume();
+   if(!shadowStepPlaying){shadowStepPlaying=true;const promise=shadowStepAudio.play();promise?.catch?.(()=>{shadowStepPlaying=false});}
+  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden)shadowStepStop()});
  let shadowChatLast='',shadowPickupSoundSeq=0,shadowPickupSoundInitialized=false;
  const shadowTitle='アートレイター';
@@ -11872,7 +11908,7 @@ finishPaint(false)};
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#shadowArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,self()?.skills||[]);hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'現在ONの所持アイテムに対応する図形か、装備した銃・ナイフの形を描いてください。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,shadowAvailableGestures({...self(),inventory:view?.shadow?.me?.inventory||[]}));hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'現在ONの所持アイテムに対応する図形か、装備した銃・ナイフの形を描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
