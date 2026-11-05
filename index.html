@@ -1881,17 +1881,17 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 </style>
 
 <style id="arts-equip-inline-order-20261106">
-/* Four skill cards on screen (two rows); remaining cards scroll within the list. */
-#artsStage.arts-equipping .arts-equip-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:calc((100% - 9px)/2);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scroll-snap-type:y proximity;max-height:none;min-height:0;flex:1;gap:9px;padding:2px 4px 6px}
-#artsStage.arts-equipping .arts-equip-card{scroll-snap-align:start;min-width:0;min-height:0;overflow:hidden;display:flex}
+/* All six skills visible in three columns and two rows without internal scrolling. */
+#artsStage.arts-equipping .arts-equip-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-rows:auto;overflow:hidden;max-height:none;min-height:0;flex:1;gap:9px;padding:2px 4px 6px}
+#artsStage.arts-equipping .arts-equip-card{min-width:0;min-height:0;overflow:hidden;display:flex}
 #artsStage.arts-equipping .arts-equip-pick{height:100%;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:8px;overflow:hidden;justify-content:flex-start;min-height:0}
-#artsStage.arts-equipping .arts-equip-graphic{width:100%;flex:1 1 auto;min-height:65px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#artsStage.arts-equipping .arts-equip-graphic{width:100%;flex:1 1 auto;min-height:42px;display:flex;align-items:center;justify-content:center;pointer-events:none}
 #artsStage.arts-equipping .arts-equip-graphic .arts-guide-graphic{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;gap:2px;padding:0 3px;overflow:hidden}
-#artsStage.arts-equipping .arts-equip-graphic svg{display:block;width:100%;height:100%;max-height:138px;min-height:40px;flex:1 1 auto;object-fit:contain}
+#artsStage.arts-equipping .arts-equip-graphic svg{display:block;width:100%;height:100%;max-height:138px;min-height:28px;flex:1 1 auto;object-fit:contain}
 #artsStage.arts-equipping .arts-equip-graphic .arts-guide-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;font-size:10px;line-height:1.2;flex:none}
 #artsStage.arts-equipping .arts-equip-graphic .arts-guide-tip{display:block;max-width:100%;font-size:10px;line-height:1.2;max-height:2.4em;overflow:hidden;flex:none}
-#artsStage.arts-equipping .arts-equip-copy{width:100%;flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:1px 6px;align-items:baseline;text-align:left}
-#artsStage.arts-equipping .arts-equip-copy b{grid-column:1;font-size:14px}
+#artsStage.arts-equipping .arts-equip-copy{width:100%;flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 6px;align-items:baseline;text-align:left}
+#artsStage.arts-equipping .arts-equip-copy b{grid-column:1;font-size:13px}
 #artsStage.arts-equipping .arts-equip-copy small{grid-column:2;font-size:10px}
 #artsStage.arts-equipping .arts-equip-summary{grid-column:1/-1;-webkit-line-clamp:1;font-size:10px}
 #artsStage.arts-equipping .arts-equip-check{position:absolute;right:5px;top:5px;z-index:1;background:#fff9;border-radius:50%;padding:2px 5px}
