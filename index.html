@@ -7522,7 +7522,13 @@ window.ArtArts=(()=>{
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
  if(shape.type==='inkcut'){e.r=Math.min(shape.radius+20,170);e.power=(10+attack*.25)*power;e.debuff='ink';melee(p,e,now)}
- if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28)*sizeArea:shape.type==='star'?R.clamp((shape.radius*1.8+50)*sizeArea,95,195):R.clamp((shape.radius*1.55+35)*sizeArea,65,125);e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
+ if(['star','nova','ray'].includes(shape.type)){e.x=target.x;e.y=target.y;// Use actual drawn figure dimensions: the old radius*sizeArea expression
+ // reached the area cap for ordinary gestures, making most sizes look identical.
+ // Keep the previously approved min/max attack radii unchanged.
+ const drawnDiagonal=Math.hypot(Math.max(0,shape.w||0),Math.max(0,shape.h||0));
+ const areaProgress=R.clamp((drawnDiagonal-35)/265,0,1);
+ e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28)*sizeArea:
+     shape.type==='star'?95+100*areaProgress:65+60*areaProgress;e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
  if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20*artsSingleFactor(shape));showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;q.reactorGrowInCast=0;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
