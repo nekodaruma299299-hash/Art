@@ -4034,10 +4034,19 @@ historyRow.addEventListener('dblclick',e=>e.preventDefault());
 function initToolSorting(){
  const list=$('#toolButtons'),box=$('.toolbox');
  const buttons=[...list.querySelectorAll('button[data-tool]')];for(const b of buttons){b.dataset.sortId=b.dataset.tool;b.classList.add('sort-item');b.title=(b.dataset.tool==='pen'?'選択中にクリックでペン1→2→3。':'')+'マウスでドラッグ／タッチで長押しして並べ替え・横に取り出す'}
- const groups=[['palette','.palette','カラーパレット'],['settings','.tool-settings','ペン設定'],['history','.undo-row','戻る・進む'],['layers','.layer-controls','レイヤー'],['view','.view-controls','画面操作']];
+ const groups=[['palette','.palette','カラーパレット'],['settings','.tool-settings','ペン設定'],['history','.undo-row','戻る・進む'],['view','.view-controls','画面操作']];
  for(const[id,selector,title]of groups){const el=$(selector);el.dataset.sortId=id;el.classList.add('sort-item');const handle=document.createElement('button');handle.className='sort-handle';handle.type='button';handle.textContent='⠿ '+title;handle.title='長押しで上下に移動 · Alt＋↑↓でも移動';el.prepend(handle);list.append(el)}
- const defaults=['pen','palette','settings','eraser','warp','blur','lasso','fill','pet','history','layers','view'];const stored=load('artopia-tool-order',defaults);const items=new Map([...list.children].map(el=>[el.dataset.sortId,el]));
+ // Frequent actions are at the top. Keep each user's custom layout intact.
+ const defaults=['pen','eraser','history','palette','settings','lasso','fill','blur','warp','pet','view'];
+ const previousDefaults=['pen','palette','settings','eraser','warp','blur','lasso','fill','pet','history','layers','view'];
+ const priorUpdatedDefaults=['history','pen','eraser','palette','settings','lasso','fill','blur','warp','pet','layers','view'];
+ const stored=load('artopia-tool-order',defaults);
+ const items=new Map([...list.children].map(el=>[el.dataset.sortId,el]));
  let ordered=Array.isArray(stored)?[...stored]:[...defaults];
+ // Upgrade only the unchanged old default layout, never a manually rearranged layout.
+ if([previousDefaults,priorUpdatedDefaults].some(base=>ordered.length===base.length&&ordered.every((id,i)=>id===base[i])))ordered=[...defaults];
+ // Layer management lives in the top header, not the sortable toolbar.
+ ordered=ordered.filter(id=>id!=='layers');
  // One-time migration: insert the new tool just below Fill while preserving
  // previously customized tool positions. Subsequent user reorders are kept.
  if(!ordered.includes('pet')){
