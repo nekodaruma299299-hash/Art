@@ -7350,22 +7350,29 @@ window.ArtArts=(()=>{
    e.path=path.length>=2?path:[{x:p.x,y:p.y},{x:target.x,y:target.y}];
    e.x=target.x;e.y=target.y;e.angle=aim;
    e.r=R.clamp(6+(shape.length||20)*.014,6,22);
-   e.power=R.clamp(8+attack*.32,7,40)*R.clamp(Math.sqrt(Math.max(12,shape.length||12)/220),.30,2.3);
+   // Basic Art Arts: damage is determined by the ink actually paid, not raw stroke length.
+   const inkPower=R.clamp(Math.sqrt(cost/Math.max(1,R.cost({type:'slash',length:220}))),.30,2.5);
+   e.power=R.clamp(8+attack*.32,7,40)*inkPower;
    melee(p,e,now);
   }
  if(shape.type==='magic'){
    const practice=!!host.players.find(q=>q.id===id)?.bot;
-   const strength=R.clamp((shape.length||20)/420,0,1);
+   // The already-deducted ink cost controls damage, speed and knockback.
+   // Flight range is deliberately independent of ink spent / stroke length.
+   const inkPower=R.clamp(Math.sqrt(cost/Math.max(1,R.cost({type:'magic',length:220}))),.30,2.5);
+   const strength=R.clamp((cost-R.cost({type:'magic',length:20}))/
+    Math.max(1,R.cost({type:'magic',length:420})-R.cost({type:'magic',length:20})),0,1);
    const range=R.placementRange('magic',p.stats)*artsRangeFactor(p);
-   const speed=(practice?200:145+430*strength);
-   // Short quick strokes have slight inaccuracy, long strokes are accurate.
+   const speed=practice?200:145+430*strength;
+   // Cheap rapid-fire spells have slight inaccuracy, expensive spells fly straighter.
    const spread=practice?0:(1-strength)*.065;
    const direction=aim+(Math.random()*2-1)*spread;
+   const flight=Math.max(0,range-Math.hypot(target.x-p.x,target.y-p.y));
    host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,
     vx:Math.cos(direction)*speed,vy:Math.sin(direction)*speed,
-    power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*(.36+1.55*strength)*(practice?.65:1),
+    power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*inkPower*(practice?.65:1),
     radius:practice?10:13,knockback:practice?16:12+115*strength,
-    left:Math.max(0,range-Math.hypot(target.x-p.x,target.y-p.y)),end:now+Math.max(0,range-Math.hypot(target.x-p.x,target.y-p.y))/speed*1000+100,hit:[],pierce:true});
+    left:flight,end:now+flight/speed*1000+100,hit:[],pierce:true});
   }
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
