@@ -7466,19 +7466,19 @@ window.ArtArts=(()=>{
    const inkPower=R.clamp(Math.sqrt(cost/Math.max(1,R.cost({type:'magic',length:220}))),.30,2.5);
    const strength=R.clamp((cost-R.cost({type:'magic',length:20}))/
     Math.max(1,R.cost({type:'magic',length:420})-R.cost({type:'magic',length:20})),0,1);
-   const range=R.placementRange('magic',p.stats)*artsRangeFactor(p);
+   const range=R.placementRange(null,p.stats); // Same radius as the on-screen drawing circle
    const speed=practice?200:145+430*strength;
    // Cheap rapid-fire spells have slight inaccuracy, expensive spells fly straighter.
    const spread=practice?0:(1-strength)*.065;
    const direction=aim+(Math.random()*2-1)*spread;
-   // Flight starts at the drawn endpoint; do not deduct the distance from the caster.
-   // Both short and long strokes now receive the same full projectile travel range.
+   // Spawn at the caster: a drawn endpoint may lie inside or behind a wall.
+   // Stroke direction and paid ink still determine aim and power; length does not limit range.
    const flight=range;
-   host.shots.push({id:++host.seq,owner:id,x:target.x,y:target.y,
+   host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,artsBasicMagic:true,
     vx:Math.cos(direction)*speed,vy:Math.sin(direction)*speed,
     power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*inkPower*(practice?.65:1)*1.5,
     radius:practice?10:13,knockback:practice?16:12+115*strength,
-    left:flight,end:now+flight/speed*1000+100,hit:[],pierce:true});
+    left:flight,end:now+30000,hit:[],pierce:true});
   }
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
  if(shape.type==='cross'){e.r=Math.min(shape.radius+30,140);e.power=(6+attack*.3)*power;melee(p,e,now);e.hit=now+170;e.end=now+450}
