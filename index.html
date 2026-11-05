@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.5.01 / 研究所設備・蘇生・結果復帰修正
+あーとぴあ 1.5.03 / ショップ全使用道具の図形対応
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -9519,26 +9519,26 @@ const ShadowRules=(()=>{
  const C=SHADOW_DATA.config,J=SHADOW_DATA.jobs.jobs,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  // Shadow items are independent of Art Arts' skills: no legacy combat items.
  const goods=[
-  {id:'judgment_gun',name:'ジャッジメントガン',price_am:32,charges:-1,faction:'artist',rarity:'rare',on_effect:'直線を描いて発砲。弾薬が必要。キラーに100ダメージ、誤射すると自分に30ダメージ。',category:'weapon'},
-  {id:'bullet_pack',name:'ジャッジメント弾（1発）',price_am:7,charges:1,faction:'artist',rarity:'common',on_effect:'ジャッジメントガンのレーザーを1発補充。購入すると即時装填される。',category:'consumable'},
+  {id:'judgment_gun',name:'ジャッジメントガン',price_am:32,charges:-1,faction:'both',rarity:'rare',on_effect:'直線を描いて発砲。弾薬が必要。キラーに100ダメージ、誤射すると自分に30ダメージ。',category:'weapon'},
+  {id:'bullet_pack',name:'ジャッジメント弾（1発）',price_am:7,charges:1,faction:'both',rarity:'common',on_effect:'ジャッジメントガンのレーザーを1発補充。購入すると即時装填される。',category:'consumable'},
   {id:'killer_knife',name:'キラーナイフ',price_am:32,charges:3,faction:'killer',rarity:'rare',on_effect:'半円で50ダメージ。命中3回で破損する強力な近接武器。',category:'weapon'},
   {id:'toy_knife',name:'おもちゃのナイフ',price_am:0,charges:-1,faction:'killer',rarity:'base',on_effect:'キラーの初期装備。半円で10ダメージ。',category:'weapon'},
-  {id:'ink_pistol',name:'ピストル',price_am:16,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク10で35ダメージ。弾薬不要。ジャッジメント弾があればレーザーが優先されます。',category:'weapon'},
-  {id:'air_gun',name:'エアガン',price_am:8,charges:-1,faction:'artist',rarity:'common',on_effect:'直線を描いてインク5で10ダメージ。弾薬不要。',category:'weapon'},
-  {id:'trace_scanner',name:'トレーススキャナー',price_am:18,charges:2,faction:'both',rarity:'common',on_effect:'近くに最近いたプレイヤーの足跡・気配を調査（陣営は表示しません）。',category:'utility'},
-  {id:'smoke_bomb',name:'スモークボム',price_am:16,charges:1,faction:'both',rarity:'common',on_effect:'自分の周りに6秒間の煙幕を展開。',category:'utility'},
-  {id:'safety_shield',name:'セーフティシールド',price_am:20,charges:1,faction:'both',rarity:'rare',on_effect:'3秒間、受けるダメージを半減。',category:'utility'},
-  {id:'task_booster',name:'タスクブースター',price_am:15,charges:1,faction:'both',rarity:'common',on_effect:'次のタスクの制限時間を1.5倍に延長。',category:'utility'},
-  {id:'disguise',name:'ディスガイズ',price_am:22,charges:1,faction:'both',rarity:'rare',on_effect:'8秒間、偽装効果を付与。攻撃や特殊行動で解除。',category:'utility'},
-  {id:'emergency_medkit',name:'緊急回復薬',price_am:20,charges:1,faction:'both',rarity:'common',on_effect:'HPを40回復する。',category:'utility'},
-  {id:'evidence_kit',name:'証拠検査キット',price_am:16,charges:2,faction:'both',rarity:'common',on_effect:'近くの箱に細工の痕跡がないか調べる。',category:'utility'},
-  {id:'trap_kit',name:'トラップキット',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に罠を仕掛ける。箱を開けた相手へ25ダメージ。',category:'utility'},
-  {id:'poison_vial',name:'インク汚染毒',price_am:19,charges:1,faction:'killer',rarity:'rare',on_effect:'箱の回復物資、インクポンプ、リカバリーポッドを汚染する。',category:'utility'},
-  {id:'phantom_cloak',name:'ファントムクローク',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'6秒間、透明になって移動。攻撃すると解除。',category:'utility'},
-  {id:'blink_beacon',name:'ブリンクビーコン',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'現在の移動方向へ最大350px瞬間移動。ワープ地点には残光が残る。',category:'utility'},
-  {id:'forgery_kit',name:'フェイクエビデンス',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に偽の痕跡を残す。',category:'utility'},
-  {id:'fake_alarm',name:'フェイクアラーム',price_am:15,charges:1,faction:'killer',rarity:'common',on_effect:'周囲に偽の警報を発生させる。',category:'utility'},
-  {id:'jammer',name:'ジャマー',price_am:22,charges:1,faction:'killer',rarity:'rare',on_effect:'8秒間、周囲の調査機器の使用を妨害する。',category:'utility'}
+  {id:'ink_pistol',name:'ピストル',price_am:16,charges:-1,faction:'both',rarity:'common',on_effect:'直線を描いてインク10で35ダメージ。弾薬不要。ジャッジメント弾があればレーザーが優先されます。',category:'weapon'},
+  {id:'air_gun',name:'エアガン',price_am:8,charges:-1,faction:'both',rarity:'common',on_effect:'直線を描いてインク5で10ダメージ。弾薬不要。',category:'weapon'},
+  {id:'trace_scanner',skill:'confusion',gestureLabel:'渦巻き',name:'トレーススキャナー',price_am:18,charges:2,faction:'both',rarity:'common',on_effect:'近くに最近いたプレイヤーの足跡・気配を調査（陣営は表示しません）。',category:'utility'},
+  {id:'smoke_bomb',skill:'trick_mine',name:'スモークボム',price_am:16,charges:1,faction:'both',rarity:'common',on_effect:'自分の周りに6秒間の煙幕を展開。',category:'utility'},
+  {id:'safety_shield',skill:'build',name:'セーフティシールド',price_am:20,charges:1,faction:'both',rarity:'rare',on_effect:'3秒間、受けるダメージを半減。',category:'utility'},
+  {id:'task_booster',skill:'star',name:'タスクブースター',price_am:15,charges:1,faction:'both',rarity:'common',on_effect:'次のタスクの制限時間を1.5倍に延長。',category:'utility'},
+  {id:'disguise',skill:'decoy',gestureLabel:'∞',name:'ディスガイズ',price_am:22,charges:1,faction:'both',rarity:'rare',on_effect:'8秒間、偽装効果を付与。攻撃や特殊行動で解除。',category:'utility'},
+  {id:'emergency_medkit',skill:'heal',gestureLabel:'＋',name:'緊急回復薬',price_am:20,charges:1,faction:'both',rarity:'common',on_effect:'HPを40回復する。',category:'utility'},
+  {id:'evidence_kit',skill:'reflect',gestureLabel:'H',name:'証拠検査キット',price_am:16,charges:2,faction:'both',rarity:'common',on_effect:'近くの箱に細工の痕跡がないか調べる。',category:'utility'},
+  {id:'trap_kit',skill:'cross',gestureLabel:'クロスラッシュの一筆の×',name:'トラップキット',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に罠を仕掛ける。箱を開けた相手へ25ダメージ。',category:'utility'},
+  {id:'poison_vial',skill:'nova',gestureLabel:'しずく',name:'インク汚染毒',price_am:19,charges:1,faction:'killer',rarity:'rare',on_effect:'箱の回復物資、インクポンプ、リカバリーポッドを汚染する。',category:'utility'},
+  {id:'phantom_cloak',skill:'mirage',gestureLabel:'S',name:'ファントムクローク',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'6秒間、透明になって移動。攻撃すると解除。',category:'utility'},
+  {id:'blink_beacon',skill:'thrust',gestureLabel:'三角形',name:'ブリンクビーコン',price_am:20,charges:1,faction:'killer',rarity:'rare',on_effect:'現在の移動方向へ最大350px瞬間移動。ワープ地点には残光が残る。',category:'utility'},
+  {id:'forgery_kit',skill:'feint',gestureLabel:'Z',name:'フェイクエビデンス',price_am:18,charges:1,faction:'killer',rarity:'rare',on_effect:'近くの箱に偽の痕跡を残す。',category:'utility'},
+  {id:'fake_alarm',skill:'burst',gestureLabel:'稲妻',name:'フェイクアラーム',price_am:15,charges:1,faction:'killer',rarity:'common',on_effect:'周囲に偽の警報を発生させる。',category:'utility'},
+  {id:'jammer',skill:'newSmoke',gestureLabel:'W',name:'ジャマー',price_am:22,charges:1,faction:'killer',rarity:'rare',on_effect:'8秒間、周囲の調査機器の使用を妨害する。',category:'utility'}
  ];
  const catalog=Object.fromEntries(goods.map(s=>[s.id,s]));
  function shuffled(a,random=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -9559,7 +9559,7 @@ const ShadowRules=(()=>{
  const living=p=>p&&p.active&&!['dead','escaped','forfeit'].includes(p.state),up=p=>living(p)&&p.state==='alive';
  function init(h,now,random=Math.random){h.shadow={version:1,phase:'active',started:now,gateAt:now+h.settings.gateMin*60000,graceAt:0,shortened:0,initialArtists:h.players.length-(C.players.killer_counts[h.players.length]||1),sales:{},tasks:[],crates:[],drops:[],logs:[],nextCrate:now+45000,meeting:null,meetingCount:0,meetingNotes:[],meetingChat:[],meetingUsedBodies:[]};
   const killers=new Set(h.shadowRoles?Object.keys(h.shadowRoles).filter(id=>h.shadowRoles[id]==='killer'):shuffled(h.players.map(p=>p.id),random).slice(0,C.players.killer_counts[h.players.length]||1));
-  h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.ammo=0;p.knifeReady=0;p.shieldUntil=0;p.jammedUntil=0;p.taskBoost=false;p.taskProgress={};p.taskSuccessSeq=0;p.downHP=100;p.downUntil=0;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.reviveCount=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.alignment==='killer'){p.inventory.push({id:'initial-knife-'+p.id,sku:'toy_knife',charges:-1,on:true})}else if(p.job==='police'){p.inventory.push({id:'initial-pistol-'+p.id,sku:'ink_pistol',charges:-1,on:true})}});
+  h.fighters.forEach((p,i)=>{p.job=h.art[p.id]?.shadowJob||'police';p.alignment=killers.has(p.id)?'killer':'artist';p.state='alive';p.hp=p.maxHp=p.alignment==='killer'?120:100;p.stats=[20,20,20,20,20];p.baseStats=[...p.stats];p.ink=p.maxInk=p.baseMaxInk=100;p.am=0;p.slots=p.job==='courier'?5:3;p.inventory=[];p.ammo=0;p.knifeReady=0;p.shieldUntil=0;p.jammedUntil=0;p.taskBoost=false;p.taskProgress={};p.taskSuccessSeq=0;p.downHP=100;p.downUntil=0;p.downUsed=false;p.downBlocked=[];p.downTreats=0;p.reviveCount=0;p.skills=[];p.skill='';p.action=null;p.lastSeq=0;p.x=[135,585,135,585,350,350,190,525][i%8];p.y=[275,275,870,870,330,815,555,575][i%8];if(p.alignment==='killer'){p.inventory.push({id:'initial-knife-'+p.id,sku:'toy_knife',charges:-1,on:true})}if(p.job==='police'){p.inventory.push({id:'initial-pistol-'+p.id,sku:'ink_pistol',charges:-1,on:true})}});
   const taskIds=['WIR_01','OUT_01','DOT_01','MEM_01','PAIR_01','REPAIR_01','FILL_01','MIX_01','MAZE_01'];const points=[[300,295],[1300,270],[275,835],[850,715],[1620,930],[345,1460],[1050,735],[960,2100],[1600,2400]];h.shadow.tasks=taskIds.map((kind,i)=>({id:'task-'+i,kind,x:points[i][0],y:points[i][1],rev:0,readyAt:0}));
  }
  function buy(h,p,sku){if(!up(p))return '行動できません';if(sku==='slot'){if(p.slots>=5)return '最大5枠です';const cost=p.slots===3?20:35;if(p.am<cost)return 'アートマター不足';p.am-=cost;p.slots++;return ''}
@@ -9861,12 +9861,57 @@ window.ArtShadow=(()=>{
     host.shadow.drops.push({id:'drop-'+(++host.seq),sku:item.sku,amount:item.amount,x:R.clamp(c.x+Math.cos(a)*radius,32,R.W-32),y:R.clamp(c.y+Math.sin(a)*radius,32,R.H-32),charges:ShadowRules.catalog[item.sku]?.charges||1,poison:!!c.poison&&item.sku==='emergency_medkit'})});
   c.loot=[];c.trap=false;c.poison=false;
  }
+ function shadowUseUtility(p,item,now=Date.now()){
+  const h=host.shadow,sku=item?.sku,def=ShadowRules.catalog[sku];
+  const fail=text=>{p.castError=text;p.notice=text;return false};
+  if(!ShadowRules.up(p)||p.action||!item||!p.inventory.includes(item)||!item.on||item.charges===0||!ShadowRules.available(p,def))return fail('この装備は使用できません。');
+  const nearest=(list,r)=>list.filter(q=>R.dist(p,q)<=r).sort((a,b)=>R.dist(p,a)-R.dist(p,b))[0];
+  let notice='',effect=null;
+  switch(sku){
+   case 'task_booster':if(p.taskBoost)return fail('次のタスクはすでに強化されています。');p.taskBoost=true;notice='次のタスクの制限時間が1.5倍になります';effect='shadowTaskBoost';break;
+   case 'safety_shield':p.shieldUntil=now+3000;notice='3秒間、受けるダメージを半減します';effect='guard';break;
+   case 'smoke_bomb':host.effects.push({id:++host.seq,type:'smoke',owner:p.id,x:p.x,y:p.y,r:140,start:now,end:now+6000});notice='6秒間の煙幕を展開しました';break;
+   case 'trace_scanner':if(p.jammedUntil>now)return fail('調査機器が妨害されています');{const n=host.fighters.filter(q=>q.id!==p.id&&ShadowRules.living(q)&&R.dist(q,p)<200).length;notice=n?'近くに'+n+'人分の気配を確認しました（陣営不明）':'近くに足跡や気配はありません';}break;
+   case 'disguise':p.disguiseUntil=now+8000;notice='8秒間の偽装を開始';break;
+   case 'phantom_cloak':p.invisibleUntil=now+6000;notice='6秒間透明になりました';break;
+   case 'emergency_medkit':if(p.hp>=p.maxHp)return fail('HPは満タンです。回復薬は消費しません。');if(item.poison)p.poison={from:now+3000,to:now+11000};else{p.hp=Math.min(p.maxHp,p.hp+40);p.poison=null}notice='回復薬を使用しました';break;
+   case 'blink_beacon':{
+    const input=host.inputs?.[p.id],moving=Math.hypot(input?.x||0,input?.y||0)>.05,dx=moving?input.x:(p.facing||1),dy=moving?input.y:0,len=Math.hypot(dx,dy)||1;let goal=null;
+    for(let d=350;d>=80;d-=15){const x=p.x+dx/len*d,y=p.y+dy/len*d;if(!R.blocked(x,y,host.blocks,R.R+5)){goal={x,y};break}}
+    if(!goal)return fail('安全な転送先がありません');const from={x:p.x,y:p.y};Object.assign(p,goal);host.effects.push({id:++host.seq,type:'shadowCrateRespawn',owner:p.id,...from,start:now,end:now+1600});notice='ワープしました';break;
+   }
+   case 'evidence_kit':case 'forgery_kit':case 'trap_kit':{
+    if(sku==='evidence_kit'&&p.jammedUntil>now)return fail('調査機器が妨害されています');
+    const c=nearest((h.crates||[]).filter(c=>sku!=='trap_kit'||(!c.opened&&!c.trap&&c.hp>0)),90);
+    if(!c)return fail(sku==='trap_kit'?'近くに罠を仕掛けられる未開封の箱がありません':'近くに対象の箱がありません');
+    if(sku==='evidence_kit')notice=c.trap||c.poison||c.stolen||c.forged?'細工または開封の痕跡があります。犯人は特定できません。':'目立った細工の痕跡はありません';
+    else if(sku==='forgery_kit'){if(c.forged)return fail('この箱にはすでに偽の痕跡があります');c.forged=true;notice='偽の痕跡を残しました';}
+    else{p.action={kind:'trap',target:c.id,start:now,end:now+(p.job==='engineer'?2000:4000),x:p.x,y:p.y,hit:p.lastHitSeq,itemId:item.id};p.notice='罠を設置中…（完了時に消費）';p.castError='';p.lastSpecial=now;p.disguiseUntil=0;return true;}
+    break;
+   }
+   case 'poison_vial':{
+    const crates=(h.crates||[]).filter(c=>!c.poison&&c.hp>0&&R.dist(p,c)<=90&&c.loot?.some(i=>['pickup_hp','emergency_medkit'].includes(i.sku)));
+    const facilities=(h.facilities||[]).filter(f=>['ink','med'].includes(f.kind)&&!f.poisoned&&R.dist(p,f)<=155);
+    const target=nearest([...crates,...facilities],155);if(!target)return fail('近くに汚染できる回復物資・インクポンプ・リカバリーポッドがありません');
+    if(crates.includes(target))target.poison=true;else target.poisoned=true;notice='汚染毒を仕込みました';break;
+   }
+   case 'fake_alarm':for(const q of host.fighters)if(ShadowRules.living(q)&&R.dist(q,p)<350)q.notice='近くで異常警報が鳴りました';notice='周囲に偽の警報を発生させました';break;
+   case 'jammer':for(const q of host.fighters)if(q.id!==p.id&&ShadowRules.living(q)&&R.dist(q,p)<250)q.jammedUntil=now+8000;notice='周囲の調査機器を8秒間妨害します';break;
+   default:return fail('この道具は図形で使用できません。');
+  }
+  if(effect)host.effects.push({id:++host.seq,type:effect,owner:p.id,x:p.x,y:p.y,r:48,start:now,end:now+650});
+  p.lastSpecial=now;if(sku!=='disguise')p.disguiseUntil=0;p.castError='';p.notice=notice;
+  ShadowRules.consume(p,item);shadowSyncSkills(p);return true;
+ }
  function shadowCast(id,shape,now=Date.now()){
   const p=host.fighters.find(f=>f.id===id);if(!ShadowRules.up(p)||p.action||!shape)return false;
   const armed=sku=>p.inventory.find(i=>i.sku===sku&&i.on),isShot=shape.type==='magic',isKnife=shape.type==='slash';
-  if(!isShot&&!isKnife){const item=p.inventory.find(i=>i.on&&i.charges!==0&&ShadowRules.catalog[i.sku]?.skill===shape.type);if(!item){p.castError='その図形に対応するONの所持アイテムがありません。';return false;}const cost=R.cost(shape);if(p.ink<cost){p.castError='インク不足です';return false;}p.ink-=cost;const aim={x:p.x+(shape.x||0),y:p.y+(shape.y||0)},radius=Math.max(40,Math.min(160,shape.radius||70));if(['heal','recharge'].includes(shape.type)){p.hp=Math.min(p.maxHp,p.hp+20);p.ink=Math.min(p.maxInk,p.ink+20)}else if(['build','guard','iron','reactor'].includes(shape.type)){p.shieldUntil=now+3000}else{for(const q of host.fighters){if(q.id===p.id||!ShadowRules.up(q)||q.alignment===p.alignment||R.dist(q,aim)>radius)continue;shadowHurt(q,shape.type==='star'?25:14,now,{owner:p.id,type:shape.type},false)}}host.effects.push({id:++host.seq,type:shape.type,owner:p.id,x:aim.x,y:aim.y,r:radius,start:now,end:now+650});if(item)ShadowRules.consume(p,item);shadowSyncSkills(p);return true;}
+  if(!isShot&&!isKnife){
+   const item=p.inventory.find(i=>i.on&&i.charges!==0&&ShadowRules.catalog[i.sku]?.skill===shape.type);
+   if(!item){p.castError='その図形に対応するONの所持アイテムがありません。';return false}
+   return shadowUseUtility(p,item,now);
+  }
   const strongKnife=armed('killer_knife'),toyKnife=armed('toy_knife'),judge=armed('judgment_gun'),pistol=armed('ink_pistol'),airgun=armed('air_gun');
-  if(isShot&&p.alignment!=='artist'){p.castError='銃はアーティスト専用です。';return false}
   if(isKnife&&p.alignment!=='killer'){p.castError='ナイフはキラー専用です。';return false}
   const useJudgment=!!(judge&&p.ammo>0);const usePistol=!!(!useJudgment&&pistol);const useAirgun=!!(!useJudgment&&!usePistol&&airgun);
   const cost=isShot?(useJudgment?12:usePistol?10:5):8;
@@ -10056,6 +10101,7 @@ window.ArtShadow=(()=>{
    if(m.action==='take'||m.action==='steal'){if(m.action==='steal'&&(p.job!=='thief'||p.stealReady>now))return true;if(m.action==='take'&&!c.opened)return true;const item=m.action==='steal'?c.loot[0]:c.loot.find(i=>i.id===m.itemId);if(!item)return true;if(!['pickup_hp','pickup_ink','pickup_rainbow'].includes(item.sku)&&!ShadowRules.catalog[item.sku])return shadowReply(p,'このアイテムは現在使用できません');const poison=c.poison&&['pickup_hp','emergency_medkit'].includes(item.sku);if(item.sku==='pickup_hp'){if(poison)p.poison={from:now+3000,to:now+11000};else p.hp=Math.min(p.maxHp,p.hp+(item.amount||30))}else if(item.sku==='pickup_ink')p.ink=Math.min(p.maxInk,p.ink+(item.amount||40));else if(item.sku==='pickup_rainbow'){p.hp=p.maxHp;p.ink=p.maxInk;}else{if(!ShadowRules.catalog[item.sku]||!ShadowRules.available(p,ShadowRules.catalog[item.sku])||p.inventory.filter(i=>i.sku!=='toy_knife').length>=p.slots||p.inventory.some(i=>i.sku===item.sku))return shadowReply(p,'所持枠が満杯か、取得できない道具です');p.inventory.push({id:'item-'+(++host.seq),sku:item.sku,on:true,charges:ShadowRules.catalog[item.sku].charges,poison})}c.loot=c.loot.filter(i=>i!==item);if(m.action==='steal'){c.opened=false;c.stolen=true;p.stealReady=now+60000}if(!c.loot.length&&c.opened)h.crates=h.crates.filter(q=>q!==c);shadowSyncSkills(p)}
   }
   if(m.action==='use'){const item=p.inventory.find(i=>i.id===m.itemId&&i.on),sku=item?.sku;if(!item)return true;
+   if(ShadowRules.catalog[sku]?.skill){shadowUseUtility(p,item,now);shadowSend();return true;}
    if(sku==='bullet_pack'){p.ammo=Math.min(12,(p.ammo||0)+1);ShadowRules.consume(p,item);p.notice='弾薬を1発補充しました'}
    else if(sku==='safety_shield'){p.shieldUntil=now+3000;ShadowRules.consume(p,item);p.notice='3秒間のシールドを展開'}
    else if(sku==='task_booster'){p.taskBoost=true;ShadowRules.consume(p,item);p.notice='次のタスクの時間が1.5倍になります'}
@@ -10161,12 +10207,12 @@ window.ArtShadow=(()=>{
  function shadowAvailableGestures(p){
   // Special weapon strokes are not Arts shop skills. Derive permission from ON
   // inventory so the pistol/knife still works after the owned-skill filter.
-  const owned=[...(Array.isArray(p?.skills)?p.skills:[])];
+  const owned=[];
   for(const item of p?.inventory||[]){
    if(!item.on||item.charges===0)continue;
-   const sku=item.sku;
-   if(['ink_pistol','judgment_gun','air_gun'].includes(sku)&&p.alignment==='artist')owned.push('magic');
-   if(['killer_knife','toy_knife'].includes(sku)&&p.alignment==='killer')owned.push('slash');
+   const sku=item.sku;const skill=ShadowRules.catalog[sku]?.skill;if(skill)owned.push(skill);
+   if(['ink_pistol','judgment_gun','air_gun'].includes(sku))owned.push('magic');
+   if(['killer_knife','toy_knife'].includes(sku)&&(p.alignment||view?.privateRole)==='killer')owned.push('slash');
   }
   return [...new Set(owned.filter(Boolean))];
  }
@@ -10179,9 +10225,17 @@ window.ArtShadow=(()=>{
    if(ownedSkills.includes('magic')&&paths?.length===1&&paths[0]?.length>=2){
     const path=paths[0],first=path[0],last=path.at(-1);
     const chord=Math.hypot(last.x-first.x,last.y-first.y),len=R.length(paths);
-    if(Number.isFinite(len)&&len>=14&&len<=5800&&chord>=13&&chord/len>=.70){
+    if(Number.isFinite(len)&&len>=14&&len<=5800&&chord>=13&&chord/len>=.94){
      const cx=path.reduce((n,q)=>n+q.x,0)/path.length,cy=path.reduce((n,q)=>n+q.y,0)/path.length;
      return {type:'magic',strokes:paths,x:cx,y:cy,length:len,radius:len/Math.PI,angle:Math.atan2(last.y-first.y,last.x-first.x)};
+    }
+   }
+   // Resolve overlapping Arts grammars by a close template match first.
+   // Validate the single candidate with Arts as well, so arbitrary scribbles do not activate items.
+   if(paths?.length===1&&paths[0]?.length>=3&&paths[0].length<=1200&&paths[0].every(q=>Number.isFinite(q.x)&&Number.isFinite(q.y))){
+    const ranked=ownedSkills.filter(k=>k!=='magic'&&k!=='slash').map(k=>({k,score:R.match(paths,k)})).sort((a,b)=>a.score-b.score);
+    const best=ranked[0];if(best&&best.score<.065&&(!ranked[1]||ranked[1].score-best.score>.012)){
+     const exact=R.recognize(paths,[best.k]);if(exact?.type===best.k)return exact;
     }
    }
    const arts=ownedSkills.length?R.recognize(paths,ownedSkills):null;if(arts&&ownedSkills.includes(arts.type))return arts;
@@ -10701,7 +10755,7 @@ window.ArtShadow=(()=>{
  if(m.type==='gameShadowReady'&&['create','collect'].includes(host.phase)&&!host.ready[id]){acceptArt(id,m.image,m.drawingPaths,m.artFacing);return true}
  if(host.phase!=='battle'||migrationOut||host.shadow?.meeting)return true;const f=host.fighters.find(p=>p.id===id);if(!f||!ShadowRules.up(f)||f.action)return true;if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameShadowCast'){const reply={type:'gameShadowFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameShadowInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now()};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
- if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length>=1&&m.strokes.length<=16;const shape=valid?shadowRecognize(m.strokes,shadowAvailableGestures(f)):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':shape.type==='slash'?'ナイフで攻撃':(moves[shape.type]?.name||shape.type)+'を発動')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
+ if(m.type==='gameShadowCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=Array.isArray(m.strokes)&&m.strokes.length>=1&&m.strokes.length<=16;const shape=valid?shadowRecognize(m.strokes,shadowAvailableGestures(f)):null;const outside=false;/* Failed or unrecognized drawings never consume ink. */f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(shape.type==='magic'?'銃を発射':shape.type==='slash'?'ナイフで攻撃':(Object.values(ShadowRules.catalog).find(g=>g.skill===shape.type)?.name||moves[shape.type]?.name||shape.type)+'を発動')+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameShadowFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
  function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameShadowFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
 
  // ARTLATER BOT: roles are fixed by the host, movement uses the same collision map.
@@ -11126,13 +11180,18 @@ window.ArtShadow=(()=>{
    damageShakes.set(p.id,makeHitShake(damage,now,prior));
   }
  }
+ function shadowCanHear(event){
+  const listener=cameraFighter();if(!listener||!event)return false;
+  const source=Number.isFinite(event.x)&&Number.isFinite(event.y)?event:view?.fighters?.find(p=>p.id===event.owner);
+  return !!source&&R.dist(listener,source)<=360;
+ }
  function receive(m){if(m.type==='gameShadowFeedback'){hint(m.text);return}if(m.type!=='gameShadowState'||!m.state)return;const old=view;view=m.state;shadowStepUpdate();const latestPickup=view.shadow?.me?.pickupEvent||0;if(view.phase==='battle'){if(!shadowPickupSoundInitialized){shadowPickupSoundInitialized=true;shadowPickupSoundSeq=latestPickup}else if(latestPickup>shadowPickupSoundSeq){shadowPickupSoundSeq=latestPickup;const kind=view.shadow?.me?.pickupKind;window.ArtSound?.play(kind==='pickup_hp'?'arts_new_heal':kind==='pickup_ink'?'high':kind==='pickup_rainbow'?'arts_new_cute':'high',3,true)}}else{shadowPickupSoundInitialized=false;shadowPickupSoundSeq=0}if(view.phase==='finished'&&(old?.phase!=='finished'||old?.id!==view.id)&&view.result?.winners?.includes(localId))window.ArtSound?.play('arts_victory_new',7,true);if((view.shadow?.me?.buySignal||0)>(old?.shadow?.me?.buySignal||0))window.ArtSound?.play(view.shadow.me.buySucceeded?'high':'error',2);if((view.shadow?.me?.taskStartedSeq||0)>(old?.shadow?.me?.taskStartedSeq||0))window.ArtSound?.play('tap',3);if((view.shadow?.me?.taskSuccessSeq||0)>(old?.shadow?.me?.taskSuccessSeq||0)){window.ArtSound?.play('shadow_task_success',5,true);hint('タスク成功！ アートマター獲得');}if(view.phase==='lobby'){room.w=view.lobbyW||room.w;room.h=view.lobbyH||room.h}if(old?.id===view.id&&old?.ready?.[localId]&&!view.ready?.[localId]&&view.phase==='create')submitted='';updateDamageShakes(old,view);offset=view.now-Date.now();if(view.celebration&&(!old?.celebration||old.id!==view.id)){stopInput();if(view.celebration.winners?.includes(localId))window.ArtSound?.play('arts_victory_new',7,true);uiKey='';} room.shadowSettings=view.settings;if(old?.fighters?.find(p=>p.id===localId)?.hp>0&&view.fighters.find(p=>p.id===localId)?.hp<=0)stopInput();if(!view.art&&old?.id===view.id)view.art=old.art;if(view.art){for(const [id,a]of Object.entries(view.art)){if(!a.image||images.get(id)?.src===a.image)continue;const img=new Image();img.src=a.image;images.set(id,img)}}
  if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){submitted='';savedCharacterSource=null;room.w=view.settings.characterWidth||512;room.h=view.settings.characterHeight||512;clearCanvas();loadInstalledCharacter()}
  if(old?.phase!==view.phase){if(view.phase!=='battle'){shadowInputAbort.abort();cancelAnimationFrame(raf);raf=0;shadowClosePanel();$('#shadowMeetingScreen')?.remove()}stopInput();uiKey='';if(view.phase==='equip'){equipChoice=[];const cue=view.privateRole==='killer'?'shadow_killer_intro':'shadow_artist_intro';window.ArtSound?.play(cue,7,true)}if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null;heardBuffWaves.clear();heardGunRounds.clear()}}renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){shadowMeetingUI();for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){
     // The main decoy effect is the spawn cue, not every individual decoy body.
     if(!['decoyBody','trickAbsorb','soulHarvestSoul'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
-     if(!duplicateDispel){
+     if(!duplicateDispel&&shadowCanHear(e)){
       window.ArtSound?.play((e.type==='shadowGunFlash'?'arts_new_charge_shot':e.type==='shadowKnifeArc'?'arts_new_clear_slash':advancedSoundName(e))||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'shadowGuard':['slash','cross','inkcut'].includes(e.type)?'shadowSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'shadowThrow':'shadowMagic'),e.type==='nightmare_dispel'?4:2);
       if(e.type==='nightmare_dispel')heardBuffWaves.add(e.buffWaveId??e.id);
      }
@@ -11301,6 +11360,11 @@ window.ArtShadow=(()=>{
     if(t>=1)shadowStepStop(true);
    },20);
   }
+  let shadowStepUnlocked=false,shadowStepUnlockPending=false;
+  function shadowStepEnsure(){if(shadowStepAudio)return shadowStepAudio;const src=document.getElementById('shadowFootstepsWav')?.textContent?.trim();if(!src)return null;shadowStepAudio=new Audio('data:audio/wav;base64,'+src);shadowStepAudio.loop=true;shadowStepAudio.preload='auto';shadowStepAudio.setAttribute('playsinline','');return shadowStepAudio}
+  function shadowStepUnlock(){if(!enabled()||shadowStepUnlocked||shadowStepUnlockPending)return;const s=window.ArtSound?.getSettings?.();if(s?.muted||s?.volume===0)return;const audio=shadowStepEnsure();if(!audio)return;audio.volume=0;shadowStepUnlockPending=true;try{Promise.resolve(audio.play()).then(()=>{shadowStepUnlocked=true;if(!shadowStepPlaying){audio.pause();try{audio.currentTime=0}catch{}}else audio.volume=shadowStepTargetVolume()}).catch(()=>{shadowStepUnlocked=false}).finally(()=>{shadowStepUnlockPending=false})}catch{shadowStepUnlockPending=false}}
+  document.addEventListener('pointerdown',shadowStepUnlock,{capture:true,passive:true});
+  document.addEventListener('keydown',shadowStepUnlock,{capture:true});
   function shadowStepUpdate(){
    const me=view?.fighters?.find(p=>p.id===localId),sfx=window.ArtSound?.getSettings?.()||{muted:false,volume:.45};
    const now=performance.now();
@@ -11309,7 +11373,7 @@ window.ArtShadow=(()=>{
    const active=allowed&&(!!me?.moving||(shadowStepPlaying&&now-shadowLastMovingAt<180));
    if(!active){if(shadowStepPlaying)shadowStepStop(!allowed);return}
    shadowStepClearFade();
-   if(!shadowStepAudio){const src=document.getElementById('shadowFootstepsWav')?.textContent?.trim();if(!src)return;shadowStepAudio=new Audio('data:audio/wav;base64,'+src);shadowStepAudio.loop=true;shadowStepAudio.preload='auto';shadowStepAudio.setAttribute('playsinline','');}
+   if(!shadowStepEnsure())return;
    shadowStepAudio.volume=shadowStepTargetVolume();
    if(!shadowStepPlaying){shadowStepPlaying=true;const promise=shadowStepAudio.play();promise?.catch?.(()=>{shadowStepPlaying=false});}
   }
@@ -11712,6 +11776,7 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
   else{x.lineWidth=8;x.beginPath();x.arc(0,0,55,-1.2+1.7*t,1.2+1.7*t);x.stroke();x.lineWidth=2;x.strokeStyle='#ffe3dc';x.beginPath();x.arc(0,0,45,-1.2+1.7*t,1.2+1.7*t);x.stroke()}
   x.restore();
  }
+ for(const e of view.effects||[])if(e.type==='shadowTaskBoost'&&e.end>now){const progress=(now-e.start)/(e.end-e.start);x.save();x.globalAlpha=1-progress;x.strokeStyle='#e6ca68';x.lineWidth=3;x.beginPath();for(let i=0;i<=10;i++){const a=i*Math.PI/5-Math.PI/2,r=(i%2?14:30)*(1+progress*.4);const px=e.x+Math.cos(a)*r,py=e.y-32+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();x.restore()}
  for(const e of view.effects||[])if(['shadowCrateHit','shadowCrateBreak','shadowCrateRespawn'].includes(e.type)&&e.end>now){
   const t=Math.min(1,(now-e.start)/Math.max(1,e.end-e.start)),burst=e.type==='shadowCrateBreak',revive=e.type==='shadowCrateRespawn';
   x.save();x.globalAlpha=1-t;x.strokeStyle=revive?'#9feaf1':burst?'#e9bf79':'#f6e5b3';x.lineWidth=burst?5:3;
@@ -11835,7 +11900,7 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
    preview:previewPaths.filter(s=>s.length>=2).slice(0,16).map(s=>R.resample(s,Math.min(16,s.length)).map(p=>({x:Math.round(p.x),y:Math.round(p.y)})))})
  }
  function refreshPaintUI(){$('#shadowField')?.classList.toggle('shadow-inking',paintMode||!!gesture||!!strokes.length)}
- function beginPaint(source){if(shadowRoomControlsOpen()||!battleActive()||$('#modal').open||self()?.rechargeUntil>Date.now()+offset)return;holdSource=source;if(!paintMode){paintMode=true;strokes=[];summonCore=null;gesture=null;paintStarted=Date.now();hint(view?.privateRole==='killer'?'半円を描くとナイフ攻撃します。':'直線を描くと銃を発射します。');sendInput()}refreshPaintUI()}
+ function beginPaint(source){if(shadowRoomControlsOpen()||!battleActive()||$('#modal').open||self()?.rechargeUntil>Date.now()+offset)return;holdSource=source;if(!paintMode){paintMode=true;strokes=[];summonCore=null;gesture=null;paintStarted=Date.now();hint('ONの所持アイテムの図形を描いて発動。各装備の図形は「お手本」で確認できます。銃は直線、ナイフは半円。');sendInput()}refreshPaintUI()}
  function finishPaint(cancel=false){const captured=gesture?.id;if(gesture){if(gesture.points.length>=2)strokes.push(gesture.points);gesture=null}const paths=strokes.filter(s=>s.length>=2);if(!cancel&&paths.length&&battleActive()){hint('アーツを判定しています…');sendHost({type:'gameShadowCast',gameId:view.id,strokes:paths})}paintMode=false;holdSource=null;strokes=[];summonCore=null;refreshPaintUI();if(captured!=null)try{const arena=$('#shadowArena');if(arena?.hasPointerCapture(captured))arena.releasePointerCapture(captured)}catch{}sendInput()}
  function hint(text){if($('#shadowBattleHint'))$('#shadowBattleHint').textContent=text}
  function stopInput(){const captured=gesture?.id;move={x:0,y:0};keys.clear();stick=null;gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();if(captured!=null)try{const arena=$('#shadowArena');if(arena?.hasPointerCapture(captured))arena.releasePointerCapture(captured)}catch{}$('#shadowJoystick i')?.style.setProperty('transform','translate(0,0)');sendInput()}
@@ -11855,7 +11920,7 @@ const s=view.shadow,me=self(),close=q=>me?.state==='alive'&&!s.me?.action&&R.dis
   const inv=view?.shadow?.me?.inventory||[];const armed=inv.map(i=>({item:ShadowRules.catalog[i.sku],on:i.on})).filter(q=>q.item);
   const glyphs={judgment_gun:'M20 78 L100 15',ink_pistol:'M20 78 L100 15',air_gun:'M20 78 L100 15',killer_knife:'M21 70 Q59 9 100 70',toy_knife:'M21 70 Q59 9 100 70'};
   const overlay=document.createElement('div');overlay.className='shadow-weapon-guide';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','所持アイテムのお手本');
-  const cards=armed.length?armed.map(({item,on})=>'<article><div class="shadow-weapon-example">'+(glyphs[item.id]?'<svg viewBox="0 0 120 95" aria-hidden="true"><path d="'+glyphs[item.id]+'" fill="none" stroke="#7e4a99" stroke-width="6" stroke-linecap="round"/></svg>':shadowItemIcon(item))+'</div><b>'+esc(item.name)+(on?' · ON':' · OFF')+'</b><p>'+esc(item.on_effect||'')+'</p></article>').join(''):'<p>所持アイテムはありません。</p>';
+  const cards=armed.length?armed.map(({item,on})=>'<article><div class="shadow-weapon-example">'+(item.skill?guideSVG(item.skill):glyphs[item.id]?'<svg viewBox="0 0 120 95" aria-hidden="true"><path d="'+glyphs[item.id]+'" fill="none" stroke="#7e4a99" stroke-width="6" stroke-linecap="round"/></svg>':shadowItemIcon(item))+'</div><b>'+esc(item.name)+(on?' · ON':' · OFF')+'</b><p>'+esc((item.gestureLabel?'図形：'+item.gestureLabel+'。':'')+(item.on_effect||''))+'</p></article>').join(''):'<p>所持アイテムはありません。</p>';
   overlay.innerHTML='<div class="shadow-weapon-card"><button type="button" class="shadow-weapon-close" aria-label="お手本を閉じる">×</button><h3>所持アイテムのお手本</h3><div class="shadow-weapon-list">'+cards+'</div><p>OFFの道具も表示しています。発動時はONにしてください。</p></div>';
   overlay.addEventListener('pointerdown',e=>e.stopPropagation(),true);
   overlay.addEventListener('pointerup',e=>{e.stopPropagation();if(e.target===overlay||e.target.closest('.shadow-weapon-close')){e.preventDefault();overlay.remove()}},true);
@@ -11965,7 +12030,7 @@ finishPaint(false)};
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#shadowArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,shadowAvailableGestures({...self(),inventory:view?.shadow?.me?.inventory||[]}));hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'現在ONの所持アイテムに対応する図形か、装備した銃・ナイフの形を描いてください。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const paths=[...strokes,...(gesture?[gesture.points]:[])];const shape=shadowRecognize(paths,shadowAvailableGestures({...self(),inventory:view?.shadow?.me?.inventory||[]}));hint(shape?(shape.type==='magic'?'銃の直線':shape.type==='slash'?'ナイフの半円':(Object.values(ShadowRules.catalog).find(g=>g.skill===shape.type)?.name||moves[shape.type]?.name||shape.type))+'：ペンを離すと発動':'現在ONの所持アイテムに対応する図形か、装備した銃・ナイフの形を描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
@@ -12458,7 +12523,7 @@ finishPaint(false)};
  document.addEventListener('focusin',e=>{if(enabled()&&e.target.closest?.('.studio-header,#roomHubPanel,dialog,#artopiaSocial'))stopInput()});
 
 /* SECTION: arts/render.js — world coordinates independent of walk animation */
- function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);frameDelta=Math.min(.05,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;if(!enabled()||view?.phase!=='battle')return;if(!document.hidden)drawArena(time);if(Date.now()-lastMove>100){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
+ function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);frameDelta=Math.min(.05,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;if(!enabled()||view?.phase!=='battle')return;shadowStepUpdate();if(!document.hidden)drawArena(time);if(Date.now()-lastMove>100){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
  // All combat visuals are deterministic from server timestamps; particles are
  // bounded and drawn directly, without extra network state or per-frame DOM.
 
@@ -12864,7 +12929,7 @@ finishPaint(false)};
  // Meeting room floor decoration only; shop, discussion device, and player movement remain unobstructed.
  {const m=SHADOW_ROOMS[6];x.save();x.strokeStyle='#927cb5';x.lineWidth=5;x.setLineDash([16,12]);x.strokeRect(m.x+38,m.y+75,m.w-76,m.h-145);x.setLineDash([]);x.fillStyle='#66578d';x.textAlign='center';x.font='bold 26px sans-serif';x.fillText('会議・ショップ',m.x+m.w/2,m.y+96);x.restore()}
  x.restore();
- const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(view.shadow?.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)if(b.type!=='stone')drawArtTerrain(x,b,now);
+ const now=Date.now()+offset;for(const body of view.fighters.filter(p=>p.state==='dead'&&p.diedAt)){const bx=body.corpseX??body.x,by=body.corpseY??body.y;const photo=images.get(body.id);x.save();x.translate(bx,by);x.fillStyle='#8b2038aa';for(let i=0;i<11;i++){const a=i*2.39996,r=8+(i%4)*10;x.beginPath();x.ellipse(Math.cos(a)*r,Math.sin(a)*r,5+(i%3)*3,4+(i%2)*2,a,0,Math.PI*2);x.fill()}x.rotate(Math.PI/2);x.globalAlpha=.88;if(photo?.complete&&photo.naturalWidth)x.drawImage(photo,-32,-38,64,64);else{x.fillStyle='#8b526c';x.beginPath();x.arc(0,-6,24,0,Math.PI*2);x.fill()}x.restore();x.fillStyle='#d57681';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText(view.shadow?.meetingUsedBodies?.includes(body.id)?'通報終了':'タップで通報',bx,by-48)}for(const e of view.effects)if(e.type!=='ghost'&&(e.launchAt||e.resolveAt||e.hit)&&now>=(e.launchAt||e.resolveAt||e.hit)&&!impactSounds.has(e.id)){impactSounds.add(e.id);if(shadowCanHear(e))window.ArtSound?.play(advancedSoundName(e,true)||(e.type==='cross'?'shadowSlash':'shadowBlast'),3)}impactSounds=new Set([...impactSounds].filter(id=>view.effects.some(e=>e.id===id)));drawArtsUnderlay(x,now);for(const b of view.blocks)if(b.type!=='stone')drawArtTerrain(x,b,now);
  const furnitureQueue=[...SHADOW_WALLS,...SHADOW_FURNITURE].sort((a,b)=>(a.y+a.h)-(b.y+b.h));let furnitureIndex=0;const flushFurniture=y=>{while(furnitureIndex<furnitureQueue.length&&furnitureQueue[furnitureIndex].y+furnitureQueue[furnitureIndex].h<=y)shadowDrawSolid(x,furnitureQueue[furnitureIndex++])};const me=view.fighters.find(p=>p.id===localId);if(me&&(me.pull||me.stunnedUntil>now)&&(gesture||strokes.length||paintMode))finishPaint(true);for(const p of [...view.fighters].sort((a,b)=>(positions.get(a.id)||a).y-(positions.get(b.id)||b).y)){flushFurniture((positions.get(p.id)||p).y);if(!p.active||(p.hp<=0&&p.state!=='down'&&!damageShakes.has(p.id)&&!view.celebration))continue;const inBush=view.blocks.some(b=>b.type==='bush'&&R.intersects(p.x,p.y,1,b)),bushHidden=inBush&&p.flash<now&&!p.drawing;
  const smokeHidden=view.effects.some(e=>e.type==='smoke'&&e.end>now&&R.dist(p,e)<e.r)&&p.flash<now&&!p.drawing;
  const hidden=bushHidden||smokeHidden;
@@ -12892,8 +12957,8 @@ finishPaint(false)};
   presentGunRounds.add(key);
   if(now>=(s.fireAt||0)&&!heardGunRounds.has(key)){
    heardGunRounds.add(key);
-   if(s.style==='burst')window.ArtSound?.playRapidShot?.();
-   else window.ArtSound?.play('arts_new_charge_shot',3);
+   if(shadowCanHear(s)&&s.style==='burst')window.ArtSound?.playRapidShot?.();
+   else if(shadowCanHear(s))window.ArtSound?.play('arts_new_charge_shot',3);
   }
  }
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
