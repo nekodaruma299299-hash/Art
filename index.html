@@ -1916,6 +1916,12 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 @keyframes artsUltimateShimmer{to{background-position:220% 0}}
 @media(max-width:720px){#artsUltimateGuide{bottom:122px;padding:5px 12px}#artsUltimateGuide>b{font-size:12px}#artsUltimateGuide svg{height:47px}}
 </style>
+
+<style id="arts-single-armor-value-style">
+#artsHUD .arts-armor-indicator{display:block;margin-top:4px;color:#ffe5a6;font-size:12px;line-height:1.15;font-weight:750;white-space:nowrap;font-variant-numeric:tabular-nums}
+#artsHUD .arts-armor-indicator b{font-size:inherit!important;display:inline!important;color:#fff3d5}
+@media(max-width:690px){#artsHUD .arts-armor-indicator{font-size:10px;margin-top:2px}}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.5.03</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -6881,10 +6887,14 @@ window.ArtArts=(()=>{
   }
   return false;
  }
- function artsFortHit(a,amount,now,x,y){
+ function artsFortHit(a,amount,now,x,y,naturalDecay=false){
   if(!a||a.hp<=0||amount<=0)return;
   a.hp=Math.max(0,a.hp-amount);
-  if(!a.lastImpact||now-a.lastImpact>160){a.lastImpact=now;host.effects.push({id:++host.seq,type:'ultimateFortImpact',owner:a.owner,x,y,r:44,start:now,end:now+420});}
+  // Passive HP decay is not a hit: neither an impact event nor its audio is emitted.
+  if(!naturalDecay&&(!a.lastImpact||now-a.lastImpact>200)){
+   a.lastImpact=now;
+   host.effects.push({id:++host.seq,type:'ultimateFortImpact',owner:a.owner,x,y,r:44,start:now,end:now+420});
+  }
   if(a.hp<=0){a.end=now;host.effects.push({id:++host.seq,type:'ultimateFortCollapse',owner:a.owner,x:a.x,y:a.y,r:ARTS_FORT_RADIUS,start:now,end:now+1100});}
  }
  function artsFortShotCross(s,owner,ax,ay,bx,by,now){
@@ -6973,9 +6983,18 @@ window.ArtArts=(()=>{
   }
   for(const a of artsLiveFortresses(now)){
    const elapsed=Math.max(0,now-(a.lastTick||a.at));a.lastTick=now;
-   const loss=5*Math.min(.1,elapsed/1000);if(loss>0)artsFortHit(a,loss,now,a.x,a.y);
-   for(const q of host.fighters){if(!q.active||q.hp<=0||artsFortEnemy(a,q)||Math.hypot(q.x-a.x,q.y-a.y)>=ARTS_FORT_RADIUS)continue;
-    q.armorMax=Math.max(q.armorMax||0,50);q.armorHP=Math.min(50,(q.armorHP||0)+2*Math.min(.1,elapsed/1000));q.armorUntil=Math.max(q.armorUntil||0,now+700);
+   const seconds=Math.min(.1,elapsed/1000),loss=5*seconds;
+   if(loss>0)artsFortHit(a,loss,now,a.x,a.y,true);
+   if(a.hp<=0)continue;
+   for(const q of host.fighters){
+    if(!q.active||q.hp<=0||artsFortEnemy(a,q)||Math.hypot(q.x-a.x,q.y-a.y)>=ARTS_FORT_RADIUS)continue;
+    // Armor is a single consumable pool (no maximum or automatic healing).
+    // Earned plates stay with the player for 20 seconds after leaving the fort.
+    const gained=2*seconds;
+    if(gained<=0)continue;
+    const previousHP=q.armorUntil>now?Math.max(0,Number(q.armorHP)||0):0;
+    q.armorHP=previousHP+gained;
+    q.armorUntil=Math.max(q.armorUntil||0,now+20000);
    }
   }
   host.ultimateActs=host.ultimateActs.filter(e=>{
@@ -7088,7 +7107,7 @@ window.ArtArts=(()=>{
   }
   return (h>>>0).toString(36)+'-'+blocks.length;
  }
- function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,artMatter:p.artMatter||0,crime:p.crime||0,divineStart:p.divineStart||0,ultimateBloodUntil:p.ultimateBloodUntil||0,ultimateNemesisUntil:p.ultimateNemesisUntil||0,ultimateTrickUntil:p.ultimateTrickUntil||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,beastUntil:p.beastUntil||0,carbuncleUntil:p.carbuncleUntil||0,attackDebuffUntil:p.attackDebuffUntil||0,stealUntil:p.stealUntil||0,mirageHiddenUntil:p.mirageHiddenUntil||0,mirageRevealAt:p.mirageRevealAt||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorMax:p.armorMax||((p.armorHP||0)>30?50:30),armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active,inputAckAt:host.inputs[p.id]?.sentAt||0})),blocks:host.phase==='battle'&&host.stageHasBlueprint?[]:host.blocks,battleWallDamage:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(0,host.stageBaseCount).filter(b=>b.type==='wall'&&b.hp<b.maxHp).map(b=>[b.id,b.hp]):null,battleRuntimeWalls:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(host.stageBaseCount):null,battleBaseSignature:host.phase==='battle'&&host.stageHasBlueprint?host.stageLayoutSignature:null,battleBaseBlocks:host.phase==='battle'&&host.stageHasBlueprint&&host.sendStageBaseline?host.blocks.slice(0,host.stageBaseCount).map(b=>({...b,hp:b.maxHp})):null,stageSeed:host.stageSeed||0,stageRegions:host.stageRegions||[],shots:host.shots,effects:host.effects,ultimateActs:host.ultimateActs||[],ultimateAnnouncement:host.ultimateAnnouncement||null,killEvents:(host.killEvents||[]).filter(e=>Date.now()-e.at<6500),gimmicks:host.gimmicks||[],stageDrops:host.stageDrops||[],stageAudioEvents:host.stageAudioEvents||[],stageNPCs:host.stageNPCs||[],result:host.result,...(withImages?{art:host.art}:{})}}
+ function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,artMatter:p.artMatter||0,crime:p.crime||0,divineStart:p.divineStart||0,ultimateBloodUntil:p.ultimateBloodUntil||0,ultimateNemesisUntil:p.ultimateNemesisUntil||0,ultimateTrickUntil:p.ultimateTrickUntil||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,beastUntil:p.beastUntil||0,carbuncleUntil:p.carbuncleUntil||0,attackDebuffUntil:p.attackDebuffUntil||0,stealUntil:p.stealUntil||0,mirageHiddenUntil:p.mirageHiddenUntil||0,mirageRevealAt:p.mirageRevealAt||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active,inputAckAt:host.inputs[p.id]?.sentAt||0})),blocks:host.phase==='battle'&&host.stageHasBlueprint?[]:host.blocks,battleWallDamage:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(0,host.stageBaseCount).filter(b=>b.type==='wall'&&b.hp<b.maxHp).map(b=>[b.id,b.hp]):null,battleRuntimeWalls:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(host.stageBaseCount):null,battleBaseSignature:host.phase==='battle'&&host.stageHasBlueprint?host.stageLayoutSignature:null,battleBaseBlocks:host.phase==='battle'&&host.stageHasBlueprint&&host.sendStageBaseline?host.blocks.slice(0,host.stageBaseCount).map(b=>({...b,hp:b.maxHp})):null,stageSeed:host.stageSeed||0,stageRegions:host.stageRegions||[],shots:host.shots,effects:host.effects,ultimateActs:host.ultimateActs||[],ultimateAnnouncement:host.ultimateAnnouncement||null,killEvents:(host.killEvents||[]).filter(e=>Date.now()-e.at<6500),gimmicks:host.gimmicks||[],stageDrops:host.stageDrops||[],stageAudioEvents:host.stageAudioEvents||[],stageNPCs:host.stageNPCs||[],result:host.result,...(withImages?{art:host.art}:{})}}
  const artsLastSent=new WeakMap();
  function sendAll(withImages=false){
   if(!host||!isHost)return;
@@ -7900,7 +7919,7 @@ window.ArtArts=(()=>{
   host.effects.push(e);return true
  }
  if(shape.type==='aura'){const q=nearestSupportTarget(p,shape);matterSaintSupport(p,q,0,'aura',now);q.auraUntil=now+Math.round(8000*artsSingleFactor(shape));e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800}
- if(shape.type==='armor'){const q=nearestSupportTarget(p,shape);q.armorHP=Math.round(50*artsSingleFactor(shape));q.armorMax=q.armorHP;q.armorUntil=now+20000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+800}
+ if(shape.type==='armor'){const q=nearestSupportTarget(p,shape);const existing=q.armorUntil>now?Math.max(0,q.armorHP||0):0;q.armorHP=existing+Math.round(50*artsSingleFactor(shape));q.armorUntil=now+20000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+800}
  if(shape.type==='recharge'){p.rechargeUntil=now+1000;e.x=p.x;e.y=p.y;e.r=42;e.end=now+1000}
  if(shape.type==='drain'){for(const aura of host.effects)if(aura.type==='stealTouch'&&aura.owner===id)aura.end=now;p.stealUntil=now+10000;e.type='stealTouch';e.x=p.x;e.y=p.y;e.r=44;e.end=p.stealUntil;} 
  if(shape.type==='repulse'){
@@ -8197,7 +8216,7 @@ window.ArtArts=(()=>{
   if(k==='force_heal'){e.type='creatureHealZone';e.x=at.x;e.y=at.y;e.r=150*e.sizeArea;e.end=now+8000;e.nextTick=now+200;e.lastPulse=now;return true}
   if(k==='fur_coat'){
    e.type='creatureFur';e.r=160*e.sizeArea;e.end=now+900;
-   for(const q of creatureTargets(p,now,true,true))if(R.dist(q,e)<=e.r){q.armorHP=Math.max(q.armorUntil>now?(q.armorHP||0):0,30);q.armorMax=q.armorHP>30?50:30;q.armorUntil=now+15000}
+   for(const q of creatureTargets(p,now,true,true))if(R.dist(q,e)<=e.r){const existing=q.armorUntil>now?Math.max(0,q.armorHP||0):0;q.armorHP=existing+30;q.armorUntil=now+15000}
    return true;
   }
   if(k==='blood_seeker'){
@@ -8805,7 +8824,7 @@ window.ArtArts=(()=>{
  }
  if(old?.phase!==view.phase){stopInput();uiKey='';if(view.phase==='equip'){equipChoice=[];equipTouched=false;}if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null;heardBuffWaves.clear();heardGunRounds.clear()}}if(old?.phase!==view.phase||view.phase!=='battle')renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){
     // The main decoy effect is the spawn cue, not every individual decoy body.
-    if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
+    if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber','ultimateFortImpact','ultimateFortPush','ultimateFortCollapse'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
       if((e.type==='ultimateCeremony'&&e.advanced)||e.type==='ultimateFinisher')playUltimateSignature(e.class,e.type==='ultimateFinisher');
@@ -8824,7 +8843,7 @@ window.ArtArts=(()=>{
     previousFx.add(e.id);
    }previousFx=new Set(view.effects.map(e=>e.id));if(!raf)raf=requestAnimationFrame(frame)}if(old?.phase!==view.phase||view.phase!=='battle')renderControls()}
  function ultimateHudHTML(p){const v=Math.max(0,Math.min(100,Math.floor(p.artMatter||0))),ready=v>=100;return '<div class="arts-meter matter'+(ready?' ready':'')+'"><label>アートマター <b>'+v+' / 100</b></label><progress max="100" value="'+v+'" aria-label="アートマター"></progress>'+(ready?'<strong class="arts-am-ready">✦ 必殺技発動可能 ✦</strong>':'')+'</div>'}
- function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+((p.armorHP||0)>0?'<div class="arts-meter armor"><label>装甲 <b>'+Math.ceil(p.armorHP)+' / '+(p.armorMax||((p.armorHP||0)>30?50:30))+'</b></label><progress max="'+(p.armorMax||((p.armorHP||0)>30?50:30))+'" value="'+p.armorHP+'" aria-label="装甲"></progress></div>':'')+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress></div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div>'+ultimateHudHTML(p)+'</div>'}
+ function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress>'+((p.armorHP||0)>0?'<span class="arts-armor-indicator">◆ 装甲 <b>'+Math.ceil(p.armorHP)+'</b></span>':'')+'</div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div>'+ultimateHudHTML(p)+'</div>'}
  function skillDetails(k){const m=moves[k];return '<p><b>描き方の判定：</b>'+esc(m.gesture)+'</p><p><b>クールダウン：</b>'+(self()?.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒</p><p><b>効果：</b>'+esc(m.effect)+'</p><p><b>範囲：</b>'+esc(m.range)+'</p>'}
  function equipCardsHTML(a,choice,locked){
  const summary={aura:'攻撃力1.5倍 · 8秒',drain:'10秒接触吸収：毎秒HP2・インク10',trick_mine:'2秒設置→透明地雷・スタン＋10秒毒',recharge:'インク40%回復 · 消費0',armor:'装甲HP50 · 20秒',repulse:'16方向へ低速弾 · 強ノックバック'};
@@ -9778,7 +9797,7 @@ finishPaint(false)};
  function drawFighterStatus(x,p,pos,now){
  x.save();x.translate(pos.x,pos.y);
  if(p.auraUntil>now){x.strokeStyle='#f68a66';x.lineWidth=2;x.shadowColor='#ff9577';x.shadowBlur=9;for(let i=0;i<8;i++){const a=i*Math.PI/4+now/1800,rr=35+Math.sin(now/160+i)*4;x.beginPath();x.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);x.lineTo(Math.cos(a)*(rr+9),Math.sin(a)*(rr+9));x.stroke()}x.shadowBlur=0;x.font='bold 11px sans-serif';x.textAlign='center';x.fillStyle='#b34636';x.fillText('攻撃力 ×1.5',0,67)}
- if(p.armorUntil>now&&p.armorHP>0){x.strokeStyle='#dfbd74';x.lineWidth=3;x.beginPath();x.arc(0,0,44,-Math.PI/2,-Math.PI/2+Math.PI*2*p.armorHP/(p.armorMax||((p.armorHP||0)>30?50:30)));x.stroke()}
+ if(p.armorUntil>now&&p.armorHP>0){x.strokeStyle='#dfbd74';x.shadowColor='#b68c41';x.shadowBlur=7;x.lineWidth=3;x.beginPath();x.arc(0,0,44,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.textAlign='center';x.font='bold 12px sans-serif';x.fillStyle='#ffde91';x.fillText('◆'+Math.ceil(p.armorHP),0,-51)}
  if(p.rechargeUntil>now){x.strokeStyle='#a79be3';x.lineWidth=2;x.beginPath();x.arc(0,0,38,0,Math.PI*2);x.stroke();x.fillStyle='#7260b2';x.font='bold 11px sans-serif';x.textAlign='center';x.fillText('インク回復中',0,67)}
  if(p.iron>now){x.strokeStyle='#b5e8ff';x.fillStyle='#90d1ef18';x.lineWidth=2;x.shadowColor='#a2dfff';x.shadowBlur=10;
   x.beginPath();for(let i=0;i<=6;i++){const a=i*Math.PI/3-Math.PI/2;i?x.lineTo(Math.cos(a)*39,Math.sin(a)*43):x.moveTo(Math.cos(a)*39,Math.sin(a)*43)}x.fill();x.stroke();x.shadowBlur=0;x.strokeStyle='#f1fcff';x.beginPath();x.arc(0,0,46,-Math.PI/2,-Math.PI/2+Math.PI*2*R.clamp((p.iron-now)/15000,0,1));x.stroke();
