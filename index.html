@@ -6765,18 +6765,30 @@ window.ArtArts=(()=>{
   executioner:'目の左端から上まぶた、下まぶたの順に描き、下の裁きの刃へつなげます。',
   dreamer:'上の中央から左右対称の目の外周を一周し、中央に下りて菱形の瞳を描きます。'
  };
+ const ultimateEffectsGuide={
+  attacker:'前方へ巨大な斬撃を3連続で放ちます。威力は順に30・35・50、斬撃間隔は約0.32秒です。',
+  tank:'10秒間、広い防御領域「絶対城塞」を展開します。味方を守る結界と防御演出が続きます。',
+  trickster:'6体の幻影を召喚します。幻影は時間では消えず、敵プレイヤーに触れるか攻撃されると爆発。爆発半径110、50ダメージと10秒の混乱を与えます。',
+  kemono:'フェンリル・ケットシー・ニーズヘッグの3種類からランダムに1体を召喚します。召喚獣は戦闘を支援します。',
+  gunner:'星弾・粒子弾・レーザーが広がる連続弾幕を発射します。弾幕は壁を貫通します。',
+  magician:'残ったインクをすべて消費し、1.5秒後に巨大な創世爆発を起こします。消費したインクが多いほど威力が増え、中心に近い敵ほど高ダメージになります。',
+  vampire:'約12秒間、周囲の敵からHPとインクを奪う血月の領域を展開します。吸収と攻撃によって自分を回復します。',
+  saint:'死亡するまで全基礎能力値が+30され、6枚羽と後光をまといます。その代わりHPが徐々に減っていきます。発動中の重複発動はできません。',
+  executioner:'18秒間「罪」を追跡し、罪人への攻撃に罪の蓄積量を利用した追加ダメージを与えます。近づいた敵は血の結界によって大幅に鈍足化します。',
+  dreamer:'20秒間、発動者以外の戦場を暗闇で覆い、インク回復を低下させます。インクが0になった相手には処刑ダメージを与え、定期的に悪夢の雷が落ちます。'
+ };
  function showUltimateGuide(){
   const me=self();if(!me||!ultimateArts[me.class])return;
   const def=ultimateArts[me.class];stopInput();
   let dialog=document.getElementById('artsUltimateGuideDialog');
   if(!dialog){
    dialog=document.createElement('dialog');dialog.id='artsUltimateGuideDialog';
-   dialog.setAttribute('aria-label','必殺技の詳しい書き方');
+   dialog.setAttribute('aria-label','必殺技の書き方と効果');
    document.body.appendChild(dialog);
    dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
    for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])dialog.addEventListener(ev,e=>e.stopPropagation());
   }
-  dialog.innerHTML='<section class="arts-ultimate-dialog-inner"><header><div><small>ULTIMATE ART / 描き方</small><h2>'+esc(def.name)+' <span>（'+esc(def.reading)+'）</span></h2></div><button id="artsUltimateGuideClose" type="button" aria-label="お手本を閉じる">×</button></header><div class="arts-ultimate-detail">'+ultimateGuideSVG(me.class,true)+'</div><p class="arts-ultimate-key"><b>● 緑：描き始め　● オレンジ：描き終わり　→：進む方向</b></p><p>'+esc(ultimateInstructions[me.class])+'</p><p class="arts-ultimate-note">一筆で描いて離すと発動します。大きさや多少の手ブレは許容され、失敗してもアートマターとインクは消費しません。発動にはアートマター100が必要です。</p></section>';
+  dialog.innerHTML='<section class="arts-ultimate-dialog-inner"><header><div><small>ULTIMATE ART / 書き方・効果</small><h2>'+esc(def.name)+' <span>（'+esc(def.reading)+'）</span></h2></div><button id="artsUltimateGuideClose" type="button" aria-label="お手本を閉じる">×</button></header><div class="arts-ultimate-detail">'+ultimateGuideSVG(me.class,true)+'</div><p class="arts-ultimate-key"><b>● 緑：描き始め　● オレンジ：描き終わり　→：進む方向</b></p><p>'+esc(ultimateInstructions[me.class])+'</p><section class="arts-ultimate-effect" style="padding:12px 14px;margin:12px 0;background:rgba(110,105,175,.09);border:1px solid rgba(110,105,175,.25);border-radius:12px;text-align:left"><h3 style="margin:0 0 7px;font-size:1rem">必殺技の効果</h3><p style="margin:0;line-height:1.7">'+esc(ultimateEffectsGuide[me.class]||'効果の説明は準備中です。')+'</p></section><p class="arts-ultimate-note">一筆で描いて離すと発動します。大きさや多少の手ブレは許容され、失敗してもアートマターとインクは消費しません。発動にはアートマター100が必要です。</p></section>';
   dialog.querySelector('#artsUltimateGuideClose').onclick=()=>dialog.close();
   if(!dialog.open)dialog.showModal();
  }
@@ -6830,11 +6842,11 @@ window.ArtArts=(()=>{
   createUltimateEvent(p,now,2200);
   host.ultimateAnnouncement={id:++host.seq,owner:p.id,class:job,at:now,end:now+3000};
   switch(job){
-   case 'attacker':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+350,step:0,end:now+2700});break;
+   case 'attacker':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+240,step:0,end:now+1650});break;
    case 'tank':(host.ultimateActs??=[]).push({owner:p.id,job,x:p.x,y:p.y,at:now,end:now+10000,next:now+1500});break;
    case 'trickster':{
     p.ultimateTrickUntil=now+12000;
-    for(let i=0;i<6;i++){const a=i*Math.PI/3,x=R.clamp(p.x+Math.cos(a)*65,24,R.W-24),y=R.clamp(p.y+Math.sin(a)*65,24,R.H-24);host.effects.push({id:++host.seq,type:'decoyBody',variant:'ultimate',owner:p.id,x,y,vx:Math.cos(a),vy:Math.sin(a),r:25,start:now,end:now+12000,fakeHp:p.hp,fakeMaxHp:p.maxHp,fakeTeam:p.team,fakeFace:p.facing})}
+    for(let i=0;i<6;i++){const a=i*Math.PI/3,x=R.clamp(p.x+Math.cos(a)*65,24,R.W-24),y=R.clamp(p.y+Math.sin(a)*65,24,R.H-24);host.effects.push({id:++host.seq,type:'decoyBody',variant:'ultimate',owner:p.id,x,y,vx:Math.cos(a),vy:Math.sin(a),r:25,start:now,end:Number.MAX_SAFE_INTEGER,fakeHp:p.hp,fakeMaxHp:p.maxHp,fakeTeam:p.team,fakeFace:p.facing})}
     break;
    }
    case 'kemono':{
@@ -6844,7 +6856,7 @@ window.ArtArts=(()=>{
     const pet=createCreature(p,stats.petKind,{x:p.x,y:p.y},now,{...stats,maxHp:stats.hp,ultimateBeast:kind,end:now+20000});
     if(pet)createUltimateEvent(p,now,1800,{petKind:kind});break;
    }
-   case 'gunner':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+500,step:0,end:now+6200});break;
+   case 'gunner':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+350,step:0,end:now+7500,originX:p.x,originY:p.y});break;
    case 'magician':{
     const invested=Math.max(0,p.ink);p.ink=0;p.inkLock=Math.max(p.inkLock||0,now+3000);
     (host.ultimateActs??=[]).push({owner:p.id,job,x:p.x,y:p.y,at:now,end:now+2000,burst:now+1500,spent:invested,done:false});break;
@@ -6876,16 +6888,55 @@ window.ArtArts=(()=>{
    if(e.job==='attacker'&&now>=e.next&&e.step<3){
     const i=e.step++,a=p.facing===-1?Math.PI:0,r=225+i*55;
     for(const q of host.fighters){if(friendly(p,q)||q.hp<=0||!q.active||R.dist(q,p)>r)continue;const angle=Math.atan2(q.y-p.y,q.x-p.x);if(Math.cos(angle-a)<-.12||!lineClear(p,q))continue;hurt(q,[30,35,50][i],now,{owner:p.id,x:p.x,y:p.y,damageType:'physical'},false,55)}
-    host.effects.push({id:++host.seq,type:'ultimateSlash',owner:p.id,x:p.x,y:p.y,angle:a,r,start:now,end:now+750,step:i});e.next+=650;
+    host.effects.push({id:++host.seq,type:'ultimateSlash',owner:p.id,x:p.x,y:p.y,angle:a,r,start:now,end:now+470,step:i});e.next+=320;
    }
    if(e.job==='tank'&&now>=e.next){e.next+=1600;host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:'tank',x:e.x,y:e.y,r:190,start:now,end:now+700})}
-   if(e.job==='gunner'&&now>=e.next&&e.step<11){
-    const phase=e.step++,count=phase<3?8:phase<7?12:16;
-    for(let j=0;j<count;j++){const a=j*Math.PI*2/count+phase*.32,speed=phase<3?210:phase<7?150:350;
-     host.shots.push({id:++host.seq,owner:p.id,x:p.x,y:p.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,power:phase<7?6:9,radius:phase<7?7:5,knockback:8,left:650,end:now+6000,hit:[],pierce:false,passWalls:true,style:phase>=7&&j%4===0?'ultimateLaser':phase<3?'ultimateStar':'ultimateBullet'});
-    }e.next+=420;
+   if(e.job==='gunner'&&now>=e.next&&e.step<4){
+    const phase=e.step++;
+    if(phase===0){
+     // One slow, harmless seed travels out before it unfolds. It must not damage on its own.
+     const vx=(p.facing===-1?-1:1)*82,vy=0;
+     const seed={id:++host.seq,owner:p.id,x:p.x,y:p.y,vx,vy,power:0,radius:9,knockback:0,left:600,
+      end:now+1250,hit:[],pierce:true,passWalls:true,style:'ultimateSeed',ultimateSeedOwner:p.id};
+     host.shots.push(seed);e.seedId=seed.id;e.originX=p.x;e.originY=p.y;e.next=now+1250;
+    }else if(phase===1){
+     const seed=host.shots.find(q=>q.id===e.seedId);
+     const ox=seed?.x??e.originX,oy=seed?.y??e.originY;
+     e.originX=ox;e.originY=oy;
+     if(seed)seed.end=now;
+     // Seed blossoms into a sudden, symmetric starburst.
+     for(let j=0;j<22;j++){
+      const a=j*Math.PI*2/22+(j%2)*.035,speed=205+(j%3)*42;
+      host.shots.push({id:++host.seq,owner:p.id,x:ox,y:oy,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,
+       power:7,radius:5,knockback:9,left:650,end:now+3500,hit:[],pierce:false,passWalls:true,
+       style:j%3===0?'ultimateStar':'ultimateBullet'});
+     }
+     host.effects.push({id:++host.seq,type:'ultimateGunnerBloom',owner:p.id,x:ox,y:oy,r:90,start:now,end:now+750});
+     e.next=now+1000;
+    }else if(phase===2){
+     // Unlike the original wall-piercing fan, these balls visibly ricochet.
+     const ox=e.originX,oy=e.originY;
+     for(let j=0;j<14;j++){
+      const a=j*Math.PI*2/14+.12,speed=225+(j%3)*22;
+      host.shots.push({id:++host.seq,owner:p.id,x:ox,y:oy,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,
+       power:9,radius:9,knockback:12,left:1150,end:now+3650,hit:[],pierce:false,
+       passWalls:false,ricochetUntil:now+3450,style:'ultimateBounce'});
+     }
+     host.effects.push({id:++host.seq,type:'ultimateGunnerBounce',owner:p.id,x:ox,y:oy,r:110,start:now,end:now+650});
+     e.next=now+1450;
+    }else{
+     // Final sweeping laser curtain, still wall-piercing as previously specified.
+     const ox=e.originX,oy=e.originY;
+     for(let j=0;j<16;j++){
+      const a=j*Math.PI*2/16+now/2400;
+      host.shots.push({id:++host.seq,owner:p.id,x:ox,y:oy,vx:Math.cos(a)*600,vy:Math.sin(a)*600,
+       power:13,radius:9,knockback:18,left:1100,end:now+2200,hit:[],pierce:true,passWalls:true,style:'ultimateLaser'});
+     }
+     host.effects.push({id:++host.seq,type:'ultimateGunnerLaser',owner:p.id,x:ox,y:oy,r:150,start:now,end:now+1100});
+     e.next=Infinity;
+    }
    }
-   if(e.job==='magician'&&!e.done&&now>=e.burst){e.done=true;const radius=220;for(const q of host.fighters)if(!friendly(p,q)&&q.active&&q.hp>0&&R.dist(q,e)<radius+R.R)hurt(q,(30+Math.min(90,e.spent*.45))*(.35+.65*(1-R.dist(q,e)/radius)),now,{owner:p.id,x:e.x,y:e.y,damageType:'magic'},true,60);host.effects.push({id:++host.seq,type:'ultimateBigBang',owner:p.id,x:e.x,y:e.y,r:radius,start:now,end:now+1200})}
+   if(e.job==='magician'&&!e.done&&now>=e.burst){e.done=true;const radius=270;for(const q of host.fighters)if(!friendly(p,q)&&q.active&&q.hp>0&&R.dist(q,e)<radius+R.R)hurt(q,(65+Math.min(110,e.spent*.7))*(.7+.3*(1-R.dist(q,e)/radius)),now,{owner:p.id,x:e.x,y:e.y,damageType:'magic'},true,85);host.effects.push({id:++host.seq,type:'ultimateBigBang',owner:p.id,x:e.x,y:e.y,r:radius,start:now,end:now+1600})}
    if(e.job==='vampire'&&now>=e.next){e.next+=900;for(const q of host.fighters)if(!friendly(p,q)&&q.active&&q.hp>0&&R.dist(q,p)<185){const n=hurt(q,8,now,{owner:p.id,x:p.x,y:p.y,damageType:'magic'},true);const restored=Math.min(Math.max(0,(p.maxHp||100)-p.hp),n*.4);p.hp=Math.min(p.maxHp,p.hp+restored);matterVampireLeech(p,restored);q.ink=Math.max(0,q.ink-3);}}
    if(e.job==='dreamer'){
     for(const q of host.fighters)if(q.id!==p.id&&q.hp>0&&q.active&&q.ink<=0){hurt(q,999,now,{owner:p.id,x:q.x,y:q.y,damageType:'magic'},true);host.effects.push({id:++host.seq,type:'ultimateExecution',owner:p.id,x:q.x,y:q.y,r:70,start:now,end:now+1500});}
@@ -7347,11 +7398,14 @@ window.ArtArts=(()=>{
   if(d.variant==='mirage'){
    host.effects.push({id:++host.seq,type:'trickSlowMist',owner:d.owner,x:d.x,y:d.y,r:96,start:now,end:now+3000});
   }else{
-   const blast={id:++host.seq,type:'trickDecoyBlast',owner:d.owner,x:d.x,y:d.y,r:75,start:now,end:now+830};
+   const ultimate=d.variant==='ultimate';
+   const radius=ultimate?110:75;
+   const blast={id:++host.seq,type:'trickDecoyBlast',owner:d.owner,x:d.x,y:d.y,r:radius,start:now,end:now+830,ultimate};
    host.effects.push(blast);
    for(const q of host.fighters){
-    if(!q.active||q.hp<=0||maker&&friendly(maker,q)||R.dist(q,d)>75+R.R)continue;
-    hurt(q,45,now,{...blast,damageType:'magic'},true);
+    if(!q.active||q.hp<=0||maker&&friendly(maker,q)||R.dist(q,d)>radius+R.R)continue;
+    hurt(q,ultimate?50:45,now,{...blast,damageType:'magic'},true);
+    if(ultimate&&q.active&&q.hp>0){q.confusedFrom=now;q.confused=now+10000;}
    }
   }
   return true;
@@ -7703,7 +7757,7 @@ window.ArtArts=(()=>{
  const sizeFactor=artsSizeFactor(shape),sizeArea=artsSizeArea(shape),sizeBuff=artsSingleFactor(shape);const basicArt=['guard','slash','magic'].includes(shape.type);const cost=m.class?Math.ceil(R.cost(shape)*R.clamp(.88+(sizeFactor-1)*.7,.80,1.45)):R.cost(shape),readyAt=basicArt?0:Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(shape.type==='blood_slash'&&p.hp<=25){p.castError='HPが26以上必要です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;
  // Magician: earn Art Matter for the ink paid by successful class arts, not HP damage.
  // Basic Guard/Slash/Magic and the ultimate itself do not grant cast matter.
- if(p.class==='magician'&&m.class&&cost>0)addArtMatter(p,cost*.8);
+ if(p.class==='magician'&&m.class&&cost>0)addArtMatter(p,cost*.25);
  if(!basicArt){(p.artCooldowns??={})[shape.type]=now+(p.class==='vampire'&&['ghost','drain'].includes(shape.type)?m.cooldown*.5:m.cooldown);p.nextCast=now+(m.class?350:150);}else{(p.artCooldowns??={})[shape.type]=0;p.nextCast=0;}if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
  if(p.mirageHiddenUntil>now&&MIRAGE_OFFENSIVE_ARTS.has(shape.type))p.mirageRevealAt=now;
  const attack=(p.stats[1]+(p.beastUntil>now?(p.beastPower||20):0)+(p.carbuncleUntil>now?10:0)-(p.attackDebuffUntil>now?20:0))*(p.auraUntil>now?1.5:1);
@@ -8297,6 +8351,17 @@ window.ArtArts=(()=>{
    else {e.vy*=-1;break;}
   }
  }
+ // Ultimate Phantom Parade: contact with an opposing live player detonates the clone.
+ // Check after clone and player movement. triggerTrickDecoy marks it immediately,
+ // preventing repeated explosions or duplicate damage in the same tick.
+ for(const decoy of host.effects){
+  if(decoy.type!=='decoyBody'||decoy.variant!=='ultimate'||decoy.triggered||decoy.end<=now)continue;
+  const maker=host.fighters.find(q=>q.id===decoy.owner);
+  for(const target of host.fighters){
+   if(!target.active||target.hp<=0||target.id===decoy.owner||maker&&friendly(maker,target))continue;
+   if(R.dist(decoy,target)<=(decoy.r||25)+R.R){triggerTrickDecoy(decoy,target,now);break;}
+  }
+ }
  for(const e of host.effects)if(e.type==='summonBody'&&e.end>now&&e.hp>0)tickPet(e,now,dt);
  host.shots=host.shots.filter(s=>{
   if(now>=s.end||s.left<=0)return false;
@@ -8339,6 +8404,7 @@ window.ArtArts=(()=>{
    else{s.x=tx;s.y=ty}
    const mirror=host.effects.find(e=>e.type==='reflect'&&e.end>now&&e.owner!==s.owner&&!s.passWalls&&R.dist(e,s)<e.r+(s.radius||4));
    if(mirror){const old=s.owner;s.owner=mirror.owner;s.vx=-s.vx;s.vy=-s.vy;s.hit=[];s.ricochetUntil=0;s.pierce=false;break}
+   if(s.style==='ultimateSeed')continue;
    const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature&&s.style==='bloodSeeker'){s.latchKind='pet';s.latchId=creature.id;s.nextBiteAt=now;return true;}if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);
     if(s.style==='catOrb'&&!(creature.lastCatPushAt>now-500)){creature.lastCatPushAt=now;const len=Math.hypot(s.vx,s.vy)||1,nx=creature.x+s.vx/len*20,ny=creature.y+s.vy/len*20;if(!R.blocked(nx,ny,host.blocks,creature.r)) {creature.x=nx;creature.y=ny;}}if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
    const guarding=now<(s.guardIgnoreUntil||0)?null:host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
@@ -8483,6 +8549,71 @@ window.ArtArts=(()=>{
 
  // Distinct, lightweight synthesized advanced ultimate cues. Respect mute/volume.
  let artsUltimateAudioContext=null;
+ function playArtsUltimateSequenceCue(kind){
+  try{
+   const prefs=window.ArtSound?.getSettings?.();if(prefs?.muted||prefs?.volume===0)return;
+   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+   if(!artsUltimateAudioContext)artsUltimateAudioContext=new AC();
+   const ac=artsUltimateAudioContext;if(ac.state==='suspended')void ac.resume().catch(()=>{});
+   const start=ac.currentTime+.018,volume=Math.min(1,Math.max(.05,Number(prefs?.volume??1)));
+   const groups={
+    gunner:[[880,1174,.32,'sine',.19],[1320,1760,.28,'triangle',.11]],
+    bloom:[[1100,300,.44,'sawtooth',.15],[420,720,.32,'triangle',.13]],
+    bounce:[[420,840,.24,'sine',.12],[590,1080,.32,'sine',.1],[780,1250,.27,'triangle',.09]],
+    laser:[[1750,470,.75,'sawtooth',.14],[105,48,.7,'sine',.17]],
+    kemono:[[138,84,.73,'sawtooth',.17],[196,294,.66,'triangle',.12],[392,586,.55,'sine',.12]]
+   };
+   (groups[kind]||[]).forEach(([from,to,dur,wave,loud],i)=>{
+    const at=start+i*.095,o=ac.createOscillator(),g=ac.createGain();o.type=wave;
+    o.frequency.setValueAtTime(from,at);o.frequency.exponentialRampToValueAtTime(to,at+dur);
+    g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(loud*volume,at+.025);
+    g.gain.exponentialRampToValueAtTime(.0001,at+dur);
+    o.connect(g);g.connect(ac.destination);o.start(at);o.stop(at+dur+.025);
+   });
+  }catch{}
+ }
+ function playTricksterUltimateSound(){
+  try{
+   const prefs=window.ArtSound?.getSettings?.();
+   if(prefs?.muted||prefs?.volume===0)return;
+   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+   if(!artsUltimateAudioContext)artsUltimateAudioContext=new AC();
+   const ac=artsUltimateAudioContext;
+   if(ac.state==='suspended')void ac.resume().catch(()=>{});
+   const t=ac.currentTime+.025,volume=.12*Math.min(1,Math.max(.05,Number(prefs?.volume??1)));
+   // A soft, multi-echo illusion chime rather than the previous heavy slash.
+   [659.25,880,783.99,1046.5,698.46,1174.66].forEach((f,i)=>{
+    const at=t+i*.085,osc=ac.createOscillator(),env=ac.createGain();
+    osc.type=i%2?'triangle':'sine';
+    osc.frequency.setValueAtTime(f,at);
+    osc.frequency.exponentialRampToValueAtTime(f*(i%2?.91:1.1),at+.3);
+    env.gain.setValueAtTime(.0001,at);
+    env.gain.exponentialRampToValueAtTime(volume/(2.5+i*.6),at+.018);
+    env.gain.exponentialRampToValueAtTime(.0001,at+.42);
+    osc.connect(env);env.connect(ac.destination);osc.start(at);osc.stop(at+.44);
+   });
+  }catch{}
+ }
+ function playArtsBigBangSound(){
+  try{
+   const prefs=window.ArtSound?.getSettings?.();if(prefs?.muted||prefs?.volume===0)return;
+   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+   if(!artsUltimateAudioContext)artsUltimateAudioContext=new AC();
+   const ac=artsUltimateAudioContext;if(ac.state==='suspended')void ac.resume().catch(()=>{});
+   const at=ac.currentTime+.015,volume=Math.min(1,Math.max(.05,Number(prefs?.volume??1)));
+   const master=ac.createGain();master.gain.value=.38*volume;master.connect(ac.destination);
+   const bass=ac.createOscillator(),bg=ac.createGain();bass.type='sine';bass.frequency.setValueAtTime(132,at);bass.frequency.exponentialRampToValueAtTime(36,at+.83);
+   bg.gain.setValueAtTime(.001,at);bg.gain.exponentialRampToValueAtTime(.8,at+.025);bg.gain.exponentialRampToValueAtTime(.001,at+.92);
+   bass.connect(bg);bg.connect(master);bass.start(at);bass.stop(at+.94);
+   const length=Math.round(ac.sampleRate*1.1),buf=ac.createBuffer(1,length,ac.sampleRate),data=buf.getChannelData(0);
+   for(let i=0;i<length;i++){const t=i/ac.sampleRate;data[i]=(Math.random()*2-1)*Math.exp(-t*5.5);}
+   const src=ac.createBufferSource(),low=ac.createBiquadFilter(),ng=ac.createGain();src.buffer=buf;low.type='lowpass';low.frequency.setValueAtTime(3500,at);low.frequency.exponentialRampToValueAtTime(120,at+1.05);
+   ng.gain.setValueAtTime(.001,at);ng.gain.exponentialRampToValueAtTime(.8,at+.018);ng.gain.exponentialRampToValueAtTime(.001,at+1.05);
+   src.connect(low);low.connect(ng);ng.connect(master);src.start(at);src.stop(at+1.1);
+   const fizz=ac.createOscillator(),fg=ac.createGain();fizz.type='sawtooth';fizz.frequency.setValueAtTime(910,at);fizz.frequency.exponentialRampToValueAtTime(130,at+.5);
+   fg.gain.setValueAtTime(.001,at);fg.gain.exponentialRampToValueAtTime(.11,at+.01);fg.gain.exponentialRampToValueAtTime(.001,at+.57);fizz.connect(fg);fg.connect(master);fizz.start(at);fizz.stop(at+.59);
+  }catch{}
+ }
  function playUltimateSignature(job,finisher=false){
   if(!['saint','executioner','dreamer','vampire'].includes(job))return;
   try{
@@ -8537,7 +8668,14 @@ window.ArtArts=(()=>{
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
       if((e.type==='ultimateCeremony'&&e.advanced)||e.type==='ultimateFinisher')playUltimateSignature(e.class,e.type==='ultimateFinisher');
-      window.ArtSound?.play(e.type==='ultimateFinisher'?'arts_new_heavy_slash':e.type==='ultimateCeremony'?(e.advanced?'arts_new_charge_shot':'arts_new_heavy_slash'):['artsSlashParry','artsGuardBreak'].includes(e.type)?'arts_new_heavy_slash':e.type==='artsMagicParry'?'artsGuard':advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
+      if(e.type==='ultimateCeremony'&&e.class==='trickster')playTricksterUltimateSound();
+      if(e.type==='ultimateCeremony'&&e.class==='gunner')playArtsUltimateSequenceCue('gunner');
+      if(e.type==='ultimateCeremony'&&e.class==='kemono')playArtsUltimateSequenceCue('kemono');
+      if(e.type==='ultimateGunnerBloom')playArtsUltimateSequenceCue('bloom');
+      if(e.type==='ultimateGunnerBounce')playArtsUltimateSequenceCue('bounce');
+      if(e.type==='ultimateGunnerLaser')playArtsUltimateSequenceCue('laser');
+      if(e.type==='ultimateBigBang'&&e.r>=200)playArtsBigBangSound();
+      if(!(e.type==='ultimateCeremony'&&['gunner','kemono'].includes(e.class))&&!['ultimateGunnerBloom','ultimateGunnerBounce','ultimateGunnerLaser'].includes(e.type))window.ArtSound?.play(e.type==='ultimateSlash'?(e.step===2?'arts_new_heavy_slash':'arts_new_clear_slash'):e.type==='ultimateFinisher'?'arts_new_heavy_slash':e.type==='ultimateBigBang'&&e.r>=200?'arts_new_quiet':e.type==='ultimateCeremony'?(e.class==='trickster'?'arts_new_quiet':e.class==='magician'?'arts_advanced_charge':e.advanced?'arts_new_charge_shot':'arts_new_heavy_slash'):['artsSlashParry','artsGuardBreak'].includes(e.type)?'arts_new_heavy_slash':e.type==='artsMagicParry'?'artsGuard':advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
       if(e.type==='nightmare_dispel')heardBuffWaves.add(e.buffWaveId??e.id);
      }
     }
@@ -8832,7 +8970,7 @@ finishPaint(false)};
   if(k==='petAttack')return e.petKind==='dog'?'arts_new_heavy_slash':e.petKind==='bat'?'arts_new_debuff':'arts_new_cute';
   if(k==='petHit')return 'arts_new_clear_slash';
   if(k==='petDeath')return 'arts_new_quiet';
-  if(k==='trickDecoyBlast')return 'arts_new_heavy_slash';
+  if(k==='trickDecoyBlast')return e.ultimate?'arts_new_debuff':'arts_new_heavy_slash';
   if(k==='trickMine')return 'arts_new_build';
   if(k==='trickMineBurst')return 'arts_new_debuff';
   if(k==='trickSlowMist')return 'arts_new_debuff';
@@ -9258,7 +9396,7 @@ finishPaint(false)};
   }
   ctx.globalAlpha=.9;const start=paths[0][0],end=paths.at(-1).at(-1);for(const[p,c,r]of [[start,'#23b99a',7],[end,'#ed805d',6]]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(pos.x+p.x,pos.y+p.y,r,0,Math.PI*2);ctx.fill()};ctx.restore();
  }
- function showSkills(){if(view?.phase!=='battle'||!self()?.active||self()?.hp<=0)return;stopInput();const p=self(),list=activeSkills(p);modal('アーツ・装備スキル',`<p><b>各スキルの図形と書き順</b>（緑が開始・赤が終了、矢印は進む方向です）</p><p>緑の点から射程円の内側に描きます。丸・三角・四角・星は複数の特徴を加点して判定し、少しの描き残しや丸い角も許容します。上位スキルは完成した図形で判定し、書き順・開始位置・描く方向は自由です。必ず一筆で描き、ペンや指を離すとすぐに発動します。ほかの技は曲がり・折り返し・交差も使って判定します。候補表示を確認してから離すと狙いやすくなります。回転・拡大縮小や逆順の描き方も使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。範囲の数値はゲーム内距離（キャラ直径40）です。描ける距離と技が届く距離は別です。クールダウンは技ごとに管理し、通常技の後は0.15秒、固有技の後は0.35秒の共通待ち時間があります。持ち込める固有スキルの数は部屋設定で0〜6個に変更できます（初期設定2個）。装備した技は図形を描けば発動します。</p><div class="arts-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p>${skillDetails(k)}<button type="button" data-arts-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="artsGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-arts-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.artsGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#artsGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
+ function showSkills(){if(view?.phase!=='battle'||!self()?.active||self()?.hp<=0)return;stopInput();const p=self(),list=activeSkills(p);modal('アーツ・装備スキル',`<p><b>各スキルの図形と書き順</b>（緑が開始・赤が終了、矢印は進む方向です）</p><p>緑の点から射程円の内側に描きます。丸・三角・四角・星は複数の特徴を加点して判定し、少しの描き残しや丸い角も許容します。上位スキルは完成した図形で判定し、書き順・開始位置・描く方向は自由です。必ず一筆で描き、ペンや指を離すとすぐに発動します。ほかの技は曲がり・折り返し・交差も使って判定します。候補表示を確認してから離すと狙いやすくなります。回転・拡大縮小や逆順の描き方も使えます。一筆で図形を描き、ペンや指を離した瞬間に発動判定します。お手本を見ながらそのままなぞることもできます。範囲の数値はゲーム内距離（キャラ直径40）です。描ける距離と技が届く距離は別です。クールダウンは技ごとに管理し、通常技の後は0.15秒、固有技の後は0.35秒の共通待ち時間があります。持ち込める固有スキルの数は部屋設定で0〜6個に変更できます（初期設定2個）。装備した技は図形を描けば発動します。</p><section class="arts-ultimate-effect" style="margin:12px 0;padding:14px;border:1px solid #b9b5d6;border-radius:12px;background:#f5f1ff"><h3>✦ 必殺技：${esc(ultimateArts[p.class]?.name||"未登録")}</h3><p><b>効果：</b>${esc(ultimateEffectsGuide[p.class]||"-")}</p><p><b>書き方：</b>${esc(ultimateInstructions[p.class]||"-")}</p><div style="max-width:220px;margin:auto">${ultimateGuideSVG(p.class,true)}</div></section><div class="arts-skill-grid">${list.map(k=>`<article>${guideSVG(k)}<b>${esc(moves[k].name)}</b><p>${esc(moves[k].text)}</p>${skillDetails(k)}<button type="button" data-arts-guide="${k}">戦場になぞり書きのお手本を表示</button></article>`).join('')}</div><button id="artsGuideOff">お手本を消す</button>`);document.querySelectorAll('[data-arts-guide]').forEach(b=>b.onclick=()=>{guide=b.dataset.artsGuide;$('#modal').close();hint('緑の点から薄いお手本を一筆でなぞり、ペンや指を離すと発動します。')});$('#artsGuideOff').onclick=()=>{guide=null;$('#modal').close()}}
  document.addEventListener('keydown',e=>{if(!enabled()||view?.phase!=='battle'||e.target.closest?.('input,textarea,select,[contenteditable=true]')||$('#modal').open)return;e.stopImmediatePropagation();if(e.code==='Space'){if(paintMode||gesture||strokes.length){e.preventDefault();finishPaint(false)}return}if(e.key==='Escape'){gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();hint('アーツをキャンセルしました。');sendInput();return}if(!battleActive())return;const k=e.key.toLowerCase();if(!['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))return;e.preventDefault();keys.add(k);keyMove()},true);
  document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(keys.delete(k)){keyMove();if(enabled())e.preventDefault()}},true);
  function keyMove(){move={x:(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y:(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)};const l=Math.max(1,Math.hypot(move.x,move.y));move.x/=l;move.y/=l;sendInput()}
@@ -10042,6 +10180,18 @@ function drawUltimateWorld(x,now){
         }
       }else if(e.type==='ultimateBigBang'){
         const base=e.r||110,shock=base*(.25+t*.92),core=base*Math.max(.08,.34*(1-t));
+        if(base>=200){
+         const flash=Math.max(0,1-t*4),outer=base*(.34+t*.9);
+         x.globalAlpha=Math.max(.03,(1-t)*.98);
+         const fire=x.createRadialGradient(0,0,1,0,0,outer);
+         fire.addColorStop(0,'rgba(255,255,255,.96)');fire.addColorStop(.13,'rgba(255,244,174,.9)');fire.addColorStop(.35,'rgba(255,155,70,.55)');fire.addColorStop(.68,'rgba(255,66,120,.22)');fire.addColorStop(1,'rgba(125,95,255,0)');
+         x.fillStyle=fire;x.beginPath();x.arc(0,0,outer,0,Math.PI*2);x.fill();
+         x.fillStyle='rgba(255,255,255,'+(flash*.75)+')';x.beginPath();x.arc(0,0,base*.25,0,Math.PI*2);x.fill();
+         for(let i=0;i<24;i++){const a=i*Math.PI/12+e.id*.17,from=base*(.16+t*.36),to=from+base*(.22+.2*(i%4)/4)*(1-t*.25);
+          x.strokeStyle=i%3===0?'rgba(255,250,215,.95)':i%3===1?'rgba(255,176,97,.82)':'rgba(255,135,201,.7)';x.lineWidth=(3+i%3)*(1-t*.5);x.shadowColor='#ffb46b';x.shadowBlur=14;
+          x.beginPath();x.moveTo(Math.cos(a)*from,Math.sin(a)*from);x.lineTo(Math.cos(a)*to,Math.sin(a)*to);x.stroke();}
+        }
+
         const grd=x.createRadialGradient(0,0,2,0,0,shock);
         grd.addColorStop(0,'rgba(255,255,255,.98)');grd.addColorStop(.12,'rgba(255,244,188,.98)');grd.addColorStop(.34,'rgba(255,160,207,.78)');grd.addColorStop(.58,'rgba(129,171,255,.38)');grd.addColorStop(1,'rgba(121,156,255,0)');
         x.fillStyle=grd;x.beginPath();x.arc(0,0,shock,0,Math.PI*2);x.fill();
@@ -10076,6 +10226,21 @@ function drawUltimateWorld(x,now){
     }
   }
 
+  // Gunner's four-stage ultimate: the bloom, ricochet release and laser finale.
+  for(const e of view.effects||[]){
+   if(!['ultimateGunnerBloom','ultimateGunnerBounce','ultimateGunnerLaser'].includes(e.type)||now>=e.end)continue;
+   const t=Math.max(0,Math.min(1,(now-e.start)/Math.max(1,e.end-e.start)));
+   x.save();x.translate(e.x,e.y);x.globalAlpha=1-t;
+   const laser=e.type==='ultimateGunnerLaser',bounce=e.type==='ultimateGunnerBounce';
+   x.shadowColor=laser?'#fff3b6':bounce?'#9be8ff':'#fdb4ed';x.shadowBlur=24;
+   x.strokeStyle=laser?'#fff2b3':bounce?'#b2ecff':'#ffd8f0';x.lineWidth=laser?6:3;
+   for(let ring=0;ring<(laser?3:2);ring++){x.beginPath();x.arc(0,0,(e.r||90)*(.24+t*.68+ring*.22),0,Math.PI*2);x.stroke();}
+   for(let j=0;j<(laser?20:14);j++){
+    const a=j*Math.PI*2/(laser?20:14)+t*.34,rr=(e.r||90)*(.16+t*.8),len=(laser?40:22)*(1-t);
+    x.beginPath();x.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);x.lineTo(Math.cos(a)*(rr+len),Math.sin(a)*(rr+len));x.stroke();
+   }
+   x.restore();
+  }
   for(const aura of view.ultimateActs||[]){if(aura.end<=now)continue;
     if(aura.job==='tank'){
       const pal=ultimateFxPalette('tank');
@@ -10094,7 +10259,17 @@ function drawUltimateWorld(x,now){
   for(const shot of view.shots||[]){if(!shot.style?.startsWith('ultimate')||now<shot.fireAt)continue;x.save();x.translate(shot.x,shot.y);const angle=Math.atan2(shot.vy,shot.vx);x.rotate(angle);
     const trail=x.createLinearGradient(-34,0,10,0);trail.addColorStop(0,'rgba(255,255,255,0)');trail.addColorStop(.45,'rgba(255,227,164,.22)');trail.addColorStop(1,'rgba(255,255,255,.88)');
     x.strokeStyle=trail;x.lineWidth=shot.style==='ultimateLaser'?8:shot.style==='ultimateStar'?5:4;x.shadowColor='#ffd997';x.shadowBlur=16;x.beginPath();x.moveTo(-30,0);x.lineTo(2,0);x.stroke();
-    if(shot.style==='ultimateLaser'){
+    if(shot.style==='ultimateSeed'){
+      const g=x.createRadialGradient(0,0,0,0,0,20);
+      g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,239,164,.95)');g.addColorStop(1,'rgba(227,112,255,0)');
+      x.fillStyle=g;x.beginPath();x.arc(0,0,20,0,Math.PI*2);x.fill();
+      x.strokeStyle='#fff8da';x.shadowColor='#ecc2ff';x.shadowBlur=20;x.lineWidth=2.2;
+      x.beginPath();x.arc(0,0,11+Math.sin(now/120)*2,0,Math.PI*2);x.stroke();
+    }else if(shot.style==='ultimateBounce'){
+      x.fillStyle='#c2faff';x.strokeStyle='#ffffff';x.shadowColor='#5cd5ff';x.shadowBlur=22;x.lineWidth=3;
+      x.beginPath();x.arc(0,0,shot.radius||9,0,Math.PI*2);x.fill();x.stroke();
+      x.strokeStyle='rgba(177,243,255,.58)';x.beginPath();x.arc(0,0,16,0,Math.PI*2);x.stroke();
+    }else if(shot.style==='ultimateLaser'){
       const grd=x.createLinearGradient(-40,0,40,0);grd.addColorStop(0,'rgba(255,195,247,0)');grd.addColorStop(.28,'#ffe9b8');grd.addColorStop(.6,'#ff91d0');grd.addColorStop(1,'rgba(169,220,255,0)');
       x.strokeStyle=grd;x.shadowColor='#ff9cd0';x.shadowBlur=22;x.lineWidth=10;x.beginPath();x.moveTo(-38,0);x.lineTo(38,0);x.stroke();x.lineWidth=3;x.strokeStyle='#fffbe7';x.beginPath();x.moveTo(-30,0);x.lineTo(30,0);x.stroke();
     }else if(shot.style==='ultimateStar'){
