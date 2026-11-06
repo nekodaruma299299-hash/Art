@@ -6789,10 +6789,10 @@ window.ArtArts=(()=>{
   const gained=Math.max(0,Number(healAmount)||0);
   // Saint: actual healing counts, but continuous regeneration should not
   // refill an ultimate almost immediately. Zero effective healing gives no AM.
-  if(gained>0)addArtMatter(caster,gained*.4);
+  if(gained>0)addArtMatter(caster,gained*.2);
   if(!buffName)return;
   const key=buffName+':'+target.id,awards=(caster._matterBuffAwards??={});
-  if(now-(awards[key]??-Infinity)>=15000){awards[key]=now;addArtMatter(caster,10)}
+  if(now-(awards[key]??-Infinity)>=25000){awards[key]=now;addArtMatter(caster,5)}
  }
  function matterGunnerShot(caster,count){
   if(caster?.class!=='gunner'||count<=0)return;
@@ -6800,7 +6800,7 @@ window.ArtArts=(()=>{
   addArtMatter(caster,Math.min(24,Math.max(1,count)*3.5));
  }
  function matterVampireLeech(caster,recovered){
-  if(caster?.class==='vampire'&&recovered>0)addArtMatter(caster,recovered*1.6);
+  if(caster?.class==='vampire'&&recovered>0)addArtMatter(caster,recovered*2.2);
  }
  function createUltimateEvent(p,now,duration=1400,extra={}){
   host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:p.class,x:p.x,y:p.y,r:105,advanced:ultimateArts[p.class]?.advanced,start:now,end:now+duration,...extra});
@@ -7269,7 +7269,7 @@ window.ArtArts=(()=>{
  const defense=Math.max(0,Number(target.stats?.[2])||0);
  const mitigation=armorPierce?0:Math.min(.55,defense<=20?defense*.015:defense<=30?.30+(defense-20)*.01:defense<=40?.40+(defense-30)*.007:.47+(defense-40)*.005);
  const coat=target.iron>now?(kind==='magic'?.1:.5):1;
- if(absorbed>0&&target.class==='tank'){addArtMatter(target,absorbed*1.15);artsMatterCombatBonus(target,'armor',now,4,800);}
+ if(absorbed>0&&target.class==='tank'){addArtMatter(target,absorbed);artsMatterCombatBonus(target,'armor',now,4,800);}
  const actual=Math.min(target.hp,raw>absorbed?Math.max(1,(raw-absorbed)*(1-mitigation)*coat):0),impact=actual+absorbed;target.hp-=actual;
  if(actual>.001){
   const poison=!!(source&&(source.poison===true||source.type==='trickMine'&&source.owner===target.trickPoisonOwner));
@@ -7281,8 +7281,9 @@ window.ArtArts=(()=>{
   if(dealer){{target.crime=(target.crime||0);dealer.crime=(dealer.crime||0)+actual;
    if(!friendly(dealer,target)){
     // Attacker/Magician earn exactly the real HP damage dealt, with no hit bonus.
-    const rate=(dealer.class==='attacker'||dealer.class==='magician')?1:dealer.class==='executioner'?.85:dealer.class==='vampire'?(source?.style==='bloodSeeker'||String(source?.type||'').startsWith('blood')?.75:.30):.12;
+    const rate=dealer.class==='attacker'?1:dealer.class==='magician'?0:dealer.class==='executioner'?.85:dealer.class==='vampire'?(source?.style==='bloodSeeker'||String(source?.type||'').startsWith('blood')?1.2:.65):.12;
     addArtMatter(dealer,actual*rate);
+    if(dealer.class==='kemono'&&(source?.style==='catOrb'||source?.petKind==='dog'||source?.type==='summonBody'))addArtMatter(dealer,5);
     if(dealer.class==='executioner')artsMatterCombatBonus(dealer,'hit',now,4,700);
    }}
    if(dealer.ultimateBloodUntil>now&&dealer.id!==target.id)dealer.hp=Math.min(dealer.maxHp||100,dealer.hp+actual*.4);
@@ -7362,7 +7363,7 @@ window.ArtArts=(()=>{
  }
  function artsGuardHit(q,amount,now,kind){
   const intact=amount<=Math.max(0,q.guardValue||0);
-  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));if(q.class==='tank'){addArtMatter(q,Math.max(0,amount)*1.25);artsMatterCombatBonus(q,'parry',now,6,650);}}
+  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));if(q.class==='tank'){addArtMatter(q,Math.max(0,amount));artsMatterCombatBonus(q,'parry',now,6,650);}}
   else{q.guard=0;q.guardValue=0;
    for(const e of host.effects)if(e.type==='guard'&&e.owner===q.id&&e.end>now)e.end=now;
   }
@@ -7681,7 +7682,11 @@ window.ArtArts=(()=>{
  if(shape.type==='ricochet'&&host.blocks.some(b=>(b.type==='stone'||(b.type==='wall'&&b.hp>0))&&R.intersects(p.x+shape.x,p.y+shape.y,11,b))){p.castError='壁の中からは跳弾を撃てません。';return false}
  if(shape.type==='trick_mine'&&R.blocked(p.x+shape.x,p.y+shape.y,host.blocks,R.R)){p.castError='障害物の上には地雷を設置できません。';return false;}
  if(shape.type==='summon'&&host.effects.filter(v=>v.type==='summonBody'&&v.owner===id&&v.hp>0&&v.end>now).length>=2){p.castError='ペットは同時に2体まで召喚できます。';return false}
- const sizeFactor=artsSizeFactor(shape),sizeArea=artsSizeArea(shape),sizeBuff=artsSingleFactor(shape);const basicArt=['guard','slash','magic'].includes(shape.type);const cost=m.class?Math.ceil(R.cost(shape)*R.clamp(.88+(sizeFactor-1)*.7,.80,1.45)):R.cost(shape),readyAt=basicArt?0:Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(shape.type==='blood_slash'&&p.hp<=25){p.castError='HPが26以上必要です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;if(!basicArt){(p.artCooldowns??={})[shape.type]=now+(p.class==='vampire'&&['ghost','drain'].includes(shape.type)?m.cooldown*.5:m.cooldown);p.nextCast=now+(m.class?350:150);}else{(p.artCooldowns??={})[shape.type]=0;p.nextCast=0;}if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
+ const sizeFactor=artsSizeFactor(shape),sizeArea=artsSizeArea(shape),sizeBuff=artsSingleFactor(shape);const basicArt=['guard','slash','magic'].includes(shape.type);const cost=m.class?Math.ceil(R.cost(shape)*R.clamp(.88+(sizeFactor-1)*.7,.80,1.45)):R.cost(shape),readyAt=basicArt?0:Math.max(p.nextCast||0,m.class?p.artGlobalUntil||0:0,p.artCooldowns?.[shape.type]||0);if(readyAt>now){p.castError='再使用まであと '+Math.ceil((readyAt-now)/100)/10+'秒です。';return false}if(shape.type==='blood_slash'&&p.hp<=25){p.castError='HPが26以上必要です。';return false}if(p.ink<cost){p.castError='インク不足です（必要 '+cost+' / 現在 '+Math.floor(p.ink)+'）。小さめに描くと消費が減ります。';return false}p.ink-=cost;
+ // Magician: earn Art Matter for the ink paid by successful class arts, not HP damage.
+ // Basic Guard/Slash/Magic and the ultimate itself do not grant cast matter.
+ if(p.class==='magician'&&m.class&&cost>0)addArtMatter(p,cost*.8);
+ if(!basicArt){(p.artCooldowns??={})[shape.type]=now+(p.class==='vampire'&&['ghost','drain'].includes(shape.type)?m.cooldown*.5:m.cooldown);p.nextCast=now+(m.class?350:150);}else{(p.artCooldowns??={})[shape.type]=0;p.nextCast=0;}if(m.class)p.artGlobalUntil=now+350;p.drawing=false;p.flash=now+800;p.daydreamUntil=0;
  if(p.mirageHiddenUntil>now&&MIRAGE_OFFENSIVE_ARTS.has(shape.type))p.mirageRevealAt=now;
  const attack=(p.stats[1]+(p.beastUntil>now?(p.beastPower||20):0)+(p.carbuncleUntil>now?10:0)-(p.attackDebuffUntil>now?20:0))*(p.auraUntil>now?1.5:1);
  const power=R.clamp(shape.length/220,.45,2.6),aim=Number.isFinite(shape.angle)?shape.angle:Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):-Math.PI/2,dx=shape.x,dy=shape.y,len=Math.hypot(dx,dy)||1,target={x:R.clamp(p.x+dx,20,R.W-20),y:R.clamp(p.y+dy,20,R.H-20)};
@@ -7811,7 +7816,7 @@ window.ArtArts=(()=>{
   e.end=now+1000;e.r=60;
  }
  if(shape.type==='ghost'){
-  fireShot(aim,{power:25+attack*.75,speed:100,distance:1300,radius:11,knockback:30,pierce:false,passWalls:true,fireAt:now+800,duration:13900,style:'ghost'});
+  fireShot(aim,{power:25+attack*.75,speed:100,distance:1300,radius:11,knockback:30,pierce:false,passWalls:true,fireAt:now+800,duration:10800,style:'ghost'});
   e.hit=now+800;e.end=now+1150;e.range=850;e.r=16;
  }
  if(shape.type==='spread'){
@@ -8005,7 +8010,7 @@ window.ArtArts=(()=>{
   }
   if(k==='blood_slash'){
    // Paid in HP instead of ink; never kill the caster as a side effect of casting.
-   p.hp=Math.max(1,p.hp-25);showArtsNumber(p,'damage',25,now);
+   const bloodCost=Math.min(25,Math.max(0,p.hp-1));p.hp-=bloodCost;showArtsNumber(p,'damage',bloodCost,now);if(p.class==='vampire')addArtMatter(p,bloodCost*1.3);
    e.type='bloodSlash';e.x=p.x;e.y=p.y;e.r=102*e.sizeArea;e.angle=shape.angle||0;e.power=90;e.end=now+820;e.hit=now+130;e.damageType='physical';e.start=now;return true;
   }
   if(k==='blood_ritual'){
@@ -8083,6 +8088,8 @@ window.ArtArts=(()=>{
      const hpBefore=owner.hp;
       owner.hp=Math.min(owner.maxHp||100,owner.hp+inkGained);
       const hpHealed=Math.max(0,owner.hp-hpBefore);
+      // The stolen ink counts even when the caster is already at full HP.
+      if(owner.class==='vampire'&&inkGained>0)addArtMatter(owner,inkGained*.9);
       matterVampireLeech(owner,hpHealed);
       if(hpHealed>0)showArtsNumber(owner,'heal',hpHealed,now)
     }
@@ -8105,10 +8112,13 @@ window.ArtArts=(()=>{
    }else if(e.petKind==='bat'){
     e.step=(e.step||0)+dt*5;const strafe=Math.sin(e.step)*55;
     const goal={x:q.x-Math.cos(a)*54-Math.sin(a)*strafe,y:q.y-Math.sin(a)*54+Math.cos(a)*strafe};movePet(e,goal,e.walkSpeed*(e.slow>now?.5:1),dt,now);
-    if(d<e.r+(q.r||R.R)+16&&now>=e.attackAt){e.attackAt=now+900;const actual=creatureDamageTarget(owner,q,Math.max(1,5+(e.carbuncleUntil>now?10:0)-(e.attackDebuffUntil>now?20:0)),now);host.effects.push({id:++host.seq,type:'petAttack',petKind:'bat',owner:e.owner,x:e.x,y:e.y,r:20,angle:a,start:now,end:now+220});petHeal(e,actual*.5,now);host.effects.push({id:++host.seq,type:'bloodSoul',owner:e.owner,x:q.x,y:q.y,tx:e.x,ty:e.y,r:7,start:now,end:now+520});}
+    if(d<e.r+(q.r||R.R)+16&&now>=e.attackAt){e.attackAt=now+900;const actual=creatureDamageTarget(owner,q,Math.max(1,5+(e.carbuncleUntil>now?10:0)-(e.attackDebuffUntil>now?20:0)),now);host.effects.push({id:++host.seq,type:'petAttack',petKind:'bat',owner:e.owner,x:e.x,y:e.y,r:20,angle:a,start:now,end:now+220});const batRecovered=petHeal(e,actual*.5,now);if(owner.class==='vampire'&&actual>0){
+      // Summoned bat's successful bite pays its vampire master, not only the pet.
+      addArtMatter(owner,actual*1.15+batRecovered*.65);
+     }host.effects.push({id:++host.seq,type:'bloodSoul',owner:e.owner,x:q.x,y:q.y,tx:e.x,ty:e.y,r:7,start:now,end:now+520});}
    }else if(e.petKind==='dog'){
     if(d>e.r+(q.r||R.R)+12)movePet(e,q,e.walkSpeed*(e.slow>now?.5:1),dt,now);
-    if(d<e.r+(q.r||R.R)+15&&now>=e.attackAt){e.attackAt=now+1200;host.effects.push({id:++host.seq,type:'petAttack',petKind:'dog',owner:e.owner,x:e.x,y:e.y,r:22,angle:a,start:now,end:now+220});creatureDamageTarget(owner,q,Math.max(1,3+(e.carbuncleUntil>now?10:0)-(e.attackDebuffUntil>now?20:0)),now)}
+    if(d<e.r+(q.r||R.R)+15&&now>=e.attackAt){e.attackAt=now+1200;host.effects.push({id:++host.seq,type:'petAttack',petKind:'dog',owner:e.owner,x:e.x,y:e.y,r:22,angle:a,start:now,end:now+220});creatureDamageTarget(owner,q,Math.max(1,3+(e.carbuncleUntil>now?10:0)-(e.attackDebuffUntil>now?20:0)),now,{petKind:'dog'})}
    }
    return;
   }
@@ -11761,7 +11771,7 @@ window.ArtShadow=(()=>{
   e.end=now+1000;e.r=60;
  }
  if(shape.type==='ghost'){
-  fireShot(aim,{power:25+attack*.75,speed:100,distance:1300,radius:11,knockback:30,pierce:false,passWalls:true,fireAt:now+800,duration:13900,style:'ghost'});
+  fireShot(aim,{power:25+attack*.75,speed:100,distance:1300,radius:11,knockback:30,pierce:false,passWalls:true,fireAt:now+800,duration:10800,style:'ghost'});
   e.hit=now+800;e.end=now+1150;e.range=850;e.r=16;
  }
  if(shape.type==='spread'){
