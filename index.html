@@ -6711,19 +6711,85 @@ window.ArtArts=(()=>{
   const len=svg.getTotalLength(),pts=Array.from({length:65},(_,i)=>{const p=svg.getPointAtLength(len*i/64);return{x:p.x,y:p.y}});
   ultimateTemplates.set(key,pts);return pts;
  }
+ // Compare the entire one-stroke path, not just the first SVG draw command.
+ // Allow modest finger/Pencil wobble, either drawing direction, and a little tilt.
  function ultimateSimilarity(strokes,key){
+  if(!Array.isArray(strokes)||strokes.length!==1||strokes[0]?.length<8)return Infinity;
   const input=R.resample(strokes[0],65),template=ultimateTemplate(key);
   if(input.length!==65||template.length!==65)return Infinity;
-  const norm=pts=>{const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));const span=Math.max(maxx-minx,maxy-miny)||1;return pts.map(p=>({x:(p.x-(minx+maxx)/2)/span,y:(p.y-(miny+maxy)/2)/span}))};
+  const norm=pts=>{const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);const span=Math.max(maxx-minx,maxy-miny)||1;return pts.map(p=>({x:(p.x-(minx+maxx)/2)/span,y:(p.y-(miny+maxy)/2)/span}))};
   const a=norm(input),b=norm(template);
-  return a.reduce((acc,p,i)=>acc+Math.hypot(p.x-b[i].x,p.y-b[i].y),0)/a.length;
+  let best=Infinity;
+  for(const reverse of [false,true]){
+   const sample=reverse?[...a].reverse():a;
+   for(const angle of [-.20,-.10,0,.10,.20]){
+    const co=Math.cos(angle),si=Math.sin(angle);
+    let sum=0;
+    for(let i=0;i<sample.length;i++){
+     const p=sample[i],x=p.x*co-p.y*si,y=p.x*si+p.y*co;
+     sum+=Math.hypot(x-b[i].x,y-b[i].y);
+    }
+    best=Math.min(best,sum/sample.length);
+   }
+  }
+  return best;
  }
  function ultimateRecognition(strokes,job){
   if(!ultimateArts[job]||strokes.length!==1||strokes[0].length<8)return null;
+  const box=strokes[0],xs=box.map(p=>p.x),ys=box.map(p=>p.y);
+  if(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))<34)return null;
   const score=ultimateSimilarity(strokes,job);
-  return score<(.155+(ultimateArts[job].advanced?.035:0))?job:null;
+  return score<(ultimateArts[job].advanced?.255:.225)?job:null;
  }
+ function ultimateGuideSVG(key,details=false){
+  const def=ultimateArts[key],points=ultimateTemplate(key);if(!def||!points.length)return '';
+  const minx=Math.min(...points.map(p=>p.x))-14,maxx=Math.max(...points.map(p=>p.x))+14;
+  const miny=Math.min(...points.map(p=>p.y))-14,maxy=Math.max(...points.map(p=>p.y))+14;
+  const box=[minx,miny,maxx-minx,maxy-miny].map(v=>Number(v.toFixed(2))).join(' ');
+  const path='<path d="'+def.path+'" fill="none" stroke="currentColor" stroke-width="'+(details?4.5:7)+'" stroke-linecap="round" stroke-linejoin="round"/>';
+  if(!details)return '<svg viewBox="'+box+'" aria-hidden="true">'+path+'</svg>';
+  const p0=points[0],last=points.at(-1),marks=[];
+  for(const i of [12,28,44,58]){const p=points[i],a=points[i-1],b=points[i+1],ang=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+   marks.push('<path d="M -7 -6 L 2 0 L -7 6" fill="none" stroke="#f59e4e" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" transform="translate('+p.x.toFixed(2)+' '+p.y.toFixed(2)+') rotate('+ang.toFixed(2)+')"/>');}
+  return '<svg viewBox="'+box+'" role="img" aria-label="'+esc(def.name)+'の描き順">'+path+marks.join('')+'<circle cx="'+p0.x+'" cy="'+p0.y+'" r="7" fill="#25b98e" stroke="white" stroke-width="2"/><circle cx="'+last.x+'" cy="'+last.y+'" r="6" fill="#f18561" stroke="white" stroke-width="2"/></svg>';
+ }
+ const ultimateInstructions={
+  attacker:'緑の点から、3つの鋭い山を左から右へ一筆で描きます。',
+  tank:'左下から城壁を登り、2つの塔の角を描いて右下へ。最後に底辺を閉じます。',
+  trickster:'左側から3つの仮面の山を順番に描き、下側を回って閉じます。',
+  kemono:'左下から右下へ、3つの獣爪の頂点を経由して描きます。',
+  gunner:'頂点から外周の星弾を順にたどり、一周して閉じます。',
+  magician:'上の頂点から星の外周を一周します。続けて頂点から中心へ進み、内側の渦を描きます。',
+  vampire:'三日月の上端から外側を下り、2本の牙を描いて内側の弧で上端へ戻ります。',
+  saint:'光輪の左端から上を通って右へ。左右の翼と中心の尖りを続けて描きます。',
+  executioner:'目の左端から上まぶた、下まぶたの順に描き、下の裁きの刃へつなげます。',
+  dreamer:'上の中央から左右対称の目の外周を一周し、中央に下りて菱形の瞳を描きます。'
+ };
+ function showUltimateGuide(){
+  const me=self();if(!me||!ultimateArts[me.class])return;
+  const def=ultimateArts[me.class];stopInput();
+  modal(def.name+'（'+def.reading+'）','<div class="arts-ultimate-detail">'+ultimateGuideSVG(me.class,true)+'</div><p><b>緑＝始点、オレンジ＝終点、矢印＝進む方向</b></p><p>'+esc(ultimateInstructions[me.class])+'</p><p>一筆で描いて、ペンまたは指を離すと判定します。大きさや多少の手ブレは許容します。アートマター100のときのみ発動可能です。失敗してもアートマターとインクは消費しません。</p>');
+ }
+ // Art Arts only: high-activity ultimate-gauge balance, max 100. Do not touch Art Traitor.
  function addArtMatter(p,amount){if(!p||!p.active||p.hp<=0||!Number.isFinite(amount)||amount<=0)return;p.artMatter=Math.min(100,(p.artMatter||0)+amount)}
+ // Support skills must provide genuine healing or refresh a meaningful buff; trivial
+ // recasts on the same recipient never generate unlimited Art Matter.
+ function matterSaintSupport(caster,target,healAmount,buffName='',now=Date.now()){
+  if(caster?.class!=='saint'||!target||!target.active||target.hp<=0)return;
+  const gained=Math.max(0,Number(healAmount)||0);
+  if(gained>0)addArtMatter(caster,gained*.7);
+  if(!buffName)return;
+  const key=buffName+':'+target.id,awards=(caster._matterBuffAwards??={});
+  if(now-(awards[key]??-Infinity)>=10000){awards[key]=now;addArtMatter(caster,16)}
+ }
+ function matterGunnerShot(caster,count){
+  if(caster?.class!=='gunner'||count<=0)return;
+  // A large volley counts, but one tap cannot instantly fill the entire bar.
+  addArtMatter(caster,Math.min(24,Math.max(1,count)*3.5));
+ }
+ function matterVampireLeech(caster,recovered){
+  if(caster?.class==='vampire'&&recovered>0)addArtMatter(caster,recovered*.9);
+ }
  function createUltimateEvent(p,now,duration=1400,extra={}){
   host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:p.class,x:p.x,y:p.y,r:105,advanced:ultimateArts[p.class]?.advanced,start:now,end:now+duration,...extra});
  }
@@ -6762,7 +6828,7 @@ window.ArtArts=(()=>{
  }
  function updateUltimateArts(dt,now){
   for(const p of host.fighters){if(!p.active||p.hp<=0)continue;
-   if(p.class==='dreamer'&&!p.moving&&!p.drawing)addArtMatter(p,dt*1.5);
+   if(p.class==='dreamer'&&!p.moving&&!p.drawing)addArtMatter(p,dt*2.8);
    if(p.divineStart){
     if(now>=p.divineNextDrain){const seconds=Math.max(1,Math.floor((now-p.divineNextDrain)/1000)+1),lossRate=Math.min(5,1+Math.floor((now-p.divineStart)/30000));p.hp=Math.max(0,p.hp-(p.maxHp||100)*lossRate*.01*seconds);p.divineNextDrain+=seconds*1000;if(!p.hp)p.killedBy=p.id;}
     if(p.hp>0){const bonus=30;p.stats=p.baseStats.map(v=>v+bonus).map(v=>p.ascensionUntil>now?v*1.5:v);p.maxInk=(p.baseMaxInk||100)*(1+30/Math.max(1,p.baseStats[3]))*(p.ascensionUntil>now?1.5:1)}
@@ -6890,7 +6956,13 @@ window.ArtArts=(()=>{
 
  function selectedCharacter(){try{return localStorage.getItem('artopia-arts-character')||''}catch{return ''}}
  function installCharacter(id){try{localStorage.setItem('artopia-arts-character',id)}catch{toast('キャラの選択を保存できませんでした。');return false}return true}
- async function openCharacterStudio(art=null){if(room){toast('現在の部屋を退出してからキャラ制作を開いてください。');return}if(!profile.name){showProfile(true);return}if(art&&!installCharacter(art.id))return;try{await startRoom({mode:'arts',characterOnly:true,name:'キャラクター制作',code:'character-studio',w:512,h:512,history:5,limit:1,spectate:false,protect:false,snapshotInterval:0,artsSettings:R.settings()},null,true);$('#modal').close();begin()}catch{toast('キャラ制作を開けませんでした。')}}
+ // A character is only preloaded in the standalone studio after an explicit
+ // 'キャラ制作で開く' request. The saved battle character is NOT a studio default.
+ let explicitlyEditedArtsCharacter=null;
+ async function openCharacterStudio(art=null){if(room){toast('現在の部屋を退出してからキャラ制作を開いてください。');return}if(!profile.name){showProfile(true);return}
+  explicitlyEditedArtsCharacter=art?.format==='arts-character'?art:null;
+  try{await startRoom({mode:'arts',characterOnly:true,name:'キャラクター制作',code:'character-studio',w:512,h:512,history:5,limit:1,spectate:false,protect:false,snapshotInterval:0,artsSettings:R.settings()},null,true);$('#modal').close();begin()}
+  catch{explicitlyEditedArtsCharacter=null;toast('キャラ制作を開けませんでした。')}}
  async function loadCharacter(art,quiet=false){if(!canDraw()||view?.phase!=='create')return false;const game=view.id,token=sessionToken,originalEngine=engine,originalOps=engine.ops.length;let source;
  try{source=await E.image(art.image);if(token!==sessionToken||view?.id!==game||!canDraw()||stroke||engine!==originalEngine||engine.ops.length!==originalOps||(quiet&&room.hasArt))return false;if(!quiet&&room.hasArt&&!confirm('現在描いているキャラを、保存キャラに入れ替えますか？'))return false;clearCanvas();characterPaths=R.cleanDrawingPaths(art.drawingPaths||[]);characterFacing=art.artFacing===-1?-1:1;if($('#artsCharacterFacing'))$('#artsCharacterFacing').value=String(characterFacing);const ctx=engine.base[0].getContext('2d'),z=Math.min(1,engine.w/source.width,engine.h/source.height);ctx.drawImage(source,(engine.w-source.width*z)/2,(engine.h-source.height*z)/2,source.width*z,source.height*z);engine.rebuild();room.hasArt=true;invalidateLocalView();render();renderControls();if(!quiet){$('#modal').close();toast('キャラを読み込みました。加筆してから準備完了にできます。')}return true}catch{if(token===sessionToken)toast('キャラを読み込めませんでした。');return false}}
  async function loadInstalledCharacter(){const id=selectedCharacter();if(!id)return;const token=sessionToken,game=view?.id;try{const a=await db('art','readonly',store=>store.get(id));if(a?.format==='arts-character'&&token===sessionToken&&game===view?.id&&!room.hasArt&&!stroke&&!engine.ops.length)await loadCharacter(a,true)}catch{toast('保存キャラを読み込めませんでした。')}}
@@ -6898,7 +6970,7 @@ window.ArtArts=(()=>{
  modal('キャラクターを絵画展に保存','<img class="art-view" style="max-height:220px;image-rendering:auto" src="'+esc(art.originalImage||art.image)+'" alt="保存するキャラ">'+statsHTML(art.stats)+'<form id="artsSaveCharacterForm"><label class="form-field">キャラの名前<input id="artsCharacterName" maxlength="40" value="'+esc(profile.name+'のキャラ')+'" required></label><button class="primary">絵画展に保存</button></form>');
  $('#artsSaveCharacterForm').onsubmit=async e=>{e.preventDefault();const name=$('#artsCharacterName').value.trim();if(!name)return;const button=e.target.querySelector('button');button.disabled=true;try{const record={id:uid(),format:'arts-character',name,at:Date.now(),image:art.originalImage||art.image,thumb:art.image,w:art.originalW||192,h:art.originalH||192,stats:[...art.stats],drawingPaths:R.cleanDrawingPaths(art.drawingPaths||[]),artFacing:art.artFacing===-1?-1:1,class:R.type(art.stats,art.drawingPaths)};await db('art','readwrite',store=>store.put(record));await refreshGallery();$('#modal').close();toast('キャラを絵画展に保存しました。')}catch{button.disabled=false;toast('保存できませんでした。端末の空き容量をご確認ください。')}};
  }
- async function characterPicker(){try{await refreshGallery();const list=gallery.filter(a=>a.format==='arts-character');modal('絵画展のキャラクター','<p>キャラを選ぶと、制作中のキャンバスに読み込めます。ホームでは次回使用するキャラを選択します。</p><div class="arts-character-grid">'+list.map(a=>'<button data-character-id="'+esc(a.id)+'"><img src="'+esc(a.thumb)+'" alt=""><b>'+esc(a.name)+'</b>'+(selectedCharacter()===a.id?'<small>選択中</small>':'')+'</button>').join('')+'</div>'+(!list.length?'<p>保存したキャラがありません。「キャラ制作だけ」から作成できます。</p>':'')+'<button id="artsCharacterClear">次回は白紙から描く</button>');document.querySelectorAll('[data-character-id]').forEach(button=>button.onclick=async()=>{const a=await db('art','readonly',store=>store.get(button.dataset.characterId));if(!a){toast('キャラが見つかりません。');return}if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のキャラ作成時に読み込みます。')}});$('#artsCharacterClear').onclick=()=>{if(installCharacter('')){$('#modal').close();toast('次回は白紙から描きます。')}}}catch{toast('絵画展を読み込めませんでした。')}}
+ async function characterPicker(){try{await refreshGallery();const list=gallery.filter(a=>a.format==='arts-character');modal('絵画展のキャラクター','<p>キャラを選ぶと、制作中のキャンバスに読み込めます。ホームでは次回の対戦用キャラを選択します。「キャラ制作だけ」は白紙から始まります。</p><div class="arts-character-grid">'+list.map(a=>'<button data-character-id="'+esc(a.id)+'"><img src="'+esc(a.thumb)+'" alt=""><b>'+esc(a.name)+'</b>'+(selectedCharacter()===a.id?'<small>選択中</small>':'')+'</button>').join('')+'</div>'+(!list.length?'<p>保存したキャラがありません。「キャラ制作だけ」から作成できます。</p>':'')+'<button id="artsCharacterClear">次回は白紙から描く</button>');document.querySelectorAll('[data-character-id]').forEach(button=>button.onclick=async()=>{const a=await db('art','readonly',store=>store.get(button.dataset.characterId));if(!a){toast('キャラが見つかりません。');return}if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回の対戦用キャラ作成時に読み込みます。')}});$('#artsCharacterClear').onclick=()=>{if(installCharacter('')){$('#modal').close();toast('次回の対戦用キャラ作成は白紙から始まります。')}}}catch{toast('絵画展を読み込めませんでした。')}}
  function showCharacter(a){modal(a.name,'<img class="art-view" src="'+esc(a.image)+'" alt="'+esc(a.name)+'">'+statsHTML(a.stats||[20,20,20,20,20])+'<div class="modal-actions"><button id="artsInstallCharacter" class="primary">このキャラを使う</button><button id="artsEditCharacter">キャラ制作で開く</button><button id="artsDownloadCharacter">PNG保存</button><button id="artsDeleteCharacter">削除</button></div>');$('#artsInstallCharacter').onclick=async()=>{if(canDraw()&&view?.phase==='create')await loadCharacter(a);else if(installCharacter(a.id)){$('#modal').close();toast('次回のアートアーツでこのキャラを読み込みます。')}};$('#artsEditCharacter').onclick=()=>openCharacterStudio(a);$('#artsDownloadCharacter').onclick=()=>download(a.image,a.name+'.png');$('#artsDeleteCharacter').onclick=async()=>{if(!confirm('このキャラを絵画展から削除しますか？'))return;await db('art','readwrite',store=>store.delete(a.id));if(selectedCharacter()===a.id)installCharacter('');$('#modal').close();await refreshGallery()};}
  function collectDrawingPaths(includeCurrent=false){const ops=engine.ops.filter(a=>!a.disabled&&a.tool==='pen'&&Array.isArray(a.points)&&a.points.length>=2);if(includeCurrent&&stroke?.tool==='pen'&&stroke.points?.length>=2&&!ops.some(a=>a.id===stroke.id))ops.push(stroke);const indexed=ops.map((a,i)=>({a,i,weight:a.points.reduce((sum,p,j)=>j?sum+Math.hypot(p[0]-a.points[j-1][0],p[1]-a.points[j-1][1]):sum,0)}));const slots=Math.max(0,64-Math.min(characterPaths.length,ops.length?48:64)),ranked=[...indexed].sort((a,b)=>b.weight-a.weight).slice(0,Math.min(24,Math.max(0,slots-12)));
   const seen=new Set(ranked.map(p=>p.i));
@@ -7186,7 +7258,7 @@ window.ArtArts=(()=>{
  const defense=Math.max(0,Number(target.stats?.[2])||0);
  const mitigation=armorPierce?0:Math.min(.55,defense<=20?defense*.015:defense<=30?.30+(defense-20)*.01:defense<=40?.40+(defense-30)*.007:.47+(defense-40)*.005);
  const coat=target.iron>now?(kind==='magic'?.1:.5):1;
- if(absorbed>0)addArtMatter(target,target.class==='tank'?absorbed*.22:0);
+ if(absorbed>0)addArtMatter(target,target.class==='tank'?absorbed*.55:0);
  const actual=Math.min(target.hp,raw>absorbed?Math.max(1,(raw-absorbed)*(1-mitigation)*coat):0),impact=actual+absorbed;target.hp-=actual;
  if(actual>.001){
   const poison=!!(source&&(source.poison===true||source.type==='trickMine'&&source.owner===target.trickPoisonOwner));
@@ -7197,12 +7269,12 @@ window.ArtArts=(()=>{
  if(actual>0){
   if(dealer){{target.crime=(target.crime||0);dealer.crime=(dealer.crime||0)+actual;
    if(!friendly(dealer,target)){
-    const rate=(dealer.class==='attacker'||dealer.class==='magician')?0.2:dealer.class==='executioner'?0.15:dealer.class==='vampire'?(source?.style==='bloodSeeker'||String(source?.type||'').startsWith('blood')?0.30:0.06):0.06;
+    const rate=(dealer.class==='attacker'||dealer.class==='magician')?.60:dealer.class==='executioner'?.40:dealer.class==='vampire'?(source?.style==='bloodSeeker'||String(source?.type||'').startsWith('blood')?.55:.18):.12;
     addArtMatter(dealer,actual*rate);
    }}
    if(dealer.ultimateBloodUntil>now&&dealer.id!==target.id)dealer.hp=Math.min(dealer.maxHp||100,dealer.hp+actual*.4);
   }
-  addArtMatter(target,actual*(target.class==='tank'?.2:target.class==='executioner'?.15:0));
+  addArtMatter(target,actual*(target.class==='tank'?.45:target.class==='executioner'?.40:0));
  }
  if(actual>0&&dealer&&dealer.id!==target.id&&!friendly(dealer,target))dealer.damageDealt=(dealer.damageDealt||0)+actual;
  if(target.hp<=0&&actual>0)target.killedBy=source?.owner||source?.id||null;
@@ -7266,7 +7338,7 @@ window.ArtArts=(()=>{
  }
  function artsGuardHit(q,amount,now,kind){
   const intact=amount<=Math.max(0,q.guardValue||0);
-  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));addArtMatter(q,q.class==='tank'?amount*.3:0);}
+  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));addArtMatter(q,q.class==='tank'?amount*.65:0);}
   else{q.guard=0;q.guardValue=0;
    for(const e of host.effects)if(e.type==='guard'&&e.owner===q.id&&e.end>now)e.end=now;
   }
@@ -7451,9 +7523,9 @@ window.ArtArts=(()=>{
   }
   if(k==='daydream'){p.daydreamUntil=now+4000;p.daydreamOrigin={x:p.x,y:p.y};e.x=p.x;e.y=p.y;e.r=160;e.end=now+4000;}
   if(k==='deep_sleep'){const q=nearestEnemy(180);e.r=70;e.end=now+750;if(q&&!(q.sleepImmuneUntil>now)){q.sleepUntil=now+6000;q.sleepImmuneUntil=q.sleepUntil+3000;q.dash=null;q.drawing=false;q.preview=[];q.guard=0;q.daydreamUntil=0;q.nightmareUntil=0;delete host.inputs[q.id];e.x=q.x;e.y=q.y;e.targetId=q.id;}}
-  if(k==='greater_heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=q.maxHp||100;showArtsNumber(q,'heal',q.hp-before,now);q.regenUntil=now+30000;q.regenRate=.03*artsSingleFactor(shape);q.regenNextAt=now+1000;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
-  if(k==='holy_blessing'){const q=nearestSupportTarget(p,shape),old=q.maxHp||100,before=q.hp;q.maxHp=Math.min(300,old*(1.2+(artsSingleFactor(shape)-1)*.2));q.hp=Math.min(q.maxHp,q.hp+q.maxHp-old);showArtsNumber(q,'heal',q.hp-before,now);q.blessingStacks=(q.blessingStacks||0)+1;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=55;e.end=now+1000;}
-  if(k==='sacred_ascension'){const q=nearestSupportTarget(p,shape);setAwakening(q,true,now);q.ascensionUntil=now+15000+Math.round((artsSingleFactor(shape)-1)*10000);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=70;e.end=q.ascensionUntil;}
+  if(k==='greater_heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=q.maxHp||100;matterSaintSupport(p,q,q.hp-before,'greater_heal',now);showArtsNumber(q,'heal',q.hp-before,now);q.regenSourceId=p.id;q.regenUntil=now+30000;q.regenRate=.03*artsSingleFactor(shape);q.regenNextAt=now+1000;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
+  if(k==='holy_blessing'){const q=nearestSupportTarget(p,shape),old=q.maxHp||100,before=q.hp;q.maxHp=Math.min(300,old*(1.2+(artsSingleFactor(shape)-1)*.2));q.hp=Math.min(q.maxHp,q.hp+q.maxHp-old);matterSaintSupport(p,q,q.hp-before,'holy_blessing',now);showArtsNumber(q,'heal',q.hp-before,now);q.blessingStacks=(q.blessingStacks||0)+1;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=55;e.end=now+1000;}
+  if(k==='sacred_ascension'){const q=nearestSupportTarget(p,shape);matterSaintSupport(p,q,0,'sacred_ascension',now);setAwakening(q,true,now);q.ascensionUntil=now+15000+Math.round((artsSingleFactor(shape)-1)*10000);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=70;e.end=q.ascensionUntil;}
   return true;
  }
  function updateAdvanced(dt,now){
@@ -7464,7 +7536,8 @@ window.ArtArts=(()=>{
     if(!p.active||p.hp<=0){p.regenUntil=0;p.regenNextAt=0;}
     else{
      while(p.regenNextAt&&p.regenNextAt<=now&&p.regenNextAt<=p.regenUntil){
-      p.hp=Math.min(p.maxHp||100,p.hp+(p.maxHp||100)*(p.regenRate||.03));
+      const beforeRegen=p.hp;p.hp=Math.min(p.maxHp||100,p.hp+(p.maxHp||100)*(p.regenRate||.03));
+      const source=host.fighters.find(q=>q.id===p.regenSourceId);matterSaintSupport(source,p,p.hp-beforeRegen);
       p.regenNextAt+=1000;
      }
      if(now>=p.regenUntil){p.regenUntil=0;p.regenNextAt=0;}
@@ -7592,11 +7665,11 @@ window.ArtArts=(()=>{
  const beforeAdvancedShots=host.shots.length;
  if(castAdvanced(p,e,shape,attack,now)){
   for(const shot of host.shots.slice(beforeAdvancedShots)){shot.left*=artsRangeFactor(p);shot.radius*=sizeArea;}
-  if(p.class==='kemono'&&['summon_dog','summon_cat','carbuncle','summon_bat'].includes(shape.type))addArtMatter(p,12);
-  if(p.class==='saint'&&['greater_heal','holy_blessing','sacred_ascension'].includes(shape.type))addArtMatter(p,10);
+  if(p.class==='kemono'&&['summon_dog','summon_cat','carbuncle','summon_bat'].includes(shape.type))addArtMatter(p,30);
+  if(p.class==='gunner')matterGunnerShot(p,host.shots.length-beforeAdvancedShots);
   host.effects.push(e);return true
  }
- if(shape.type==='aura'){const q=nearestSupportTarget(p,shape);q.auraUntil=now+Math.round(8000*artsSingleFactor(shape));e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800}
+ if(shape.type==='aura'){const q=nearestSupportTarget(p,shape);matterSaintSupport(p,q,0,'aura',now);q.auraUntil=now+Math.round(8000*artsSingleFactor(shape));e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800}
  if(shape.type==='armor'){const q=nearestSupportTarget(p,shape);q.armorHP=Math.round(50*artsSingleFactor(shape));q.armorMax=q.armorHP;q.armorUntil=now+20000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+800}
  if(shape.type==='recharge'){p.rechargeUntil=now+1000;e.x=p.x;e.y=p.y;e.r=42;e.end=now+1000}
  if(shape.type==='drain'){for(const aura of host.effects)if(aura.type==='stealTouch'&&aura.owner===id)aura.end=now;p.stealUntil=now+10000;e.type='stealTouch';e.x=p.x;e.y=p.y;e.r=44;e.end=p.stealUntil;} 
@@ -7658,12 +7731,11 @@ window.ArtArts=(()=>{
  const areaProgress=R.clamp((drawnDiagonal-35)/265,0,1);
  e.r=shape.type==='ray'?R.clamp(shape.radius*.2,12,28)*sizeArea:
      shape.type==='star'?95+190*areaProgress:65+130*areaProgress;e.range=440*artsRangeFactor(p);e.hit=now+(shape.type==='star'?2000:shape.type==='nova'?800:700);e.end=e.hit+400;e.power=(shape.type==='star'?22+attack*.6:shape.type==='ray'?20+attack*.5:17+attack*.4)*power*(shape.type==='ray'?1.5:1)}
- if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20*artsSingleFactor(shape));showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
+ if(shape.type==='heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=Math.min(q.maxHp||100,q.hp+20*artsSingleFactor(shape));matterSaintSupport(p,q,q.hp-before);showArtsNumber(q,'heal',q.hp-before,now);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+750}
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;q.reactorGrowInCast=0;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
  if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=R.clamp((shape.radius*1.65+25)*sizeArea,90,350);e.power=(4+attack*.2)*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
- if(p.class==='gunner'&&['burst','ghost','spread','ricochet','charge','repulse'].includes(shape.type))addArtMatter(p,Math.min(14,Math.max(1,host.shots.length-beforeAdvancedShots)));
- if(p.class==='saint'&&['heal','aura'].includes(shape.type))addArtMatter(p,8);
+ if(p.class==='gunner'&&shape.type==='magic')matterGunnerShot(p,host.shots.length-beforeAdvancedShots);
  if(buildBlock){buildBlock.id=++host.seq;host.blocks.push(buildBlock)}
  // TRICKSTER: deceptive illusions, contact drain and invisible traps.
  const decoySnapshot=()=>({fakeHp:p.hp,fakeMaxHp:p.maxHp||100,fakeTeam:p.team,fakeAura:p.auraUntil>now?now+8000:0,fakeIron:p.iron>now?now+15000:0,fakeAscension:p.ascensionUntil>now?now+15000:0,fakeRegen:p.regenUntil>now?now+30000:0,fakeFace:p.facing});
@@ -7737,7 +7809,7 @@ window.ArtArts=(()=>{
  if(m.type==='gameArtsInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now(),sentAt:Number.isFinite(m.sentAt)?m.sentAt:0};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
  if(m.type==='gameArtsCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=R.valid(m.strokes),outside=valid&&!R.inRange({strokes:m.strokes},f.stats);const ult=valid&&!outside&&(f.artMatter||0)>=100?ultimateRecognition(m.strokes,f.class):null;
  if(ult){const ok=castUltimate(f,Date.now());const reply={type:'gameArtsFeedback',text:ok?'必殺技発動！ '+ultimateArts[ult].name:'今は必殺技を発動できません。',ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true;}
- if(!outside&&valid&&(f.artMatter||0)>=100&&m.strokes.length===1&&ultimateSimilarity(m.strokes,f.class)<.29){
+ if(!outside&&valid&&(f.artMatter||0)>=100&&m.strokes.length===1&&ultimateSimilarity(m.strokes,f.class)<.36){
   const reply={type:'gameArtsFeedback',text:'必殺技の図形が少し違います。ゲージとインクは消費しません。',ok:false};
   if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;return true;
  }
@@ -7787,7 +7859,7 @@ window.ArtArts=(()=>{
      const hp=Math.min(q.hp,2*lifeDt*artsAttackFactor(caster,now,true)),ink=Math.min(Math.max(0,q.ink||0),10*lifeDt);
      if(hp<=0&&ink<=0)continue;
      q.hp-=hp;q.ink=Math.max(0,q.ink-ink);
-     caster.hp=Math.min(caster.maxHp||100,caster.hp+hp);const beforeInk=caster.ink;caster.ink=Math.min(caster.maxInk*1.5,caster.ink+ink);showArtsInkRecovery(caster,beforeInk,now);
+     const beforeVampHp=caster.hp;caster.hp=Math.min(caster.maxHp||100,caster.hp+hp);matterVampireLeech(caster,caster.hp-beforeVampHp);const beforeInk=caster.ink;caster.ink=Math.min(caster.maxInk*1.5,caster.ink+ink);showArtsInkRecovery(caster,beforeInk,now);
      caster.damageDealt=(caster.damageDealt||0)+hp;
      if(q.hp<=0)q.killedBy=caster.id;
      if(!e.lastAbsorbAt||now-e.lastAbsorbAt>=200){e.lastAbsorbAt=now;host.effects.push({id:++host.seq,type:'trickAbsorb',owner:e.owner,targetId:q.id,x:q.x,y:q.y,tx:caster.x,ty:caster.y,r:25,start:now,end:now+420});}
@@ -7952,7 +8024,7 @@ window.ArtArts=(()=>{
     if(creatureFriendly(owner,pet))continue;
     if(e.type==='stealTouch'&&R.dist(owner,pet)<R.R+pet.r+8){
      const hp=Math.min(pet.hp,2*dt*artsAttackFactor(owner,now,true)),ink=Math.min(pet.ink||0,10*dt);pet.hp-=hp;pet.ink-=ink;
-     owner.hp=Math.min(owner.maxHp||100,owner.hp+hp);owner.ink=Math.min(owner.maxInk*1.5,owner.ink+ink);if(pet.hp<=0)pet.end=now;
+     const beforeVampHp=owner.hp;owner.hp=Math.min(owner.maxHp||100,owner.hp+hp);matterVampireLeech(owner,owner.hp-beforeVampHp);owner.ink=Math.min(owner.maxInk*1.5,owner.ink+ink);if(pet.hp<=0)pet.end=now;
     }
     if(e.type==='soul_eater'&&R.dist(e,pet)<e.r){
      const hp=Math.min(pet.hp,6.66*dt*artsAttackFactor(owner,now,true)),ink=Math.min(pet.ink||0,6.66*dt);
@@ -7987,6 +8059,7 @@ window.ArtArts=(()=>{
      const hpBefore=owner.hp;
       owner.hp=Math.min(owner.maxHp||100,owner.hp+inkGained);
       const hpHealed=Math.max(0,owner.hp-hpBefore);
+      matterVampireLeech(owner,hpHealed);
       if(hpHealed>0)showArtsNumber(owner,'heal',hpHealed,now)
     }
    }
@@ -8147,7 +8220,7 @@ window.ArtArts=(()=>{
  if(host.effects.some(e=>e.type==='soul_eater'&&e.end>now&&e.trappedIds?.includes(p.id))){p.dash=null;p.moving=false;continue;}
  const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+(p.stats[0]+(p.beastUntil>now?30:0))*4)*(p.stageSpeed||1)*(p.ultimateTrickUntil>now?1.5:1)*(p.slowFactorUntil>now?.2:p.slow>now?.5:1)*ultimateNemesisSlow(p,now),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const confusedReverse=p.confused>now&&Math.floor((now-(p.confusedFrom||now))/2000)%2===0;const vx=mx*speed*dt*(confusedReverse?-1:1),vy=my*speed*dt*(confusedReverse?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks)&&!artsGuardBlocksMovement(p,p.x+vx/steps,p.y,now))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks)&&!artsGuardBlocksMovement(p,p.x,p.y+vy/steps,now))p.y+=vy/steps}}
- if(p.class==='trickster')addArtMatter(p,Math.hypot(p.x-ox,p.y-oy)*.01);
+ if(p.class==='trickster')addArtMatter(p,Math.hypot(p.x-ox,p.y-oy)*.025);
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
  }
  updateUltimateArts(dt,now);
@@ -8186,7 +8259,7 @@ window.ArtArts=(()=>{
     s.nextBiteAt=now+145;
     const actual=s.latchKind==='pet'?petHurt(target,1,now,s):hurt(target,1,now,{x:s.x,y:s.y,owner:s.owner,damageType:'magic'},true,0);
     s.bitesLeft--;
-    if(actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);
+    if(actual>0){const beforeVampHp=owner.hp;owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);matterVampireLeech(owner,owner.hp-beforeVampHp);
      if(s.bitesLeft%2===0)host.effects.push({id:++host.seq,type:'bloodSoul',owner:s.owner,x:target.x,y:target.y,tx:owner.x,ty:owner.y,r:6,start:now,end:now+450});
     }
    }
@@ -8349,7 +8422,15 @@ window.ArtArts=(()=>{
  function receive(m){if(m.type==='gameArtsFeedback'){hint(m.text);return}if(m.type!=='gameArtsState'||!m.state)return;const old=view;view=m.state;
   restoreBattleWorld(old);
   {const sz=view.settings?.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120)}if(view.phase==='lobby'){room.w=view.lobbyW||room.w;room.h=view.lobbyH||room.h}if(old?.id===view.id&&old?.ready?.[localId]&&!view.ready?.[localId]&&view.phase==='create')submitted='';updateDamageShakes(old,view);hearArtsStageAudio(view);offset=view.now-Date.now();if(view.celebration&&(!old?.celebration||old.id!==view.id)){stopInput();if(view.celebration.winners?.includes(localId))window.ArtSound?.play('arts_victory_new',7,true);uiKey='';} room.artsSettings=view.settings;if(old?.fighters?.find(p=>p.id===localId)?.hp>0&&view.fighters.find(p=>p.id===localId)?.hp<=0)stopInput();if(!view.art&&old?.id===view.id)view.art=old.art;if(view.art){for(const [id,a]of Object.entries(view.art)){if(!a.image||images.get(id)?.src===a.image)continue;const img=new Image();img.src=a.image;images.set(id,img)}}
- if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){submitted='';savedCharacterSource=null;room.w=view.settings.characterWidth||512;room.h=view.settings.characterHeight||512;clearCanvas();loadInstalledCharacter()}
+ if(view.phase==='create'&&(old?.id!==view.id||old?.phase==='lobby')){
+  submitted='';savedCharacterSource=null;room.w=view.settings.characterWidth||512;room.h=view.settings.characterHeight||512;
+  clearCanvas();
+  if(room.characterOnly){
+   // Always start the standalone studio blank, unless editing was explicitly selected.
+   const edited=explicitlyEditedArtsCharacter;explicitlyEditedArtsCharacter=null;
+   if(edited)void loadCharacter(edited,true);
+  }else loadInstalledCharacter();
+ }
  if(old?.phase!==view.phase){stopInput();uiKey='';if(view.phase==='equip'){equipChoice=[];equipTouched=false;}if(view.phase==='battle'){positions.clear();walk.clear();damageShakes.clear();guide=null;heardBuffWaves.clear();heardGunRounds.clear()}}if(old?.phase!==view.phase||view.phase!=='battle')renderUI();if(view.phase==='collect'&&!view.ready[localId])submit();if(view.phase==='battle'){for(const e of view.effects)if(e.type!=='practiceAim'&&!previousFx.has(e.id)){
     // The main decoy effect is the spawn cue, not every individual decoy body.
     if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
@@ -9667,7 +9748,7 @@ finishPaint(false)};
  }
  function updateSkillIcons(me,now){
   const upper=$('#artsUltimateGuide');const def=me&&ultimateArts[me.class];
-  if(upper){const ready=!!(me&&me.active&&me.hp>0&&me.artMatter>=100&&def&&!(me.class==='saint'&&me.divineStart));upper.hidden=!ready;if(ready){const symbol='<svg viewBox="0 0 240 165" aria-hidden="true"><path d="'+def.path+'" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';const content='<b>✦ 必殺技発動可能</b><span>'+esc(def.name)+'（'+esc(def.reading)+'）</span>'+symbol;if(upper.dataset.job!==me.class){upper.innerHTML=content;upper.dataset.job=me.class}}else upper.dataset.job='';}
+  if(upper){const ready=!!(me&&me.active&&me.hp>0&&me.artMatter>=100&&def&&!(me.class==='saint'&&me.divineStart));upper.hidden=!ready;if(ready){const symbol=ultimateGuideSVG(me.class);const content='<b>✦ 必殺技発動可能</b>'+symbol+'<span>'+esc(def.name)+'</span><small>タップで書き順</small>';if(upper.dataset.job!==me.class){upper.innerHTML=content;upper.dataset.job=me.class}upper.onclick=showUltimateGuide;upper.setAttribute('role','button');upper.tabIndex=0;upper.setAttribute('aria-label',def.name+'の詳しい描き順を表示');upper.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();showUltimateGuide()}}}else upper.dataset.job='';}
   const holder=$('#artsSkillIcons');if(!holder)return;
   if(!me||me.hp<=0||!me.active){holder.hidden=true;return}holder.hidden=false;
   const keys=[...new Set((me.skills||[me.skill]).filter(Boolean))];
@@ -17030,6 +17111,19 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 #artsHUD .arts-meter.matter.ready{filter:drop-shadow(0 0 5px #ca9ff9a0)}
 #artsHUD .arts-am-ready{display:block;align-self:center;font-size:clamp(9px,1.2vw,12px);line-height:1.2;color:#ffe3ff;text-align:center;text-shadow:0 0 7px #e3a7ff;white-space:nowrap;animation:artsUltimateShimmer 2s linear infinite}
 @media(max-width:690px){#artsHUD .arts-vitals{gap:3px!important;padding:6px 5px!important}#artsHUD .arts-meter label{display:block!important;font-size:10px!important;line-height:1.1!important}#artsHUD .arts-meter b{display:block!important;font-size:10px!important}#artsHUD .arts-meter progress{height:10px!important;min-height:10px!important}#artsHUD .arts-am-ready{font-size:9px!important;white-space:normal}}
+</style>
+
+<style id="arts-ultimate-compact-clickable-fix">
+/* Keep the gauge prominent; only shrink the floating ultimate symbol. */
+#artsField #artsUltimateGuide{position:absolute;bottom:103px;left:50%;transform:translateX(-50%);z-index:24;width:112px;max-width:calc(100% - 24px);padding:5px 7px;gap:1px;border-radius:12px;pointer-events:auto;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;box-shadow:0 0 14px #b672ec66}
+#artsField #artsUltimateGuide>b{font-size:10px;line-height:1.3;white-space:nowrap;letter-spacing:0}
+#artsField #artsUltimateGuide>span{font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#artsField #artsUltimateGuide>small{font-size:9px;color:#eadbff;white-space:nowrap}
+#artsField #artsUltimateGuide svg{width:90px;height:49px;max-width:100%;filter:drop-shadow(0 0 3px #e2c0ff)}
+#artsField #artsUltimateGuide:focus-visible{outline:3px solid #fff6c8;outline-offset:3px}
+.arts-ultimate-detail{margin:0 auto 12px;display:grid;place-items:center;background:linear-gradient(140deg,#201833,#302044);color:#edd4ff;padding:16px;border-radius:14px;min-height:220px}
+.arts-ultimate-detail svg{width:min(100%,360px);height:220px;overflow:visible}
+@media(max-width:750px){#artsField #artsUltimateGuide{bottom:145px;width:102px;padding:4px 5px}#artsField #artsUltimateGuide svg{height:43px;width:82px}#artsField #artsUltimateGuide>b{font-size:9px}.arts-ultimate-detail svg{height:195px}}
 </style>
 </body></html>
 
