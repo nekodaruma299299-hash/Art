@@ -1905,6 +1905,17 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
  #artsStage.arts-equipping .arts-equip-summary{font-size:9px}
 }
 </style>
+
+<style id="artopia-ultimate-arts-css">
+#artsUltimateGuide{position:absolute;z-index:18;left:50%;bottom:132px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 16px;background:linear-gradient(115deg,#30204be8,#32143bdd,#203e5bdf);color:#fff;border:2px solid #efcaff;border-radius:18px;box-shadow:0 0 25px #b672ec88;pointer-events:none;max-width:min(360px,82%);text-align:center}
+#artsUltimateGuide[hidden]{display:none!important}
+#artsUltimateGuide>b{font-size:15px;letter-spacing:.07em;background:linear-gradient(90deg,#ffb7d0,#fff0a9,#a0f6ff,#d2b4ff);color:transparent;background-clip:text;animation:artsUltimateShimmer 2s linear infinite}
+#artsUltimateGuide>span{font-size:12px;font-weight:800;white-space:nowrap}
+#artsUltimateGuide svg{width:100px;height:64px;filter:drop-shadow(0 0 5px #e2c0ff)}
+.arts-am-panel{min-width:155px;max-width:225px;padding:7px 9px;border:1px solid #9676bd;border-radius:12px;background:#241d3b;color:#f4ecff;display:flex;flex-direction:column;gap:4px}.arts-am-panel label{display:flex;justify-content:space-between;gap:8px;font-size:11px}.arts-am-track{height:11px;border-radius:100px;background:#0d0a20;overflow:hidden}.arts-am-track i{height:100%;display:block;background:linear-gradient(90deg,#73adff,#a78bf8);border-radius:inherit;transition:width .12s}.arts-am-panel.ready{border-color:#fce6a5;box-shadow:0 0 14px #dab1ff90}.arts-am-panel.ready i{background:linear-gradient(90deg,#ff7a97,#ffd86f,#7cf2c1,#74b4ff,#cc8aff);background-size:220% 100%;animation:artsUltimateShimmer 2s linear infinite}.arts-am-panel strong{font-size:11px;color:#ffe0ff;text-align:center}
+@keyframes artsUltimateShimmer{to{background-position:220% 0}}
+@media(max-width:720px){#artsUltimateGuide{bottom:122px;padding:5px 12px}#artsUltimateGuide>b{font-size:12px}#artsUltimateGuide svg{height:47px}}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.5.03</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -6690,6 +6701,106 @@ function handAuthoredStagePlan(theme,size,seed){const original=handAuthoredStage
 window.ArtArts=(()=>{
  const previous=window.ArtGame,R=window.ArtsRules;
  const names=['素早さ','攻撃力','防御力','インク量','射程'];
+ // Host-authoritative ultimate arts. Art Matter is unrelated to Art Traitor currency.
+ const ultimateArts={"attacker":{"name":"天裂三閃","reading":"ヘヴンズ・リッパー","path":"M32 106 L74 40 L92 113 L126 38 L144 110 L190 38 L212 100","advanced":false},"tank":{"name":"絶対城塞","reading":"アブソリュート・フォートレス","path":"M36 127 L36 57 L66 57 L66 35 L98 35 L98 57 L142 57 L142 35 L174 35 L174 57 L204 57 L204 127 L36 127","advanced":false},"trickster":{"name":"百鬼幻影","reading":"ファントム・パレード","path":"M38 56 L72 66 L93 42 L120 64 L147 42 L168 66 L202 56 L184 112 L120 137 L56 112 Z","advanced":false},"kemono":{"name":"幻獣降臨","reading":"ミシック・サモン","path":"M44 118 L55 52 L78 85 L107 27 L124 82 L164 27 L168 85 L196 52 L205 118","advanced":false},"gunner":{"name":"万華弾幕","reading":"カレイド・バレット","path":"M120 21 L140 67 L196 55 L164 89 L203 126 L148 117 L120 148 L92 117 L37 126 L76 89 L44 55 L100 67 Z","advanced":false},"magician":{"name":"創世爆発","reading":"ビッグバン","path":"M 150.00 28.00 L 180.56 76.93 L 236.55 90.88 L 199.45 135.07 L 203.49 192.62 L 150.00 171.00 L 96.51 192.62 L 100.55 135.07 L 63.45 90.88 L 119.44 76.93 Z L 150 28 L 150.00 97.00 L 152.22 97.34 L 154.38 97.88 L 156.45 98.64 L 158.42 99.58 L 160.26 100.70 L 161.97 101.98 L 163.53 103.41 L 164.92 104.97 L 166.14 106.65 L 167.18 108.41 L 168.03 110.25 L 168.68 112.15 L 169.14 114.07 L 169.41 116.02 L 169.48 117.95 L 169.36 119.86 L 169.05 121.73 L 168.57 123.54 L 167.91 125.27 L 167.10 126.91 L 166.14 128.44 L 165.05 129.85 L 163.84 131.13 L 162.53 132.27 L 161.12 133.26 L 159.65 134.09 L 158.12 134.77 L 156.55 135.28 L 154.96 135.63 L 153.36 135.81 L 151.78 135.84 L 150.22 135.71 L 148.70 135.43 L 147.25 135.00 L 145.86 134.45 L 144.55 133.76 L 143.34 132.96 L 142.23 132.06 L 141.23 131.06 L 140.35 129.99 L 139.60 128.85 L 138.97 127.67 L 138.47 126.44 L 138.11 125.20 L 137.87 123.94 L 137.77 122.69 L 137.79 121.46 L 137.94 120.25 L 138.20 119.09 L 138.57 117.98 L 139.04 116.94 L 139.60 115.97 L 140.25 115.07 L 140.97 114.27 L 141.75 113.55 L 142.58 112.94 L 143.45 112.42 L 144.36 112.00 L 145.28 111.69 L 146.20 111.47 L 147.13 111.36 L 148.03 111.34 L 148.92 111.42 L 149.76 111.58 L 150.57 111.83 L 151.33 112.14 L 152.03 112.53 L 152.67 112.98 L 153.24 113.48 L 153.74 114.02 L 154.17 114.59 L 154.52 115.19 L 154.79 115.80 L 155.00 116.42 L 155.12 117.04 L 155.18 117.65 L 155.17 118.24 L 155.10 118.80 L 154.96 119.34 L 154.77 119.83 L 154.54 120.29 L 154.27 120.69 L 153.96 121.05 L 153.62 121.35 L 153.27 121.60 L 152.91 121.79 L 152.54 121.92 L 152.17 122.01 L 151.81 122.04 L 151.47 122.02","advanced":false},"vampire":{"name":"血月の宴","reading":"ブラッド・ムーン","path":"M171 22 C62 8 42 132 171 145 L149 116 L137 143 L126 107 C107 71 119 43 171 22","advanced":true},"saint":{"name":"神懸かり","reading":"ディヴァイン・アバター","path":"M77 45 Q120 13 163 45 Q120 59 77 45 L34 79 L78 74 L59 112 L109 88 L120 141 L131 88 L181 112 L162 74 L206 79 L163 45","advanced":true},"executioner":{"name":"復讐神","reading":"ネメシス","path":"M34 74 Q120 16 206 74 Q120 123 34 74 L93 112 L120 145 L147 112 L206 74","advanced":true},"dreamer":{"name":"永遠の悪夢","reading":"エターナル・ナイトメア","path":"M 150 42 L 123 62 L 93 67 L 45 114 L 93 145 L 123 149 L 150 166 L 177 149 L 207 145 L 255 114 L 207 67 L 177 62 Z L 150 42 L 150 79 L 130 112 L 150 141 L 170 112 L 150 79","advanced":true}};
+ const ultimateTemplates=new Map();
+ function ultimateTemplate(key){
+  if(ultimateTemplates.has(key))return ultimateTemplates.get(key);
+  const d=ultimateArts[key]?.path;if(!d)return [];
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','path');svg.setAttribute('d',d);
+  const len=svg.getTotalLength(),pts=Array.from({length:65},(_,i)=>{const p=svg.getPointAtLength(len*i/64);return{x:p.x,y:p.y}});
+  ultimateTemplates.set(key,pts);return pts;
+ }
+ function ultimateSimilarity(strokes,key){
+  const input=R.resample(strokes[0],65),template=ultimateTemplate(key);
+  if(input.length!==65||template.length!==65)return Infinity;
+  const norm=pts=>{const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));const span=Math.max(maxx-minx,maxy-miny)||1;return pts.map(p=>({x:(p.x-(minx+maxx)/2)/span,y:(p.y-(miny+maxy)/2)/span}))};
+  const a=norm(input),b=norm(template);
+  return a.reduce((acc,p,i)=>acc+Math.hypot(p.x-b[i].x,p.y-b[i].y),0)/a.length;
+ }
+ function ultimateRecognition(strokes,job){
+  if(!ultimateArts[job]||strokes.length!==1||strokes[0].length<8)return null;
+  const score=ultimateSimilarity(strokes,job);
+  return score<(.155+(ultimateArts[job].advanced?.035:0))?job:null;
+ }
+ function addArtMatter(p,amount){if(!p||!p.active||p.hp<=0||!Number.isFinite(amount)||amount<=0)return;p.artMatter=Math.min(100,(p.artMatter||0)+amount)}
+ function createUltimateEvent(p,now,duration=1400,extra={}){
+  host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:p.class,x:p.x,y:p.y,r:105,advanced:ultimateArts[p.class]?.advanced,start:now,end:now+duration,...extra});
+ }
+ function castUltimate(p,now){
+  const job=p.class;if(!ultimateArts[job]||(p.artMatter||0)<100||p.hp<=0||!p.active)return false;
+  if(job==='saint'&&p.divineStart)return false;
+  p.artMatter=0;p.drawing=false;p.daydreamUntil=0;
+  createUltimateEvent(p,now,2200);
+  host.ultimateAnnouncement={id:++host.seq,owner:p.id,class:job,at:now,end:now+3900};
+  switch(job){
+   case 'attacker':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+350,step:0,end:now+2700});break;
+   case 'tank':(host.ultimateActs??=[]).push({owner:p.id,job,x:p.x,y:p.y,at:now,end:now+10000,next:now+1500});break;
+   case 'trickster':{
+    p.ultimateTrickUntil=now+12000;
+    for(let i=0;i<6;i++){const a=i*Math.PI/3,x=R.clamp(p.x+Math.cos(a)*65,24,R.W-24),y=R.clamp(p.y+Math.sin(a)*65,24,R.H-24);host.effects.push({id:++host.seq,type:'decoyBody',variant:'ultimate',owner:p.id,x,y,vx:Math.cos(a),vy:Math.sin(a),r:25,start:now,end:now+12000,fakeHp:p.hp,fakeMaxHp:p.maxHp,fakeTeam:p.team,fakeFace:p.facing})}
+    break;
+   }
+   case 'kemono':{
+    const options=['fenrir','cait','nidhogg'],kind=options[Math.floor(Math.random()*3)];
+    const stats=kind==='fenrir'?{petKind:'dog',hp:160,power:26,walkSpeed:360,attackGap:700,r:41}:kind==='cait'?{petKind:'cat',hp:100,power:13,walkSpeed:335,attackGap:320,r:31}:{petKind:'carbuncle',hp:130,power:20,walkSpeed:260,attackGap:900,r:45};
+    // Existing creature AI provides movement, targeting, shots and support.
+    const pet=createCreature(p,stats.petKind,{x:p.x,y:p.y},now,{...stats,maxHp:stats.hp,ultimateBeast:kind,end:now+20000});
+    if(pet)createUltimateEvent(p,now,1800,{petKind:kind});break;
+   }
+   case 'gunner':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,next:now+500,step:0,end:now+6200});break;
+   case 'magician':{
+    const invested=Math.max(0,p.ink);p.ink=0;p.inkLock=Math.max(p.inkLock||0,now+3000);
+    (host.ultimateActs??=[]).push({owner:p.id,job,x:p.x,y:p.y,at:now,end:now+2000,burst:now+1500,spent:invested,done:false});break;
+   }
+   case 'vampire':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,end:now+12000,next:now+600});p.ultimateBloodUntil=now+12000;break;
+   case 'saint':p.divineStart=now;p.divineNextDrain=now+1000;break;
+   case 'executioner':p.ultimateNemesisUntil=now+18000;break;
+   case 'dreamer':(host.ultimateActs??=[]).push({owner:p.id,job,at:now,end:now+20000,next:now+4000});break;
+  }
+  return true;
+ }
+ function updateUltimateArts(dt,now){
+  for(const p of host.fighters){if(!p.active||p.hp<=0)continue;
+   if(p.class==='dreamer'&&!p.moving&&!p.drawing)addArtMatter(p,dt*1.5);
+   if(p.divineStart){
+    if(now>=p.divineNextDrain){const seconds=Math.max(1,Math.floor((now-p.divineNextDrain)/1000)+1),lossRate=Math.min(5,1+Math.floor((now-p.divineStart)/30000));p.hp=Math.max(0,p.hp-(p.maxHp||100)*lossRate*.01*seconds);p.divineNextDrain+=seconds*1000;if(!p.hp)p.killedBy=p.id;}
+    if(p.hp>0){const bonus=30;p.stats=p.baseStats.map(v=>v+bonus).map(v=>p.ascensionUntil>now?v*1.5:v);p.maxInk=(p.baseMaxInk||100)*(1+30/Math.max(1,p.baseStats[3]))*(p.ascensionUntil>now?1.5:1)}
+   }
+  }
+  for(const beast of host.effects){if(beast.type!=='summonBody'||beast.ultimateBeast!=='nidhogg'||beast.end<=now||beast.hp<=0)continue;
+   if(now<(beast.ultimateAttackAt||0))continue;beast.ultimateAttackAt=now+1200;
+   const owner=host.fighters.find(q=>q.id===beast.owner&&q.hp>0&&q.active);if(!owner)continue;
+   const enemy=host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)&&R.dist(beast,q)<300).sort((a,b)=>R.dist(beast,a)-R.dist(beast,b))[0];
+   if(enemy){hurt(enemy,14,now,{owner:owner.id,x:beast.x,y:beast.y,damageType:'magic'},true);host.effects.push({id:++host.seq,type:'ultimateBigBang',owner:owner.id,x:enemy.x,y:enemy.y,r:42,start:now,end:now+420})}
+   owner.hp=Math.min(owner.maxHp||100,owner.hp+3);
+  }
+  host.ultimateActs=host.ultimateActs.filter(e=>{
+   const p=host.fighters.find(q=>q.id===e.owner);if(!p||!p.active||p.hp<=0||now>=e.end)return false;
+   if(e.job==='attacker'&&now>=e.next&&e.step<3){
+    const i=e.step++,a=p.facing===-1?Math.PI:0,r=225+i*55;
+    for(const q of host.fighters){if(friendly(p,q)||q.hp<=0||!q.active||R.dist(q,p)>r)continue;const angle=Math.atan2(q.y-p.y,q.x-p.x);if(Math.cos(angle-a)<-.12||!lineClear(p,q))continue;hurt(q,[30,35,50][i],now,{owner:p.id,x:p.x,y:p.y,damageType:'physical'},false,55)}
+    host.effects.push({id:++host.seq,type:'ultimateSlash',owner:p.id,x:p.x,y:p.y,angle:a,r,start:now,end:now+750,step:i});e.next+=650;
+   }
+   if(e.job==='tank'&&now>=e.next){e.next+=1600;host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:'tank',x:e.x,y:e.y,r:190,start:now,end:now+700})}
+   if(e.job==='gunner'&&now>=e.next&&e.step<11){
+    const phase=e.step++,count=phase<3?8:phase<7?12:16;
+    for(let j=0;j<count;j++){const a=j*Math.PI*2/count+phase*.32,speed=phase<3?210:phase<7?150:350;
+     host.shots.push({id:++host.seq,owner:p.id,x:p.x,y:p.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,power:phase<7?6:9,radius:phase<7?7:5,knockback:8,left:650,end:now+6000,hit:[],pierce:false,passWalls:true,style:phase>=7&&j%4===0?'ultimateLaser':phase<3?'ultimateStar':'ultimateBullet'});
+    }e.next+=420;
+   }
+   if(e.job==='magician'&&!e.done&&now>=e.burst){e.done=true;const radius=220;for(const q of host.fighters)if(!friendly(p,q)&&q.active&&q.hp>0&&R.dist(q,e)<radius+R.R)hurt(q,(30+Math.min(90,e.spent*.45))*(.35+.65*(1-R.dist(q,e)/radius)),now,{owner:p.id,x:e.x,y:e.y,damageType:'magic'},true,60);host.effects.push({id:++host.seq,type:'ultimateBigBang',owner:p.id,x:e.x,y:e.y,r:radius,start:now,end:now+1200})}
+   if(e.job==='vampire'&&now>=e.next){e.next+=900;for(const q of host.fighters)if(!friendly(p,q)&&q.active&&q.hp>0&&R.dist(q,p)<185){const n=hurt(q,8,now,{owner:p.id,x:p.x,y:p.y,damageType:'magic'},true);p.hp=Math.min(p.maxHp,p.hp+n*.4);q.ink=Math.max(0,q.ink-3);}}
+   if(e.job==='dreamer'){
+    for(const q of host.fighters)if(q.id!==p.id&&q.hp>0&&q.active&&q.ink<=0){hurt(q,999,now,{owner:p.id,x:q.x,y:q.y,damageType:'magic'},true);host.effects.push({id:++host.seq,type:'ultimateExecution',owner:p.id,x:q.x,y:q.y,r:70,start:now,end:now+1500});}
+    if(now>=e.next){e.next+=4000;const candidates=host.fighters.filter(q=>q.id!==p.id&&q.active&&q.hp>0);if(candidates.length){const q=candidates[Math.floor(Math.random()*candidates.length)];host.effects.push({id:++host.seq,type:'nightmare_fall',owner:p.id,x:q.x,y:q.y,r:95,power:25,damageType:'magic',start:now,end:now+1500,resolveAt:now+1000});}}
+   }
+   return true;
+  });
+ }
+ function ultimateNemesisSlow(q,now){let factor=1;for(const p of host.fighters){if(p.id===q.id||p.ultimateNemesisUntil<=now||friendly(p,q)||p.hp<=0)continue;const d=R.dist(p,q);if(d<220)factor=Math.min(factor,.1+.9*Math.max(0,Math.min(1,d/220)));}return factor;}
+ function artsNightmareFor(p,now){return (host.ultimateActs||[]).some(e=>e.job==='dreamer'&&e.owner!==p.id&&e.end>now)}
+
  const moves=R.moves;
  const drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  let host=null,view=null,offset=0,capturing=false,submitted='',lastFrame=0,lastNet=0,lastMove=0,raf=0,uiKey='',rosterKey='',paintMode=false,gesture=null,strokes=[],summonCore=null,holdSource=null,paintStarted=0,guide=null,stick=null,move={x:0,y:0},keys=new Set(),images=new Map(),positions=new Map(),walk=new Map(),damageShakes=new Map(),uploading=new Set(),imageRev='',lastPreview=0,lastAnimation=0,frameDelta=.016,hudText='',previousFx=new Set(),impactSounds=new Set(),heardBuffWaves=new Set(),heardGunRounds=new Set(),characterPaths=[],characterFacing=1,equipChoice=[],equipTouched=false;
@@ -6719,7 +6830,7 @@ window.ArtArts=(()=>{
   }
   return (h>>>0).toString(36)+'-'+blocks.length;
  }
- function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,beastUntil:p.beastUntil||0,carbuncleUntil:p.carbuncleUntil||0,attackDebuffUntil:p.attackDebuffUntil||0,stealUntil:p.stealUntil||0,mirageHiddenUntil:p.mirageHiddenUntil||0,mirageRevealAt:p.mirageRevealAt||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorMax:p.armorMax||((p.armorHP||0)>30?50:30),armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active,inputAckAt:host.inputs[p.id]?.sentAt||0})),blocks:host.phase==='battle'&&host.stageHasBlueprint?[]:host.blocks,battleWallDamage:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(0,host.stageBaseCount).filter(b=>b.type==='wall'&&b.hp<b.maxHp).map(b=>[b.id,b.hp]):null,battleRuntimeWalls:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(host.stageBaseCount):null,battleBaseSignature:host.phase==='battle'&&host.stageHasBlueprint?host.stageLayoutSignature:null,battleBaseBlocks:host.phase==='battle'&&host.stageHasBlueprint&&host.sendStageBaseline?host.blocks.slice(0,host.stageBaseCount).map(b=>({...b,hp:b.maxHp})):null,stageSeed:host.stageSeed||0,stageRegions:host.stageRegions||[],shots:host.shots,effects:host.effects,gimmicks:host.gimmicks||[],stageDrops:host.stageDrops||[],stageAudioEvents:host.stageAudioEvents||[],stageNPCs:host.stageNPCs||[],result:host.result,...(withImages?{art:host.art}:{})}}
+ function publicState(withImages=false){return{id:host.id,lobbyW:host.lobbyCanvas?.w||room.w,lobbyH:host.lobbyCanvas?.h||room.h,phase:host.phase,settings:host.settings,players:host.players.map(p=>({id:p.id,name:p.name,color:p.color,active:p.active,bot:p.bot})),ready:{...host.ready},equipped:{...host.equipped},stormStart:host.stormStart,celebration:host.celebration||null,teamAssignments:{...(host.teamAssignments||{})},deadline:host.deadline,now:Date.now(),fighters:host.fighters.map(p=>({id:p.id,x:p.x,y:p.y,hp:p.hp,maxHp:p.maxHp||100,damageDealt:p.damageDealt||0,artMatter:p.artMatter||0,crime:p.crime||0,divineStart:p.divineStart||0,ultimateBloodUntil:p.ultimateBloodUntil||0,ultimateNemesisUntil:p.ultimateNemesisUntil||0,ultimateTrickUntil:p.ultimateTrickUntil||0,ink:p.ink,maxInk:p.maxInk,baseMaxInk:p.baseMaxInk,baseStats:p.baseStats,confused:p.confused||0,confusedFrom:p.confusedFrom||0,slowFactorUntil:p.slowFactorUntil||0,beastUntil:p.beastUntil||0,carbuncleUntil:p.carbuncleUntil||0,attackDebuffUntil:p.attackDebuffUntil||0,stealUntil:p.stealUntil||0,mirageHiddenUntil:p.mirageHiddenUntil||0,mirageRevealAt:p.mirageRevealAt||0,trickPoisonUntil:p.trickPoisonUntil||0,sleepUntil:p.sleepUntil||0,sleepImmuneUntil:p.sleepImmuneUntil||0,daydreamUntil:p.daydreamUntil||0,regenUntil:p.regenUntil||0,nightmareUntil:p.nightmareUntil||0,ascensionUntil:p.ascensionUntil||0,blessingStacks:p.blessingStacks||0,stats:p.stats,class:p.class,skill:p.skill,skills:p.skills||[p.skill],skillIndex:p.skillIndex||0,team:p.team,facing:p.facing,artFacing:p.artFacing,killedBy:p.killedBy||null,guard:p.guard,guardAngle:p.guardAngle,guardWidth:p.guardWidth,guardX:p.guardX,guardY:p.guardY,guardRadius:p.guardRadius,iron:p.iron,reactor:p.reactor,inkLock:p.inkLock,slow:p.slow,pull:p.pull?{owner:p.pull.owner,end:p.pull.end}:null,stunnedUntil:p.stunnedUntil||0,auraUntil:p.auraUntil||0,armorHP:p.armorHP||0,armorMax:p.armorMax||((p.armorHP||0)>30?50:30),armorUntil:p.armorUntil||0,rechargeUntil:p.rechargeUntil||0,nextSkill:Math.max(p.artCooldowns?.[p.skill]||0,p.artGlobalUntil||0),artCooldowns:{...(p.artCooldowns||{})},flash:p.flash,lastHitSeq:p.lastHitSeq||0,lastHitDamage:p.lastHitDamage||0,drawing:p.drawing,preview:p.drawing&&Date.now()-(p.previewAt||0)<600?p.preview||[]:[],summonCore:p.drawing&&Date.now()-(p.previewAt||0)<600?p.summonCore||null:null,moving:p.moving,active:p.active,inputAckAt:host.inputs[p.id]?.sentAt||0})),blocks:host.phase==='battle'&&host.stageHasBlueprint?[]:host.blocks,battleWallDamage:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(0,host.stageBaseCount).filter(b=>b.type==='wall'&&b.hp<b.maxHp).map(b=>[b.id,b.hp]):null,battleRuntimeWalls:host.phase==='battle'&&host.stageHasBlueprint?host.blocks.slice(host.stageBaseCount):null,battleBaseSignature:host.phase==='battle'&&host.stageHasBlueprint?host.stageLayoutSignature:null,battleBaseBlocks:host.phase==='battle'&&host.stageHasBlueprint&&host.sendStageBaseline?host.blocks.slice(0,host.stageBaseCount).map(b=>({...b,hp:b.maxHp})):null,stageSeed:host.stageSeed||0,stageRegions:host.stageRegions||[],shots:host.shots,effects:host.effects,ultimateActs:host.ultimateActs||[],ultimateAnnouncement:host.ultimateAnnouncement||null,gimmicks:host.gimmicks||[],stageDrops:host.stageDrops||[],stageAudioEvents:host.stageAudioEvents||[],stageNPCs:host.stageNPCs||[],result:host.result,...(withImages?{art:host.art}:{})}}
  const artsLastSent=new WeakMap();
  function sendAll(withImages=false){
   if(!host||!isHost)return;
@@ -6748,7 +6859,7 @@ window.ArtArts=(()=>{
   }
  }
  async function abortMatch(){if(!isHost||!host||['lobby','finished','interrupted'].includes(host.phase))return false;stopInput();host.phase='interrupted';host.deadline=null;host.shots=[];host.effects=[];await newHost();return true}
- async function newHost(){const token=sessionToken,lobbyCanvas=host?.lobbyCanvas||null;if(lobbyCanvas){const packet={type:'canvasRestore',artsLobby:true,epoch:(room.canvasEpoch||0)+1,snapshot:lobbyCanvas};broadcast(packet);await applyCanvasRestore(packet);if(token!==sessionToken||!room||!connected)return}host={lobbyCanvas,id:uid(),phase:'lobby',settings:R.settings(room.artsSettings),players:[],ready:{},equipped:{},art:{},allReadyAt:0,fighters:[],blocks:[],shots:[],effects:[],celebration:null,teamAssignments:{},deadline:null,result:null,inputs:{},seq:0};room.artsSettings=host.settings;sendAll(true)}
+ async function newHost(){const token=sessionToken,lobbyCanvas=host?.lobbyCanvas||null;if(lobbyCanvas){const packet={type:'canvasRestore',artsLobby:true,epoch:(room.canvasEpoch||0)+1,snapshot:lobbyCanvas};broadcast(packet);await applyCanvasRestore(packet);if(token!==sessionToken||!room||!connected)return}host={ultimateActs:[],lobbyCanvas,id:uid(),phase:'lobby',settings:R.settings(room.artsSettings),players:[],ready:{},equipped:{},art:{},allReadyAt:0,fighters:[],blocks:[],shots:[],effects:[],celebration:null,teamAssignments:{},deadline:null,result:null,inputs:{},seq:0};room.artsSettings=host.settings;sendAll(true)}
  function randomizeTeams(){
   if(!isHost||host?.phase!=='lobby')return;
   const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected).map(p=>p.peerId);
@@ -6837,8 +6948,9 @@ window.ArtArts=(()=>{
  // Continuous sources accumulate into one readable number instead of a popup every frame.
  function showArtsInkRecovery(fighter,before,now){
   if(!host||!fighter||!Number.isFinite(before))return;
-  const gained=Math.max(0,(Number(fighter.ink)||0)-before);
+  let gained=Math.max(0,(Number(fighter.ink)||0)-before);
   if(gained<.00001)return;
+  if(artsNightmareFor(fighter,now)){gained/=3;fighter.ink=before+gained;}
   const pending=(fighter._artsInkNumberPending||0)+gained;
   if(pending>=.95&&(gained>=6||now-(fighter._artsInkNumberLastAt||0)>=650)){
    showArtsNumber(fighter,'ink',pending,now,'インク');
@@ -7019,7 +7131,7 @@ window.ArtArts=(()=>{
   }
   return result;
  }
- function startBattle(){if(!host||host.phase!=='equip')return;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const seed=Math.floor(Math.random()*1000000),plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,seed);host.blocks=plan?.blocks||R.map(host.settings.stage);host.stageSeed=seed;host.stageHasBlueprint=!!plan;host.stageBaseCount=host.blocks.length;host.stageLayoutSignature=stageWallSignature(host.blocks);host.lastStageBaselineAt=0;host.mineBaseCount=host.settings.stage==='mine'?host.blocks.length:0;host.stageRegions=plan?.regions||[];host.effects=[];host.shots=[];host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const activePlayers=host.players.filter(p=>p.active);const spreadSpots=artsRandomSpawns(activePlayers.length,host.blocks,plan,gimmickLayout);const spots=host.settings.teams==='teams'?artsGroupedSpawns(activePlayers,spreadSpots,host.blocks,plan,gimmickLayout):spreadSpots;host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),limit=host.settings.skillSlots,team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);picked.splice(limit);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||null,guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageAudioEvents=[];host.stageNPCs=host.settings.npcEnabled?(plan?.devices||[]).filter(d=>d.type==='npc').map((d,i)=>({id:i+1,x:d.x,y:d.y,hp:90,maxHp:90,dir:i*2.1,nextFire:0,respawnAt:0})):[];host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(false)}
+ function startBattle(){if(!host||host.phase!=='equip')return;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const seed=Math.floor(Math.random()*1000000),plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,seed);host.blocks=plan?.blocks||R.map(host.settings.stage);host.stageSeed=seed;host.stageHasBlueprint=!!plan;host.stageBaseCount=host.blocks.length;host.stageLayoutSignature=stageWallSignature(host.blocks);host.lastStageBaselineAt=0;host.mineBaseCount=host.settings.stage==='mine'?host.blocks.length:0;host.stageRegions=plan?.regions||[];host.effects=[];host.shots=[];host.ultimateActs=[];host.ultimateAnnouncement=null;host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const activePlayers=host.players.filter(p=>p.active);const spreadSpots=artsRandomSpawns(activePlayers.length,host.blocks,plan,gimmickLayout);const spots=host.settings.teams==='teams'?artsGroupedSpawns(activePlayers,spreadSpots,host.blocks,plan,gimmickLayout):spreadSpots;host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),limit=host.settings.skillSlots,team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);picked.splice(limit);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,artMatter:0,crime:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||null,guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageAudioEvents=[];host.stageNPCs=host.settings.npcEnabled?(plan?.devices||[]).filter(d=>d.type==='npc').map((d,i)=>({id:i+1,x:d.x,y:d.y,hp:90,maxHp:90,dir:i*2.1,nextFire:0,respawnAt:0})):[];host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(false)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
  const friendly=(a,b)=>R.allies(a,b,host.settings.teams);
  function remainingSides(){return new Set(alive().map(p=>host.settings.teams==='teams'?p.team:p.id)).size}
@@ -7063,20 +7175,35 @@ window.ArtArts=(()=>{
  }
  function hurt(target,damage,now,source,armorPierce=false,knockback=0){
  if(target.hp<=0||!target.active)return 0;
- const raw=artsDamage(source,damage,now),shield=target.armorUntil>now?Math.max(0,target.armorHP||0):0,absorbed=Math.min(shield,raw);target.armorHP=shield-absorbed;
+ let raw=artsDamage(source,damage,now);
+ const ownerForUltimate=host.fighters.find(p=>p.id===(source?.owner||source?.id));
+ if(ownerForUltimate?.ultimateNemesisUntil>now&&ownerForUltimate.id!==target.id&&(target.crime||0)>0){const extra=Math.min(raw,target.crime);target.crime-=extra;raw+=extra;}
+ if((host.ultimateActs||[]).some(e=>e.job==='tank'&&e.end>now&&R.dist(e,target)<200&&host.fighters.find(p=>p.id===e.owner&&friendly(p,target))))raw*=.5;
+ const shield=target.armorUntil>now?Math.max(0,target.armorHP||0):0,absorbed=Math.min(shield,raw);target.armorHP=shield-absorbed;
  const kind=source?.damageType||(['magic','star','nova','ray','ghost','smoke'].includes(source?.type)?'magic':'physical');
  // Percentage mitigation makes high Defense valuable without deleting weak hits.
  // Resist is deliberately diminishing at high stats and capped at 48%.
  const defense=Math.max(0,Number(target.stats?.[2])||0);
  const mitigation=armorPierce?0:Math.min(.55,defense<=20?defense*.015:defense<=30?.30+(defense-20)*.01:defense<=40?.40+(defense-30)*.007:.47+(defense-40)*.005);
  const coat=target.iron>now?(kind==='magic'?.1:.5):1;
+ if(absorbed>0)addArtMatter(target,target.class==='tank'?absorbed*.22:0);
  const actual=Math.min(target.hp,raw>absorbed?Math.max(1,(raw-absorbed)*(1-mitigation)*coat):0),impact=actual+absorbed;target.hp-=actual;
  if(actual>.001){
   const poison=!!(source&&(source.poison===true||source.type==='trickMine'&&source.owner===target.trickPoisonOwner));
   showArtsNumber(target,poison?'poison':'damage',actual,now);
   if(host._artsHealthTickActive)target._artsAccountedDamage=(target._artsAccountedDamage||0)+actual;
  }
- const dealer=host.fighters.find(p=>p.id===(source?.owner||source?.id));
+ const dealer=host.fighters.find(p=>p.id===(source?.owner||source?.id))||host.fighters.find(p=>p.id===host.effects.find(e=>e.type==='summonBody'&&e.id===(source?.owner||source?.id))?.owner);
+ if(actual>0){
+  if(dealer){{target.crime=(target.crime||0);dealer.crime=(dealer.crime||0)+actual;
+   if(!friendly(dealer,target)){
+    const rate=(dealer.class==='attacker'||dealer.class==='magician')?0.2:dealer.class==='executioner'?0.15:dealer.class==='vampire'?(source?.style==='bloodSeeker'||String(source?.type||'').startsWith('blood')?0.30:0.06):0.06;
+    addArtMatter(dealer,actual*rate);
+   }}
+   if(dealer.ultimateBloodUntil>now&&dealer.id!==target.id)dealer.hp=Math.min(dealer.maxHp||100,dealer.hp+actual*.4);
+  }
+  addArtMatter(target,actual*(target.class==='tank'?.2:target.class==='executioner'?.15:0));
+ }
  if(actual>0&&dealer&&dealer.id!==target.id&&!friendly(dealer,target))dealer.damageDealt=(dealer.damageDealt||0)+actual;
  if(target.hp<=0&&actual>0)target.killedBy=source?.owner||source?.id||null;
  if(impact>0){if(target.mirageHiddenUntil>now){target.mirageHiddenUntil=0;target.mirageRevealAt=0;}/* Deep Sleep is not broken by receiving damage; duration and post-sleep immunity remain unchanged. */target.daydreamUntil=0;if(actual>0)target.nightmareUntil=0;target.rechargeUntil=0;target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=impact;
@@ -7090,7 +7217,7 @@ window.ArtArts=(()=>{
     const gained=Math.max(0,Math.min(proposed,30-(target.reactorGrowInCast||0),100-(target.reactorGrowTotal||0)));
     if(gained>0){target.reactorGrowInCast=(target.reactorGrowInCast||0)+gained;target.reactorGrowTotal=(target.reactorGrowTotal||0)+gained;
      target.baseMaxInk=(target.baseMaxInk??target.maxInk)+gained;
-     target.maxInk=target.baseMaxInk*(target.ascensionUntil>now?2:1);
+     target.maxInk=target.baseMaxInk*(target.ascensionUntil>now?1.5:1);
     }
    }
   }}return actual;
@@ -7139,7 +7266,7 @@ window.ArtArts=(()=>{
  }
  function artsGuardHit(q,amount,now,kind){
   const intact=amount<=Math.max(0,q.guardValue||0);
-  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));}
+  if(intact){q.ink=Math.min(q.maxInk,q.ink+Math.max(0,amount));addArtMatter(q,q.class==='tank'?amount*.3:0);}
   else{q.guard=0;q.guardValue=0;
    for(const e of host.effects)if(e.type==='guard'&&e.owner===q.id&&e.end>now)e.end=now;
   }
@@ -7243,8 +7370,8 @@ window.ArtArts=(()=>{
  // A completed gesture is an atomic cast request. Do not require the independent
  // drawing=true input packet to have arrived first (multiplayer latency/reordering).
  function setAwakening(p,on,now){
-  if(on){p.baseStats??=[...p.stats];p.baseMaxInk??=p.maxInk;p.stats=p.baseStats.map(v=>v*2);p.maxInk=p.baseMaxInk*2;p.ascensionUntil=now+15000;}
-  else{if(p.baseStats)p.stats=[...p.baseStats];if(p.baseMaxInk)p.maxInk=p.baseMaxInk;p.ink=Math.min(p.ink,p.maxInk*1.5);p.ascensionUntil=0;}
+  if(on){p.baseStats??=[...p.stats];p.baseMaxInk??=p.maxInk;p.stats=p.baseStats.map(v=>(v+(p.divineStart?30:0))*1.5);p.maxInk=p.baseMaxInk*1.5;p.ascensionUntil=now+15000;}
+  else{if(p.baseStats)p.stats=p.baseStats.map(v=>v+(p.divineStart?30:0));if(p.baseMaxInk)p.maxInk=p.baseMaxInk;p.ink=Math.min(p.ink,p.maxInk*1.5);p.ascensionUntil=0;}
  }
  // Nightmare shockwave removes positive buffs but never removes harmful statuses.
  // The HP reduction is applied separately by hurt(), and all enemies are hit through walls.
@@ -7465,6 +7592,8 @@ window.ArtArts=(()=>{
  const beforeAdvancedShots=host.shots.length;
  if(castAdvanced(p,e,shape,attack,now)){
   for(const shot of host.shots.slice(beforeAdvancedShots)){shot.left*=artsRangeFactor(p);shot.radius*=sizeArea;}
+  if(p.class==='kemono'&&['summon_dog','summon_cat','carbuncle','summon_bat'].includes(shape.type))addArtMatter(p,12);
+  if(p.class==='saint'&&['greater_heal','holy_blessing','sacred_ascension'].includes(shape.type))addArtMatter(p,10);
   host.effects.push(e);return true
  }
  if(shape.type==='aura'){const q=nearestSupportTarget(p,shape);q.auraUntil=now+Math.round(8000*artsSingleFactor(shape));e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800}
@@ -7533,6 +7662,8 @@ window.ArtArts=(()=>{
  if(shape.type==='iron'){const q=nearestSupportTarget(p,shape);q.iron=now+15000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+900;}
  if(shape.type==='reactor'){const q=nearestSupportTarget(p,shape);q.reactor=now+6000;q.reactorGrowInCast=0;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800;}
  if(shape.type==='anchor'){e.x=target.x;e.y=target.y;e.r=R.clamp((shape.radius*1.65+25)*sizeArea,90,350);e.power=(4+attack*.2)*power;e.debuff='slow';for(const q of host.fighters)if(!friendly(p,q)&&R.dist(q,e)<e.r&&lineClear(e,q)){hurt(q,e.power,now,e);q.slow=now+2000}}
+ if(p.class==='gunner'&&['burst','ghost','spread','ricochet','charge','repulse'].includes(shape.type))addArtMatter(p,Math.min(14,Math.max(1,host.shots.length-beforeAdvancedShots)));
+ if(p.class==='saint'&&['heal','aura'].includes(shape.type))addArtMatter(p,8);
  if(buildBlock){buildBlock.id=++host.seq;host.blocks.push(buildBlock)}
  // TRICKSTER: deceptive illusions, contact drain and invisible traps.
  const decoySnapshot=()=>({fakeHp:p.hp,fakeMaxHp:p.maxHp||100,fakeTeam:p.team,fakeAura:p.auraUntil>now?now+8000:0,fakeIron:p.iron>now?now+15000:0,fakeAscension:p.ascensionUntil>now?now+15000:0,fakeRegen:p.regenUntil>now?now+30000:0,fakeFace:p.facing});
@@ -7604,7 +7735,13 @@ window.ArtArts=(()=>{
  if(m.type==='gameArtsEquip'&&host.phase==='equip'){const a=host.art[id];if(a){const pool=R.skills(a.class),picked=[...(Array.isArray(m.skills)?m.skills:[])].filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i).slice(0,host.settings.skillSlots);if(picked.length===host.settings.skillSlots){a.skills=picked;a.skill=picked[0]||null;host.equipped[id]=true;sendAll(true);if(host.players.filter(p=>p.active).every(p=>host.equipped[p.id]))startBattle()}}return true}
  if(host.phase!=='battle'||migrationOut)return true;const f=host.fighters.find(p=>p.id===id);if(!f||f.hp<=0||!f.active)return true;if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameArtsCast'){const reply={type:'gameArtsFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameArtsInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now(),sentAt:Number.isFinite(m.sentAt)?m.sentAt:0};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
- if(m.type==='gameArtsCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=R.valid(m.strokes),outside=valid&&!R.inRange({strokes:m.strokes},f.stats);const shape=outside?null:R.recognize(m.strokes,f.skills||[f.skill]);if(!outside&&!shape&&valid)f.ink=Math.max(0,f.ink-Math.ceil(Math.min(R.length(m.strokes),2600)*.035));f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?moves[shape.type].name+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameArtsFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
+ if(m.type==='gameArtsCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=R.valid(m.strokes),outside=valid&&!R.inRange({strokes:m.strokes},f.stats);const ult=valid&&!outside&&(f.artMatter||0)>=100?ultimateRecognition(m.strokes,f.class):null;
+ if(ult){const ok=castUltimate(f,Date.now());const reply={type:'gameArtsFeedback',text:ok?'必殺技発動！ '+ultimateArts[ult].name:'今は必殺技を発動できません。',ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true;}
+ if(!outside&&valid&&(f.artMatter||0)>=100&&m.strokes.length===1&&ultimateSimilarity(m.strokes,f.class)<.29){
+  const reply={type:'gameArtsFeedback',text:'必殺技の図形が少し違います。ゲージとインクは消費しません。',ok:false};
+  if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;return true;
+ }
+ const shape=outside?null:R.recognize(m.strokes,f.skills||[f.skill]);if(!outside&&!shape&&valid&&(f.artMatter||0)<100)f.ink=Math.max(0,f.ink-Math.ceil(Math.min(R.length(m.strokes),2600)*.035));f.castError='';const ok=shape&&!outside&&cast(id,shape);const message=outside?'射程外のためキャンセルしました（インク消費なし）。':ok?moves[shape.type].name+'！':shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameArtsFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
  function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)||artsGuardBlocksMovement(p,nx,ny,now)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameArtsFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
  function practiceBotInput(p,now){
  const target=host.fighters.find(q=>!friendly(p,q)&&q.active&&q.hp>0);if(!target){p.botAttack=null;p.drawing=false;return{x:0,y:0,at:now}}
@@ -8004,14 +8141,16 @@ window.ArtArts=(()=>{
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
  for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){const beforeInk=p.ink;p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);showArtsInkRecovery(p,beforeInk,now);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
- if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(5+p.stats[3]*.22)*2/3);if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
+ if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(5+p.stats[3]*.22)*2/3*(artsNightmareFor(p,now)?1/3:1));if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  if(p.nightmareUntil>now){p.dash=null;p.moving=false;continue;}
  // Once the soul reaches the vortex core it cannot escape by raw movement speed.
  if(host.effects.some(e=>e.type==='soul_eater'&&e.end>now&&e.trappedIds?.includes(p.id))){p.dash=null;p.moving=false;continue;}
- const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+(p.stats[0]+(p.beastUntil>now?30:0))*4)*(p.stageSpeed||1)*(p.slowFactorUntil>now?.2:p.slow>now?.5:1),ox=p.x,oy=p.y;
+ const mx=input&&now-input.at<450?input.x:0,my=input&&now-input.at<450?input.y:0,speed=(65+(p.stats[0]+(p.beastUntil>now?30:0))*4)*(p.stageSpeed||1)*(p.ultimateTrickUntil>now?1.5:1)*(p.slowFactorUntil>now?.2:p.slow>now?.5:1)*ultimateNemesisSlow(p,now),ox=p.x,oy=p.y;
  if(p.dash)advanceDash(p,dt,now);else{const confusedReverse=p.confused>now&&Math.floor((now-(p.confusedFrom||now))/2000)%2===0;const vx=mx*speed*dt*(confusedReverse?-1:1),vy=my*speed*dt*(confusedReverse?-1:1),steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)/8));for(let i=0;i<steps;i++){if(!R.blocked(p.x+vx/steps,p.y,host.blocks)&&!artsGuardBlocksMovement(p,p.x+vx/steps,p.y,now))p.x+=vx/steps;if(!R.blocked(p.x,p.y+vy/steps,host.blocks)&&!artsGuardBlocksMovement(p,p.x,p.y+vy/steps,now))p.y+=vy/steps}}
+ if(p.class==='trickster')addArtMatter(p,Math.hypot(p.x-ox,p.y-oy)*.01);
  p.moving=Math.hypot(p.x-ox,p.y-oy)>.01;if(Math.abs(p.x-ox)>.01)p.facing=p.x>ox?1:-1;
  }
+ updateUltimateArts(dt,now);
  updateHooks(dt,now);
  updateSoulHarvest(dt,now);
  updateSoulHarvestSouls(now);
@@ -8216,12 +8355,13 @@ window.ArtArts=(()=>{
     if(!['decoyBody','trickAbsorb','soulHarvestSoul','stageHarvest','combatNumber','pickupNumber'].includes(e.type)&&!['burst','ghost','spread','ricochet','repulse'].includes(e.type)){
      const duplicateDispel=e.type==='nightmare_dispel'&&heardBuffWaves.has(e.buffWaveId??e.id);
      if(!duplicateDispel){
-      window.ArtSound?.play(['artsSlashParry','artsGuardBreak'].includes(e.type)?'arts_new_heavy_slash':e.type==='artsMagicParry'?'artsGuard':advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
+      window.ArtSound?.play(e.type==='ultimateCeremony'?(e.advanced?'arts_new_charge_shot':'arts_new_heavy_slash'):['artsSlashParry','artsGuardBreak'].includes(e.type)?'arts_new_heavy_slash':e.type==='artsMagicParry'?'artsGuard':advancedSoundName(e)||(['guard','iron','reactor','build','smoke','decoy','warp'].includes(e.type)?'artsGuard':['slash','cross','inkcut'].includes(e.type)?'artsSlash':['thrust','feint','anchor','mirage'].includes(e.type)?'artsThrow':'artsMagic'),e.type==='nightmare_dispel'?4:2);
       if(e.type==='nightmare_dispel')heardBuffWaves.add(e.buffWaveId??e.id);
      }
     }
     previousFx.add(e.id);
    }previousFx=new Set(view.effects.map(e=>e.id));if(!raf)raf=requestAnimationFrame(frame)}if(old?.phase!==view.phase||view.phase!=='battle')renderControls()}
+ function ultimateHudHTML(p){const v=Math.min(100,Math.floor(p.artMatter||0)),ready=v>=100;return '<div class="arts-am-panel'+(ready?' ready':'')+'"><label>アートマター <b>'+v+' / 100</b></label><div class="arts-am-track"><i style="width:'+v+'%"></i></div>'+(ready?'<strong>✦ 必殺技発動可能 ✦</strong>':'')+'</div>'}
  function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+((p.armorHP||0)>0?'<div class="arts-meter armor"><label>装甲 <b>'+Math.ceil(p.armorHP)+' / '+(p.armorMax||((p.armorHP||0)>30?50:30))+'</b></label><progress max="'+(p.armorMax||((p.armorHP||0)>30?50:30))+'" value="'+p.armorHP+'" aria-label="装甲"></progress></div>':'')+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress></div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div></div>'}
  function skillDetails(k){const m=moves[k];return '<p><b>描き方の判定：</b>'+esc(m.gesture)+'</p><p><b>クールダウン：</b>'+(self()?.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒</p><p><b>効果：</b>'+esc(m.effect)+'</p><p><b>範囲：</b>'+esc(m.range)+'</p>'}
  function equipCardsHTML(a,choice,locked){
@@ -8318,13 +8458,13 @@ window.ArtArts=(()=>{
  }
 
  function renderUI(){syncLiveStats();if(window.ArtSessionUI?.lobby())return;if(!enabled()||!view){stage.hidden=bar.hidden=true;return}$('#studio').classList.add('arts-mode');$('#studio').classList.toggle('arts-creating',view?.phase==='create');for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar'])if($('#'+id))$('#'+id).hidden=true;$('#snapshotBtn').hidden=true;const phase=view?.phase||'lobby';const key=view?.id+':'+phase+':'+JSON.stringify(view?.ready)+':'+JSON.stringify(view?.equipped)+':'+JSON.stringify(view?.settings)+':'+JSON.stringify(phase==='equip'?equipChoice:[])+':'+JSON.stringify(view?.teamAssignments)+':'+rosterKey;if(key===uiKey)return;uiKey=key;
- bar.hidden=false;bar.innerHTML='<b>アートレイター</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'職業と陣営の確認',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
+ bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'職業と陣営の確認',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
  $('#artsClassHelp').onclick=showArtsClassHelp;
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
  if(stage.hidden){stage.innerHTML='';return}
- if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートレイターの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';bindBattle();return}
+ if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートアーツの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><div id="artsUltimateGuide" hidden></div><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';bindBattle();return}
  let body='';if(phase==='lobby'){const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);body='<h2>描いた相棒で、戦おう。</h2><p>自由に描いた絵がキャラクターに。<br>戦場では線を描いて、共通アーツと選んだスキルを発動します。</p><p>'+people.map(p=>esc(p.profile.name)).join(' ・ ')+(room.offline?' ＋ 練習くん':'')+'</p>'+teamLobbyHTML(people)+'<p>作成 '+view.settings.createSeconds+'秒 / 対戦 '+view.settings.battleSeconds+'秒</p><div class="modal-actions">'+(isHost?'<button id="artsStart" class="primary">キャラクター作成へ</button><button id="artsSettings">部屋設定</button>':'部屋主の開始を待っています。')+'</div>'+instructions}
  else if(phase==='equip'){const a=view.art?.[localId],choice=a&&participant()?ensureEquipChoice(a):[],locked=!!view.equipped?.[localId];body=a&&participant()?'<div class="arts-equip-heading"><h2>'+jobLabel(a.class)+'</h2><p>6つのスキルから'+view.settings.skillSlots+'つ選択'+(view.settings.skillSlots===0?'（固有スキルなし）':'')+'</p></div>'+equipCardsHTML(a,choice,locked)+'<div class="arts-equip-footer"><small>'+choice.map(k=>esc(moves[k].name)).join(' ＋ ')+'（'+choice.length+'/'+view.settings.skillSlots+'）</small><button id="artsEquipConfirm" class="primary" '+(locked||choice.length!==view.settings.skillSlots?'disabled':'')+'>'+(locked?'準備完了 · みんなを待っています':view.settings.skillSlots===0?'スキルなしで決定':'この'+view.settings.skillSlots+'つで決定')+'</button></div>':'<h2>スキル選択中</h2><p>参加者の選択を待っています。</p>'}
   else if(phase==='create'||phase==='collect')body='<h2>'+(participant()?'準備完了！':'観戦中')+'</h2><p>みんなのキャラクターが揃うのを待っています。</p><p>'+Object.values(view.ready).filter(Boolean).length+' / '+view.players.filter(p=>p.active).length+'人 準備完了</p>'+(phase==='create'&&participant()&&view.ready[localId]&&!room.characterOnly&&view.deadline>Date.now()+offset?'<p>全員が準備完了になると5秒後にスキル選択へ進みます。</p><button type="button" id="artsCancelReady">準備完了を取り消して描き直す</button>':'');
@@ -8443,7 +8583,9 @@ finishPaint(false)};
  document.addEventListener('pointercancel',e=>{
   if(enabled()&&view?.phase==='battle'&&gesture?.id===e.pointerId)$('#artsArena')?.onpointercancel?.(e)
  },true);
- function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}if((me?.skills||[me?.skill]).includes('summon')){if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コア配置OK。続けて周りへ描くとペットを召喚します。');return}if(paths.length===1){hint('最初に♡でコアを描きます。');return}}const shape=R.recognize(paths,me?.skills||[me?.skill]);hint(shape?'候補：'+moves[shape.type].name+(shape.type==='slash'?'（描いた場所に斬撃・中心位置は射程の半分まで）':'')+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
+ function updateInkHint(){if(!paintMode&&!gesture&&!strokes.length)return;const me=self(),paths=[...strokes,...(gesture?[gesture.points]:[])],range=R.placementRange(null,me?.stats);if(paths.some(path=>path.some(p=>Math.hypot(p.x,p.y)>range))){hint('射程円の外には描けません。このまま離すとインク消費なしでキャンセルされます。');return}if((me?.skills||[me?.skill]).includes('summon')){if(paths.length===1&&isSummonCoreStroke(paths[0])){hint('コア配置OK。続けて周りへ描くとペットを召喚します。');return}if(paths.length===1){hint('最初に♡でコアを描きます。');return}}const ultimate=me?.artMatter>=100?ultimateRecognition(paths,me.class):null;
+ if(ultimate){hint('必殺技：'+ultimateArts[ultimate].name+' ｜ このまま離すと発動！');return}
+ const shape=R.recognize(paths,me?.skills||[me?.skill]);hint(shape?'候補：'+moves[shape.type].name+(shape.type==='slash'?'（描いた場所に斬撃・中心位置は射程の半分まで）':'')+' ｜ このまま離すと発動（必要インク '+R.cost(shape)+'）':'まだ技の特徴が足りません。線を続けて描いてください。')}
  // The skill card and live trace share the exact same one-stroke template as the recognizer.
  const guideTips={
   hook:'右上からまっすぐ下へ → 底を丸く曲がって左へ → 少し上がるJ字',
@@ -9524,6 +9666,8 @@ finishPaint(false)};
  return '<svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true" focusable="false"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
  }
  function updateSkillIcons(me,now){
+  const upper=$('#artsUltimateGuide');const def=me&&ultimateArts[me.class];
+  if(upper){const ready=!!(me&&me.active&&me.hp>0&&me.artMatter>=100&&def&&!(me.class==='saint'&&me.divineStart));upper.hidden=!ready;if(ready){const symbol='<svg viewBox="0 0 240 165" aria-hidden="true"><path d="'+def.path+'" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';const content='<b>✦ 必殺技発動可能</b><span>'+esc(def.name)+'（'+esc(def.reading)+'）</span>'+symbol;if(upper.dataset.job!==me.class){upper.innerHTML=content;upper.dataset.job=me.class}}else upper.dataset.job='';}
   const holder=$('#artsSkillIcons');if(!holder)return;
   if(!me||me.hp<=0||!me.active){holder.hidden=true;return}holder.hidden=false;
   const keys=[...new Set((me.skills||[me.skill]).filter(Boolean))];
@@ -9568,6 +9712,43 @@ finishPaint(false)};
   }
   x.restore();
  }
+
+ function drawUltimateWorld(x,now){
+  for(const e of view.effects||[]){if(e.end<=now)continue;
+   if(e.type==='ultimateCeremony'||e.type==='ultimateBigBang'||e.type==='ultimateSlash'||e.type==='ultimateExecution'){
+    const t=Math.min(1,(now-e.start)/(e.end-e.start));x.save();x.translate(e.x,e.y);x.globalAlpha=Math.max(.04,1-t);const adv=!!e.advanced||e.type==='ultimateExecution';x.strokeStyle=adv?'#d5a1ff':'#ffe58c';x.shadowColor=adv?'#ae70ff':'#ffbf6b';x.shadowBlur=22;x.lineWidth=5;
+    for(let j=0;j<(adv?3:2);j++){x.beginPath();x.arc(0,0,(e.r||100)*(.35+t*.8+j*.17),0,Math.PI*2);x.stroke()}
+    for(let j=0;j<12;j++){const a=j*Math.PI/6+now/1100,r=(e.r||100)*(.25+t*.7);x.beginPath();x.moveTo(Math.cos(a)*r,Math.sin(a)*r);x.lineTo(Math.cos(a)*(r+15),Math.sin(a)*(r+15));x.stroke()}
+    if(e.type==='ultimateSlash'){x.rotate(e.angle||0);x.strokeStyle='#fff6c7';x.lineWidth=22*(1-t)+5;x.beginPath();x.ellipse(25,0,(e.r||180)*.8,(e.r||180)*.36,0,-1.55,1.55);x.stroke()}
+    x.restore();
+   }
+  }
+  for(const aura of view.ultimateActs||[]){if(aura.end<=now)continue;
+   if(aura.job==='tank'){x.save();x.strokeStyle='#8ee8ff';x.fillStyle='#72b8fe19';x.shadowColor='#66bfff';x.shadowBlur=17;x.lineWidth=5;x.beginPath();x.arc(aura.x,aura.y,200,0,Math.PI*2);x.fill();x.stroke();for(let j=0;j<8;j++){const a=j*Math.PI/4;x.beginPath();x.moveTo(aura.x+Math.cos(a)*187,aura.y+Math.sin(a)*187);x.lineTo(aura.x+Math.cos(a)*213,aura.y+Math.sin(a)*213);x.stroke()}x.restore()}
+  }
+  for(const shot of view.shots||[]){if(!shot.style?.startsWith('ultimate')||now<shot.fireAt)continue;x.save();x.translate(shot.x,shot.y);const angle=Math.atan2(shot.vy,shot.vx);x.rotate(angle);x.strokeStyle=shot.style==='ultimateLaser'?'#ffe2ff':'#a9dcff';x.fillStyle=shot.style==='ultimateStar'?'#fff1a6':'#e4bcff';x.shadowColor=x.strokeStyle;x.shadowBlur=18;x.lineWidth=shot.style==='ultimateLaser'?8:3;x.beginPath();if(shot.style==='ultimateLaser'){x.moveTo(-33,0);x.lineTo(34,0);x.stroke()}else if(shot.style==='ultimateStar'){for(let j=0;j<10;j++){const a=j*Math.PI/5,r=j%2?4:10;x.lineTo(Math.cos(a)*r,Math.sin(a)*r)}x.closePath();x.fill();x.stroke()}else{x.arc(0,0,shot.radius||6,0,Math.PI*2);x.fill();x.stroke()}x.restore()}
+  for(const p of view.fighters){if(p.hp<=0)continue;const active=p.divineStart||p.ultimateNemesisUntil>now||p.ultimateBloodUntil>now;if(!active)continue;const pos=positions.get(p.id)||p;const clr=p.divineStart?'#ffe4a0':p.ultimateNemesisUntil>now?'#dc4677':'#fa648c';x.save();x.strokeStyle=clr;x.shadowColor=clr;x.shadowBlur=20;x.lineWidth=3;x.beginPath();x.arc(pos.x,pos.y,42+Math.sin(now/180)*4,0,Math.PI*2);x.stroke();if(p.ultimateNemesisUntil>now){x.strokeStyle='#9c224d';x.globalAlpha=.7;x.lineWidth=4;x.beginPath();x.arc(pos.x,pos.y,220,0,Math.PI*2);x.stroke();
+    const guilty=view.fighters.filter(q=>q.id!==p.id&&q.hp>0&&q.active).sort((a,b)=>(b.crime||0)-(a.crime||0))[0];const a=guilty?Math.atan2(guilty.y-pos.y,guilty.x-pos.x):0;
+    x.save();x.translate(pos.x,pos.y-77);x.rotate(a);x.fillStyle='#f4c7d5';x.beginPath();x.ellipse(0,0,15,9,0,0,Math.PI*2);x.fill();x.fillStyle='#c62456';x.beginPath();x.arc(0,0,6,0,Math.PI*2);x.fill();x.restore();
+   }x.restore()}
+  const avengers=view.fighters.filter(p=>p.hp>0&&p.ultimateNemesisUntil>now);
+  if(avengers.length)for(const q of view.fighters){if(q.hp<=0||(q.crime||0)<=0)continue;const pos=positions.get(q.id)||q;x.save();x.translate(pos.x,pos.y-66);x.strokeStyle='#ff5e8f';x.shadowColor='#ff3e8b';x.shadowBlur=15;x.lineWidth=2.5;x.beginPath();x.arc(0,0,17,0,Math.PI*2);x.moveTo(-23,0);x.lineTo(-12,0);x.moveTo(23,0);x.lineTo(12,0);x.moveTo(0,-23);x.lineTo(0,-12);x.moveTo(0,23);x.lineTo(0,12);x.stroke();x.restore()}
+  const nightmare=(view.ultimateActs||[]).some(e=>e.job==='dreamer'&&e.end>now);
+  if(nightmare)for(const q of view.fighters){if(q.hp<=0)continue;if((view.ultimateActs||[]).some(e=>e.job==='dreamer'&&e.owner===q.id&&e.end>now))continue;const pos=positions.get(q.id)||q;const ratio=Math.max(0,Math.min(1,(q.ink||0)/Math.max(1,q.maxInk||100)));x.save();x.translate(pos.x,pos.y-87);x.strokeStyle='#c6a1ff';x.lineWidth=2.7;x.shadowColor='#a37dff';x.shadowBlur=10;x.beginPath();x.moveTo(-13,0);x.quadraticCurveTo(0,-12*ratio,13,0);x.quadraticCurveTo(0,12*ratio,-13,0);x.stroke();if(ratio>.02){x.fillStyle='#d7bfff';x.beginPath();x.arc(0,0,4*ratio,0,Math.PI*2);x.fill()}x.restore()}
+  for(const beast of view.effects||[]){if(!beast.ultimateBeast||beast.end<=now||beast.hp<=0)continue;const color=beast.ultimateBeast==='fenrir'?'#9cecff':beast.ultimateBeast==='cait'?'#ffe6a1':'#ce8aff';x.save();x.translate(beast.x,beast.y);x.shadowColor=color;x.shadowBlur=18;x.strokeStyle=color;x.lineWidth=3;x.beginPath();x.arc(0,0,(beast.r||35)+8,0,Math.PI*2);x.stroke();if(beast.ultimateBeast==='nidhogg'){x.beginPath();x.moveTo(-35,-20);x.lineTo(-50,-55);x.lineTo(-10,-36);x.moveTo(35,-20);x.lineTo(50,-55);x.lineTo(10,-36);x.stroke()}x.restore()}
+
+ }
+ const artsNightmareMask=document.createElement('canvas');
+ function drawUltimateScreen(x,c,now,me,dpr){
+  const nightmare=(view.ultimateActs||[]).find(e=>e.job==='dreamer'&&e.end>now&&view.fighters.some(p=>p.id===e.owner&&p.active&&p.hp>0));
+  if(nightmare){x.save();x.setTransform(1,0,0,1,0,0);const caster=nightmare.owner===localId;const mask=artsNightmareMask; if(mask.width!==c.width||mask.height!==c.height){mask.width=c.width;mask.height=c.height;}const mx=mask.getContext('2d');mx.clearRect(0,0,c.width,c.height);mx.fillStyle=caster?'rgba(10,6,24,.32)':'rgba(5,3,16,.92)';mx.fillRect(0,0,c.width,c.height);
+   if(!caster){const cam=cameraRect(dpr);mx.globalCompositeOperation='destination-out';for(const q of view.fighters){if(q.id!==localId&&!(me&&view.settings.teams==='teams'&&q.team===me.team))continue;if(q.hp<=0)continue;const cx=(q.x-cam.left)*cam.scale,cy=(q.y-cam.top)*cam.scale,r=(45+q.hp*.9)*cam.scale;const grd=mx.createRadialGradient(cx,cy,8,cx,cy,r);grd.addColorStop(0,'rgba(0,0,0,.95)');grd.addColorStop(1,'rgba(0,0,0,0)');mx.fillStyle=grd;mx.fillRect(cx-r,cy-r,r*2,r*2)}mx.globalCompositeOperation='source-over';} x.drawImage(mask,0,0);
+   x.restore();
+  }
+  const ann=view.ultimateAnnouncement;
+  if(ann&&now<ann.end){const def=ultimateArts[ann.class];if(!def)return;x.save();x.setTransform(1,0,0,1,0,0);const t=Math.min(1,(now-ann.at)/600),fade=Math.min(1,(ann.end-now)/700);x.globalAlpha=Math.max(0,Math.min(t,fade));x.textAlign='center';x.textBaseline='middle';const cx=c.width/2,cy=c.height*.24;const advanced=def.advanced;x.fillStyle=advanced?'rgba(22,6,40,.83)':'rgba(18,30,52,.78)';x.fillRect(0,cy-72*dpr,c.width,145*dpr);x.shadowColor=advanced?'#b76cff':'#f8c06a';x.shadowBlur=advanced?35:20;x.font='bold '+(advanced?15:12)*dpr+'px sans-serif';x.fillStyle='#f9f0ff';x.fillText('ULTIMATE ART',cx,cy-42*dpr);x.font='900 '+(advanced?35:28)*dpr+'px sans-serif';x.fillText(def.name,cx,cy);x.shadowBlur=0;x.font='bold '+15*dpr+'px sans-serif';x.fillText(def.reading,cx,cy+38*dpr);x.restore()}
+ }
+
  function drawBattleOutcome(x,canvas,now){
   const c=view?.celebration;if(!c)return;
   const elapsed=Math.max(0,now-c.start),duration=Math.max(1,c.end-c.start),t=R.clamp(elapsed/duration,0,1),w=canvas.width,h=canvas.height;
@@ -9745,6 +9926,7 @@ finishPaint(false)};
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
  drawArtsEffects(x,now);
+ drawUltimateWorld(x,now);
  drawArtsFloatingNumbers(x,now);
  for(const p of view.fighters){if(p.id===localId||!p.active||p.hp<=0||!p.drawing||(!p.preview?.length&&!p.summonCore))continue;if(p.mirageHiddenUntil>now&&!(view.settings.teams==='teams'&&me&&p.team===me.team))continue;const pos=positions.get(p.id)||p;x.save();x.strokeStyle=view.players.find(q=>q.id===p.id)?.color||'#bd6b47';x.lineWidth=4;x.lineCap='round';x.lineJoin='round';x.globalAlpha=.8;for(const path of p.preview||[]){x.beginPath();path.forEach((v,i)=>i?x.lineTo(pos.x+v.x,pos.y+v.y):x.moveTo(pos.x+v.x,pos.y+v.y));x.stroke()}
  if(p.summonCore){x.globalAlpha=1;x.font='bold 27px sans-serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#fe8db6';x.shadowBlur=11;x.fillStyle='#ff7fac';x.fillText('♥',pos.x+p.summonCore.x,pos.y+p.summonCore.y)}x.restore()}
@@ -9772,8 +9954,9 @@ finishPaint(false)};
    }
    x.restore();
   }
+  drawUltimateScreen(x,c,now,me,dpr);
   drawBattleOutcome(x,c,now);
- const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!(me&&me.active&&me.hp>0);if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';updateSkillIcons(me,now)}}
+ const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+ultimateHudHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!(me&&me.active&&me.hp>0);if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';updateSkillIcons(me,now)}}
 
 /* SECTION: arts/settings-lifecycle.js */
  function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'生命の庭園',ruins:'古代遺跡',forest:'深緑の森',arena:'基本アリーナ',portal:'転送研究所',mine:'鉱石洞窟',factory:'暴走工場'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">ステージの大きさ<select id="artsStageSize">'+Object.entries({small:'小（760×760／ナイトメア5秒）',medium:'中（1120×1120／10秒）',large:'大（2200×2200／20秒）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stageSize===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field" style="display:flex;align-items:center;gap:10px"><input id="artsNpcEnabled" type="checkbox" ' +(s.npcEnabled?'checked':'')+'> 敵NPCを出現させる（巡回ドローン）</label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">チーム分け<select id="artsTeamAssignModeConfig"><option value="random" '+(s.teamAssignMode==='random'?'selected':'')+'>ランダム</option><option value="manual" '+(s.teamAssignMode==='manual'?'selected':'')+'>手動</option></select></label><label class="form-field">持ち込める固有スキル数<select id="artsSkillSlots">'+Array.from({length:7},(_,i)=>'<option value="'+i+'" '+(s.skillSlots===i?'selected':'')+'>'+i+'個'+(i===2?'（デフォルト）':'')+'</option>').join('')+'</select><small>0個なら通常攻撃のみ、6個なら職業の全スキルを使用できます。</small></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。基本アリーナは上下にインク回復、左右にHP回復、四隅に転送装置を配置。小は簡潔、大は細かい遮蔽を追加したサイズ別専用設計です。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角・二重の丸や楕円・太い外殻は防御力、横に広い胴体も防御力に少し加点。塗りつぶし・グルグルはインク量、本体から離れた弾・魔法弾は射程に特化します。初期HPは全員100。セイントの祝福で最大HPを増やせます。2〜8人。チーム戦ではランダムまたは部屋主の手動指定でチームを決定します。時間切れ後は安全地帯が縮小します。</p>'}
