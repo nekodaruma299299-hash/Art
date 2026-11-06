@@ -6768,7 +6768,17 @@ window.ArtArts=(()=>{
  function showUltimateGuide(){
   const me=self();if(!me||!ultimateArts[me.class])return;
   const def=ultimateArts[me.class];stopInput();
-  modal(def.name+'（'+def.reading+'）','<div class="arts-ultimate-detail">'+ultimateGuideSVG(me.class,true)+'</div><p><b>緑＝始点、オレンジ＝終点、矢印＝進む方向</b></p><p>'+esc(ultimateInstructions[me.class])+'</p><p>一筆で描いて、ペンまたは指を離すと判定します。大きさや多少の手ブレは許容します。アートマター100のときのみ発動可能です。失敗してもアートマターとインクは消費しません。</p>');
+  let dialog=document.getElementById('artsUltimateGuideDialog');
+  if(!dialog){
+   dialog=document.createElement('dialog');dialog.id='artsUltimateGuideDialog';
+   dialog.setAttribute('aria-label','必殺技の詳しい書き方');
+   document.body.appendChild(dialog);
+   dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+   for(const ev of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend'])dialog.addEventListener(ev,e=>e.stopPropagation());
+  }
+  dialog.innerHTML='<section class="arts-ultimate-dialog-inner"><header><div><small>ULTIMATE ART / 描き方</small><h2>'+esc(def.name)+' <span>（'+esc(def.reading)+'）</span></h2></div><button id="artsUltimateGuideClose" type="button" aria-label="お手本を閉じる">×</button></header><div class="arts-ultimate-detail">'+ultimateGuideSVG(me.class,true)+'</div><p class="arts-ultimate-key"><b>● 緑：描き始め　● オレンジ：描き終わり　→：進む方向</b></p><p>'+esc(ultimateInstructions[me.class])+'</p><p class="arts-ultimate-note">一筆で描いて離すと発動します。大きさや多少の手ブレは許容され、失敗してもアートマターとインクは消費しません。発動にはアートマター100が必要です。</p></section>';
+  dialog.querySelector('#artsUltimateGuideClose').onclick=()=>dialog.close();
+  if(!dialog.open)dialog.showModal();
  }
  // Art Arts only: high-activity ultimate-gauge balance, max 100. Do not touch Art Traitor.
  function addArtMatter(p,amount){if(!p||!p.active||p.hp<=0||!Number.isFinite(amount)||amount<=0)return;p.artMatter=Math.min(100,(p.artMatter||0)+amount)}
@@ -8299,6 +8309,8 @@ window.ArtArts=(()=>{
    }
    return s.bitesLeft>0&&target.hp>0;
   }
+  if(s.style==='ghost'&&now<(s.guardPauseUntil||0))return true;
+  if(s.style==='ghost'&&now<(s.guardPauseUntil||0))return true;
   steerGhostShot(s,owner);
   if(!s.passWalls&&!s.ricochetUntil&&shotHitsWallAt(s.x,s.y,s.radius||4)){for(const b of host.blocks)if(R.intersects(s.x,s.y,s.radius||4,b))damageWall(b,s.power,now);return false;}
   const distance=Math.hypot(s.vx,s.vy)*dt,steps=Math.max(1,Math.ceil(distance/8));
@@ -8321,8 +8333,15 @@ window.ArtArts=(()=>{
    if(mirror){const old=s.owner;s.owner=mirror.owner;s.vx=-s.vx;s.vy=-s.vy;s.hit=[];s.ricochetUntil=0;s.pierce=false;break}
    const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature&&s.style==='bloodSeeker'){s.latchKind='pet';s.latchId=creature.id;s.nextBiteAt=now;return true;}if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);
     if(s.style==='catOrb'&&!(creature.lastCatPushAt>now-500)){creature.lastCatPushAt=now;const len=Math.hypot(s.vx,s.vy)||1,nx=creature.x+s.vx/len*20,ny=creature.y+s.vy/len*20;if(!R.blocked(nx,ny,host.blocks,creature.r)) {creature.x=nx;creature.y=ny;}}if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
-   const guarding=host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
-   if(guarding){if(artsGuardHit(guarding,s.power,now,'magic'))return false;}
+   const guarding=now<(s.guardIgnoreUntil||0)?null:host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
+   if(guarding){
+    if(s.style==='ghost'){
+     s.x=ax;s.y=ay;s.guardPauseUntil=now+350;s.guardIgnoreUntil=now+1050;
+     host.effects.push({id:++host.seq,type:'ghostGuardPause',owner:s.owner,x:s.x,y:s.y,r:24,start:now,end:now+430});
+     return true;
+    }
+    if(artsGuardHit(guarding,s.power,now,'magic'))return false;
+   }
    const decoy=host.effects.find(e=>e.type==='decoyBody'&&e.end>now&&e.owner!==s.owner&&R.dist(e,s)<e.r+r);
    if(decoy){triggerTrickDecoy(decoy,owner,now);return false}
    for(const q of host.fighters){
@@ -8619,7 +8638,7 @@ window.ArtArts=(()=>{
  if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label">元の絵の向き <select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterClearAll" type="button" title="現在制作中のキャラの絵・レイヤー・履歴をすべて初期化">全消し</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterClearAll'))$('#artsCharacterClearAll').onclick=()=>{if(!canDraw()||view?.phase!=='create')return;if(!confirm('制作中のキャラを全消ししますか？\n絵・レイヤー・操作履歴・キャラの向きをすべて初期化します。\n※絵画展に保存済みのキャラは削除されません。'))return;clearCanvas();savedCharacterSource=null;lastPreview=0;updateLiveStats(Date.now());toast('キャラを白紙に戻しました。');};if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
  if(stage.hidden){stage.innerHTML='';return}
- if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートアーツの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><div id="artsUltimateGuide" hidden></div><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';bindBattle();return}
+ if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートアーツの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><button id="artsUltimateGuide" type="button" hidden aria-label="必殺技のお手本を開く"></button><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';bindBattle();return}
  let body='';if(phase==='lobby'){const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);body='<h2>描いた相棒で、戦おう。</h2><p>自由に描いた絵がキャラクターに。<br>戦場では線を描いて、共通アーツと選んだスキルを発動します。</p><p>'+people.map(p=>esc(p.profile.name)).join(' ・ ')+(room.offline?' ＋ 練習くん':'')+'</p>'+teamLobbyHTML(people)+'<p>作成 '+view.settings.createSeconds+'秒 / 対戦 '+view.settings.battleSeconds+'秒</p><div class="modal-actions">'+(isHost?'<button id="artsStart" class="primary">キャラクター作成へ</button><button id="artsSettings">部屋設定</button>':'部屋主の開始を待っています。')+'</div>'+instructions}
  else if(phase==='equip'){const a=view.art?.[localId],choice=a&&participant()?ensureEquipChoice(a):[],locked=!!view.equipped?.[localId];body=a&&participant()?'<div class="arts-equip-heading"><h2>'+jobLabel(a.class)+'</h2><p>6つのスキルから'+view.settings.skillSlots+'つ選択'+(view.settings.skillSlots===0?'（固有スキルなし）':'')+'</p></div>'+equipCardsHTML(a,choice,locked)+'<div class="arts-equip-footer"><small>'+choice.map(k=>esc(moves[k].name)).join(' ＋ ')+'（'+choice.length+'/'+view.settings.skillSlots+'）</small><button id="artsEquipConfirm" class="primary" '+(locked||choice.length!==view.settings.skillSlots?'disabled':'')+'>'+(locked?'準備完了 · みんなを待っています':view.settings.skillSlots===0?'スキルなしで決定':'この'+view.settings.skillSlots+'つで決定')+'</button></div>':'<h2>スキル選択中</h2><p>参加者の選択を待っています。</p>'}
   else if(phase==='create'||phase==='collect')body='<h2>'+(participant()?'準備完了！':'観戦中')+'</h2><p>みんなのキャラクターが揃うのを待っています。</p><p>'+Object.values(view.ready).filter(Boolean).length+' / '+view.players.filter(p=>p.active).length+'人 準備完了</p>'+(phase==='create'&&participant()&&view.ready[localId]&&!room.characterOnly&&view.deadline>Date.now()+offset?'<p>全員が準備完了になると5秒後にスキル選択へ進みます。</p><button type="button" id="artsCancelReady">準備完了を取り消して描き直す</button>':'');
@@ -8665,6 +8684,16 @@ window.ArtArts=(()=>{
  function relativePoint(e){const p=worldPoint(e),me=self(),pos=positions.get(localId)||me;return{x:p.x-pos.x,y:p.y-pos.y}}
  function drawPoint(e){if(!gesture||gesture.id!==e.pointerId||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return;const origin=gesture.points[0],p={x:origin.x+(e.clientX-gesture.clientX)/gesture.scale,y:origin.y+(e.clientY-gesture.clientY)/gesture.scale};if(R.dist(p,gesture.points.at(-1))<(gesture.pointerType==='pen'?.65:1.4))return;const all=[...strokes,gesture.points];if(all.reduce((n,s)=>n+s.length,0)>=900){for(const path of all){const compact=R.resample(path,Math.max(2,Math.ceil(path.length/2)));path.splice(0,path.length,...compact)}}if(R.length(all)>=5800){hint('線の長さが上限です。ペンや指を離すとすぐに発動します。');return}gesture.points.push(p);if(Date.now()-(gesture.previewAt||0)>120){gesture.previewAt=Date.now();updateInkHint()}}
  function bindBattle(){const c=$('#artsArena'),joy=$('#artsJoystick'),field=$('#artsField');$('#artsSkillInfo').onclick=showSkills;
+ const ultButton=$('#artsUltimateGuide');
+ if(ultButton){
+  // Dedicated button: do not let the fight canvas/joystick swallow the tap.
+  ultButton.addEventListener('pointerdown',e=>{e.stopPropagation()});
+  ultButton.addEventListener('pointerup',e=>{e.stopPropagation()});
+  ultButton.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  ultButton.addEventListener('touchend',e=>e.stopPropagation(),{passive:true});
+  ultButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();showUltimateGuide()});
+ }
+
  let touchStick=null,origin=null;
  const inZone=e=>{const r=field.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.left+Math.min(260,r.width*.45)&&e.clientY>=r.bottom-Math.min(220,r.height*.44)&&e.clientY<=r.bottom};
  const place=e=>{const r=field.getBoundingClientRect(),radius=joy.offsetWidth/2;origin={x:R.clamp(e.clientX-r.left,radius,r.width-radius),y:R.clamp(e.clientY-r.top,radius,r.height-radius)};joy.style.left=(origin.x-radius)+'px';joy.style.top=(origin.y-radius)+'px';joy.style.bottom='auto';joy.classList.add('is-active')};
@@ -9822,7 +9851,7 @@ finishPaint(false)};
  }
  function updateSkillIcons(me,now){
   const upper=$('#artsUltimateGuide');const def=me&&ultimateArts[me.class];
-  if(upper){const ready=!!(me&&me.active&&me.hp>0&&me.artMatter>=100&&def&&!(me.class==='saint'&&me.divineStart));upper.hidden=!ready;if(ready){const symbol=ultimateGuideSVG(me.class);const content='<b>✦ 必殺技発動可能</b>'+symbol+'<span>'+esc(def.name)+'</span><small>タップで書き順</small>';if(upper.dataset.job!==me.class){upper.innerHTML=content;upper.dataset.job=me.class}upper.onclick=showUltimateGuide;upper.setAttribute('role','button');upper.tabIndex=0;upper.setAttribute('aria-label',def.name+'の詳しい描き順を表示');upper.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();showUltimateGuide()}}}else upper.dataset.job='';}
+  if(upper){const ready=!!(me&&me.active&&me.hp>0&&me.artMatter>=100&&def&&!(me.class==='saint'&&me.divineStart));upper.hidden=!ready;if(ready){const symbol=ultimateGuideSVG(me.class);const content='<b>✦ 必殺技発動可能</b>'+symbol+'<span>'+esc(def.name)+'</span><small>タップで書き順</small>';if(upper.dataset.job!==me.class){upper.innerHTML=content;upper.dataset.job=me.class}upper.setAttribute('aria-label',def.name+'の詳しい描き順を表示')}else upper.dataset.job='';}
   const holder=$('#artsSkillIcons');if(!holder)return;
   if(!me||me.hp<=0||!me.active){holder.hidden=true;return}holder.hidden=false;
   const keys=[...new Set((me.skills||[me.skill]).filter(Boolean))];
@@ -12160,7 +12189,16 @@ window.ArtShadow=(()=>{
    const mirror=host.effects.find(e=>e.type==='reflect'&&e.end>now&&e.owner!==s.owner&&!s.passWalls&&R.dist(e,s)<e.r+(s.radius||4));
    if(mirror){const old=s.owner;s.owner=mirror.owner;s.vx=-s.vx;s.vy=-s.vy;s.hit=[];s.ricochetUntil=0;s.pierce=false;break}
    const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature){creature.hp-=Math.max(1,s.power);if(creature.hp<=0)creature.end=now;return false}
-   if(host.fighters.some(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now)))return false;
+   if(now>=(s.guardIgnoreUntil||0)&&host.fighters.some(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now))){
+    if(s.style==='ghost'){
+     // Pause once on a guard collision. Resume after 350ms; do not get stuck
+     // on the same shield before the ghost has had time to leave its hitbox.
+     s.x=ax;s.y=ay;s.guardPauseUntil=now+350;s.guardIgnoreUntil=now+1050;
+     host.effects.push({id:++host.seq,type:'ghostGuardPause',owner:s.owner,x:s.x,y:s.y,r:24,start:now,end:now+430});
+     return true;
+    }
+    return false;
+   }
    const decoy=host.effects.find(e=>e.type==='decoyBody'&&e.end>now&&e.owner!==s.owner&&R.dist(e,s)<e.r+r);
    if(decoy){triggerTrickDecoy(decoy,owner,now);return false}
    for(const q of host.fighters){
@@ -17587,6 +17625,23 @@ body.artopia-image-cursor.art-cursor-brush-linked #studio :is(#viewport,#canvasS
 .arts-ultimate-detail{margin:0 auto 12px;display:grid;place-items:center;background:linear-gradient(140deg,#201833,#302044);color:#edd4ff;padding:16px;border-radius:14px;min-height:220px}
 .arts-ultimate-detail svg{width:min(100%,360px);height:220px;overflow:visible}
 @media(max-width:750px){#artsField #artsUltimateGuide{bottom:145px;width:102px;padding:4px 5px}#artsField #artsUltimateGuide svg{height:43px;width:82px}#artsField #artsUltimateGuide>b{font-size:9px}.arts-ultimate-detail svg{height:195px}}
+</style>
+<style id="arts-ultimate-guide-dialog-and-ghost-fix">
+#artsField #artsUltimateGuide{appearance:none;-webkit-appearance:none;pointer-events:auto!important;touch-action:manipulation!important;display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;line-height:1.2;}
+#artsField #artsUltimateGuide[hidden]{display:none!important}
+#artsUltimateGuideDialog{border:1px solid #cbb2f6;background:linear-gradient(145deg,#211934,#302246);color:#f9edff;border-radius:18px;width:min(92vw,520px);max-height:min(88dvh,700px);padding:0;box-shadow:0 24px 100px #080212bb;overflow:auto;overscroll-behavior:contain;z-index:99999;}
+#artsUltimateGuideDialog::backdrop{background:rgba(5,4,15,.8);backdrop-filter:blur(3px)}
+#artsUltimateGuideDialog .arts-ultimate-dialog-inner{padding:18px 20px 24px}
+#artsUltimateGuideDialog header{display:flex;justify-content:space-between;gap:12px;align-items:start}
+#artsUltimateGuideDialog h2{color:#fff;font-size:clamp(19px,4vw,27px);margin:4px 0 14px}
+#artsUltimateGuideDialog h2 span{font-size:.62em;font-weight:500;color:#d6bee9}
+#artsUltimateGuideDialog small{color:#d6abee;font-weight:800;letter-spacing:.12em}
+#artsUltimateGuideDialog p{color:#f3e4fc;line-height:1.75}
+#artsUltimateGuideDialog #artsUltimateGuideClose{border:1px solid #ffffff60;border-radius:12px;background:#ffffff22;color:white;font-size:25px;min-width:42px;min-height:42px;cursor:pointer}
+#artsUltimateGuideDialog .arts-ultimate-detail{min-height:245px;margin-top:2px;background:#130f25}
+#artsUltimateGuideDialog .arts-ultimate-detail svg{width:min(100%,410px);height:245px}
+#artsUltimateGuideDialog .arts-ultimate-key{font-size:12px;color:#ffe6c1}
+#artsUltimateGuideDialog .arts-ultimate-note{font-size:12px;color:#d9c9e9}
 </style>
 </body></html>
 
