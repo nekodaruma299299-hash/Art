@@ -1922,6 +1922,10 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #artsHUD .arts-armor-indicator b{font-size:inherit!important;display:inline!important;color:#fff3d5}
 @media(max-width:690px){#artsHUD .arts-armor-indicator{font-size:10px;margin-top:2px}}
 </style>
+<style id="artopia-arts-armor-contrast-fix">
+#artsHUD .arts-armor-indicator{display:inline-flex!important;align-items:center;gap:4px;background:#103552!important;color:#f4fbff!important;border:1px solid #5ccbea!important;border-radius:7px;padding:4px 8px!important;margin-top:5px;font-size:13px!important;font-weight:800!important;text-shadow:none!important;box-shadow:0 0 0 1px #05283b55!important}
+#artsHUD .arts-armor-indicator b{color:#ffffff!important;font-size:13px!important}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.5.03</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -6841,7 +6845,7 @@ window.ArtArts=(()=>{
  function createUltimateEvent(p,now,duration=1400,extra={}){
   host.effects.push({id:++host.seq,type:'ultimateCeremony',owner:p.id,class:p.class,x:p.x,y:p.y,r:105,advanced:ultimateArts[p.class]?.advanced,start:now,end:now+duration,...extra});
  }
- // The fortress is a movement boundary, not a projectile or melee blocker.
+ // Fortress separates movement, blocks hostile attacks, and absorbs hostile damage with its own 300 HP.
  // The host validates all relocations before a cast can consume Art Matter.
  const ARTS_FORT_RADIUS=200,ARTS_FORT_HP=300;
  function artsLiveFortresses(now){return (host.ultimateActs||[]).filter(a=>a.job==='tank'&&a.hp>0&&a.end>now&&host.fighters.some(f=>f.id===a.owner&&f.active&&f.hp>0));}
@@ -6898,11 +6902,60 @@ window.ArtArts=(()=>{
   if(a.hp<=0){a.end=now;host.effects.push({id:++host.seq,type:'ultimateFortCollapse',owner:a.owner,x:a.x,y:a.y,r:ARTS_FORT_RADIUS,start:now,end:now+1100});}
  }
  function artsFortShotCross(s,owner,ax,ay,bx,by,now){
-  if(!owner)return;
+  if(!owner)return false;
   for(const a of artsLiveFortresses(now)){
    if(!artsFortEnemy(a,owner))continue;
-   const inside=Math.hypot(bx-a.x,by-a.y)<ARTS_FORT_RADIUS,wasInside=Math.hypot(ax-a.x,ay-a.y)<ARTS_FORT_RADIUS;
-   if(inside&&!wasInside){s.fortHits??={};if(s.fortHits[a.owner])continue;s.fortHits[a.owner]=true;artsFortHit(a,Math.max(1,s.power||0),now,bx,by);}
+   const dx=bx-ax,dy=by-ay,fx=ax-a.x,fy=ay-a.y;
+   const rr=ARTS_FORT_RADIUS+(s.radius||0)*.35;
+   const A=dx*dx+dy*dy, B=2*(fx*dx+fy*dy), C=fx*fx+fy*fy-rr*rr;
+   if(C<=0){
+    // Hostile projectiles born inside an already active fortress are blocked too.
+    artsFortHit(a,Math.max(1,s.power||0),now,ax,ay);
+    return true;
+   }
+   const disc=B*B-4*A*C;
+   if(A<.000001||disc<0)continue;
+   const u=(-B-Math.sqrt(disc))/(2*A);
+   if(u<0||u>1)continue;
+   const hitX=ax+dx*u,hitY=ay+dy*u;
+   artsFortHit(a,Math.max(1,s.power||0),now,hitX,hitY);
+   return true;
+  }
+  return false;
+ }
+ // Guard against hostile AoE, lasers, melee and damage-over-time that don't use shot movement.
+ // Source IDs are only billed once per fortress; this prevents one explosion damaging it per player.
+ function artsFortShieldHit(target,raw,now,source){
+  const a=artsFortFriendlyAt(target,now);
+  if(!a||raw<=0)return false;
+  const owner=host.fighters.find(p=>p.id===(source?.owner||source?.id))||host.fighters.find(p=>p.id===host.effects.find(e=>e.type==='summonBody'&&e.id===(source?.owner||source?.id))?.owner);
+  if(!owner||!artsFortEnemy(a,owner))return false;
+  const key=source?.id!=null?'attack:'+source.id:null;
+  if(key){a.blockedAttackIds??={};if(!a.blockedAttackIds[key]){a.blockedAttackIds[key]=true;artsFortHit(a,Math.max(1,raw),now,target.x,target.y);}}
+  else{
+   a.lastNoIdAttack??={};const k=owner.id+':'+(source?.type||source?.style||'strike');
+   if(now-(a.lastNoIdAttack[k]??-Infinity)>=250){a.lastNoIdAttack[k]=now;artsFortHit(a,Math.max(1,raw),now,target.x,target.y);}
+  }
+  return true;
+ }
+ function artsFortAreaHit(sourceOwner,e,now){
+  if(!sourceOwner||!e||!(e.power>0))return;
+  for(const fort of artsLiveFortresses(now)){
+   if(!artsFortEnemy(fort,sourceOwner))continue;
+   const radius=Math.max(0,e.r||0),center={x:e.x,y:e.y};
+   let hit=Math.hypot(center.x-fort.x,center.y-fort.y)<=ARTS_FORT_RADIUS+radius;
+   if(['ray','charge'].includes(e.type)){
+    const direction={x:Math.cos(e.angle||0),y:Math.sin(e.angle||0)},length=e.beamReach??e.range??440;
+    const projection=Math.max(0,Math.min(length,(fort.x-e.x)*direction.x+(fort.y-e.y)*direction.y));
+    const px=e.x+direction.x*projection,py=e.y+direction.y*projection;
+    hit=Math.hypot(px-fort.x,py-fort.y)<=ARTS_FORT_RADIUS+radius;
+   }
+   if(!hit)continue;
+   fort.hitEffectIds??={};
+   const key=e.id!=null?'effect:'+e.id:'type:'+e.type+':'+sourceOwner.id+':'+Math.floor(now/500);
+   if(fort.hitEffectIds[key])continue;
+   fort.hitEffectIds[key]=true;
+   artsFortHit(fort,e.power,now,e.x,e.y);
   }
  }
  function artsFortFriendlyAt(target,now){return artsLiveFortresses(now).find(a=>!artsFortEnemy(a,target)&&Math.hypot(target.x-a.x,target.y-a.y)<ARTS_FORT_RADIUS);}
@@ -6988,13 +7041,14 @@ window.ArtArts=(()=>{
    if(a.hp<=0)continue;
    for(const q of host.fighters){
     if(!q.active||q.hp<=0||artsFortEnemy(a,q)||Math.hypot(q.x-a.x,q.y-a.y)>=ARTS_FORT_RADIUS)continue;
-    // Armor is a single consumable pool (no maximum or automatic healing).
-    // Earned plates stay with the player for 20 seconds after leaving the fort.
+    // Fortress grants permanent consumable armor, slowly restores HP and ink.
     const gained=2*seconds;
-    if(gained<=0)continue;
-    const previousHP=q.armorUntil>now?Math.max(0,Number(q.armorHP)||0):0;
-    q.armorHP=previousHP+gained;
-    q.armorUntil=Math.max(q.armorUntil||0,now+20000);
+    q.armorHP=Math.max(0,Number(q.armorHP)||0)+gained;
+    q.armorUntil=Number.MAX_SAFE_INTEGER;
+    q.hp=Math.min(q.maxHp||100,q.hp+2*seconds);
+    const beforeFortInk=q.ink;
+    q.ink=Math.min(q.maxInk||100,q.ink+3*seconds);
+    if(Math.floor(beforeFortInk)<Math.floor(q.ink))showArtsInkRecovery(q,beforeFortInk,now);
    }
   }
   host.ultimateActs=host.ultimateActs.filter(e=>{
@@ -7002,6 +7056,7 @@ window.ArtArts=(()=>{
    if(e.job==='attacker'&&now>=e.next&&e.step<3){
     const i=e.step++,a=p.facing===-1?Math.PI:0,r=225+i*55;
     for(const q of host.fighters){if(friendly(p,q)||q.hp<=0||!q.active||R.dist(q,p)>r)continue;const angle=Math.atan2(q.y-p.y,q.x-p.x);if(Math.cos(angle-a)<-.12||!lineClear(p,q))continue;hurt(q,[30,35,50][i],now,{owner:p.id,x:p.x,y:p.y,damageType:'physical'},false,55)}
+    artsFortAreaHit(p,{id:host.seq+1,type:'ultimateSlash',power:[30,35,50][i],x:p.x,y:p.y,r},now);
     host.effects.push({id:++host.seq,type:'ultimateSlash',owner:p.id,x:p.x,y:p.y,angle:a,r,start:now,end:now+470,step:i});e.next+=320;
    }
    if(e.job==='tank'&&e.hp<=0)return false;
@@ -7475,8 +7530,8 @@ window.ArtArts=(()=>{
  let raw=artsDamage(source,damage,now);
  const ownerForUltimate=host.fighters.find(p=>p.id===(source?.owner||source?.id));
  if(ownerForUltimate?.ultimateNemesisUntil>now&&ownerForUltimate.id!==target.id&&(target.crime||0)>0){const extra=Math.min(raw,target.crime);target.crime-=extra;raw+=extra;}
- if(artsFortFriendlyAt(target,now))raw*=.1;
- const shield=target.armorUntil>now?Math.max(0,target.armorHP||0):0,absorbed=Math.min(shield,raw);target.armorHP=shield-absorbed;
+ if(artsFortShieldHit(target,raw,now,source))return 0;
+ const shield=Math.max(0,target.armorHP||0),absorbed=Math.min(shield,raw);target.armorHP=shield-absorbed;
  const kind=source?.damageType||(['magic','star','nova','ray','ghost','smoke'].includes(source?.type)?'magic':'physical');
  // Percentage mitigation makes high Defense valuable without deleting weak hits.
  // Resist is deliberately diminishing at high stats and capped at 48%.
@@ -7695,10 +7750,10 @@ window.ArtArts=(()=>{
  function removePositiveBuffs(target,now){
   const hadAscension=target.ascensionUntil>now;
   const hadBlessing=(target.blessingStacks||0)>0;
-  const hadOther=target.auraUntil>now||target.iron>now||target.reactor>now||target.armorUntil>now||target.armorHP>0||target.regenUntil>now;
+  const hadOther=target.auraUntil>now||target.iron>now||target.reactor>now||target.regenUntil>now;
   if(hadAscension)setAwakening(target,false,now);
   if(hadBlessing){target.blessingStacks=0;target.maxHp=100;target.hp=Math.min(target.hp,target.maxHp);}
-  target.auraUntil=0;target.iron=0;target.reactor=0;target.armorUntil=0;target.armorHP=0;target.regenUntil=0;target.regenNextAt=0;
+  target.auraUntil=0;target.iron=0;target.reactor=0;target.regenUntil=0;target.regenNextAt=0;
   return hadAscension||hadBlessing||hadOther;
  }
  // Execution: a single geometric model drives BOTH the host hit detection
@@ -7919,7 +7974,7 @@ window.ArtArts=(()=>{
   host.effects.push(e);return true
  }
  if(shape.type==='aura'){const q=nearestSupportTarget(p,shape);matterSaintSupport(p,q,0,'aura',now);q.auraUntil=now+Math.round(8000*artsSingleFactor(shape));e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=44;e.end=now+800}
- if(shape.type==='armor'){const q=nearestSupportTarget(p,shape);const existing=q.armorUntil>now?Math.max(0,q.armorHP||0):0;q.armorHP=existing+Math.round(50*artsSingleFactor(shape));q.armorUntil=now+20000;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+800}
+ if(shape.type==='armor'){const q=nearestSupportTarget(p,shape);const existing=Math.max(0,q.armorHP||0);q.armorHP=existing+Math.round(50*artsSingleFactor(shape));q.armorUntil=Number.MAX_SAFE_INTEGER;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=48;e.end=now+800}
  if(shape.type==='recharge'){p.rechargeUntil=now+1000;e.x=p.x;e.y=p.y;e.r=42;e.end=now+1000}
  if(shape.type==='drain'){for(const aura of host.effects)if(aura.type==='stealTouch'&&aura.owner===id)aura.end=now;p.stealUntil=now+10000;e.type='stealTouch';e.x=p.x;e.y=p.y;e.r=44;e.end=p.stealUntil;} 
  if(shape.type==='repulse'){
@@ -8182,7 +8237,7 @@ window.ArtArts=(()=>{
  function creatureFriendly(actor,pet){const maker=petOwner(pet);return !!maker&&friendly(actor,maker)}
  function petHurt(pet,damage,now,source,ignoreArmor=false){
   if(pet.hp<=0||pet.end<=now)return 0;
-  const raw=artsDamage(source,damage,now),shield=pet.armorUntil>now?Math.max(0,pet.armorHP||0):0,taken=Math.min(shield,raw);
+  const raw=artsDamage(source,damage,now),shield=Math.max(0,pet.armorHP||0),taken=Math.min(shield,raw);
   pet.armorHP=shield-taken;
   const dmg=Math.min(pet.hp,Math.max(0,raw-taken)*(ignoreArmor?1:Math.max(.52,1-.62*(pet.defense||8)/((pet.defense||8)+48)))*(pet.iron>now?.5:1));
   pet.hp-=dmg;pet.flash=now+250;
@@ -8216,7 +8271,7 @@ window.ArtArts=(()=>{
   if(k==='force_heal'){e.type='creatureHealZone';e.x=at.x;e.y=at.y;e.r=150*e.sizeArea;e.end=now+8000;e.nextTick=now+200;e.lastPulse=now;return true}
   if(k==='fur_coat'){
    e.type='creatureFur';e.r=160*e.sizeArea;e.end=now+900;
-   for(const q of creatureTargets(p,now,true,true))if(R.dist(q,e)<=e.r){const existing=q.armorUntil>now?Math.max(0,q.armorHP||0):0;q.armorHP=existing+30;q.armorUntil=now+15000}
+   for(const q of creatureTargets(p,now,true,true))if(R.dist(q,e)<=e.r){const existing=Math.max(0,q.armorHP||0);q.armorHP=existing+30;q.armorUntil=Number.MAX_SAFE_INTEGER}
    return true;
   }
   if(k==='blood_seeker'){
@@ -8240,7 +8295,7 @@ window.ArtArts=(()=>{
  }
  function updateCreatureArts(dt,now){
   for(const pet of livePets(now)){
-   if(pet.armorUntil<=now)pet.armorHP=0;
+   // Pet armor remains until damage consumes it.
    if(pet.regenUntil>now&&now>=pet.regenNextAt){const delta=Math.min((pet.maxHp||100)-pet.hp,(pet.maxHp||100)*.03);pet.hp+=Math.max(0,delta);pet.regenNextAt=now+1000;if(delta>0)showArtsNumber(pet,'heal',delta,now)}
    const caster=petOwner(pet);
    if(pet.inkLock<=now)pet.ink=Math.min(pet.maxInk||80,(pet.ink||0)+dt*4);
@@ -8263,7 +8318,7 @@ window.ArtArts=(()=>{
     if(e.type==='anchor'){if(!e.petDebuffIds)e.petDebuffIds=[];if(!e.petDebuffIds.includes(pet.id)){e.petDebuffIds.push(pet.id);pet.slow=now+2000;petHurt(pet,e.power||8,now,e)}}
     if(e.type==='inkcut'){if(!e.petDebuffIds)e.petDebuffIds=[];if(!e.petDebuffIds.includes(pet.id)){e.petDebuffIds.push(pet.id);pet.inkLock=now+5000;petHurt(pet,e.power||12,now,e)}}
     if(e.type==='trickSlowMist')pet.slow=now+10000;
-    if(e.type==='nightmare_shockwave'){pet.armorHP=0;pet.armorUntil=0;pet.carbuncleUntil=0;pet.beastUntil=0;}
+    if(e.type==='nightmare_shockwave'){pet.carbuncleUntil=0;pet.beastUntil=0;}
    }
   }
   for(const e of host.effects){
@@ -8466,7 +8521,7 @@ window.ArtArts=(()=>{
  updateAdvanced(dt,now);
  updateCreatureArts(dt,now);
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
- for(const p of host.fighters){if(p.armorUntil<=now)p.armorHP=0;if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){const beforeInk=p.ink;p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);showArtsInkRecovery(p,beforeInk,now);p.rechargeUntil=0}}}
+ for(const p of host.fighters){/* Armor has no timeout; attacks consume it. */if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){const beforeInk=p.ink;p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);showArtsInkRecovery(p,beforeInk,now);p.rechargeUntil=0}}}
  host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
  if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(5+p.stats[3]*.22)*2/3*(artsNightmareFor(p,now)?1/3:1));if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  if(p.nightmareUntil>now){p.dash=null;p.moving=false;continue;}
@@ -8555,7 +8610,7 @@ window.ArtArts=(()=>{
     if(nx>=r&&nx<=R.W-r&&ny>=r&&ny<=R.H-r&&!shotHitsWallAt(nx,ny,r)){s.x=nx;s.y=ny}else{s.x=ax;s.y=ay}
    }else if(blockX||blockY||blockBoth)return false;
    else{s.x=tx;s.y=ty}
-   artsFortShotCross(s,owner,ax,ay,s.x,s.y,now);
+   if(artsFortShotCross(s,owner,ax,ay,s.x,s.y,now))return false;
    const mirror=host.effects.find(e=>e.type==='reflect'&&e.end>now&&e.owner!==s.owner&&!s.passWalls&&R.dist(e,s)<e.r+(s.radius||4));
    if(mirror){const old=s.owner;s.owner=mirror.owner;s.vx=-s.vx;s.vy=-s.vy;s.hit=[];s.ricochetUntil=0;s.pierce=false;break}
    if(s.style==='ultimateSeed')continue;
@@ -8591,7 +8646,7 @@ window.ArtArts=(()=>{
  for(const e of host.effects)if(e.hit&&!e.done&&now>=e.hit){e.done=true;const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;if(['star','nova'].includes(e.type))hitTrickDecoysAt(owner,now,e,e.r);if(e.type==='cross'){if(owner.hp>0)melee(owner,e,now);continue}if(e.type==='ghost')continue;if(['ray','charge'].includes(e.type)){e.beamReach=R.beamReach(e,host.blocks);
     const ux=Math.cos(e.angle||0),uy=Math.sin(e.angle||0),reach=e.beamReach??e.range??440;
     for(let d=0;d<=reach;d+=18)hitTrickDecoysAt(owner,now,{x:e.x+ux*d,y:e.y+uy*d},e.r||16);
-   }for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now||(e.type==='soulHarvestSoul'&&!e.applied));
+artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner,p)){let hit=R.dist(p,e)<e.r+R.R;if(e.type==='charge'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R}if(e.type==='ray'){const dx=p.x-e.x,dy=p.y-e.y,along=dx*Math.cos(e.angle)+dy*Math.sin(e.angle),across=Math.abs(-dx*Math.sin(e.angle)+dy*Math.cos(e.angle));hit=along>=0&&along<=(e.beamReach??e.range)&&across<=e.r+R.R&&lineClear(e,p)}if(hit)hurt(p,e.power,now,e,true)}for(const b of host.blocks)if(b.type==='wall'&&b.hp>0){let hit=R.intersects(e.x,e.y,e.r,b);if(['ray','charge'].includes(e.type)){const reach=e.beamReach??e.range;if(e.type==='charge'){hit=false;for(let d=0;d<=reach;d+=6)if(R.intersects(e.x+Math.cos(e.angle)*d,e.y+Math.sin(e.angle)*d,e.r,b)){hit=true;break}}else hit=R.intersects(e.x+Math.cos(e.angle)*reach,e.y+Math.sin(e.angle)*reach,e.r,b)}if(hit)damageWall(b,e.power,now)}}host.effects=host.effects.filter(e=>e.end>now||(e.type==='soulHarvestSoul'&&!e.applied));
  if(now>=host.deadline&&!host.stormStart)host.stormStart=now;if(host.stormStart){const radius=Math.max(0,Math.hypot(R.W,R.H)/2-(now-host.stormStart)/1000*18);for(const p of alive())if(R.dist(p,{x:R.W/2,y:R.H/2})>radius)p.hp=Math.max(0,p.hp-dt*14)}for(const p of host.fighters){
   const oldHp=hpBefore.get(p.id);
   if(!Number.isFinite(oldHp))continue;
@@ -9797,7 +9852,14 @@ finishPaint(false)};
  function drawFighterStatus(x,p,pos,now){
  x.save();x.translate(pos.x,pos.y);
  if(p.auraUntil>now){x.strokeStyle='#f68a66';x.lineWidth=2;x.shadowColor='#ff9577';x.shadowBlur=9;for(let i=0;i<8;i++){const a=i*Math.PI/4+now/1800,rr=35+Math.sin(now/160+i)*4;x.beginPath();x.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);x.lineTo(Math.cos(a)*(rr+9),Math.sin(a)*(rr+9));x.stroke()}x.shadowBlur=0;x.font='bold 11px sans-serif';x.textAlign='center';x.fillStyle='#b34636';x.fillText('攻撃力 ×1.5',0,67)}
- if(p.armorUntil>now&&p.armorHP>0){x.strokeStyle='#dfbd74';x.shadowColor='#b68c41';x.shadowBlur=7;x.lineWidth=3;x.beginPath();x.arc(0,0,44,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.textAlign='center';x.font='bold 12px sans-serif';x.fillStyle='#ffde91';x.fillText('◆'+Math.ceil(p.armorHP),0,-51)}
+ if(p.armorHP>0){
+  // A softly breathing protective aura follows every armored fighter.
+  const pulse=.5+.5*Math.sin(now/260+(p.x||0)*.012),rad=42+pulse*3;
+  x.save();x.fillStyle='rgba(54,154,213,.10)';x.strokeStyle='rgba(33,119,178,.88)';x.shadowColor='#55c8ef';x.shadowBlur=10+pulse*7;x.lineWidth=3;
+  x.beginPath();x.arc(0,0,rad,0,Math.PI*2);x.fill();x.stroke();
+  x.setLineDash([5,8]);x.strokeStyle='rgba(212,245,255,.75)';x.lineWidth=1.6;x.beginPath();x.arc(0,0,rad+6,0,Math.PI*2);x.stroke();x.setLineDash([]);
+  x.shadowBlur=0;x.textAlign='center';x.font='bold 12px sans-serif';x.lineWidth=3;x.strokeStyle='rgba(10,32,50,.95)';x.strokeText('◆'+Math.ceil(p.armorHP),0,-52);x.fillStyle='#ffffff';x.fillText('◆'+Math.ceil(p.armorHP),0,-52);x.restore();
+ }
  if(p.rechargeUntil>now){x.strokeStyle='#a79be3';x.lineWidth=2;x.beginPath();x.arc(0,0,38,0,Math.PI*2);x.stroke();x.fillStyle='#7260b2';x.font='bold 11px sans-serif';x.textAlign='center';x.fillText('インク回復中',0,67)}
  if(p.iron>now){x.strokeStyle='#b5e8ff';x.fillStyle='#90d1ef18';x.lineWidth=2;x.shadowColor='#a2dfff';x.shadowBlur=10;
   x.beginPath();for(let i=0;i<=6;i++){const a=i*Math.PI/3-Math.PI/2;i?x.lineTo(Math.cos(a)*39,Math.sin(a)*43):x.moveTo(Math.cos(a)*39,Math.sin(a)*43)}x.fill();x.stroke();x.shadowBlur=0;x.strokeStyle='#f1fcff';x.beginPath();x.arc(0,0,46,-Math.PI/2,-Math.PI/2+Math.PI*2*R.clamp((p.iron-now)/15000,0,1));x.stroke();
@@ -9859,7 +9921,7 @@ finishPaint(false)};
    }else{
     x.fillStyle=ink;x.beginPath();x.arc(-7,1,2,0,Math.PI*2);x.arc(7,1,2,0,Math.PI*2);x.fill();
    }
-   if(e.armorUntil>now){x.strokeStyle='#fff4cc';x.lineWidth=3;x.setLineDash([5,5]);ring(r+15);x.setLineDash([])}
+   if(e.armorHP>0){x.strokeStyle='#fff4cc';x.lineWidth=3;x.setLineDash([5,5]);ring(r+15);x.setLineDash([])}
    if(e.carbuncleUntil>now){x.strokeStyle='#ffda80';ring(r+21)}
    x.shadowBlur=0;x.fillStyle='#292633';x.fillRect(-22,r+11,44,4);x.fillStyle=ink;x.fillRect(-22,r+11,44*R.clamp((e.hp||0)/(e.maxHp||100),0,1),4);
    x.restore();return true;
