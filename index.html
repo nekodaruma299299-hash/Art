@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.5.04 / アニメーション共同制作モード実装
+あーとぴあ 1.5.05 / アニメーション共同制作モード実装
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -4315,7 +4315,7 @@ window.ArtStudioOptions=(()=>{
 
 
 
-/* SECTION: app/animation-mode-v1.js — cooperative animation; separate from shared still canvas. */
+/* SECTION: app/animation-mode-v2.js — frame coordination with the existing Artopia drawing tools (no duplicate brush engine). */
 window.ArtAnimation=(()=>{
  'use strict';
  const isAnimation=()=>room?.mode==='animation'&&!room.ended;
@@ -4324,7 +4324,7 @@ window.ArtAnimation=(()=>{
  const frameNew=()=>({id:makeId(),revision:0,layers:[{id:makeId(),name:'レイヤー 1',visible:true,strokes:[]}]});
  const escAnim=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let server=null,manifest=null,cache=new Map(),subs=new Map(),pending=new Set(),pendingPlay=null;
- let current=null,layer=null,tool='pen',color='#28384d',size=8,preview=false,showOnion=true,opacity=[10,50,0,0],range=2,pins=new Set(),peek=null;
+ let current=null,layer=null,showOnion=true,opacity=[10,50,0,0],range=2,pins=new Set(),peek=null;
  let pen=null,playing=null,raf=0,root=null,canvas=null,ctx=null,peekCanvas=null,toastTimer=0,drawSerial=0,keysBound=false,responsiveBound=false;
  let frameRenderCache=new Map(),menuBuilt=false,exporting=false,controlRevision=0;
  function invalidate(fid){frameRenderCache.delete(fid);drawSerial++;}
@@ -4353,7 +4353,14 @@ window.ArtAnimation=(()=>{
   }
   frameRenderCache.set(fid,{revision:f.revision,canvas:c});if(frameRenderCache.size>36){for(const key of frameRenderCache.keys()){if(key!==fid&&key!==current){frameRenderCache.delete(key);break}}}return c;
  }
- function paintStroke(x,s){const pts=s.points||[];if(!pts.length)return;x.save();x.lineJoin='round';x.lineCap='round';x.lineWidth=s.width||5;x.strokeStyle=s.color||'#000';x.fillStyle=x.strokeStyle;x.globalCompositeOperation=s.tool==='eraser'?'destination-out':'source-over';x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)x.lineTo(pts[i][0],pts[i][1]);if(pts.length===1){x.arc(pts[0][0],pts[0][1],Math.max(0.5,x.lineWidth/2),0,Math.PI*2);x.fill()}else x.stroke();x.restore();}
+ function paintStroke(x,s){
+  if(!Array.isArray(s.points)||!s.points.length)return;
+  // Always use Artopia's production raster engine: brush modes, pressure,
+  // airbrush, cotton brush, tapered ink, eraser, blur and warp behave exactly
+  // like the original left toolbox rather than a generic canvas line.
+  const a={...s,size:clamp(Number(s.size??s.width??8),1,160),strength:clamp(Number(s.strength??100),1,100),brushVersion:s.brushVersion??2,warpVersion:s.warpVersion??2};
+  try{window.ArtEngine.apply(x.canvas,a);}catch(err){console.warn('[Animation] brush failed',err);}
+ }
  function renderCanvas(){if(!canvas||!ctx||!isAnimation())return;
   const w=room.w,h=room.h;if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
   ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
@@ -4365,7 +4372,20 @@ window.ArtAnimation=(()=>{
   const idx=ids.indexOf(id);
   if(!playing&&showOnion&&idx>=0){for(const delta of [-2,2,-1,1]){const alpha=opacity[delta===-2?0:delta===-1?1:delta===1?2:3]/100;const sibling=ids[idx+delta];if(!sibling||alpha<=0)continue;const c=getCanvasCache(sibling);if(c){ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(c,0,0);ctx.restore()}}}
   const c=getCanvasCache(id);if(c)ctx.drawImage(c,0,0);
-  if(!playing&&pen){ctx.save();if(pen.tool==='eraser'){ctx.strokeStyle='#e85a5a';ctx.globalAlpha=.55;ctx.setLineDash([5,5]);ctx.lineWidth=pen.width;}else{ctx.strokeStyle=pen.color;ctx.lineWidth=pen.width;}ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();for(let i=0;i<pen.points.length;i++){const p=pen.points[i];i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}ctx.stroke();ctx.restore();}
+  if(!playing&&pen){
+   // Render a live stroke on its own layer before compositing, so even the
+   // eraser has the same semantics as a committed operation.
+   const temp=document.createElement('canvas');temp.width=w;temp.height=h;
+   const work=temp.getContext('2d');const f=getFrame(current);
+   if(f){const at=f.layers.findIndex(l=>l.id===layer);
+    if(at>=0){for(const s of f.layers[at].strokes)if(!s.deleted)paintStroke(work,s);
+     paintStroke(work,{...pen,taperFinished:true});
+     // Do not paint a second copy of the selected layer on top; this is just
+     // a readable feedback of the unfinished native stroke on the canvas.
+     ctx.save();ctx.globalAlpha=.88;ctx.drawImage(temp,0,0);ctx.restore();
+    }
+   }
+  }
   const status=root?.querySelector('#animFrameNow');if(status)status.textContent='コマ '+(idx+1)+' / '+ids.length+(playing?' · 再生中':'');
  }
  function animationLoop(){if(!root||!isAnimation()){raf=0;return;}if(playing)renderCanvas();raf=requestAnimationFrame(animationLoop);}
@@ -4396,17 +4416,54 @@ window.ArtAnimation=(()=>{
  function edit(type,detail={}){if(!isAnimation()||localViewer)return;sendHost({type:'animEdit',action:type,frameId:current,layerId:layer,...detail});}
  function sendStructure(action,detail={}){if(!isHost)return;sendHost({type:'animStructure',action,frameId:current,...detail});}
  function point(event){const r=canvas.getBoundingClientRect();return [Math.round(clamp((event.clientX-r.left)/r.width*room.w,0,room.w)),Math.round(clamp((event.clientY-r.top)/r.height*room.h,0,room.h))];}
- function finishStroke(){if(!pen)return;const s=pen;pen=null;if(s.points.length&&frameList().some(f=>f.id===current)){edit('stroke',{stroke:{id:makeId(),tool:s.tool,color:s.color,width:s.width,points:s.points}});}renderCanvas();}
- function handlePointerDown(e){if(e.button!==0&&e.pointerType==='mouse')return;if(playing||localViewer)return;if(!getFrame(current)){requestFrames();return;}e.preventDefault();e.stopPropagation();canvas.setPointerCapture(e.pointerId);const pts=point(e);pen={id:e.pointerId,tool,color,width:size,points:[pts]};renderCanvas();}
- function handlePointerMove(e){if(!pen||e.pointerId!==pen.id)return;e.stopPropagation();e.preventDefault();const p=point(e),last=pen.points.at(-1);if(Math.hypot(p[0]-last[0],p[1]-last[1])>=1.5&&pen.points.length<1400){pen.points.push(p);renderCanvas();}}
+ function nativeStroke(e){
+  const t=currentTool(),kind=prefs.tool;
+  // These values are owned by the ordinary Artopia toolbar; do not duplicate
+  // them in animation settings or introduce a second set of brush presets.
+  return {id:e.pointerId,tool:kind,color:prefs.color,size:clamp(Number(t.size)||12,1,160),
+   strength:clamp((Number(t.strength)||100)*(prefs.inkOpacities[prefs.layer]??100)/100,1,100),
+   brush:t.brush||'normal',brushVersion:2,warpVersion:2,
+   pressure:!!prefs.pressure&&e.pointerType==='pen',points:[],seed:Math.floor(Math.random()*2147483647),taperFinished:false};
+ }
+ function finishStroke(){if(!pen)return;const s=pen;pen=null;
+  if(s.points.length&&frameList().some(f=>f.id===current)){
+   s.taperFinished=true;
+   if(s.brush==='fade'&&['pen','eraser'].includes(s.tool)){s.opacityTaper={version:5,entry:100,exit:100,length:40,fade:20};if(s.tool==='pen')s.roundTipVersion=1;s.brush='normal';}
+   const {id,...data}=s;edit('stroke',{stroke:data});
+  }renderCanvas();}
+ function handlePointerDown(e){
+  if(e.button!==0&&e.pointerType==='mouse'||playing||localViewer)return;
+  if(!getFrame(current)){requestFrames();return;}
+  if(prefs.penOnly&&e.pointerType==='touch')return;
+  const supported=['pen','eraser','warp','blur','fill'];
+  if(!supported.includes(prefs.tool)){showNotice('このツールはアニメーションではまだ未対応です。ペン・消しゴム・歪み・ぼかし・塗りつぶしをお使いください。');return;}
+  e.preventDefault();e.stopPropagation();canvas.setPointerCapture(e.pointerId);
+  const op=nativeStroke(e),coords=point(e);op.points.push([...coords,e.pressure??.5]);
+  if(op.tool==='fill'){op.fillVersion=2;op.tolerance=prefs.tolerance;op.fillExpand=prefs.fillExpand;
+   // The base engine fill uses the same stroke point shape as normal Artopia.
+   pen=op;finishStroke();return;
+  }
+  pen=op;renderCanvas();
+ }
+ function handlePointerMove(e){
+  if(!pen||e.pointerId!==pen.id)return;
+  e.stopPropagation();e.preventDefault();
+  const samples=e.getCoalescedEvents?.()||[];
+  for(const ev of samples.length?samples:[e]){
+   const p=point(ev),last=pen.points.at(-1);
+   if(Math.hypot(p[0]-last[0],p[1]-last[1])>=1.5&&pen.points.length<1400)
+    pen.points.push([...p,ev.pressure??.5]);
+  }
+  renderCanvas();
+ }
  function handlePointerUp(e){if(!pen||e.pointerId!==pen.id)return;e.preventDefault();e.stopPropagation();finishStroke();}
  function showNotice(text){const out=root?.querySelector('#animStatus');if(out){out.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(out.textContent===text)out.textContent='';},3800)}}
  function adjustChatLayout(){if(!isAnimation())return;const membersPanel=document.querySelector('#memberPanel');if(!membersPanel)return;const mobile=window.matchMedia('(max-width:750px)').matches;const open=document.querySelector('#studio')?.classList.contains('anim-show-members');if(mobile)membersPanel.style.setProperty('display',open?'flex':'none','important');else membersPanel.style.removeProperty('display');}
  function animationCSS(){const style=document.createElement('style');style.id='animModeStyle';style.textContent=`
- #studio.animation-active .workspace{grid-template-columns:minmax(0,1fr) minmax(180px,280px)!important}
- #studio.animation-active #viewport{grid-column:1!important;grid-row:1!important;min-width:0!important}
- #studio.animation-active #memberPanel{grid-column:2!important;grid-row:1!important}
- #studio.animation-active .toolbox,#studio.animation-active .layer-controls,#studio.animation-active #layerStatus,#studio.animation-active #layerHeaderPopup,#studio.animation-active #snapshotBtn,#studio.animation-active #reloadCanvasBtn{display:none!important}
+ #studio.animation-active .workspace{grid-template-columns:var(--tools-width,170px) minmax(0,1fr) minmax(180px,280px)!important}
+ #studio.animation-active #viewport{grid-column:2!important;grid-row:1!important;min-width:0!important}
+ #studio.animation-active #memberPanel{grid-column:3!important;grid-row:1!important}
+ #studio.animation-active .toolbox{display:flex!important;min-height:0;overflow-y:auto}#studio.animation-active .layer-controls,#studio.animation-active #layerStatus,#studio.animation-active #layerHeaderPopup,#studio.animation-active #snapshotBtn,#studio.animation-active #reloadCanvasBtn{display:none!important}
  #studio.animation-active #canvasSurface{visibility:hidden;pointer-events:none}
  #animStudio{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;background:#172033;color:#eef5ff;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;touch-action:manipulation}
  #animStudio *{box-sizing:border-box}#animStudio button,#animStudio input,#animStudio select{font:inherit}#animStudio button{border:1px solid #50627c;background:#2b3d59;color:#f2f7ff;border-radius:8px;padding:7px 10px;cursor:pointer;min-height:32px}#animStudio button:disabled{opacity:.38;cursor:default}#animStudio button:hover:not(:disabled){background:#405b7f}
@@ -4414,18 +4471,18 @@ window.ArtAnimation=(()=>{
  #animStudio .anim-main{display:flex;flex:1;min-height:0;gap:8px;padding:8px}#animStudio .anim-stage{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden;background:repeating-conic-gradient(#dde2e8 0 25%,#c8d0d8 0 50%) 50%/22px 22px;border-radius:9px}
  #animStudio #animDrawing{display:block;max-width:100%;max-height:100%;width:auto;height:auto;aspect-ratio:var(--anim-ratio);background:white;box-shadow:0 4px 20px #0004;touch-action:none;cursor:crosshair;object-fit:contain}
  #animStudio .anim-sidebar{width:min(265px,32%);min-width:190px;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:2px 6px 8px 0}#animStudio .anim-panel{background:#25364f;border:1px solid #456079;border-radius:9px;padding:9px;display:flex;flex-direction:column;gap:6px}#animStudio .anim-panel h3{margin:0;font-size:14px}#animStudio label{font-size:12px;display:flex;gap:6px;align-items:center}#animStudio input[type=range]{width:100%;min-width:0}#animStudio input[type=number]{width:70px;border:1px solid #8da3bd;border-radius:5px;background:#142439;color:#fff;padding:4px}
- #animStudio .anim-colors{display:flex;gap:7px;align-items:center}#animStudio input[type=color]{width:45px;height:32px;padding:0;border:0;background:transparent}#animStudio .anim-layer{display:flex;gap:4px}#animStudio .anim-layer button:first-child{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#animStudio .anim-layer.chosen button:first-child{border-color:#80d5ff;background:#255779}#animStudio #animIndividual{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-height:100px;overflow:auto}#animStudio #animIndividual label{white-space:nowrap}
+#animStudio .anim-layer{display:flex;gap:4px}#animStudio .anim-layer button:first-child{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#animStudio .anim-layer.chosen button:first-child{border-color:#80d5ff;background:#255779}#animStudio #animIndividual{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-height:100px;overflow:auto}#animStudio #animIndividual label{white-space:nowrap}
  #animStudio .anim-bottom{flex:none;border-top:1px solid #466079;background:#202f46;padding:7px}#animStudio .anim-bottomline{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:6px}#animStudio #animTimeline{display:flex;gap:6px;overflow-x:auto;padding:3px 1px;min-height:94px;scrollbar-width:thin}#animStudio .anim-frame{display:flex;flex:none;align-items:center;flex-direction:column;gap:2px;width:89px!important;padding:3px!important;position:relative}#animStudio .anim-frame.active{border:2px solid #89e6fa;background:#295775}#animStudio .anim-frame.pinned::after{content:'●';color:#fed37c;position:absolute;right:3px;top:0}#animStudio .anim-frame canvas{width:72px;height:52px;background:#fff;border-radius:3px}#animStudio .anim-frame small{font-size:9px;opacity:.72}
  #animStudio #animPeekBox{position:absolute;right:10px;top:10px;width:min(38%,260px);background:#16243beb;border:2px solid #9db8d6;border-radius:9px;padding:7px;box-shadow:0 5px 20px #0008}#animStudio #animPeekCanvas{width:100%;aspect-ratio:var(--anim-ratio);background:white;object-fit:contain}#animStudio #animPeekName{font-size:12px}#animStudio .anim-play-msg{position:absolute;bottom:10px;left:10px;background:#132844cc;padding:7px;border-radius:7px;font-size:12px}
  #animStudio.anim-playing #animDrawing{cursor:default}#animStudio .anim-small{font-size:11px;opacity:.83}#animStudio #animStatus{color:#c9f3b5;font-size:12px;min-height:18px}#animStudio #animChat{display:none}
- @media(max-width:750px){#studio.animation-active .workspace{grid-template-columns:minmax(0,1fr)!important}#studio.animation-active #memberPanel{display:none!important}#studio.animation-active.anim-show-members #memberPanel{display:flex!important;position:absolute;right:0;top:55px;bottom:0;z-index:160;width:min(84vw,300px);background:var(--surface,#fff);box-shadow:0 0 25px #0008;overflow:auto}#studio.animation-active #toggleChatPanel{display:none!important}#animStudio #animChat{display:inline-flex}#animStudio .anim-head{padding:5px;gap:4px}#animStudio .anim-head button{font-size:11px;padding:5px 6px;min-height:28px}#animStudio .anim-main{flex-direction:column;padding:4px;gap:3px}#animStudio .anim-sidebar{width:100%;min-width:0;max-height:145px;flex-direction:row;flex-wrap:nowrap;overflow:auto}#animStudio .anim-panel{min-width:165px;max-width:200px;flex:none;padding:6px}#animStudio #animTimeline{min-height:76px}#animStudio .anim-frame{width:74px!important}#animStudio .anim-frame canvas{width:59px;height:40px}#animStudio .anim-bottomline{gap:4px}}
+ @media(max-width:750px){#studio.animation-active .workspace{grid-template-columns:var(--tools-width,68px) minmax(0,1fr)!important}#studio.animation-active #viewport{grid-column:2!important;grid-row:1!important}#studio.animation-active .toolbox{grid-column:1!important;grid-row:1!important;display:flex!important;overflow-y:auto!important;z-index:2}#studio.animation-active #memberPanel{display:none!important}#studio.animation-active.anim-show-members #memberPanel{display:flex!important;position:absolute;right:0;top:55px;bottom:0;z-index:160;width:min(84vw,300px);background:var(--surface,#fff);box-shadow:0 0 25px #0008;overflow:auto}#studio.animation-active #toggleChatPanel{display:none!important}#animStudio #animChat{display:inline-flex}#animStudio .anim-head{padding:5px;gap:4px}#animStudio .anim-head button{font-size:11px;padding:5px 6px;min-height:28px}#animStudio .anim-main{flex-direction:column;padding:4px;gap:3px}#animStudio .anim-sidebar{width:100%;min-width:0;max-height:145px;flex-direction:row;flex-wrap:nowrap;overflow:auto}#animStudio .anim-panel{min-width:165px;max-width:200px;flex:none;padding:6px}#animStudio #animTimeline{min-height:76px}#animStudio .anim-frame{width:74px!important}#animStudio .anim-frame canvas{width:59px;height:40px}#animStudio .anim-bottomline{gap:4px}}
  `;document.head.appendChild(style);}
  function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();if(isHost)manifest=getManifest();
   if(root){root.remove();root=null;}const viewport=document.querySelector('#viewport');if(!viewport)return;
   document.querySelector('#studio')?.classList.add('animation-active');root=document.createElement('section');root.id='animStudio';root.setAttribute('aria-label','アニメーション共同制作');
   root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">▶ 個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
   <div class="anim-main"><div class="anim-stage"><canvas id="animDrawing" aria-label="現在のアニメーションフレーム" width="768" height="768"></canvas><div id="animPeekBox" hidden><div style="display:flex;justify-content:space-between;align-items:center"><span id="animPeekName">個別表示</span><button id="animPeekClose" type="button">閉じる</button></div><canvas id="animPeekCanvas"></canvas></div><span class="anim-play-msg" id="animFrameNow"></span></div>
-  <aside class="anim-sidebar"><section class="anim-panel"><h3>描画・レイヤー</h3><div style="display:flex;gap:4px"><button id="animPen" type="button">ペン</button><button id="animErase" type="button">消しゴム</button><button id="animUndo" type="button">戻す</button></div><div class="anim-colors"><input id="animColor" type="color" value="${color}"><label>太さ<input id="animSize" type="range" min="1" max="80" value="${size}"></label><b id="animSizeText">${size}</b></div><div id="animLayerList"></div><div style="display:flex;gap:4px"><button id="animLayerAdd" type="button">＋レイヤー</button><button id="animLayerDelete" type="button">削除</button></div></section>
+  <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div style="display:flex;gap:4px"><button id="animLayerAdd" type="button">＋レイヤー</button><button id="animLayerDelete" type="button">削除</button></div></section>
   <section class="anim-panel"><h3>オニオンスキン</h3><label><input id="animOnion" type="checkbox" checked>前後のコマを重ねる</label>${[['prev2','2コマ前'],['prev1','1コマ前'],['next1','1コマ後'],['next2','2コマ後']].map((v,i)=>`<label>${v[1]} <span id="anim${v[0]}Text">${opacity[i]}%</span></label><input type="range" id="anim${v[0]}Opacity" data-opacity="${i}" min="0" max="100" step="5" value="${opacity[i]}">`).join('')}</section>
   <section class="anim-panel"><h3>必要なコマだけ受信</h3><label>前後 <select id="animRange">${[0,1,2,3,4].map(n=>`<option value="${n}">${n}コマ</option>`).join('')}</select></label><small class="anim-small">個別選択は編集フレームを変えずに受信・確認できます。</small><div id="animIndividual"></div><button id="animPeek" type="button">選んだコマを個別表示</button></section>
   <section class="anim-panel"><h3>作品設定</h3><label>FPS <input id="animFps" data-anim-host type="number" min="1" max="60" step="1" value="12"></label><small class="anim-small">FPS・コマの追加や削除は部屋主のみ変更可能です。</small><button id="animJson" type="button">プロジェクトJSONを保存</button><label>保存した作品を読み込む（部屋主）<input id="animImport" data-anim-host type="file" accept="application/json,.json"></label><button id="animVideo" type="button">WebM動画を書き出し</button></section></aside></div>
@@ -4434,7 +4491,13 @@ window.ArtAnimation=(()=>{
   canvas.addEventListener('pointerdown',handlePointerDown);canvas.addEventListener('pointermove',handlePointerMove);canvas.addEventListener('pointerup',handlePointerUp);canvas.addEventListener('pointercancel',handlePointerUp);
   for(const t of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','wheel'])root.addEventListener(t,e=>e.stopPropagation());
   root.addEventListener('click',clickUI);root.addEventListener('change',changeUI);root.addEventListener('input',inputUI);
-  if(!keysBound){keysBound=true;document.addEventListener('keydown',e=>{if(!isAnimation()||!root||!e.ctrlKey&&!e.metaKey||e.key.toLowerCase()!=='z')return;if(e.target?.matches('input,textarea,select'))return;e.preventDefault();e.stopImmediatePropagation();edit('undo');},true);}
+  if(!keysBound){keysBound=true;
+   document.addEventListener('keydown',e=>{if(!isAnimation()||!root||!(e.ctrlKey||e.metaKey)||e.key.toLowerCase()!=='z')return;if(e.target?.matches('input,textarea,select'))return;e.preventDefault();e.stopImmediatePropagation();edit(e.shiftKey?'redo':'undo');},true);
+   document.addEventListener('click',e=>{if(!isAnimation()||!root)return;
+    const btn=e.target.closest?.('#undoBtn,#redoBtn');if(!btn)return;
+    e.preventDefault();e.stopImmediatePropagation();edit(btn.id==='undoBtn'?'undo':'redo');
+   },true);
+  }
   const list=frameList();current=list[0]?.id||null;layer=getFrame(current)?.layers[0]?.id||null;
   if(!responsiveBound){responsiveBound=true;window.addEventListener('resize',adjustChatLayout);}adjustChatLayout();refreshAll();if(!isHost)sendHost({type:'animHello'});else requestFrames();if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(animationLoop);
  }
@@ -4442,9 +4505,7 @@ window.ArtAnimation=(()=>{
   if(b.dataset.frame)return chooseFrame(b.dataset.frame);
   if(b.dataset.layer){layer=b.dataset.layer;layersUI();return;}
   if(b.dataset.visible){edit('visible',{targetLayer:b.dataset.visible});return;}
-  if(id==='animPen'||id==='animErase'){tool=id==='animPen'?'pen':'eraser';showNotice(tool==='pen'?'ペンに切り替え':'消しゴムに切り替え');return;}
   if(id==='animPrev'||id==='animNext'){const i=clamp(idx+(id==='animPrev'?-1:1),0,frames.length-1);chooseFrame(frames[i]?.id);return;}
-  if(id==='animUndo')return edit('undo');
   if(id==='animLayerAdd')return edit('addLayer');if(id==='animLayerDelete')return edit('deleteLayer');
   if(id==='animAdd')return sendStructure('add');if(id==='animDuplicate')return sendStructure('duplicate');
   if(id==='animDelete'){if(frames.length>1&&confirm('このフレームを削除しますか？（部屋主のみ）'))sendStructure('delete');return;}
@@ -4463,16 +4524,24 @@ window.ArtAnimation=(()=>{
   if(t.id==='animImport'&&t.files?.[0]){void importProject(t.files[0]);t.value='';}
   if(t.dataset.pin){if(t.checked)pins.add(t.dataset.pin);else pins.delete(t.dataset.pin);requestFrames();refreshAll();}
  }
- function inputUI(e){const t=e.target;if(t.id==='animColor')color=t.value;
-  if(t.id==='animSize'){size=clamp(Number(t.value),1,80);root.querySelector('#animSizeText').textContent=size;}
+ function inputUI(e){const t=e.target;
   if(t.dataset.opacity!==undefined){opacity[Number(t.dataset.opacity)]=Number(t.value);refreshStatus();requestFrames();renderCanvas();}
  }
  function applyEdit(id,m){if(!isHost||!server)return;const f=server.byId.get(m.frameId);if(!f||!members.has(id)||members.get(id)?.spectator)return;
   const layers=f.layers,layer=layers.find(l=>l.id===m.layerId)||layers[0];let done=false,delta=null;
-  if(m.action==='stroke'&&layer){const s=m.stroke;if(!s||!['pen','eraser'].includes(s.tool)||!Array.isArray(s.points)||!s.points.length||s.points.length>1400||!/^#[0-9a-fA-F]{6}$/.test(s.color||'')||!(s.width>=1&&s.width<=80))return;
-   if(!s.points.every(p=>Array.isArray(p)&&p.length===2&&p.every(n=>Number.isFinite(n)&&n>=0&&n<=Math.max(room.w,room.h))))return;
-   const stroke={id:makeId(),owner:id,tool:s.tool,color:s.color,width:s.width,points:s.points.map(p=>[clamp(p[0],0,room.w),clamp(p[1],0,room.h)])};layer.strokes.push(stroke);done=true;delta={action:'stroke',layerId:layer.id,stroke};
+  if(m.action==='stroke'&&layer){const s=m.stroke;
+   if(!s||!['pen','eraser','warp','blur','fill'].includes(s.tool)||!Array.isArray(s.points)||!s.points.length||s.points.length>1400||!/^#[0-9a-fA-F]{6}$/.test(s.color||'')||!(Number(s.size??s.width)>=1&&Number(s.size??s.width)<=160)||!(Number(s.strength??100)>=1&&Number(s.strength??100)<=100))return;
+   if(!s.points.every(p=>Array.isArray(p)&&p.length>=2&&p.length<=3&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&p[0]>=0&&p[1]>=0&&p[0]<=room.w&&p[1]<=room.h))return;
+   const stroke={id:makeId(),owner:id,tool:s.tool,color:s.color,size:Number(s.size??s.width),strength:Number(s.strength??100),brush:['normal','spray','cotton','fade'].includes(s.brush)?s.brush:'normal',brushVersion:2,warpVersion:2,
+    pressure:!!s.pressure,seed:Number(s.seed)||0,taperFinished:!!s.taperFinished,opacityTaper:s.opacityTaper,roundTipVersion:s.roundTipVersion,
+    fillVersion:s.fillVersion,tolerance:s.tolerance,fillExpand:s.fillExpand,
+    points:s.points.map(p=>[p[0],p[1],p[2]??.5])};
+   layer.strokes.push(stroke);done=true;delta={action:'stroke',layerId:layer.id,stroke};
   }else if(m.action==='undo'){for(let li=layers.length-1;li>=0&&!done;li--){const strokes=layers[li].strokes;for(let j=strokes.length-1;j>=0;j--){if(strokes[j].owner===id&&!strokes[j].deleted){strokes[j].deleted=true;done=true;delta={action:'deleteStroke',layerId:layers[li].id,strokeId:strokes[j].id};break;}}}
+  }else if(m.action==='redo'){
+    for(let li=layers.length-1;li>=0&&!done;li--){const strokes=layers[li].strokes;
+     for(let j=strokes.length-1;j>=0;j--)if(strokes[j].owner===id&&strokes[j].deleted){strokes[j].deleted=false;done=true;delta={action:'restoreStroke',layerId:layers[li].id,strokeId:strokes[j].id};break;}
+    }
   }else if(m.action==='visible'&&layer){const target=layers.find(l=>l.id===m.targetLayer);if(target){target.visible=!target.visible;done=true;}}
   else if(m.action==='addLayer'&&layers.length<12){layers.push({id:makeId(),name:'レイヤー '+(layers.length+1),visible:true,strokes:[]});done=true;}
   else if(m.action==='deleteLayer'&&layers.length>1){const at=layers.findIndex(l=>l.id===m.layerId);if(at>=0){layers.splice(at,1);done=true;}}
@@ -4518,7 +4587,7 @@ window.ArtAnimation=(()=>{
   playing={start:performance.now()+(Number.isFinite(startAt)?Math.max(0,startAt-Date.now()):0),fps:fpsOverride||getManifest()?.fps||12,loop:!shared,shared};root?.classList.add('anim-playing');refreshStatus();renderCanvas();
  }
  async function importProject(file){if(!isHost||!server)return;try{if(file.size>20000000)throw Error('20MBを超えるファイルは読み込めません');const raw=JSON.parse(await file.text());if(raw.format!=='artopia-animation-1'||!Array.isArray(raw.frames)||!raw.frames.length||raw.frames.length>240)throw Error('アートピアのアニメーション作品ではありません');if(raw.width!==room.w||raw.height!==room.h)throw Error('キャンバスサイズが異なります（'+room.w+'×'+room.h+' が必要）');
-   const frames=raw.frames.map(f=>{if(!Array.isArray(f.layers)||!f.layers.length||f.layers.length>12)throw Error('レイヤー数が不正です');return{id:makeId(),revision:0,layers:f.layers.map(l=>({id:makeId(),name:String(l.name||'レイヤー').slice(0,40),visible:l.visible!==false,strokes:(l.strokes||[]).map(st=>{if(!Array.isArray(st.points)||st.points.length>1400||!['pen','eraser'].includes(st.tool)||!/^#[0-9a-fA-F]{6}$/.test(st.color||''))throw Error('筆跡データが不正です');return{id:makeId(),owner:localId,deleted:!!st.deleted,tool:st.tool,color:st.color,width:clamp(Number(st.width)||5,1,80),points:st.points.map(pt=>[clamp(Number(pt[0])||0,0,room.w),clamp(Number(pt[1])||0,0,room.h)])}})}) )}});
+   const frames=raw.frames.map(f=>{if(!Array.isArray(f.layers)||!f.layers.length||f.layers.length>12)throw Error('レイヤー数が不正です');return{id:makeId(),revision:0,layers:f.layers.map(l=>({id:makeId(),name:String(l.name||'レイヤー').slice(0,40),visible:l.visible!==false,strokes:(l.strokes||[]).map(st=>{if(!Array.isArray(st.points)||st.points.length>1400||!['pen','eraser','warp','blur','fill'].includes(st.tool)||!/^#[0-9a-fA-F]{6}$/.test(st.color||''))throw Error('筆跡データが不正です');return{...st,id:makeId(),owner:localId,deleted:!!st.deleted,size:clamp(Number(st.size??st.width)||5,1,160),strength:clamp(Number(st.strength??100),1,100),points:st.points.map(pt=>[clamp(Number(pt[0])||0,0,room.w),clamp(Number(pt[1])||0,0,room.h),pt[2]??.5])}})}) )}});
    if(!confirm('現在のアニメーション全体を読み込んだ作品で置き換えますか？'))return;
    server.frames=frames;server.byId=new Map(frames.map(f=>[f.id,f]));server.fps=clamp(Number(raw.fps)||12,1,60);server.trash=[];cache.clear();frameRenderCache.clear();subs.clear();current=frames[0].id;layer=frames[0].layers[0].id;hostManifest();requestFrames();showNotice('作品を読み込みました');
   }catch(e){showNotice('読み込み失敗：'+e.message)} }
