@@ -4310,7 +4310,7 @@ window.ArtStudioOptions=(()=>{
  }
 
 
- render();return{config,begin,render};
+ render();return{config,begin,render,close};
 })();
 
 
@@ -4396,12 +4396,12 @@ window.ArtAnimation=(()=>{
     }
    }
   }
-  const status=root?.querySelector('#animFrameNow');if(status)status.textContent='コマ '+(idx+1)+' / '+ids.length+(playing?' · 再生中':'');
+  const status=document.querySelector('#animFrameNow');if(status)status.textContent='コマ '+(idx+1)+' / '+ids.length+(playing?' · 再生中':'');
  }
  function animationLoop(){if(!root||!isAnimation()){raf=0;return;}if(playing)renderCanvas();raf=requestAnimationFrame(animationLoop);}
  function refreshStatus(){if(!root)return;const m=getManifest();const ids=frameList().map(f=>f.id),num=Math.max(0,ids.indexOf(current))+1;
-  const t=root.querySelector('#animInfo');if(t)t.textContent=`${num} / ${ids.length}コマ · ${m?.fps||12} FPS · ${(ids.length/(m?.fps||12)).toFixed(2)}秒`;
-  const fr=root.querySelector('#animFrameNow');if(fr)fr.textContent=`コマ ${num} / ${ids.length}`;
+  const t=document.querySelector('#animInfo');if(t)t.textContent=`${num} / ${ids.length}コマ · ${m?.fps||12} FPS · ${(ids.length/(m?.fps||12)).toFixed(2)}秒`;
+  const fr=document.querySelector('#animFrameNow');if(fr)fr.textContent=`コマ ${num} / ${ids.length}`;
   // The native Artopia layer header is reused, not recreated for animation.
   const lf=getFrame(current)?.layers||[];
   const selectedLayer=lf.find(x=>x.id===layer);
@@ -4409,32 +4409,32 @@ window.ArtAnimation=(()=>{
   if(originalBadge){const label=originalBadge.querySelector('.current-layer-text');if(label)label.textContent=selectedLayer?.name||'レイヤー 1';originalBadge.setAttribute('aria-label','現在のアニメーションレイヤー '+(selectedLayer?.name||'レイヤー 1')+'・タップで次のレイヤー');}
   const prev=document.querySelector('#animHeaderPrev'),next=document.querySelector('#animHeaderNext');
   if(prev)prev.disabled=num<=1;if(next)next.disabled=num>=ids.length;
-  const fp=root.querySelector('#animFps');if(fp&&document.activeElement!==fp)fp.value=m?.fps||12;
-  const seq=root.querySelector('#animRange');if(seq)seq.value=String(range);
-  const add=root.querySelectorAll('[data-anim-host]');add.forEach(e=>{e.disabled=!isHost; e.title=!isHost?'フレーム構成は部屋主だけ変更できます':'';});
-  for(const [i,key] of ['prev2','prev1','next1','next2'].entries()){const val=root.querySelector('#anim'+key+'Opacity');const display=root.querySelector('#anim'+key+'Text');if(val&&document.activeElement!==val)val.value=opacity[i];if(display)display.textContent=opacity[i]+'%';}
-  const onion=root.querySelector('#animOnion');if(onion)onion.checked=showOnion;
-  const playingBtn=root.querySelector('#animPlayBtn');if(playingBtn)playingBtn.textContent=playing?'停止':'個人再生';
+  const fp=document.querySelector('#animFps');if(fp&&document.activeElement!==fp)fp.value=m?.fps||12;
+  const seq=document.querySelector('#animRange');if(seq)seq.value=String(range);
+  const add=document.querySelectorAll('#animStudio [data-anim-host],#animNativeSettings [data-anim-host]');add.forEach(e=>{e.disabled=!isHost; e.title=!isHost?'フレーム構成は部屋主だけ変更できます':'';});
+  for(const [i,key] of ['prev2','prev1','next1','next2'].entries()){const val=document.querySelector('#anim'+key+'Opacity');const display=document.querySelector('#anim'+key+'Text');if(val&&document.activeElement!==val)val.value=opacity[i];if(display)display.textContent=opacity[i]+'%';}
+  const onion=document.querySelector('#animOnion');if(onion)onion.checked=showOnion;
+  const playingBtn=document.querySelector('#animPlayBtn');if(playingBtn)playingBtn.textContent=playing?'停止':'個人再生';
  }
- function layersUI(){const list=root?.querySelector('#animLayerList');if(!list)return;const f=getFrame(current);if(!f){list.innerHTML='<p>フレームを読み込み中…</p>';return;}
+ function layersUI(){const list=document.querySelector('#animLayerList');if(!list)return;const f=getFrame(current);if(!f){list.innerHTML='<p>フレームを読み込み中…</p>';return;}
   if(!f.layers.some(l=>l.id===layer))layer=f.layers.at(-1)?.id;
   list.innerHTML=f.layers.slice().reverse().map((l,j)=>`<div class="anim-layer ${layer===l.id?'chosen':''}"><button type="button" data-layer="${l.id}">${escAnim(l.name)}</button><button type="button" data-visible="${l.id}" aria-label="表示切り替え">${l.visible?'表示':'非表示'}</button></div>`).join('');
  }
- function timelineUI(){const timeline=root?.querySelector('#animTimeline');if(!timeline)return;const ids=frameList().map(f=>f.id);
+ function timelineUI(){const timeline=document.querySelector('#animTimeline');if(!timeline)return;const ids=frameList().map(f=>f.id);
   timeline.innerHTML=ids.map((id,i)=>{const f=getFrame(id);return `<button type="button" class="anim-frame ${current===id?'active':''} ${pins.has(id)?'pinned':''}" data-frame="${id}" aria-label="${i+1}コマ目${isHost?'。タップでメニュー、長押しで並べ替え':'を編集'}" title="${i+1}コマ目"><span>${i+1}</span><canvas data-thumb="${id}" width="72" height="52"></canvas><small>${f?'コマ '+(i+1):'未取得'}</small></button>`;}).join('')+(isHost&&ids.length<240?'<button type="button" class="anim-frame anim-frame-add" id="animAddTile" title="空白の次のコマを追加" aria-label="末尾に空白のフレームを追加"><span>新規</span><span class="anim-add-paper"><b>+</b></span><small>追加</small></button>':'');
   for(const thumb of timeline.querySelectorAll('[data-thumb]')){const data=getCanvasCache(thumb.dataset.thumb);const c=thumb.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,72,52);if(data)c.drawImage(data,0,0,72,52);}
-  const panel=root.querySelector('#animFrameMenu');if(panel&&!panel.hidden&&frameMenuId){const index=ids.indexOf(frameMenuId);if(index<0)closeFrameMenu();else{const label=panel.querySelector('#animMenuFrameName');if(label)label.textContent='コマ '+(index+1);}}
+  const panel=document.querySelector('#animFrameMenu');if(panel&&!panel.hidden&&frameMenuId){const index=ids.indexOf(frameMenuId);if(index<0)closeFrameMenu();else{const label=panel.querySelector('#animMenuFrameName');if(label)label.textContent='コマ '+(index+1);}}
  }
- function closeFrameMenu(){frameMenuId=null;const m=root?.querySelector('#animFrameMenu');if(m)m.hidden=true;}
+ function closeFrameMenu(){frameMenuId=null;const m=document.querySelector('#animFrameMenu');if(m)m.hidden=true;}
  function openFrameMenu(id){if(!isHost)return chooseFrame(id);const ids=frameList().map(f=>f.id);if(!ids.includes(id))return;
-  frameMenuId=id;const panel=root?.querySelector('#animFrameMenu');if(!panel)return;
+  frameMenuId=id;const panel=document.querySelector('#animFrameMenu');if(!panel)return;
   panel.hidden=false;panel.querySelector('#animMenuFrameName').textContent='コマ '+(ids.indexOf(id)+1);
   panel.querySelector('#animMenuDelete').disabled=ids.length<=1;
   panel.querySelector('#animMenuDuplicate').disabled=ids.length>=240;
   panel.querySelector('#animMenuRestore').disabled=!server?.trash?.length;
  }
  function setTimelineClosed(closed){timelineClosed=!!closed;root?.classList.toggle('anim-timeline-closed',timelineClosed);
-  const b=root?.querySelector('#animTimelineToggle');if(b){b.textContent=timelineClosed?'‹':'›';b.setAttribute('aria-label',timelineClosed?'コマ一覧を開く':'コマ一覧を閉じる');b.title=timelineClosed?'コマ一覧を開く':'コマ一覧を閉じる';}
+  const b=document.querySelector('#animTimelineToggle');if(b){b.textContent=timelineClosed?'‹':'›';b.setAttribute('aria-label',timelineClosed?'コマ一覧を開く':'コマ一覧を閉じる');b.title=timelineClosed?'コマ一覧を開く':'コマ一覧を閉じる';}
   try{localStorage.setItem('artopia-animation-timeline-closed',String(timelineClosed));}catch{}
  }
  function beginFrameLongPress(e){const tile=e.target.closest?.('button.anim-frame[data-frame]');if(!tile||!isHost||e.button!==0)return;
@@ -4443,7 +4443,7 @@ window.ArtAnimation=(()=>{
   dragFrame=d;d.timer=setTimeout(()=>{if(dragFrame!==d)return;d.active=true;tile.classList.add('anim-dragging');closeFrameMenu();
    const ghost=tile.cloneNode(true);ghost.id='animFrameDragGhost';ghost.removeAttribute('data-frame');ghost.querySelector('canvas')?.remove();
    const r=tile.getBoundingClientRect();ghost.style.width=r.width+'px';ghost.style.height=r.height+'px';ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';document.body.append(ghost);d.ghost=ghost;d.rect=r;
-   const indicator=root?.querySelector('#animDragHint');if(indicator){indicator.hidden=false;indicator.textContent='移動先へドラッグして離してください';}
+   const indicator=document.querySelector('#animDragHint');if(indicator){indicator.hidden=false;indicator.textContent='移動先へドラッグして離してください';}
    try{tile.setPointerCapture(d.pointerId);}catch{}
   },460);
  }
@@ -4454,23 +4454,23 @@ window.ArtAnimation=(()=>{
   const origin=tiles.findIndex(tile=>tile.dataset.frame===d.id);
   let dest=origin;for(let i=0;i<tiles.length;i++){const r=tiles[i].getBoundingClientRect();if(d.x>=r.left&&d.x<=r.right){dest=i;break;}}
   const step=tiles.length>1?Math.abs(tiles[1].offsetLeft-tiles[0].offsetLeft):80;
-  root?.querySelector('#animTimeline')?.style.setProperty('--anim-step',step+'px');
+  document.querySelector('#animTimeline')?.style.setProperty('--anim-step',step+'px');
   tiles.forEach((tile,i)=>{tile.classList.remove('anim-shift-left','anim-shift-right','anim-drop-target');if(origin<dest&&i>origin&&i<=dest)tile.classList.add('anim-shift-left');if(origin>dest&&i>=dest&&i<origin)tile.classList.add('anim-shift-right');});
   d.targetId=dest!==origin?tiles[dest]?.dataset.frame:null;
  }
  function endFrameDrag(e){const d=dragFrame;if(!d)return;if(e&&e.pointerId!==d.pointerId)return;
   clearTimeout(d.timer);dragFrame=null;d.tile?.classList.remove('anim-dragging');d.ghost?.remove();
   root?.querySelectorAll('.anim-frame.anim-drop-target,.anim-frame.anim-shift-left,.anim-frame.anim-shift-right').forEach(b=>b.classList.remove('anim-drop-target','anim-shift-left','anim-shift-right'));
-  const indicator=root?.querySelector('#animDragHint');if(indicator)indicator.hidden=true;
+  const indicator=document.querySelector('#animDragHint');if(indicator)indicator.hidden=true;
   if(d.active){suppressFrameClickUntil=Date.now()+650;
    if(d.targetId&&d.targetId!==d.id)sendStructure('moveTo',{frameId:d.id,targetId:d.targetId});
   }
  }
- function pinsUI(){const menu=root?.querySelector('#animIndividual');if(!menu)return;const ids=frameList().map(f=>f.id);menu.innerHTML=ids.map((id,i)=>`<label><input type="checkbox" data-pin="${id}" ${pins.has(id)?'checked':''}> ${i+1}コマ</label>`).join('');}
+ function pinsUI(){const menu=document.querySelector('#animIndividual');if(!menu)return;const ids=frameList().map(f=>f.id);menu.innerHTML=ids.map((id,i)=>`<label><input type="checkbox" data-pin="${id}" ${pins.has(id)?'checked':''}> ${i+1}コマ</label>`).join('');}
  function refreshAll(){if(!root||!isAnimation())return;const ids=frameList().map(f=>f.id);if(!ids.includes(current))current=ids[0];
   if(!ids.includes(peek))peek=null;for(const id of [...pins])if(!ids.includes(id))pins.delete(id);
   timelineUI();layersUI();pinsUI();refreshStatus();renderCanvas();renderPeek();}
- function renderPeek(){const box=root?.querySelector('#animPeekBox');if(!box)return;if(!peek){box.hidden=true;return;}const idx=frameList().findIndex(f=>f.id===peek);box.hidden=false;root.querySelector('#animPeekName').textContent='個別表示：'+(idx+1)+'コマ';const c=root.querySelector('#animPeekCanvas');c.width=room.w;c.height=room.h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);const data=getCanvasCache(peek);if(data)x.drawImage(data,0,0);}
+ function renderPeek(){const box=document.querySelector('#animPeekBox');if(!box)return;if(!peek){box.hidden=true;return;}const idx=frameList().findIndex(f=>f.id===peek);box.hidden=false;document.querySelector('#animPeekName').textContent='個別表示：'+(idx+1)+'コマ';const c=document.querySelector('#animPeekCanvas');c.width=room.w;c.height=room.h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);const data=getCanvasCache(peek);if(data)x.drawImage(data,0,0);}
  function chooseFrame(id){if(!id)return;if(pen)finishStroke();if(!frameList().some(f=>f.id===id))return;stopPlay();current=id;requestFrames();refreshAll();}
  function edit(type,detail={}){if(!isAnimation()||localViewer)return;sendHost({type:'animEdit',action:type,frameId:current,layerId:layer,...detail});}
  function sendStructure(action,detail={}){if(!isHost)return;sendHost({type:'animStructure',action,frameId:current,...detail});}
@@ -4516,7 +4516,7 @@ window.ArtAnimation=(()=>{
   renderCanvas();
  }
  function handlePointerUp(e){if(!pen||e.pointerId!==pen.id)return;e.preventDefault();e.stopPropagation();finishStroke();}
- function showNotice(text){const out=root?.querySelector('#animStatus');if(out){out.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(out.textContent===text)out.textContent='';},3800)}}
+ function showNotice(text){const out=document.querySelector('#animStatus');if(out){out.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(out.textContent===text)out.textContent='';},3800)}}
  function adjustChatLayout(){if(!isAnimation())return;const membersPanel=document.querySelector('#memberPanel');if(!membersPanel)return;const mobile=window.matchMedia('(max-width:750px)').matches;const open=document.querySelector('#studio')?.classList.contains('anim-show-members');if(mobile)membersPanel.style.setProperty('display',open?'flex':'none','important');else membersPanel.style.removeProperty('display');}
  function animationCSS(){const style=document.createElement('style');style.id='animModeStyle';style.textContent=`
  #studio.animation-active .workspace{grid-template-columns:var(--tools-width,170px) minmax(0,1fr) minmax(180px,280px)!important}
@@ -4642,6 +4642,17 @@ window.ArtAnimation=(()=>{
  #studio.animation-active #animTimeline>.anim-frame.anim-dragging{opacity:.25;transform:none!important;box-shadow:none!important}
  #animFrameDragGhost{position:fixed;z-index:99999;pointer-events:none;opacity:.96;box-shadow:0 16px 35px #14283c44;border:2px solid #278bad;border-radius:9px;background:white;transform:scale(1.08);touch-action:none}
  @media(max-width:750px){#studio.animation-active #layerStatus{min-width:0}#studio.animation-active #animTopControls button{width:28px;min-width:28px;height:29px;min-height:29px}}
+ /* Reuse the normal studio header and its complete, native layer popup. */
+ #studio.animation-active #snapshotBtn,#studio.animation-active #reloadCanvasBtn{display:inline-flex!important}
+ #studio.animation-active #layerHeaderPopup{display:block!important;z-index:1200!important}
+ #studio.animation-active #layerHeaderPopup[hidden]{display:none!important}
+ #studio.animation-active #layerStatus #layerClipBtn{display:inline-flex!important}
+ #studio.animation-active #animNativeSettings{margin-top:12px;border-top:1px solid var(--line,#d9e0e5);padding-top:10px}
+ #studio.animation-active #animNativeSettings .anim-sidebar{position:static!important;display:flex!important;transform:none!important;inset:auto!important;width:100%!important;min-width:0!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;background:transparent!important;color:inherit!important;pointer-events:auto!important;gap:9px!important}
+ #studio.animation-active #animNativeSettings .anim-panel{background:transparent!important;color:inherit!important;border:1px solid var(--line,#d9e0e5)!important;border-radius:8px!important;padding:9px!important}
+ #studio.animation-active #animNativeSettings .anim-panel button{background:var(--surface,#fff)!important;color:var(--text,#243248)!important;border:1px solid var(--line,#ccd4da)!important}
+ #studio.animation-active #animNativeSettings .anim-panel input,#studio.animation-active #animNativeSettings .anim-panel select{color:var(--text,#243248)!important;background:var(--surface,#fff)!important}
+ #studio.animation-active #layerHeaderPopup{max-height:min(76dvh,690px);overflow-y:auto;overscroll-behavior:contain}
  `;document.head.appendChild(style);}
  function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();
   // Older frames from the first animation version could contain only one layer.
@@ -4676,22 +4687,41 @@ window.ArtAnimation=(()=>{
   const nativeDetails=document.querySelector('#layerDetailsBtn');
   const nativeClose=()=>document.querySelector('#studio')?.classList.remove('anim-panel-open');
   if(nativeBadge&&!nativeBadge.dataset.animHooked){nativeBadge.dataset.animHooked='1';nativeBadge.addEventListener('click',ev=>{if(!isAnimation())return;ev.preventDefault();ev.stopImmediatePropagation();const f=getFrame(current);if(!f?.layers?.length)return;const idx=f.layers.findIndex(item=>item.id===layer);layer=f.layers[(idx+1)%f.layers.length]?.id;layersUI();refreshStatus();},{capture:true});}
-  if(nativeDetails&&!nativeDetails.dataset.animHooked){nativeDetails.dataset.animHooked='1';nativeDetails.addEventListener('click',ev=>{if(!isAnimation())return;ev.preventDefault();ev.stopImmediatePropagation();const studio=document.querySelector('#studio');const opening=!studio?.classList.contains('anim-panel-open');studio?.classList.toggle('anim-panel-open',opening);nativeDetails.setAttribute('aria-expanded',String(opening));document.querySelector('#layerHeaderPopup')?.setAttribute('hidden','');},{capture:true});}
-  if(!document.querySelector('#animPanelOutsideHook')){
-   const marker=document.createElement('span');marker.id='animPanelOutsideHook';marker.hidden=true;document.body.append(marker);
-   document.addEventListener('pointerdown',ev=>{if(!isAnimation()||!document.querySelector('#studio')?.classList.contains('anim-panel-open'))return;if(ev.target.closest('#animStudio .anim-sidebar,#layerStatus'))return;nativeClose();nativeDetails?.setAttribute('aria-expanded','false');},{capture:true});
+  // Keep the ordinary layer settings button and popup behavior intact.
+  // Animation-specific controls live inside the same original popup.
+  const nativeDetailsContent=document.querySelector('#layerDetailsContent');
+  const animationSidebar=root.querySelector('.anim-sidebar');
+  if(nativeDetailsContent&&animationSidebar){
+   nativeDetailsContent.querySelector('#animNativeSettings')?.remove();
+   const section=document.createElement('div');section.id='animNativeSettings';
+   section.append(animationSidebar);
+   nativeDetailsContent.append(section);
+   section.addEventListener('click',clickUI);
+   section.addEventListener('change',changeUI);
+   section.addEventListener('input',inputUI);
+  }
+  // Use the ordinary header controls, with animation-aware behavior while in this mode.
+  for(const [buttonId,handler] of [
+   ['snapshotBtn',()=>saveCurrentFramePNG()],
+   ['reloadCanvasBtn',()=>reloadAnimationView()]
+  ]){
+   const button=document.getElementById(buttonId);
+   if(button&&!button.dataset.animBound){button.dataset.animBound='1';button.addEventListener('click',e=>{
+    if(!isAnimation())return;
+    e.preventDefault();e.stopImmediatePropagation();handler();
+   },true);}
   }
   // Non-frame commands belong to the layer/settings popup, never the timeline.
   const head=root.querySelector('.anim-head');const controls=document.createElement('section');controls.className='anim-panel anim-play-options';
   controls.innerHTML='<h3>再生と作品</h3><div class="anim-play-buttons"></div>';
-  root.querySelector('.anim-sidebar').append(controls);
+  animationSidebar.append(controls);
   for(const child of [...head.querySelectorAll('button')])controls.querySelector('.anim-play-buttons').append(child);
-  root.querySelector('#animTimeline').addEventListener('pointerdown',beginFrameLongPress);
-  root.querySelector('#animTimeline').addEventListener('pointermove',moveFrameLongPress);
-  root.querySelector('#animTimeline').addEventListener('pointerup',endFrameDrag);
-  root.querySelector('#animTimeline').addEventListener('pointercancel',endFrameDrag);
+  document.querySelector('#animTimeline').addEventListener('pointerdown',beginFrameLongPress);
+  document.querySelector('#animTimeline').addEventListener('pointermove',moveFrameLongPress);
+  document.querySelector('#animTimeline').addEventListener('pointerup',endFrameDrag);
+  document.querySelector('#animTimeline').addEventListener('pointercancel',endFrameDrag);
   setTimelineClosed(timelineClosed);
-  canvas=root.querySelector('#animDrawing');ctx=canvas.getContext('2d');root.style.setProperty('--anim-ratio',room.w+'/'+room.h);canvas.style.setProperty('--anim-ratio',room.w+'/'+room.h);
+  canvas=document.querySelector('#animDrawing');ctx=canvas.getContext('2d');root.style.setProperty('--anim-ratio',room.w+'/'+room.h);canvas.style.setProperty('--anim-ratio',room.w+'/'+room.h);
   canvas.addEventListener('pointerdown',handlePointerDown);canvas.addEventListener('pointermove',handlePointerMove);canvas.addEventListener('pointerup',handlePointerUp);canvas.addEventListener('pointercancel',handlePointerUp);
   for(const t of ['pointerdown','pointermove','pointerup','pointercancel','touchstart','touchmove','touchend','wheel'])root.addEventListener(t,e=>e.stopPropagation());
   root.addEventListener('click',clickUI);root.addEventListener('change',changeUI);root.addEventListener('input',inputUI);
@@ -4804,9 +4834,25 @@ window.ArtAnimation=(()=>{
    server.frames=frames;server.byId=new Map(frames.map(f=>[f.id,f]));server.fps=clamp(Number(raw.fps)||12,1,60);server.trash=[];cache.clear();frameRenderCache.clear();subs.clear();current=frames[0].id;layer=frames[0].layers[0].id;hostManifest();requestFrames();showNotice('作品を読み込みました');
   }catch(e){showNotice('読み込み失敗：'+e.message)} }
  function downloadBlob(blob,name){const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+  function saveCurrentFramePNG(){
+   if(!isAnimation())return;
+   const frame=getFrame(current);
+   if(!frame){showNotice('コマを受信してから保存してください');requestFrames();return;}
+   const picture=getCanvasCache(current);if(!picture)return;
+   const output=document.createElement('canvas');output.width=room.w;output.height=room.h;
+   const brush=output.getContext('2d');brush.fillStyle='#fff';brush.fillRect(0,0,room.w,room.h);brush.drawImage(picture,0,0);
+   output.toBlob(blob=>{if(blob)downloadBlob(blob,'artopia_コマ_'+(frameList().findIndex(f=>f.id===current)+1)+'.png');else showNotice('画像保存に失敗しました');},'image/png');
+  }
+  function reloadAnimationView(){
+   if(!isAnimation())return;
+   frameRenderCache.clear();requestFrames();refreshAll();
+   if(!isHost){const ids=frameList().filter(f=>f.id===current).map(f=>f.id);
+    if(ids.length)sendHost({type:'animSubscribe',ids,known:ids.map(id=>({id,revision:-1}))});}
+   showNotice('現在のコマを再描画しました');
+  }
  async function saveProject(){if(exporting)return;exporting=true;showNotice('保存用フレームを取得中…');try{const ok=await ensureAll(18000);if(!ok)throw Error('一部フレームを取得できませんでした');const data={format:'artopia-animation-1',width:room.w,height:room.h,fps:getManifest()?.fps||12,createdAt:new Date().toISOString(),frames:frameList().map(f=>getFrame(f.id))};downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),'artopia_animation_'+Date.now()+'.json');showNotice('プロジェクトJSONを保存しました');}catch(e){showNotice('保存失敗：'+e.message)}finally{exporting=false;}}
  async function saveVideo(){if(exporting)return;exporting=true;try{const ok=await ensureAll(18000);if(!ok)throw Error('すべてのフレームを受信できませんでした');if(!HTMLCanvasElement.prototype.captureStream||typeof MediaRecorder==='undefined')throw Error('このブラウザはWebM書き出しに対応していません');const fps=getManifest()?.fps||12,ids=frameList().map(f=>f.id),recordCanvas=document.createElement('canvas');recordCanvas.width=room.w;recordCanvas.height=room.h;const x=recordCanvas.getContext('2d'),stream=recordCanvas.captureStream(0),track=stream.getVideoTracks()[0];const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));if(!type)throw Error('WebM形式が使えません');const parts=[],rec=new MediaRecorder(stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||Error('録画失敗'))});rec.start();showNotice('動画を書き出し中…');for(const id of ids){x.fillStyle='white';x.fillRect(0,0,recordCanvas.width,recordCanvas.height);const c=getCanvasCache(id);if(c)x.drawImage(c,0,0);track.requestFrame?.();await new Promise(r=>setTimeout(r,Math.max(20,1000/fps)));}rec.stop();await done;track.stop();downloadBlob(new Blob(parts,{type}), 'artopia_animation_'+Date.now()+'.webm');showNotice('WebM動画を書き出しました');}catch(e){showNotice('動画保存失敗：'+e.message)}finally{exporting=false;}}
- function reset(){endFrameDrag();closeFrameMenu();if(raf)cancelAnimationFrame(raf);raf=0;document.querySelector('#animTopControls')?.remove();document.querySelector('#animFrameDragGhost')?.remove();document.querySelector('#layerDetailsBtn')?.setAttribute('aria-expanded','false');if(root){root.remove();root=null;}document.querySelector('#studio')?.classList.remove('animation-active','anim-show-members','anim-panel-open');document.querySelector('#memberPanel')?.style.removeProperty('display');window.ArtStudioOptions?.render?.();server=null;manifest=null;pendingPlay=null;cache.clear();subs.clear();pending.clear();current=null;layer=null;peek=null;pins.clear();pen=null;playing=null;frameRenderCache.clear();canvas=null;ctx=null;}
+ function reset(){endFrameDrag();closeFrameMenu();if(raf)cancelAnimationFrame(raf);raf=0;document.querySelector('#animTopControls')?.remove();document.querySelector('#animFrameDragGhost')?.remove();document.querySelector('#layerDetailsBtn')?.setAttribute('aria-expanded','false');window.ArtStudioOptions?.close?.();document.querySelector('#animNativeSettings')?.remove();if(root){root.remove();root=null;}document.querySelector('#layerHeaderPopup')?.setAttribute('hidden','');document.querySelector('#studio')?.classList.remove('animation-active','anim-show-members','anim-panel-open');document.querySelector('#memberPanel')?.style.removeProperty('display');window.ArtStudioOptions?.render?.();server=null;manifest=null;pendingPlay=null;cache.clear();subs.clear();pending.clear();current=null;layer=null;peek=null;pins.clear();pen=null;playing=null;frameRenderCache.clear();canvas=null;ctx=null;}
  return{enter,reset,hostMessage,clientMessage,requestFrames,manifest:()=>getManifest(),getFrame};
 })();
 
