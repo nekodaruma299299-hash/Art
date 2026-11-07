@@ -4394,9 +4394,11 @@ window.ArtAnimation=(()=>{
  function refreshStatus(){if(!root)return;const m=getManifest();const ids=frameList().map(f=>f.id),num=Math.max(0,ids.indexOf(current))+1;
   const t=root.querySelector('#animInfo');if(t)t.textContent=`${num} / ${ids.length}コマ · ${m?.fps||12} FPS · ${(ids.length/(m?.fps||12)).toFixed(2)}秒`;
   const fr=root.querySelector('#animFrameNow');if(fr)fr.textContent=`コマ ${num} / ${ids.length}`;
-  const headerLabel=document.querySelector('#animHeaderLayerText');const lf=getFrame(current)?.layers||[];
-  const selectedLayer=lf.find(x=>x.id===layer);if(headerLabel)headerLabel.textContent=selectedLayer?.name||'レイヤー 1';
-  const headerInfo=document.querySelector('#animHeaderInfo');if(headerInfo)headerInfo.textContent=`${num}/${ids.length}コマ · ${m?.fps||12}FPS`;
+  // The native Artopia layer header is reused, not recreated for animation.
+  const lf=getFrame(current)?.layers||[];
+  const selectedLayer=lf.find(x=>x.id===layer);
+  const originalBadge=document.querySelector('#activeLayerBadge');
+  if(originalBadge){const label=originalBadge.querySelector('.current-layer-text');if(label)label.textContent=selectedLayer?.name||'レイヤー 1';originalBadge.setAttribute('aria-label','現在のアニメーションレイヤー '+(selectedLayer?.name||'レイヤー 1')+'・タップで次のレイヤー');}
   const prev=document.querySelector('#animHeaderPrev'),next=document.querySelector('#animHeaderNext');
   if(prev)prev.disabled=num<=1;if(next)next.disabled=num>=ids.length;
   const fp=root.querySelector('#animFps');if(fp&&document.activeElement!==fp)fp.value=m?.fps||12;
@@ -4404,14 +4406,14 @@ window.ArtAnimation=(()=>{
   const add=root.querySelectorAll('[data-anim-host]');add.forEach(e=>{e.disabled=!isHost; e.title=!isHost?'フレーム構成は部屋主だけ変更できます':'';});
   for(const [i,key] of ['prev2','prev1','next1','next2'].entries()){const val=root.querySelector('#anim'+key+'Opacity');const display=root.querySelector('#anim'+key+'Text');if(val&&document.activeElement!==val)val.value=opacity[i];if(display)display.textContent=opacity[i]+'%';}
   const onion=root.querySelector('#animOnion');if(onion)onion.checked=showOnion;
-  const playingBtn=root.querySelector('#animPlayBtn');if(playingBtn)playingBtn.textContent=playing?'■ 停止':'▶ 個人再生';
+  const playingBtn=root.querySelector('#animPlayBtn');if(playingBtn)playingBtn.textContent=playing?'停止':'個人再生';
  }
  function layersUI(){const list=root?.querySelector('#animLayerList');if(!list)return;const f=getFrame(current);if(!f){list.innerHTML='<p>フレームを読み込み中…</p>';return;}
   if(!f.layers.some(l=>l.id===layer))layer=f.layers.at(-1)?.id;
-  list.innerHTML=f.layers.slice().reverse().map((l,j)=>`<div class="anim-layer ${layer===l.id?'chosen':''}"><button type="button" data-layer="${l.id}">${escAnim(l.name)}</button><button type="button" data-visible="${l.id}" aria-label="表示切り替え">${l.visible?'◉':'○'}</button></div>`).join('');
+  list.innerHTML=f.layers.slice().reverse().map((l,j)=>`<div class="anim-layer ${layer===l.id?'chosen':''}"><button type="button" data-layer="${l.id}">${escAnim(l.name)}</button><button type="button" data-visible="${l.id}" aria-label="表示切り替え">${l.visible?'表示':'非表示'}</button></div>`).join('');
  }
  function timelineUI(){const timeline=root?.querySelector('#animTimeline');if(!timeline)return;const ids=frameList().map(f=>f.id);
-  timeline.innerHTML=ids.map((id,i)=>{const f=getFrame(id);return `<button type="button" class="anim-frame ${current===id?'active':''} ${pins.has(id)?'pinned':''}" data-frame="${id}" aria-label="${i+1}コマ目${isHost?'。タップでメニュー、長押しで並べ替え':'を編集'}" title="${i+1}コマ目"><span>${i+1}</span><canvas data-thumb="${id}" width="72" height="52"></canvas><small>${f?'コマ '+(i+1):'未取得'}</small></button>`;}).join('')+(isHost&&ids.length<240?'<button type="button" class="anim-frame anim-frame-add" id="animAddTile" title="空白の次のコマを追加" aria-label="末尾に空白のフレームを追加"><span>新規</span><span class="anim-add-paper"><b>＋</b></span><small>追加</small></button>':'');
+  timeline.innerHTML=ids.map((id,i)=>{const f=getFrame(id);return `<button type="button" class="anim-frame ${current===id?'active':''} ${pins.has(id)?'pinned':''}" data-frame="${id}" aria-label="${i+1}コマ目${isHost?'。タップでメニュー、長押しで並べ替え':'を編集'}" title="${i+1}コマ目"><span>${i+1}</span><canvas data-thumb="${id}" width="72" height="52"></canvas><small>${f?'コマ '+(i+1):'未取得'}</small></button>`;}).join('')+(isHost&&ids.length<240?'<button type="button" class="anim-frame anim-frame-add" id="animAddTile" title="空白の次のコマを追加" aria-label="末尾に空白のフレームを追加"><span>新規</span><span class="anim-add-paper"><b>+</b></span><small>追加</small></button>':'');
   for(const thumb of timeline.querySelectorAll('[data-thumb]')){const data=getCanvasCache(thumb.dataset.thumb);const c=thumb.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,72,52);if(data)c.drawImage(data,0,0,72,52);}
   const panel=root.querySelector('#animFrameMenu');if(panel&&!panel.hidden&&frameMenuId){const index=ids.indexOf(frameMenuId);if(index<0)closeFrameMenu();else{const label=panel.querySelector('#animMenuFrameName');if(label)label.textContent='コマ '+(index+1);}}
  }
@@ -4431,21 +4433,26 @@ window.ArtAnimation=(()=>{
   if(dragFrame)endFrameDrag();
   const d={id:tile.dataset.frame,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,active:false,timer:null,targetId:null,tile};
   dragFrame=d;d.timer=setTimeout(()=>{if(dragFrame!==d)return;d.active=true;tile.classList.add('anim-dragging');closeFrameMenu();
-   const indicator=root?.querySelector('#animDragHint');if(indicator){indicator.hidden=false;indicator.textContent='移動先のコマへドラッグして離してください';}
+   const ghost=tile.cloneNode(true);ghost.id='animFrameDragGhost';ghost.removeAttribute('data-frame');ghost.querySelector('canvas')?.remove();
+   const r=tile.getBoundingClientRect();ghost.style.width=r.width+'px';ghost.style.height=r.height+'px';ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';document.body.append(ghost);d.ghost=ghost;d.rect=r;
+   const indicator=root?.querySelector('#animDragHint');if(indicator){indicator.hidden=false;indicator.textContent='移動先へドラッグして離してください';}
    try{tile.setPointerCapture(d.pointerId);}catch{}
-   if(navigator.vibrate)try{navigator.vibrate(20);}catch{}
   },460);
  }
  function moveFrameLongPress(e){const d=dragFrame;if(!d||e.pointerId!==d.pointerId)return;d.x=e.clientX;d.y=e.clientY;
   if(!d.active){if(Math.hypot(d.x-d.startX,d.y-d.startY)>12)endFrameDrag();return;}
-  e.preventDefault();const target=document.elementFromPoint(d.x,d.y)?.closest?.('button.anim-frame[data-frame]');
-  root?.querySelectorAll('.anim-frame.anim-drop-target').forEach(b=>b.classList.remove('anim-drop-target'));
-  d.targetId=target?.dataset.frame&&target.dataset.frame!==d.id?target.dataset.frame:null;
-  if(d.targetId)target.classList.add('anim-drop-target');
+  e.preventDefault();if(d.ghost){d.ghost.style.left=(d.rect.left+d.x-d.startX)+'px';d.ghost.style.top=(d.rect.top+d.y-d.startY)+'px';}
+  const tiles=[...(root?.querySelectorAll('#animTimeline>.anim-frame[data-frame]')||[])];
+  const origin=tiles.findIndex(tile=>tile.dataset.frame===d.id);
+  let dest=origin;for(let i=0;i<tiles.length;i++){const r=tiles[i].getBoundingClientRect();if(d.x>=r.left&&d.x<=r.right){dest=i;break;}}
+  const step=tiles.length>1?Math.abs(tiles[1].offsetLeft-tiles[0].offsetLeft):80;
+  root?.querySelector('#animTimeline')?.style.setProperty('--anim-step',step+'px');
+  tiles.forEach((tile,i)=>{tile.classList.remove('anim-shift-left','anim-shift-right','anim-drop-target');if(origin<dest&&i>origin&&i<=dest)tile.classList.add('anim-shift-left');if(origin>dest&&i>=dest&&i<origin)tile.classList.add('anim-shift-right');});
+  d.targetId=dest!==origin?tiles[dest]?.dataset.frame:null;
  }
  function endFrameDrag(e){const d=dragFrame;if(!d)return;if(e&&e.pointerId!==d.pointerId)return;
-  clearTimeout(d.timer);dragFrame=null;d.tile?.classList.remove('anim-dragging');
-  root?.querySelectorAll('.anim-frame.anim-drop-target').forEach(b=>b.classList.remove('anim-drop-target'));
+  clearTimeout(d.timer);dragFrame=null;d.tile?.classList.remove('anim-dragging');d.ghost?.remove();
+  root?.querySelectorAll('.anim-frame.anim-drop-target,.anim-frame.anim-shift-left,.anim-frame.anim-shift-right').forEach(b=>b.classList.remove('anim-drop-target','anim-shift-left','anim-shift-right'));
   const indicator=root?.querySelector('#animDragHint');if(indicator)indicator.hidden=true;
   if(d.active){suppressFrameClickUntil=Date.now()+650;
    if(d.targetId&&d.targetId!==d.id)sendStructure('moveTo',{frameId:d.id,targetId:d.targetId});
@@ -4594,40 +4601,60 @@ window.ArtAnimation=(()=>{
  #studio.animation-active #animStudio .anim-play-buttons{display:flex;flex-wrap:wrap;gap:6px}
  #studio.animation-active #animStudio .anim-play-buttons button{flex:1;min-width:100px}
  @media(max-width:750px){#studio.animation-active #animTopControls .current-layer-text{font-size:17px!important}#studio.animation-active #animTopControls #animHeaderInfo{display:none}#studio.animation-active #animStudio .anim-frame{width:63px!important}#studio.animation-active #animStudio .anim-add-paper{width:49px;height:33px}#studio.animation-active #animStudio .anim-timeline-caption{display:none}}
+
+ /* Native layer controls, original Artopia header, only two additional navigation buttons. */
+ #studio.animation-active #layerStatus{display:flex!important;visibility:visible!important;pointer-events:auto!important}
+ #studio.animation-active #layerStatus #activeLayerBadge{display:flex!important}
+ #studio.animation-active #layerStatus #layerDetailsBtn{display:inline-flex!important}
+ #studio.animation-active #layerStatus #layerClipBtn{display:none!important}
+ #studio.animation-active #layerStatus #layerHeaderPopup{display:none!important}
+ #studio.animation-active #animTopControls{display:inline-flex!important;align-items:center;gap:3px;grid-column:auto;grid-row:auto;margin:0 0 0 3px!important;max-width:none!important;position:static!important}
+ #studio.animation-active #animTopControls button{width:31px;height:32px;min-width:31px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;background:transparent!important;border:1px solid var(--line,#b7c8d2)!important;border-radius:8px!important;padding:3px!important;color:inherit!important}
+ #studio.animation-active #animTopControls button:disabled{opacity:.3}
+ #studio.animation-active.anim-panel-open #animStudio .anim-sidebar{display:flex!important;pointer-events:auto}
+ /* Real-time push-aside sorting; the gap follows the dragged frame instead of a target outline. */
+ #studio.animation-active #animTimeline>.anim-frame{transition:transform .19s cubic-bezier(.2,.8,.2,1),opacity .16s,box-shadow .16s}
+ #studio.animation-active #animTimeline>.anim-frame.anim-shift-left{transform:translateX(calc(-1 * var(--anim-step,80px)))}
+ #studio.animation-active #animTimeline>.anim-frame.anim-shift-right{transform:translateX(var(--anim-step,80px))}
+ #studio.animation-active #animTimeline>.anim-frame.anim-dragging{opacity:.25;transform:none!important;box-shadow:none!important}
+ #animFrameDragGhost{position:fixed;z-index:99999;pointer-events:none;opacity:.96;box-shadow:0 16px 35px #14283c44;border:2px solid #278bad;border-radius:9px;background:white;transform:scale(1.08);touch-action:none}
+ @media(max-width:750px){#studio.animation-active #layerStatus{min-width:0}#studio.animation-active #animTopControls button{width:28px;min-width:28px;height:29px;min-height:29px}}
  `;document.head.appendChild(style);}
  function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();if(isHost)manifest=getManifest();
   if(root){root.remove();root=null;}const viewport=document.querySelector('#viewport');if(!viewport)return;
   document.querySelector('#studio')?.classList.add('animation-active');root=document.createElement('section');root.id='animStudio';root.setAttribute('aria-label','アニメーション共同制作');
-  root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">▶ 個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
+  root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
   <div class="anim-main"><div class="anim-stage"><canvas id="animDrawing" aria-label="現在のアニメーションフレーム" width="768" height="768"></canvas><div id="animPeekBox" hidden><div style="display:flex;justify-content:space-between;align-items:center"><span id="animPeekName">個別表示</span><button id="animPeekClose" type="button">閉じる</button></div><canvas id="animPeekCanvas"></canvas></div><span class="anim-play-msg" id="animFrameNow"></span></div>
-  <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div style="display:flex;gap:4px"><button id="animLayerAdd" type="button">＋レイヤー</button><button id="animLayerDelete" type="button">削除</button></div></section>
+  <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div style="display:flex;gap:4px"><button id="animLayerAdd" type="button">レイヤーを追加</button><button id="animLayerDelete" type="button">削除</button></div></section>
   <section class="anim-panel"><h3>オニオンスキン</h3><label><input id="animOnion" type="checkbox" checked>前後のコマを重ねる</label>${[['prev2','2コマ前'],['prev1','1コマ前'],['next1','1コマ後'],['next2','2コマ後']].map((v,i)=>`<label>${v[1]} <span id="anim${v[0]}Text">${opacity[i]}%</span></label><input type="range" id="anim${v[0]}Opacity" data-opacity="${i}" min="0" max="100" step="5" value="${opacity[i]}">`).join('')}</section>
   <section class="anim-panel"><h3>必要なコマだけ受信</h3><label>前後 <select id="animRange">${[0,1,2,3,4].map(n=>`<option value="${n}">${n}コマ</option>`).join('')}</select></label><small class="anim-small">個別選択は編集フレームを変えずに受信・確認できます。</small><div id="animIndividual"></div><button id="animPeek" type="button">選んだコマを個別表示</button></section>
   <section class="anim-panel"><h3>作品設定</h3><label>FPS <input id="animFps" data-anim-host type="number" min="1" max="60" step="1" value="12"></label><small class="anim-small">FPS・コマの追加や削除は部屋主のみ変更可能です。</small><button id="animJson" type="button">プロジェクトJSONを保存</button><label>保存した作品を読み込む（部屋主）<input id="animImport" data-anim-host type="file" accept="application/json,.json"></label><button id="animVideo" type="button">WebM動画を書き出し</button></section></aside></div>
   <div class="anim-bottom"><div class="anim-timeline-edge"><button id="animTimelineToggle" type="button" aria-label="コマ一覧を閉じる" title="コマ一覧を閉じる">›</button><span class="anim-timeline-caption">コマ一覧</span><span id="animStatus"></span><span id="animDragHint" hidden></span></div><div id="animTimeline" aria-label="フレームのタイムライン"></div></div>
   <div id="animFrameMenu" class="anim-frame-menu" hidden role="dialog" aria-label="コマの操作"><strong id="animMenuFrameName">コマ</strong><button type="button" id="animMenuEdit">このコマを編集</button><button type="button" id="animMenuDuplicate" data-anim-host>複製</button><button type="button" id="animMenuDelete" data-anim-host>削除</button><button type="button" id="animMenuRestore" data-anim-host>直前の削除を戻す</button><button type="button" id="animMenuClose">閉じる</button></div>`;
   viewport.appendChild(root);
-  // Top controls occupy the same header slot as the ordinary layer manager.
+  // Reuse exactly the ordinary Artopia layer header and its original badge/gear.
+  // Only add two small frame-navigation buttons next to the existing layer actions.
   document.querySelector('#animTopControls')?.remove();
-  const top=document.createElement('div');top.id='animTopControls';top.setAttribute('aria-label','アニメーションのレイヤーとフレーム');
-  top.innerHTML='<button id="animHeaderLayer" class="anim-current-layer" type="button" aria-expanded="false" title="レイヤーの切り替え"><span id="animHeaderLayerText" class="current-layer-text">レイヤー 1</span></button><button id="animHeaderSettings" class="anim-layer-gear" type="button" title="レイヤー詳細・オニオンスキン設定" aria-label="レイヤー詳細とオニオンスキン" aria-expanded="false">⚙</button><span class="anim-frame-divider"></span><button id="animHeaderPrev" type="button" title="前のコマ" aria-label="前のコマ">◀</button><button id="animHeaderNext" type="button" title="次のコマ" aria-label="次のコマ">▶</button><span id="animHeaderInfo"></span>';
-  const status=document.querySelector('#layerStatus');const header=document.querySelector('.studio-header');
-  if(status?.parentNode)status.after(top);else header?.append(top);
-  top.addEventListener('click',ev=>{
-   const b=ev.target.closest('button');if(!b)return;
-   if(b.id==='animHeaderLayer'){
-    const f=getFrame(current);if(!f?.layers?.length)return;
-    const index=f.layers.findIndex(l=>l.id===layer),next=f.layers[(index+1)%f.layers.length];
-    if(next){layer=next.id;layersUI();refreshStatus();}return;
+  const originalStatus=document.querySelector('#layerStatus');
+  const originalActions=originalStatus?.querySelector('.layer-header-actions');
+  if(originalStatus&&originalActions){
+   let nav=document.querySelector('#animTopControls');
+   if(!nav){nav=document.createElement('span');nav.id='animTopControls';nav.className='anim-native-frame-nav';
+    nav.innerHTML='<button id="animHeaderPrev" type="button" title="前のコマ" aria-label="前のコマ"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="animHeaderNext" type="button" title="次のコマ" aria-label="次のコマ"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+    originalActions.append(nav);
    }
-   if(b.id==='animHeaderSettings'){
-    const open=!document.querySelector('#studio')?.classList.contains('anim-panel-open');
-    document.querySelector('#studio')?.classList.toggle('anim-panel-open',open);
-    b.setAttribute('aria-expanded',String(open));return;
-   }
-   const frames=frameList(),idx=frames.findIndex(f=>f.id===current);
-   if(b.id==='animHeaderPrev'||b.id==='animHeaderNext')chooseFrame(frames[clamp(idx+(b.id==='animHeaderPrev'?-1:1),0,frames.length-1)]?.id);
-  });
+   nav.addEventListener('click',ev=>{const button=ev.target.closest('button');if(!button)return;ev.stopPropagation();const frames=frameList(),idx=frames.findIndex(f=>f.id===current);if(button.id==='animHeaderPrev'||button.id==='animHeaderNext')chooseFrame(frames[clamp(idx+(button.id==='animHeaderPrev'?-1:1),0,frames.length-1)]?.id);});
+  }
+  // Native badge's drawing-layer click handler must not alter the original room canvas.
+  const nativeBadge=document.querySelector('#activeLayerBadge');
+  const nativeDetails=document.querySelector('#layerDetailsBtn');
+  const nativeClose=()=>document.querySelector('#studio')?.classList.remove('anim-panel-open');
+  if(nativeBadge&&!nativeBadge.dataset.animHooked){nativeBadge.dataset.animHooked='1';nativeBadge.addEventListener('click',ev=>{if(!isAnimation())return;ev.preventDefault();ev.stopImmediatePropagation();const f=getFrame(current);if(!f?.layers?.length)return;const idx=f.layers.findIndex(item=>item.id===layer);layer=f.layers[(idx+1)%f.layers.length]?.id;layersUI();refreshStatus();},{capture:true});}
+  if(nativeDetails&&!nativeDetails.dataset.animHooked){nativeDetails.dataset.animHooked='1';nativeDetails.addEventListener('click',ev=>{if(!isAnimation())return;ev.preventDefault();ev.stopImmediatePropagation();const studio=document.querySelector('#studio');const opening=!studio?.classList.contains('anim-panel-open');studio?.classList.toggle('anim-panel-open',opening);nativeDetails.setAttribute('aria-expanded',String(opening));document.querySelector('#layerHeaderPopup')?.setAttribute('hidden','');},{capture:true});}
+  if(!document.querySelector('#animPanelOutsideHook')){
+   const marker=document.createElement('span');marker.id='animPanelOutsideHook';marker.hidden=true;document.body.append(marker);
+   document.addEventListener('pointerdown',ev=>{if(!isAnimation()||!document.querySelector('#studio')?.classList.contains('anim-panel-open'))return;if(ev.target.closest('#animStudio .anim-sidebar,#layerStatus'))return;nativeClose();nativeDetails?.setAttribute('aria-expanded','false');},{capture:true});
+  }
   // Non-frame commands belong to the layer/settings popup, never the timeline.
   const head=root.querySelector('.anim-head');const controls=document.createElement('section');controls.className='anim-panel anim-play-options';
   controls.innerHTML='<h3>再生と作品</h3><div class="anim-play-buttons"></div>';
@@ -4753,7 +4780,7 @@ window.ArtAnimation=(()=>{
  function downloadBlob(blob,name){const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
  async function saveProject(){if(exporting)return;exporting=true;showNotice('保存用フレームを取得中…');try{const ok=await ensureAll(18000);if(!ok)throw Error('一部フレームを取得できませんでした');const data={format:'artopia-animation-1',width:room.w,height:room.h,fps:getManifest()?.fps||12,createdAt:new Date().toISOString(),frames:frameList().map(f=>getFrame(f.id))};downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),'artopia_animation_'+Date.now()+'.json');showNotice('プロジェクトJSONを保存しました');}catch(e){showNotice('保存失敗：'+e.message)}finally{exporting=false;}}
  async function saveVideo(){if(exporting)return;exporting=true;try{const ok=await ensureAll(18000);if(!ok)throw Error('すべてのフレームを受信できませんでした');if(!HTMLCanvasElement.prototype.captureStream||typeof MediaRecorder==='undefined')throw Error('このブラウザはWebM書き出しに対応していません');const fps=getManifest()?.fps||12,ids=frameList().map(f=>f.id),recordCanvas=document.createElement('canvas');recordCanvas.width=room.w;recordCanvas.height=room.h;const x=recordCanvas.getContext('2d'),stream=recordCanvas.captureStream(0),track=stream.getVideoTracks()[0];const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));if(!type)throw Error('WebM形式が使えません');const parts=[],rec=new MediaRecorder(stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||Error('録画失敗'))});rec.start();showNotice('動画を書き出し中…');for(const id of ids){x.fillStyle='white';x.fillRect(0,0,recordCanvas.width,recordCanvas.height);const c=getCanvasCache(id);if(c)x.drawImage(c,0,0);track.requestFrame?.();await new Promise(r=>setTimeout(r,Math.max(20,1000/fps)));}rec.stop();await done;track.stop();downloadBlob(new Blob(parts,{type}), 'artopia_animation_'+Date.now()+'.webm');showNotice('WebM動画を書き出しました');}catch(e){showNotice('動画保存失敗：'+e.message)}finally{exporting=false;}}
- function reset(){endFrameDrag();closeFrameMenu();if(raf)cancelAnimationFrame(raf);raf=0;document.querySelector('#animTopControls')?.remove();if(root){root.remove();root=null;}document.querySelector('#studio')?.classList.remove('animation-active','anim-show-members','anim-panel-open');document.querySelector('#memberPanel')?.style.removeProperty('display');server=null;manifest=null;pendingPlay=null;cache.clear();subs.clear();pending.clear();current=null;layer=null;peek=null;pins.clear();pen=null;playing=null;frameRenderCache.clear();canvas=null;ctx=null;}
+ function reset(){endFrameDrag();closeFrameMenu();if(raf)cancelAnimationFrame(raf);raf=0;document.querySelector('#animTopControls')?.remove();document.querySelector('#animFrameDragGhost')?.remove();document.querySelector('#layerDetailsBtn')?.setAttribute('aria-expanded','false');if(root){root.remove();root=null;}document.querySelector('#studio')?.classList.remove('animation-active','anim-show-members','anim-panel-open');document.querySelector('#memberPanel')?.style.removeProperty('display');window.ArtStudioOptions?.render?.();server=null;manifest=null;pendingPlay=null;cache.clear();subs.clear();pending.clear();current=null;layer=null;peek=null;pins.clear();pen=null;playing=null;frameRenderCache.clear();canvas=null;ctx=null;}
  return{enter,reset,hostMessage,clientMessage,requestFrames,manifest:()=>getManifest(),getFrame};
 })();
 
