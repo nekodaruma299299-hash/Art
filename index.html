@@ -7113,7 +7113,7 @@ window.ArtArts=(()=>{
      if(now>=e.next){
       e.next=now+90;
       const ux=Math.cos(e.angle),uy=Math.sin(e.angle),range=e.beamLength;
-      const tickDamage=9+11*progress;
+      const tickDamage=5+5*progress;
       for(const q of host.fighters){
        if(!q.active||q.hp<=0||friendly(p,q))continue;
        const vx=q.x-p.x,vy=q.y-p.y,along=vx*ux+vy*uy;
