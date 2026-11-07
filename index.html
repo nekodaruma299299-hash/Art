@@ -5018,7 +5018,7 @@ window.ArtsRules=(()=>{
  soul_eater:{name:'ソウルハーベスト',class:'executioner',fixedCost:30,cooldown:15000,effect:'描いた位置に5秒間の魂の渦を設置。敵を中心へ引き寄せ、中心ほど吸引が強い。中心に入ると脱出不能。中心で5秒間、HP約33.3とインク約33.3を吸い取り、青白い魂の粒として術者へ還元する',range:'描画サイズに応じた半径55〜165。障害物越しには吸引しない',gesture:'右上の短い端から小さな炎の突起、大きな炎の先端、左の輪郭、丸い底を通り、そのまま内側の渦へ。一筆書き・逆方向も可'},
  nightmare:{name:'ナイトメア',class:'dreamer',fixedCost:60,cooldown:32000,effect:'10秒間強制停止して詠唱。HPダメージを受けると中断。成功すると壁貫通の全域波動で敵のHPを減少させ、攻撃・防御等の強化バフを解除。その後6秒間、毎秒3発の悪夢の落下攻撃',range:'ステージ全体。衝撃波は壁越しでも敵ごと1回命中し、強化バフを消去。落下攻撃は予告1秒・半径95。同じ波の重複ダメージなし',gesture:'三日月の外側から内側へ戻り、上端を閉じずに左の空間へつなげ、渦巻きを約1.5〜2周する'},
  daydream:{name:'デイドリーム',class:'dreamer',fixedCost:10,cooldown:18000,effect:'静止中4秒、自身は毎秒HP5・インク15回復。さらに周囲半径160内の自分以外の敵味方・召喚獣を毎秒8HP回復。移動・被弾・別の技で終了。インクは通常上限の1.5倍まで保持',range:'自身の回復＋半径160内の敵味方・召喚獣（自分への周囲回復は重複なし）。超過インクは消費するまで残る',gesture:'左下から、ふくらみ3つの雲を描き、底を横線で閉じる'},
- deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:12000,effect:'図形に最も近い敵1人を6秒眠らせる。ダメージを受けても起きない。睡眠終了後3秒は再睡眠無効',range:'図形の中心から半径180、壁で遮られる',gesture:'Z字を3つ階段状につなぐ。角を1つ余計に描いても認識されます（一筆）'},
+ deep_sleep:{name:'ディープスリープ',class:'dreamer',fixedCost:30,cooldown:12000,effect:'自分を中心に15秒の睡眠フィールドを生成。自分以外のプレイヤーは範囲内で毎秒インクを失い、0になると満タンまで眠る。睡眠中はインク回復1.5倍とHP微回復。攻撃を受けると起床',range:'使用者を中心に半径190。敵・味方のどちらも対象（使用者は対象外）',gesture:'Z字を3つ階段状につなぐ。角を1つ余計に描いても認識されます（一筆）'},
  greater_heal:{name:'グレーターヒール',class:'saint',fixedCost:55,cooldown:24000,effect:'図形の中心に最も近い生存プレイヤー1人（敵味方問わず）のHPを即座に全回復し、30秒間、1秒ごとに最大HPの3%をリジェネ回復。自分も対象。再付与は残り時間を更新（重複なし）',range:'図形の中心に最も近い生存プレイヤー1人。敵にも発動可能',gesture:'太い＋の外枠を描き、一周したら外側を丸く囲む追加の線をつなぐ'},
  holy_blessing:{name:'ホーリーブレッシング',class:'saint',fixedCost:35,cooldown:20000,effect:'描いた位置に最も近い生存プレイヤーの最大HPを毎回1.2倍。増えた最大HP分を回復。重複可能・その試合中持続',range:'図形の中心に最も近い生存プレイヤー1人。敵にも発動可能。次の試合で解除',gesture:'上の光輪を一周し、その下へ支柱を伸ばして三角の台座へつなぐ。横棒・なぞり直しは不要'},
  sacred_ascension:{name:'セイクリッドアセンション',class:'saint',fixedCost:60,cooldown:35000,effect:'描いた位置に最も近い生存プレイヤーを15秒間、5能力値を2倍。インク上限も2倍。HP・現在インク・回復量・CDは変化なし。終了後の超過インクは通常上限の1.5倍まで保持',range:'図形の中心に最も近い生存プレイヤー1人。敵にも発動可能。元の能力配分は変化しない',gesture:'6つの頂点を持つ星の外周を一周する。中央で線を交差させない'}
@@ -7132,7 +7132,12 @@ window.ArtArts=(()=>{
    const own=event.killer===localId&&event.killer!==event.victim;
    node.className='arts-kill-entry'+(isMine?' mine':isPet?' pet':'')+(own?' self':'');
    const killer=document.createElement('span');killer.className='arts-kill-name';killer.textContent=event.killerName||'環境';
-   const method=document.createElement('span');method.className='arts-kill-method';method.textContent=isMine?'✹':isPet?'✦':'⚔';
+   const method=document.createElement('span');method.className='arts-kill-method';
+   // Clean monochrome line icons instead of platform-dependent emoji glyphs.
+   method.setAttribute('aria-label',isMine?'地雷':isPet?'召喚獣':'攻撃');
+   const path=isMine?'M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.2 2.2m8.4 8.4 2.2 2.2m0-12.8-2.2 2.2M7.8 16.2l-2.2 2.2M12 8l4 4-4 4-4-4z':isPet?'M6 15Q4 13 5 11Q6 9 8 12M10 8Q8 6 9 4Q11 2 12 6M16 8Q17 4 19 5Q21 7 18 10M13 12Q16 10 19 14Q21 17 18 19Q15 21 12 18Q9 21 6 18Q4 16 7 13':'M4 20L20 4M14 4l6 6M3 16l5 5M6 14l4 4';
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('width','17');svg.setAttribute('height','17');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');
+   const shape=document.createElementNS('http://www.w3.org/2000/svg','path');shape.setAttribute('d',path);svg.append(shape);method.append(svg);
    const victim=document.createElement('span');victim.className='arts-kill-name';victim.textContent=event.victimName||'プレイヤー';
    node.append(killer,method,victim);artsKillFeed.prepend(node);
    while(artsKillFeed.children.length>4)artsKillFeed.lastElementChild.remove();
@@ -7574,7 +7579,9 @@ window.ArtArts=(()=>{
     (dealer.class==='dreamer'&&(host.ultimateActs||[]).some(e=>e.job==='dreamer'&&e.owner===dealer.id&&e.end>now)));
   if(ultimateKiller)host.effects.push({id:++host.seq,type:'ultimateFinisher',class:dealer.class,owner:dealer.id,defeated:target.id,x:target.x,y:target.y,r:80,start:now,end:now+1400});
  }
- if(impact>0){if(target.mirageHiddenUntil>now){target.mirageHiddenUntil=0;target.mirageRevealAt=0;}/* Deep Sleep is not broken by receiving damage; duration and post-sleep immunity remain unchanged. */target.daydreamUntil=0;if(actual>0)target.nightmareUntil=0;target.rechargeUntil=0;target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=impact;
+ if(impact>0){
+  if(target.sleepUntil>now){target.sleepUntil=0;target.sleepFieldSource=0;target.sleepFieldUntil=now+15000;}
+  if(target.mirageHiddenUntil>now){target.mirageHiddenUntil=0;target.mirageRevealAt=0;}/* Deep Sleep is not broken by receiving damage; duration and post-sleep immunity remain unchanged. */target.daydreamUntil=0;if(actual>0)target.nightmareUntil=0;target.rechargeUntil=0;target.lastHitSeq=(target.lastHitSeq||0)+1;target.lastHitDamage=impact;
  if(knockback>0&&source){const dx=target.x-source.x,dy=target.y-source.y,d=Math.hypot(dx,dy)||1,total=knockback*Math.min(1,impact/Math.max(1,raw)),steps=Math.ceil(total/6);for(let i=0;i<steps;i++){const nx=target.x+dx/d*total/steps,ny=target.y+dy/d*total/steps;if(R.blocked(nx,ny,host.blocks)||artsFortBlocksMove(target,target.x,target.y,nx,ny,now))break;target.x=nx;target.y=ny}target.dash=null}
  target.flash=now+1000;if(target.reactor>now){
    const beforeInk=target.ink;target.ink=Math.min(Math.max(target.ink,target.maxInk),target.ink+actual*1.5);showArtsInkRecovery(target,beforeInk,now);
@@ -7822,7 +7829,11 @@ window.ArtArts=(()=>{
    e.channelEndAt=now+channelMs;e.nextWave=e.channelEndAt;e.waves=0;e.end=e.channelEndAt+8000;e.channel=true;
   }
   if(k==='daydream'){p.daydreamUntil=now+4000;p.daydreamOrigin={x:p.x,y:p.y};e.x=p.x;e.y=p.y;e.r=160;e.end=now+4000;}
-  if(k==='deep_sleep'){const q=nearestEnemy(180);e.r=70;e.end=now+750;if(q&&!(q.sleepImmuneUntil>now)){q.sleepUntil=now+6000;q.sleepImmuneUntil=q.sleepUntil+3000;q.dash=null;q.drawing=false;q.preview=[];q.guard=0;q.daydreamUntil=0;q.nightmareUntil=0;delete host.inputs[q.id];e.x=q.x;e.y=q.y;e.targetId=q.id;}}
+  if(k==='deep_sleep'){
+   // Centered on the caster at the instant of casting; the field does not follow.
+   e.type='sleepField';e.x=p.x;e.y=p.y;e.r=190;e.end=now+15000;e.start=now;
+   e.drainPerSecond=9;e.sleepHpPerSecond=2;
+  }
   if(k==='greater_heal'){const q=nearestSupportTarget(p,shape),before=q.hp;q.hp=q.maxHp||100;matterSaintSupport(p,q,q.hp-before,'greater_heal',now);showArtsNumber(q,'heal',q.hp-before,now);q.regenSourceId=p.id;q.regenUntil=now+30000;q.regenRate=.03*artsSingleFactor(shape);q.regenNextAt=now+1000;e.x=q.x;e.y=q.y;e.r=65;e.targetId=q.id;e.end=now+1000;}
   if(k==='holy_blessing'){const q=nearestSupportTarget(p,shape),old=q.maxHp||100,before=q.hp;q.maxHp=Math.min(300,old*(1.2+(artsSingleFactor(shape)-1)*.2));q.hp=Math.min(q.maxHp,q.hp+q.maxHp-old);matterSaintSupport(p,q,q.hp-before,'holy_blessing',now);showArtsNumber(q,'heal',q.hp-before,now);q.blessingStacks=(q.blessingStacks||0)+1;e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=55;e.end=now+1000;}
   if(k==='sacred_ascension'){const q=nearestSupportTarget(p,shape);matterSaintSupport(p,q,0,'sacred_ascension',now);setAwakening(q,true,now);q.ascensionUntil=now+15000+Math.round((artsSingleFactor(shape)-1)*10000);e.targetId=q.id;e.x=q.x;e.y=q.y;e.r=70;e.end=q.ascensionUntil;}
@@ -7862,6 +7873,20 @@ window.ArtArts=(()=>{
    }
   }
   for(const e of [...host.effects]){
+   if(e.type==='sleepField'&&e.end>now){
+    // Field drains real ink without relying on graphics or client input.
+    for(const q of host.fighters){
+     if(!q.active||q.hp<=0||q.id===e.owner||R.dist(q,e)>e.r+R.R)continue;
+     if(q.sleepFieldUntil>now)continue; // Woken by a hit: cannot be immediately re-slept by the same field.
+     if(q.sleepUntil>now)continue;
+     q.ink=Math.max(0,q.ink-(e.drainPerSecond||9)*dt);
+     if(q.ink<=.001){
+      q.ink=0;q.sleepUntil=now+120000;q.sleepFieldSource=e.id;
+      q.dash=null;q.drawing=false;q.preview=[];q.guard=0;q.daydreamUntil=0;
+      delete host.inputs[q.id];
+     }
+    }
+   }
    const owner=host.fighters.find(p=>p.id===e.owner);if(!owner)continue;
    if(['daydream','sacred_ascension'].includes(e.type)){const recipient=e.type==='sacred_ascension'&&e.targetId?host.fighters.find(q=>q.id===e.targetId)||owner:owner;const until=e.type==='daydream'?recipient.daydreamUntil:recipient.ascensionUntil;if(!until)e.end=now;e.x=recipient.x;e.y=recipient.y;}
    // Execution stays at the caster's cast position; only its angle comes from the drawn point.
@@ -8522,7 +8547,16 @@ window.ArtArts=(()=>{
  updateCreatureArts(dt,now);
  for(const [id,v]of Object.entries(host.volleyHits||{}))if(v.end<=now)delete host.volleyHits[id];
  for(const p of host.fighters){/* Armor has no timeout; attacks consume it. */if(p.rechargeUntil){if(!p.active||p.hp<=0||p.pull||p.stunnedUntil>now||p.inkLock>now)p.rechargeUntil=0;else if(now>=p.rechargeUntil){const beforeInk=p.ink;p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+p.maxInk*.4);showArtsInkRecovery(p,beforeInk,now);p.rechargeUntil=0}}}
- host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
+ host.blocks=host.blocks.filter(b=>!b.temporary||b.expires>now);for(const p of host.fighters){if(!p.active||p.hp<=0)continue;const player=host.players.find(v=>v.id===p.id);let input=host.inputs[p.id];if(p.pull){advanceHookPull(p,dt,now);continue}if(p.sleepUntil>now){
+   const maxInk=Math.max(1,p.maxInk||100);
+   const regen=(5+p.stats[3]*.22)*2/3*(artsNightmareFor(p,now)?1/3:1);
+   // A sleeping player heals gently and restores ink 1.5x faster than usual.
+   // A prior ink lock still applies; no free bypass of recovery-block effects.
+   if(now>=p.inkLock)p.ink=Math.min(maxInk,p.ink+dt*regen*1.5);
+   p.hp=Math.min(p.maxHp||100,p.hp+dt*2);
+   if(p.ink>=maxInk-.001){p.ink=maxInk;p.sleepUntil=0;p.sleepFieldSource=0;p.sleepFieldUntil=Math.max(now+900,...host.effects.filter(e=>e.type==='sleepField'&&e.end>now&&R.dist(p,e)<=e.r+R.R).map(e=>e.end));}
+  }
+  if(p.stunnedUntil>now||p.sleepUntil>now){p.dash=null;p.guard=0;p.drawing=false;p.preview=[];p.moving=false;continue}if(player.bot)input=practiceBotInput(p,now);
  if(now>=p.inkLock)p.ink=Math.min(Math.max(p.ink,p.maxInk),p.ink+dt*(5+p.stats[3]*.22)*2/3*(artsNightmareFor(p,now)?1/3:1));if(p.drawing&&now-(p.drawSince||now)>12000)p.drawing=false;
  if(p.nightmareUntil>now){p.dash=null;p.moving=false;continue;}
  // Once the soul reaches the vortex core it cannot escape by raw movement speed.
@@ -8616,7 +8650,8 @@ window.ArtArts=(()=>{
    if(s.style==='ultimateSeed')continue;
    const creature=s.style!=='ghost'&&host.effects.find(e=>e.type==='summonBody'&&e.end>now&&e.hp>0&&e.owner!==s.owner&&R.dist(e,s)<e.r+(s.radius||4));if(creature&&s.style==='bloodSeeker'){s.latchKind='pet';s.latchId=creature.id;s.nextBiteAt=now;return true;}if(creature){const actual=petHurt(creature,s.power,now,s,!!s.pierce);
     if(s.style==='catOrb'&&!(creature.lastCatPushAt>now-500)){creature.lastCatPushAt=now;const len=Math.hypot(s.vx,s.vy)||1,nx=creature.x+s.vx/len*20,ny=creature.y+s.vy/len*20;if(!R.blocked(nx,ny,host.blocks,creature.r)) {creature.x=nx;creature.y=ny;}}if(s.style==='bloodSeeker'&&actual>0){owner.hp=Math.min(owner.maxHp||100,owner.hp+actual*.5);host.effects.push({id:++host.seq,type:'bloodSoul',owner:owner.id,x:creature.x,y:creature.y,tx:owner.x,ty:owner.y,r:10,start:now,end:now+650})}return false}
-   const guarding=now<(s.guardIgnoreUntil||0)?null:host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
+   const gunnerUltimate=owner.class==='gunner'&&String(s.style||'').startsWith('ultimate');
+   const guarding=gunnerUltimate||now<(s.guardIgnoreUntil||0)?null:host.fighters.find(q=>!friendly(owner,q)&&R.guardBlocks(q,ax,ay,s.x,s.y,r,now));
    if(guarding){
     if(s.style==='ghost'){
      s.x=ax;s.y=ay;s.guardPauseUntil=now+350;s.guardIgnoreUntil=now+1050;
@@ -9174,7 +9209,7 @@ finishPaint(false)};
   if(['thrust','feint','mirage'].includes(k))return 'arts_new_quick_move';
   if(k==='confusion')return e.debuffApplied?'arts_new_debuff':null;
   if(k==='nightmare_dispel')return 'arts_new_debuff';
-  if(k==='deep_sleep')return e.targetId?'arts_new_quiet':null;
+  if(k==='deep_sleep')return 'arts_new_quiet';
   if(k==='daydream')return 'arts_new_quiet';
   if(k==='sacred_ascension')return 'arts_new_ascension';
   if(k==='holy_blessing')return 'arts_new_holy';
@@ -10313,6 +10348,22 @@ function drawWingFeather(x,flip,scale,open){
   x.closePath();
 }
 function drawUltimateWorld(x,now){
+  // Sleep field is drawn in world coordinates: deep night, drifting Z runes.
+  for(const e of view.effects||[]){
+   if(e.type!=='sleepField'||e.end<=now||e.start>now)continue;
+   const t=(now-e.start)/Math.max(1,e.end-e.start),fade=Math.min(1,(e.end-now)/750,(now-e.start)/450),r=e.r||190;
+   x.save();x.translate(e.x,e.y);x.globalAlpha=Math.max(0,fade);
+   const night=x.createRadialGradient(0,0,8,0,0,r);night.addColorStop(0,'rgba(28,17,68,.38)');night.addColorStop(.68,'rgba(42,24,100,.33)');night.addColorStop(1,'rgba(73,47,159,.05)');
+   x.fillStyle=night;x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.fill();
+   x.strokeStyle='rgba(181,162,255,.78)';x.shadowColor='#aa8cff';x.shadowBlur=14;x.lineWidth=3;
+   x.beginPath();x.arc(0,0,r+Math.sin(now/450)*2,0,Math.PI*2);x.stroke();
+   for(let i=0;i<14;i++){
+    const a=i*2.399+e.id*.17,rr=(r*.22+r*.60*((i*7)%13)/13),rise=((now-e.start)/45+i*29)%120;
+    const px=Math.cos(a)*rr,py=Math.sin(a)*rr-rise+35;
+    x.font='bold '+(12+i%3*3)+'px sans-serif';x.textAlign='center';x.fillStyle='rgba(220,211,255,'+(.32+.36*(1-rise/120))+')';x.fillText('Z',px,py);
+   }
+   x.restore();
+  }
   for(const e of view.effects||[]){if(e.end<=now)continue;
     if(e.type==='ultimateCeremony'||e.type==='ultimateBigBang'||e.type==='ultimateSlash'||e.type==='ultimateExecution'){
       const duration=Math.max(1,e.end-e.start),t=Math.min(1,(now-e.start)/duration),pulse=.5+.5*Math.sin(now/120),job=e.class||(e.type==='ultimateExecution'?'dreamer':'magician');
