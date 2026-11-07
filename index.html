@@ -4315,13 +4315,21 @@ window.ArtStudioOptions=(()=>{
 
 
 
-/* SECTION: app/animation-mode-v2.js — frame coordination with the existing Artopia drawing tools (no duplicate brush engine). */
+/* SECTION: app/animation-mode-v2.js (1.5.09 layer fix) — frame coordination with the existing Artopia drawing tools (no duplicate brush engine). */
 window.ArtAnimation=(()=>{
  'use strict';
  const isAnimation=()=>room?.mode==='animation'&&!room.ended;
  const makeId=()=>('af'+Date.now().toString(36)+Math.random().toString(36).slice(2,9));
  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
- const frameNew=()=>({id:makeId(),revision:0,layers:[{id:makeId(),name:'レイヤー 1',visible:true,strokes:[]}]});
+ // Match the ordinary drawing canvas: every new frame starts with three layers.
+ const threeLayers=()=>Array.from({length:3},(_,i)=>({id:makeId(),name:'レイヤー '+(i+1),visible:true,strokes:[]}));
+ const frameNew=()=>({id:makeId(),revision:0,layers:threeLayers()});
+ function ensureThreeLayers(frame){
+  if(!frame||!Array.isArray(frame.layers)||frame.layers.length>=3)return false;
+  for(let i=frame.layers.length;i<3;i++)frame.layers.push({id:makeId(),name:'レイヤー '+(i+1),visible:true,strokes:[]});
+  frame.revision=(Number(frame.revision)||0)+1;
+  return true;
+ }
  const escAnim=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let server=null,manifest=null,cache=new Map(),subs=new Map(),pending=new Set(),pendingPlay=null;
  let current=null,layer=null,showOnion=true,opacity=[10,50,0,0],range=2,pins=new Set(),peek=null;
@@ -4616,11 +4624,29 @@ window.ArtAnimation=(()=>{
  #studio.animation-active #animTimeline>.anim-frame{transition:transform .19s cubic-bezier(.2,.8,.2,1),opacity .16s,box-shadow .16s}
  #studio.animation-active #animTimeline>.anim-frame.anim-shift-left{transform:translateX(calc(-1 * var(--anim-step,80px)))}
  #studio.animation-active #animTimeline>.anim-frame.anim-shift-right{transform:translateX(var(--anim-step,80px))}
+ /* Layer settings open in the exact same centered position as the ordinary layer popup. */
+ #studio.animation-active.anim-panel-open #animStudio .anim-sidebar{
+   position:fixed!important;top:calc(var(--studio-header-height) + 6px)!important;
+   left:50%!important;right:auto!important;bottom:auto!important;
+   transform:translateX(-50%)!important;
+   width:min(330px,calc(100vw - 20px))!important;min-width:0!important;
+   max-height:calc(100dvh - var(--studio-header-height) - 24px)!important;
+   overflow:auto!important;padding:12px!important;
+   border-radius:12px!important;border:1px solid var(--line)!important;
+   box-shadow:var(--shadow)!important;background:#fff!important;
+   color:var(--text)!important;z-index:1002!important;
+   display:flex!important;flex-direction:column!important;gap:8px!important;
+   touch-action:pan-y!important;
+ }
+ #studio.animation-active #animStudio .anim-sidebar .anim-panel{width:100%;max-width:100%;}
  #studio.animation-active #animTimeline>.anim-frame.anim-dragging{opacity:.25;transform:none!important;box-shadow:none!important}
  #animFrameDragGhost{position:fixed;z-index:99999;pointer-events:none;opacity:.96;box-shadow:0 16px 35px #14283c44;border:2px solid #278bad;border-radius:9px;background:white;transform:scale(1.08);touch-action:none}
  @media(max-width:750px){#studio.animation-active #layerStatus{min-width:0}#studio.animation-active #animTopControls button{width:28px;min-width:28px;height:29px;min-height:29px}}
  `;document.head.appendChild(style);}
- function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();if(isHost)manifest=getManifest();
+ function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();
+  // Older frames from the first animation version could contain only one layer.
+  // Upgrade on the host so all peers receive the same three-layer structure.
+  if(isHost&&server){for(const f of server.frames)ensureThreeLayers(f);manifest=getManifest();}
   if(root){root.remove();root=null;}const viewport=document.querySelector('#viewport');if(!viewport)return;
   document.querySelector('#studio')?.classList.add('animation-active');root=document.createElement('section');root.id='animStudio';root.setAttribute('aria-label','アニメーション共同制作');
   root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
@@ -4773,7 +4799,7 @@ window.ArtAnimation=(()=>{
   playing={start:performance.now()+(Number.isFinite(startAt)?Math.max(0,startAt-Date.now()):0),fps:fpsOverride||getManifest()?.fps||12,loop:!shared,shared};root?.classList.add('anim-playing');refreshStatus();renderCanvas();
  }
  async function importProject(file){if(!isHost||!server)return;try{if(file.size>20000000)throw Error('20MBを超えるファイルは読み込めません');const raw=JSON.parse(await file.text());if(raw.format!=='artopia-animation-1'||!Array.isArray(raw.frames)||!raw.frames.length||raw.frames.length>240)throw Error('アートピアのアニメーション作品ではありません');if(raw.width!==room.w||raw.height!==room.h)throw Error('キャンバスサイズが異なります（'+room.w+'×'+room.h+' が必要）');
-   const frames=raw.frames.map(f=>{if(!Array.isArray(f.layers)||!f.layers.length||f.layers.length>12)throw Error('レイヤー数が不正です');return{id:makeId(),revision:0,layers:f.layers.map(l=>({id:makeId(),name:String(l.name||'レイヤー').slice(0,40),visible:l.visible!==false,strokes:(l.strokes||[]).map(st=>{if(!Array.isArray(st.points)||st.points.length>1400||!['pen','eraser','warp','blur','fill'].includes(st.tool)||!/^#[0-9a-fA-F]{6}$/.test(st.color||''))throw Error('筆跡データが不正です');return{...st,id:makeId(),owner:localId,deleted:!!st.deleted,size:clamp(Number(st.size??st.width)||5,1,160),strength:clamp(Number(st.strength??100),1,100),points:st.points.map(pt=>[clamp(Number(pt[0])||0,0,room.w),clamp(Number(pt[1])||0,0,room.h),pt[2]??.5])}})}) )}});
+   const frames=raw.frames.map(f=>{if(!Array.isArray(f.layers)||!f.layers.length||f.layers.length>12)throw Error('レイヤー数が不正です');const result={id:makeId(),revision:0,layers:f.layers.map(l=>({id:makeId(),name:String(l.name||'レイヤー').slice(0,40),visible:l.visible!==false,strokes:(l.strokes||[]).map(st=>{if(!Array.isArray(st.points)||st.points.length>1400||!['pen','eraser','warp','blur','fill'].includes(st.tool)||!/^#[0-9a-fA-F]{6}$/.test(st.color||''))throw Error('筆跡データが不正です');return{...st,id:makeId(),owner:localId,deleted:!!st.deleted,size:clamp(Number(st.size??st.width)||5,1,160),strength:clamp(Number(st.strength??100),1,100),points:st.points.map(pt=>[clamp(Number(pt[0])||0,0,room.w),clamp(Number(pt[1])||0,0,room.h),pt[2]??.5])}})}) )};ensureThreeLayers(result);return result;});
    if(!confirm('現在のアニメーション全体を読み込んだ作品で置き換えますか？'))return;
    server.frames=frames;server.byId=new Map(frames.map(f=>[f.id,f]));server.fps=clamp(Number(raw.fps)||12,1,60);server.trash=[];cache.clear();frameRenderCache.clear();subs.clear();current=frames[0].id;layer=frames[0].layers[0].id;hostManifest();requestFrames();showNotice('作品を読み込みました');
   }catch(e){showNotice('読み込み失敗：'+e.message)} }
