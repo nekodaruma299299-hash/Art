@@ -5668,7 +5668,7 @@ window.ArtsRules=(()=>{
   summon_bat:{name:'サモンバット',class:'vampire',fixedCost:24,cooldown:14000,effect:'HP30の吸血コウモリを時間制限なしで召喚。命中すると自身を回復',gesture:'左右の三角を中央の交差でつないだ⋈を一筆'},
   blood_seeker:{name:'ブラッドスウォーム',class:'vampire',fixedCost:35,cooldown:8000,effect:'深紅のコウモリ3匹を同時に放つ。1匹につき最大10回、1回約1ダメージの連続吸血攻撃（全命中時、合計約30ダメージ）。緩い追尾なので回避可能',gesture:'2つの山と内側の谷を持つ左右対称の羽根型を一筆'},
   blood_slash:{name:'クリムゾンリーパー',class:'vampire',fixedCost:0,cooldown:12500,effect:'HP25を支払い高威力の赤い斬撃。敵にランダムな弱体化を与える',gesture:'大きな鎌の外側から内側へ戻る一筆'},
-  blood_ritual:{name:'サングインサークル',class:'vampire',fixedCost:45,cooldown:22500,effect:'10秒間、範囲内の敵から毎秒最大24インクを奪い、奪取量の100%だけ自身の現在HPを回復（最大HPは増加しない）',gesture:'円とその内側の三角の角をつなげた魔法陣を一筆'}
+  blood_ritual:{name:'サングインサークル',class:'vampire',fixedCost:45,cooldown:22500,effect:'5秒間、範囲内の敵から毎秒最大24インクを奪い、奪取量の100%だけ自身の現在HPを回復（最大HPは増加しない）',gesture:'円とその内側の三角の角をつなげた魔法陣を一筆'}
  });
  for(const m of Object.values(advancedMoves)){m.rate=0;m.text=m.effect+'。'+m.gesture;}
  Object.assign(moves,advancedMoves);
@@ -6598,7 +6598,7 @@ window.ArtsRules=(()=>{
  const g=strokeGrammar(path,true),{degrees,abs,signed,pattern}=g;
  if(dist(path[0],path.at(-1))<g.diag*.18)return false;
  if(skill==='aura')return degrees.length>=3&&degrees.length<=16&&g.flips>=2&&abs>3&&match([path],skill)<.22&&match([path],skill)<match([path],'newSmoke')*.90;
- if(skill==='drain')return degrees.length>=1&&degrees.length<=4&&degrees.some(v=>Math.abs(v)>45&&Math.abs(v)<170)&&abs<4.5&&match([path],skill)<.23;
+ if(skill==='drain')return degrees.length>=1&&degrees.length<=8&&degrees.some(v=>Math.abs(v)>40&&Math.abs(v)<175)&&abs<5.2&&match([path],skill)<.26;
  if(skill==='armor')return degrees.length>=5&&degrees.length<=15&&degrees.filter(v=>Math.abs(v)>35&&Math.abs(v)<155).length>=5&&Math.abs(signed)/Math.max(abs,.01)>.65&&match([path],skill)<.25;
  if(skill==='repulse'&&degrees.some(v=>Math.abs(v)>155))return false;
  if(!['recharge','repulse'].includes(skill)||abs<3.4||abs>16||match([path],skill)>.24)return false;
@@ -6866,6 +6866,16 @@ window.ArtsRules=(()=>{
     return{type:common,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:a,strokes};
    }
   }
+ }
+ // Prioritize the equipped sharp-corner arts before common-arc Slash matching.
+ // Use their actual template silhouettes as a second check: a broad zigzag
+ // must not turn a normal Slash into a Feint or Cross Slash.
+ if(strokes.length===1){
+  const path=strokes[0],box=statBox(path),g=strokeGrammar(path,true);
+  const shapeResult=type=>({type,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes});
+  if(equipped.includes('cross')&&box.span>=28&&crossGesture(path))return shapeResult('cross');
+  if(equipped.includes('feint')&&box.span>=28&&!g.closed&&g.intersections.length===0&&
+     skillGesture(path,'feint')&&match([path],'feint')<.20)return shapeResult('feint');
  }
  // Steel Touch's deliberate check mark must not be stolen by the Slash fallback.
  if(equipped.includes('drain')&&strokes.length===1&&newSkillGesture(strokes[0],'drain')){
@@ -7437,7 +7447,7 @@ window.ArtArts=(()=>{
   if(!dialog.open)dialog.showModal();
  }
  // Art Arts only: high-activity ultimate-gauge balance, max 100. Do not touch Art Traitor.
- function addArtMatter(p,amount){if(!p||!p.active||p.hp<=0||!Number.isFinite(amount)||amount<=0)return;p.artMatter=Math.min(100,(p.artMatter||0)+amount)}
+ function addArtMatter(p,amount){if(!p||!p.active||p.hp<=0||!Number.isFinite(amount)||amount<=0)return;/* Vampire receives Art Matter from several overlapping sources; reduce only its gain by 25%. */const adjusted=p.class==='vampire'?amount*.75:amount;p.artMatter=Math.min(100,(p.artMatter||0)+adjusted)}
  // Damage-based jobs earn Matter for both the amount and the difficulty of landing/surviving a real hit.
  // Timestamp keys are deliberately separate: a fast projectile barrage or damage-over-time effect
  // cannot award a full event bonus for every frame.
@@ -8837,7 +8847,7 @@ window.ArtArts=(()=>{
  }
  if(shape.type==='hook'){e.type='hookFlight';e.x=p.x;e.y=p.y;e.tx=target.x;e.ty=target.y;e.r=22;e.power=9+attack*.34;e.speed=540;e.angle=Math.atan2(e.ty-e.y,e.tx-e.x);e.end=now+Math.max(300,R.dist(p,target)/e.speed*1000+100);}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius*1.25+26,65,230);e.end=now+6000;e.hp=5;}
- if(shape.type==='summon'){const extra=R.clamp(R.cost(shape),20,100),scale=(extra-20)/80;e.type='summonBody';e.petKind='golem';e.power=12+32*scale;e.x=target.x;e.y=target.y;e.r=26;e.hp=50;e.maxHp=50;e.ink=80;e.maxInk=80;e.defense=12;e.stats=[8,e.power,12,25,10];e.armorHP=0;e.armorUntil=0;e.slow=0;e.attackAt=now;e.end=Number.MAX_SAFE_INTEGER;e.walkSpeed=100;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
+ if(shape.type==='summon'){const extra=R.clamp(R.cost(shape),20,100),scale=(extra-20)/80;e.type='summonBody';e.petKind='golem';e.power=12+32*scale;e.x=target.x;e.y=target.y;e.r=26;e.hp=25;e.maxHp=25;e.ink=80;e.maxInk=80;e.defense=12;e.stats=[8,e.power,12,25,10];e.armorHP=0;e.armorUntil=0;e.slow=0;e.attackAt=now;e.end=Number.MAX_SAFE_INTEGER;e.walkSpeed=100;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
  if(shape.type==='charge'){e.passWalls=true;e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=(45+attack*.65)*1.5;e.hit=now+1000;e.end=now+1450;}
  if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=R.clamp(shape.radius*.78,25,118);e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:e.r,start:now,end:now+600});}
  // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
@@ -9024,6 +9034,7 @@ window.ArtArts=(()=>{
   const cap=['dog','cat'].includes(kind)?3:2;
   if(own.length>=cap)own[0].end=now;
   const pet={id:++host.seq,type:'summonBody',petKind:kind,owner:owner.id,x:at.x,y:at.y,tx:at.x,ty:at.y,r:conf[3],hp:conf[0],maxHp:conf[0],ink:80,maxInk:80,defense:8,stats:[kind==='cat'?32:kind==='bat'?33:15,conf[1],8,24,20],baseStats:null,power:conf[1],attackGap:conf[2]*1000,attackAt:now+550,supportAt:now+3000,armorHP:0,armorUntil:0,slow:0,inkLock:0,beastUntil:0,furUntil:0,step:0,walkSpeed:kind==='cat'?320:kind==='bat'?350:kind==='dog'?230:180,attackRange:kind==='cat'?240:kind==='bat'?80:kind==='dog'?90:0,start:now,end:Number.MAX_SAFE_INTEGER,...override};
+  pet.hp=Math.max(1,pet.hp*0.5);pet.maxHp=Math.max(1,pet.maxHp*0.5);
   host.effects.push(pet);return pet;
  }
  function castCreatureArt(p,e,shape,attack,now){
@@ -9054,7 +9065,7 @@ window.ArtArts=(()=>{
    e.type='bloodSlash';e.x=p.x;e.y=p.y;e.r=102*e.sizeArea;e.angle=shape.angle||0;e.power=90;e.end=now+820;e.hit=now+130;e.damageType='physical';e.start=now;return true;
   }
   if(k==='blood_ritual'){
-   e.type='bloodRitual';e.x=p.x;e.y=p.y;e.r=170*e.sizeArea;e.end=now+10000;e.nextTick=now+1000;e.gained=0;e.lastPulse=now;e.start=now;return true;
+   e.type='bloodRitual';e.x=p.x;e.y=p.y;e.r=170*e.sizeArea;e.end=now+5000;e.nextTick=now+1000;e.gained=0;e.lastPulse=now;e.start=now;return true;
   }
   return false;
  }
@@ -13240,7 +13251,7 @@ window.ArtShadow=(()=>{
  }
  if(shape.type==='hook'){e.type='hookFlight';e.x=p.x;e.y=p.y;e.tx=target.x;e.ty=target.y;e.r=22;e.power=9+attack*.34;e.speed=540;e.angle=Math.atan2(e.ty-e.y,e.tx-e.x);e.end=now+Math.max(300,R.dist(p,target)/e.speed*1000+100);}
  if(shape.type==='reflect'){e.x=target.x;e.y=target.y;e.r=R.clamp(shape.radius*1.25+26,65,230);e.end=now+6000;e.hp=5;}
- if(shape.type==='summon'){e.type='summonBody';e.power=8+attack*.2;e.x=target.x;e.y=target.y;e.r=26;e.hp=30;e.attackAt=now;e.end=Number.MAX_SAFE_INTEGER;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
+ if(shape.type==='summon'){e.type='summonBody';e.power=8+attack*.2;e.x=target.x;e.y=target.y;e.r=26;e.hp=15;e.attackAt=now;e.end=Number.MAX_SAFE_INTEGER;e.walkSpeed=190;e.chargeSpeed=520;e.attackRange=110;e.followRange=60;e.paths=shape.strokes.slice(1).map(path=>path.map(pt=>({x:pt.x-shape.x,y:pt.y-shape.y})));}
  if(shape.type==='charge'){e.passWalls=true;e.x=p.x;e.y=p.y;e.angle=aim;e.range=Math.hypot(R.W,R.H)*2;e.r=45;e.power=45+attack*.65;e.hit=now+1000;e.end=now+1450;}
  if(shape.type==='warp'){const ox=p.x,oy=p.y;p.x=target.x;p.y=target.y;e.r=40;e.end=now+650;host.effects.push({id:++host.seq,type:'warpExit',owner:id,x:ox,y:oy,r:36,start:now,end:now+600});}
  // GUNNER: shots keep the normal Magic's wall collision unless specifically overridden.
