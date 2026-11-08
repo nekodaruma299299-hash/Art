@@ -4615,7 +4615,7 @@ window.ArtAnimation=(()=>{
  #studio.animation-active #layerStatus #activeLayerBadge{display:flex!important}
  #studio.animation-active #layerStatus #layerDetailsBtn{display:inline-flex!important}
  #studio.animation-active #layerStatus #layerClipBtn{display:none!important}
- #studio.animation-active #layerStatus #layerHeaderPopup{display:none!important}
+ #studio.animation-active #layerStatus #layerHeaderPopup[hidden]{display:none!important}
  #studio.animation-active #animTopControls{display:inline-flex!important;align-items:center;gap:3px;grid-column:auto;grid-row:auto;margin:0 0 0 3px!important;max-width:none!important;position:static!important}
  #studio.animation-active #animTopControls button{width:31px;height:32px;min-width:31px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;background:transparent!important;border:1px solid var(--line,#b7c8d2)!important;border-radius:8px!important;padding:3px!important;color:inherit!important}
  #studio.animation-active #animTopControls button:disabled{opacity:.3}
@@ -4644,7 +4644,7 @@ window.ArtAnimation=(()=>{
  @media(max-width:750px){#studio.animation-active #layerStatus{min-width:0}#studio.animation-active #animTopControls button{width:28px;min-width:28px;height:29px;min-height:29px}}
  /* Reuse the normal studio header and its complete, native layer popup. */
  #studio.animation-active #snapshotBtn,#studio.animation-active #reloadCanvasBtn{display:inline-flex!important}
- #studio.animation-active #layerHeaderPopup{display:block!important;z-index:1200!important}
+ #studio.animation-active #layerStatus #layerHeaderPopup:not([hidden]){display:block!important;visibility:visible!important;pointer-events:auto!important;z-index:1200!important}
  #studio.animation-active #layerHeaderPopup[hidden]{display:none!important}
  #studio.animation-active #layerStatus #layerClipBtn{display:inline-flex!important}
  #studio.animation-active #animNativeSettings{margin-top:12px;border-top:1px solid var(--line,#d9e0e5);padding-top:10px}
