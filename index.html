@@ -4647,12 +4647,51 @@ window.ArtAnimation=(()=>{
  #studio.animation-active #layerStatus #layerHeaderPopup:not([hidden]){display:block!important;visibility:visible!important;pointer-events:auto!important;z-index:1200!important}
  #studio.animation-active #layerHeaderPopup[hidden]{display:none!important}
  #studio.animation-active #layerStatus #layerClipBtn{display:inline-flex!important}
- #studio.animation-active #animNativeSettings{margin-top:12px;border-top:1px solid var(--line,#d9e0e5);padding-top:10px}
- #studio.animation-active #animNativeSettings .anim-sidebar{position:static!important;display:flex!important;transform:none!important;inset:auto!important;width:100%!important;min-width:0!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;background:transparent!important;color:inherit!important;pointer-events:auto!important;gap:9px!important}
- #studio.animation-active #animNativeSettings .anim-panel{background:transparent!important;color:inherit!important;border:1px solid var(--line,#d9e0e5)!important;border-radius:8px!important;padding:9px!important}
- #studio.animation-active #animNativeSettings .anim-panel button{background:var(--surface,#fff)!important;color:var(--text,#243248)!important;border:1px solid var(--line,#ccd4da)!important}
- #studio.animation-active #animNativeSettings .anim-panel input,#studio.animation-active #animNativeSettings .anim-panel select{color:var(--text,#243248)!important;background:var(--surface,#fff)!important}
- #studio.animation-active #layerHeaderPopup{max-height:min(76dvh,690px);overflow-y:auto;overscroll-behavior:contain}
+ /* Animation controls remain styled after moving into the native popup. */
+ #studio.animation-active #layerHeaderPopup:has(#layerDetailsContent:not([hidden])){width:min(720px,calc(100vw - 24px))}
+ #studio.animation-active #layerHeaderPopup{max-height:calc(100dvh - var(--studio-header-height,72px) - 24px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:18px;box-sizing:border-box}
+ #studio.animation-active #layerHeaderPopup .layer-popup-title{position:sticky;top:-18px;z-index:2;background:#fff;margin:-2px 0 14px;padding:10px 0;border-bottom:1px solid var(--line)}
+ #studio.animation-active #layerHeaderPopup .layer-popup-title button{min-width:40px;min-height:40px}
+ #studio.animation-active #layerDetailsContent{display:flex;flex-direction:column;gap:14px;min-width:0}
+ #studio.animation-active #layerDetailsContent>.layer-border-settings{order:2;margin:0;padding:12px;border:1px solid var(--line);border-radius:10px}
+ #studio.animation-active #layerDetailsContent>.layer-border-settings label{margin:0 0 8px}
+ #studio.animation-active #animNativeSettings{margin:0;padding:0;border:0;min-width:0}
+ #studio.animation-active #animNativeSettings *{box-sizing:border-box}
+ #studio.animation-active #animNativeSettings .anim-sidebar{position:static!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;transform:none!important;inset:auto!important;width:100%!important;min-width:0!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;background:transparent!important;color:inherit!important;pointer-events:auto!important;gap:14px!important}
+ #studio.animation-active #animNativeSettings .anim-panel{display:flex;flex-direction:column;gap:10px;min-width:0;max-width:100%;margin:0;background:#f8fafb!important;color:var(--text,#243248)!important;border:1px solid var(--line,#d9e0e5)!important;border-radius:10px!important;padding:14px!important;font-size:13px;text-align:left}
+ #studio.animation-active #animNativeSettings .anim-panel h3{margin:0;font-size:14px;line-height:1.5;color:inherit}
+ #studio.animation-active #animNativeSettings .anim-panel label{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;font-size:13px;line-height:1.5;min-width:0}
+ #studio.animation-active #animNativeSettings .anim-panel small{font-size:12px;line-height:1.6}
+ #studio.animation-active #animNativeSettings .anim-panel button{min-width:0;min-height:40px;height:auto;padding:8px 10px;font:inherit;line-height:1.5;white-space:normal;border-radius:8px;background:#fff!important;color:var(--text,#243248)!important;border:1px solid var(--line,#ccd4da)!important}
+ #studio.animation-active #animNativeSettings .anim-panel button:disabled{opacity:.45;cursor:default}
+ #studio.animation-active #animNativeSettings .anim-panel button:hover:not(:disabled){background:#eaf5f5!important}
+ #studio.animation-active #animNativeSettings .anim-panel input,#studio.animation-active #animNativeSettings .anim-panel select{max-width:100%;min-width:0;font:inherit;color:var(--text,#243248)!important;background:#fff!important}
+ #studio.animation-active #animNativeSettings input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:0}
+ #studio.animation-active #animNativeSettings input[type=range]{width:100%;margin:0;accent-color:#218a94}
+ #studio.animation-active #animNativeSettings input[type=number]{width:84px;padding:8px}
+ #studio.animation-active #animNativeSettings select{padding:8px}
+ #studio.animation-active #animNativeSettings input[type=file]{display:block;width:100%;padding:8px;font-size:12px}
+ #studio.animation-active #animLayerList{display:grid;gap:8px}
+ #studio.animation-active #animNativeSettings .anim-layer{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:8px}
+ #studio.animation-active #animNativeSettings .anim-layer button:first-child{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #studio.animation-active #animNativeSettings .anim-layer.chosen button:first-child{background:#dff3f3!important;border-color:#218a94!important;color:#12616a!important;font-weight:700;box-shadow:inset 3px 0 #218a94}
+ #studio.animation-active #animNativeSettings .anim-layer-actions{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:8px}
+ #studio.animation-active #animNativeSettings .anim-opacity-row{display:grid;gap:4px}
+ #studio.animation-active #animNativeSettings .anim-opacity-row label{justify-content:space-between}
+ #studio.animation-active #animNativeSettings .anim-opacity-row label span{font-variant-numeric:tabular-nums;color:#12616a;font-weight:700}
+ #studio.animation-active #animNativeSettings #animIndividual{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:160px;overflow:auto}
+ #studio.animation-active #animNativeSettings #animIndividual label{flex-wrap:nowrap;padding:4px 0}
+ #studio.animation-active #animNativeSettings .anim-play-options{grid-column:1/-1}
+ #studio.animation-active #animNativeSettings .anim-play-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ #studio.animation-active #animNativeSettings #animChat{display:none}
+ @media(max-width:750px){#studio.animation-active #animNativeSettings #animChat{display:inline-flex;justify-content:center}}
+ @media(max-width:560px){
+  #studio.animation-active #layerHeaderPopup{padding:12px}
+  #studio.animation-active #layerHeaderPopup .layer-popup-title{top:-12px}
+  #studio.animation-active #animNativeSettings .anim-sidebar{grid-template-columns:minmax(0,1fr);gap:12px!important}
+  #studio.animation-active #animNativeSettings .anim-play-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+ }
+
  `;document.head.appendChild(style);}
  function enter(){if(!isAnimation()){reset();return;}if(!document.getElementById('animModeStyle'))animationCSS();if(isHost&&!server)server=blankServer();
   // Older frames from the first animation version could contain only one layer.
@@ -4662,8 +4701,8 @@ window.ArtAnimation=(()=>{
   document.querySelector('#studio')?.classList.add('animation-active');root=document.createElement('section');root.id='animStudio';root.setAttribute('aria-label','アニメーション共同制作');
   root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
   <div class="anim-main"><div class="anim-stage"><canvas id="animDrawing" aria-label="現在のアニメーションフレーム" width="768" height="768"></canvas><div id="animPeekBox" hidden><div style="display:flex;justify-content:space-between;align-items:center"><span id="animPeekName">個別表示</span><button id="animPeekClose" type="button">閉じる</button></div><canvas id="animPeekCanvas"></canvas></div><span class="anim-play-msg" id="animFrameNow"></span></div>
-  <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div style="display:flex;gap:4px"><button id="animLayerAdd" type="button">レイヤーを追加</button><button id="animLayerDelete" type="button">削除</button></div></section>
-  <section class="anim-panel"><h3>オニオンスキン</h3><label><input id="animOnion" type="checkbox" checked>前後のコマを重ねる</label>${[['prev2','2コマ前'],['prev1','1コマ前'],['next1','1コマ後'],['next2','2コマ後']].map((v,i)=>`<label>${v[1]} <span id="anim${v[0]}Text">${opacity[i]}%</span></label><input type="range" id="anim${v[0]}Opacity" data-opacity="${i}" min="0" max="100" step="5" value="${opacity[i]}">`).join('')}</section>
+  <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div class="anim-layer-actions"><button id="animLayerAdd" type="button">レイヤーを追加</button><button id="animLayerDelete" type="button">削除</button></div></section>
+  <section class="anim-panel"><h3>オニオンスキン</h3><label><input id="animOnion" type="checkbox" checked>前後のコマを重ねる</label>${[['prev2','2コマ前'],['prev1','1コマ前'],['next1','1コマ後'],['next2','2コマ後']].map((v,i)=>`<div class="anim-opacity-row"><label for="anim${v[0]}Opacity">${v[1]} <span id="anim${v[0]}Text">${opacity[i]}%</span></label><input type="range" id="anim${v[0]}Opacity" data-opacity="${i}" min="0" max="100" step="5" value="${opacity[i]}"></div>`).join('')}</section>
   <section class="anim-panel"><h3>必要なコマだけ受信</h3><label>前後 <select id="animRange">${[0,1,2,3,4].map(n=>`<option value="${n}">${n}コマ</option>`).join('')}</select></label><small class="anim-small">個別選択は編集フレームを変えずに受信・確認できます。</small><div id="animIndividual"></div><button id="animPeek" type="button">選んだコマを個別表示</button></section>
   <section class="anim-panel"><h3>作品設定</h3><label>FPS <input id="animFps" data-anim-host type="number" min="1" max="60" step="1" value="12"></label><small class="anim-small">FPS・コマの追加や削除は部屋主のみ変更可能です。</small><button id="animJson" type="button">プロジェクトJSONを保存</button><label>保存した作品を読み込む（部屋主）<input id="animImport" data-anim-host type="file" accept="application/json,.json"></label><button id="animVideo" type="button">WebM動画を書き出し</button></section></aside></div>
   <div class="anim-bottom"><div class="anim-timeline-edge"><button id="animTimelineToggle" type="button" aria-label="コマ一覧を閉じる" title="コマ一覧を閉じる">›</button><span class="anim-timeline-caption">コマ一覧</span><span id="animStatus"></span><span id="animDragHint" hidden></span></div><div id="animTimeline" aria-label="フレームのタイムライン"></div></div>
