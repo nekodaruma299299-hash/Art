@@ -3960,12 +3960,26 @@ function canSaveCurrentRoom(){
  return !!(member && !member.viewer && !member.spectator && !member.disconnected);
 }
 
-$('#snapshotBtn').onclick=()=>{if(!canSaveCurrentRoom()){toast('閲覧中は部屋の作品を保存できません。参加が承認されると利用できます。');return;}if(window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())return;
- if(!engine)return;modal('キャンバス保存',`<p class="muted">3レイヤーを別々に保持し、表示中の透明度も一緒に保存します。全体画像は今の見た目で保存します。</p><div class="modal-actions"><button id="checkpointHistory">スナップショットを見る</button>${isHost?'<button id="checkpointNow">今の状態をスナップショット</button>':''}</div><label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">PNGを書き出す</button><button id="xCanvasShare">Xに投稿する</button><button id="snapshotSave" class="primary">3レイヤーで保存</button></div>`);
- $('#xCanvasShare').onclick=()=>window.ArtShare.prepare('あーとぴあで描きました！');
+$('#snapshotBtn').onclick=()=>{
+ if(!canSaveCurrentRoom()){toast('閲覧中は部屋の作品を保存できません。参加が承認されると利用できます。');return;}
+ const animation=room?.mode==='animation'?window.ArtAnimation:null;
+ if(!animation&&window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())return;
+ if(!engine)return;
+ window.ArtStudioOptions?.close?.();
+ const capture=name=>animation?animation.captureFrame(name):captureArtwork(name);
+ const name=()=>$('#snapshotName').value.trim()||room.name;
+ const saveLabel=animation?'現在のコマを絵画展に保存':'3レイヤーで保存';
+ modal('キャンバス保存',`<p class="muted">${animation?'現在のコマを画像として保存します。前後のコマの重ね表示は含みません。アニメーション全体は下の「作品全体を保存」から保存できます。':'3レイヤーを別々に保持し、表示中の透明度も一緒に保存します。全体画像は今の見た目で保存します。'}</p>${animation?'':`<div class="modal-actions"><button id="checkpointHistory">スナップショットを見る</button>${isHost?'<button id="checkpointNow">今の状態をスナップショット</button>':''}</div>`}<label class="form-field">作品名<input id="snapshotName" maxlength="60" value="${esc(room.name)}"></label><div class="modal-actions"><button id="snapshotDownload">PNGを書き出す</button><button id="xCanvasShare">Xに投稿する</button><button id="snapshotSave" class="primary">${saveLabel}</button></div>${animation?`<section style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)"><h3>アニメーション全体の保存・読み込み</h3><p class="muted">全コマ・レイヤー・FPSをJSONに保存すると、あとから編集を再開できます。</p><div class="modal-actions"><button id="animJson">作品全体を保存（JSON）</button><button id="animVideo">WebM動画を書き出し</button></div><label class="form-field">保存した作品を読み込む（部屋主）<input id="animImport" type="file" accept="application/json,.json" ${isHost?'':'disabled'}></label><small class="muted">読み込み時は確認後、現在のアニメーション全体を置き換えます。</small><p id="animSaveStatus" class="muted" role="status" aria-live="polite"></p></section>`:''}`);
+ $('#xCanvasShare').onclick=()=>{try{if(animation){const art=capture(name());void window.ArtShare.prepare('あーとぴあで描きました！',[{image:art.image,label:art.name}]);}else window.ArtShare.prepare('あーとぴあで描きました！');}catch(e){toast(e.message)}};
  if($('#checkpointNow'))$('#checkpointNow').onclick=async()=>{const b=$('#checkpointNow');b.disabled=true;try{if(await captureCheckpoint())toast('スナップショットを保存しました')}finally{b.disabled=false}};
- $('#checkpointHistory').onclick=showCheckpointHistory;$('#snapshotDownload').onclick=()=>showArt(captureArtwork($('#snapshotName').value.trim()||room.name),false);
- $('#snapshotSave').onclick=async()=>{if(!canSaveCurrentRoom()){toast('閲覧中は作品を保存できません。');return;}try{$('#snapshotSave').disabled=true;await saveCanvasArt($('#snapshotName').value.trim()||room.name);$('#modal').close();toast('3レイヤーを絵画展に保存しました')}catch{toast('保存できませんでした。画像を書き出してください。');if($('#snapshotSave'))$('#snapshotSave').disabled=false}};
+ if($('#checkpointHistory'))$('#checkpointHistory').onclick=showCheckpointHistory;
+ $('#snapshotDownload').onclick=()=>{try{showArt(capture(name()),false)}catch(e){toast(e.message)}};
+ $('#snapshotSave').onclick=async()=>{if(!canSaveCurrentRoom()){toast('閲覧中は作品を保存できません。');return;}const b=$('#snapshotSave');try{b.disabled=true;const art=capture(name());await db('art','readwrite',s=>s.put(art));await refreshGallery();$('#modal').close();toast(animation?'現在のコマを絵画展に保存しました':'3レイヤーを絵画展に保存しました')}catch(e){toast('保存できませんでした。'+(e.message||'画像を書き出してください。'));b.disabled=false}};
+ if(animation){
+  $('#animJson').onclick=()=>animation.saveProject(name());
+  $('#animVideo').onclick=()=>animation.saveVideo(name());
+  $('#animImport').onchange=e=>{if(e.target.files?.[0])void animation.importProject(e.target.files[0]);e.target.value=''};
+ }
 };
 $('#roomSettingsBtn').onclick=()=>{modal('部屋設定',`<p><b>${esc(room.name)}</b></p><p class="muted">キャンバス：${engine.w} × ${engine.h} px<br>履歴：${room.history}分<br>人数上限：${room.limit}人<br>観戦：${room.spectate?'許可':'不可'}<br>変形中の範囲保護：${room.protect?'有効':'無効'}</p><label class="form-field">定期スナップショット間隔<select id="roomSnapshotInterval" ${isHost?'':'disabled'}>${snapshotOptions(room.snapshotInterval??60)}</select><small>OFF、または10秒〜3分ごと・直近30件。ゲームの部屋では待機室のみ定期保存します。復元は部屋主が行います。</small></label><button id="roomCheckpointHistory">保存した状態を見る</button><p class="muted">キャンバスサイズは、通常のお絵描き・ドット絵モードでは部屋主がここから変更できます。</p><div id="roomPublicControls"></div>${isHost?`<div class="room-create-block" style="margin-top:12px"><b>入室の承認</b><label class="check"><input id="roomApprovalRequired" type="checkbox" ${room.approvalRequired?'checked':''}>入室には部屋主の許可が必要</label><label class="check"><input id="roomViewerChat" type="checkbox" ${room.viewerChat!==false?'checked':''}>閲覧者のチャットを許可する</label><label class="check"><input id="roomAutoJoin" type="checkbox" ${sessionAutoAdmit()?'checked':''}>「参加」を押した人を自動で許可する</label><small>初めて入室した人はまず観戦です。自動参加ONなら「参加」で参加できます。一度許可した人は同じ部屋なら再入室時に許可を省略します。</small><button type="button" id="roomApprovalQueue">入室申請を確認</button><div style="margin-top:12px"><label class="form-field">退出時の部屋主引き継ぎ先<select id="roomHandoffPreferred"><option value="">自動で選ぶ</option>${[...members.values()].filter(m=>m.peerId!==localId&&!m.spectator&&!m.disconnected).map(m=>`<option value="${esc(m.peerId)}" ${m.peerId===preferredHandoffPeer?'selected':''}>${esc(m.profile.name)}</option>`).join('')}</select></label><small>部屋主が退出すると、選択した参加者を優先して引き継ぎます。接続できない場合はほかの参加者を選びます。</small></div></div>`:''}<div class="modal-actions"><button id="leaveSettings">退出</button></div>`);$('#leaveSettings').onclick=leaveRoom;$('#roomCheckpointHistory').onclick=showCheckpointHistory;$('#roomSnapshotInterval').onchange=e=>{if(!isHost)return;room.snapshotInterval=+e.target.value;lastCheckpointAt=Date.now();broadcast({type:'snapshotSettings',interval:room.snapshotInterval});toast('定期保存の間隔を変更しました')};window.ArtPublicRooms?.mountRoomSettings();if(isHost){const updateAccess=()=>{room.approvalRequired=$('#roomApprovalRequired').checked;room.viewerChat=$('#roomViewerChat').checked;room.autoJoin=$('#roomAutoJoin').checked;broadcast({type:'accessSettings',approvalRequired:room.approvalRequired,autoJoin:room.autoJoin,viewerChat:room.viewerChat});publishViewerRoster();renderMembers();toast('入室設定を更新しました')};$('#roomApprovalRequired').onchange=()=>{if($('#roomApprovalRequired').checked)$('#roomAutoJoin').checked=false;updateAccess()};$('#roomViewerChat').onchange=updateAccess;$('#roomAutoJoin').onchange=updateAccess;$('#roomApprovalQueue').onclick=showViewerRequests;$('#roomHandoffPreferred').onchange=e=>{preferredHandoffPeer=e.target.value;toast('部屋主の引き継ぎ先を設定しました');}}};
 async function finishRoomExit(save){
@@ -4516,7 +4530,7 @@ window.ArtAnimation=(()=>{
   renderCanvas();
  }
  function handlePointerUp(e){if(!pen||e.pointerId!==pen.id)return;e.preventDefault();e.stopPropagation();finishStroke();}
- function showNotice(text){const out=document.querySelector('#animStatus');if(out){out.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(out.textContent===text)out.textContent='';},3800)}}
+ function showNotice(text){const saveStatus=document.querySelector('#animSaveStatus');if(saveStatus)saveStatus.textContent=text;const out=document.querySelector('#animStatus');if(out){out.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(out.textContent===text)out.textContent='';},3800)}}
  function adjustChatLayout(){if(!isAnimation())return;const membersPanel=document.querySelector('#memberPanel');if(!membersPanel)return;const mobile=window.matchMedia('(max-width:750px)').matches;const open=document.querySelector('#studio')?.classList.contains('anim-show-members');if(mobile)membersPanel.style.setProperty('display',open?'flex':'none','important');else membersPanel.style.removeProperty('display');}
  function animationCSS(){const style=document.createElement('style');style.id='animModeStyle';style.textContent=`
  #studio.animation-active .workspace{grid-template-columns:var(--tools-width,170px) minmax(0,1fr) minmax(180px,280px)!important}
@@ -4699,12 +4713,12 @@ window.ArtAnimation=(()=>{
   if(isHost&&server){for(const f of server.frames)ensureThreeLayers(f);manifest=getManifest();}
   if(root){root.remove();root=null;}const viewport=document.querySelector('#viewport');if(!viewport)return;
   document.querySelector('#studio')?.classList.add('animation-active');root=document.createElement('section');root.id='animStudio';root.setAttribute('aria-label','アニメーション共同制作');
-  root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animSave" type="button">作品保存</button><button id="animChat" type="button">参加者・チャット</button></div>
+  root.innerHTML=`<div class="anim-head"><strong>アニメーション制作</strong><span id="animInfo" class="anim-small"></span><button id="animPlayBtn" type="button">個人再生</button><button id="animShared" type="button" data-anim-host>全員上映</button><button id="animSharedStop" type="button" data-anim-host>上映停止</button><button id="animChat" type="button">参加者・チャット</button></div>
   <div class="anim-main"><div class="anim-stage"><canvas id="animDrawing" aria-label="現在のアニメーションフレーム" width="768" height="768"></canvas><div id="animPeekBox" hidden><div style="display:flex;justify-content:space-between;align-items:center"><span id="animPeekName">個別表示</span><button id="animPeekClose" type="button">閉じる</button></div><canvas id="animPeekCanvas"></canvas></div><span class="anim-play-msg" id="animFrameNow"></span></div>
   <aside class="anim-sidebar"><section class="anim-panel"><h3>フレーム別レイヤー</h3><small class="anim-small">描画ツール・ブラシ・色・太さは左側のアートピア共通ツールを使います。</small><div id="animLayerList"></div><div class="anim-layer-actions"><button id="animLayerAdd" type="button">レイヤーを追加</button><button id="animLayerDelete" type="button">削除</button></div></section>
   <section class="anim-panel"><h3>オニオンスキン</h3><label><input id="animOnion" type="checkbox" checked>前後のコマを重ねる</label>${[['prev2','2コマ前'],['prev1','1コマ前'],['next1','1コマ後'],['next2','2コマ後']].map((v,i)=>`<div class="anim-opacity-row"><label for="anim${v[0]}Opacity">${v[1]} <span id="anim${v[0]}Text">${opacity[i]}%</span></label><input type="range" id="anim${v[0]}Opacity" data-opacity="${i}" min="0" max="100" step="5" value="${opacity[i]}"></div>`).join('')}</section>
   <section class="anim-panel"><h3>必要なコマだけ受信</h3><label>前後 <select id="animRange">${[0,1,2,3,4].map(n=>`<option value="${n}">${n}コマ</option>`).join('')}</select></label><small class="anim-small">個別選択は編集フレームを変えずに受信・確認できます。</small><div id="animIndividual"></div><button id="animPeek" type="button">選んだコマを個別表示</button></section>
-  <section class="anim-panel"><h3>作品設定</h3><label>FPS <input id="animFps" data-anim-host type="number" min="1" max="60" step="1" value="12"></label><small class="anim-small">FPS・コマの追加や削除は部屋主のみ変更可能です。</small><button id="animJson" type="button">プロジェクトJSONを保存</button><label>保存した作品を読み込む（部屋主）<input id="animImport" data-anim-host type="file" accept="application/json,.json"></label><button id="animVideo" type="button">WebM動画を書き出し</button></section></aside></div>
+  <section class="anim-panel"><h3>作品設定</h3><label>FPS <input id="animFps" data-anim-host type="number" min="1" max="60" step="1" value="12"></label><small class="anim-small">FPS・コマの追加や削除は部屋主のみ変更可能です。</small></section></aside></div>
   <div class="anim-bottom"><div class="anim-timeline-edge"><button id="animTimelineToggle" type="button" aria-label="コマ一覧を閉じる" title="コマ一覧を閉じる">›</button><span class="anim-timeline-caption">コマ一覧</span><span id="animStatus"></span><span id="animDragHint" hidden></span></div><div id="animTimeline" aria-label="フレームのタイムライン"></div></div>
   <div id="animFrameMenu" class="anim-frame-menu" hidden role="dialog" aria-label="コマの操作"><strong id="animMenuFrameName">コマ</strong><button type="button" id="animMenuEdit">このコマを編集</button><button type="button" id="animMenuDuplicate" data-anim-host>複製</button><button type="button" id="animMenuDelete" data-anim-host>削除</button><button type="button" id="animMenuRestore" data-anim-host>直前の削除を戻す</button><button type="button" id="animMenuClose">閉じる</button></div>`;
   viewport.appendChild(root);
@@ -4741,7 +4755,6 @@ window.ArtAnimation=(()=>{
   }
   // Use the ordinary header controls, with animation-aware behavior while in this mode.
   for(const [buttonId,handler] of [
-   ['snapshotBtn',()=>saveCurrentFramePNG()],
    ['reloadCanvasBtn',()=>reloadAnimationView()]
   ]){
    const button=document.getElementById(buttonId);
@@ -4752,7 +4765,7 @@ window.ArtAnimation=(()=>{
   }
   // Non-frame commands belong to the layer/settings popup, never the timeline.
   const head=root.querySelector('.anim-head');const controls=document.createElement('section');controls.className='anim-panel anim-play-options';
-  controls.innerHTML='<h3>再生と作品</h3><div class="anim-play-buttons"></div>';
+  controls.innerHTML='<h3>再生</h3><div class="anim-play-buttons"></div>';
   animationSidebar.append(controls);
   for(const child of [...head.querySelectorAll('button')])controls.querySelector('.anim-play-buttons').append(child);
   document.querySelector('#animTimeline').addEventListener('pointerdown',beginFrameLongPress);
@@ -4873,14 +4886,15 @@ window.ArtAnimation=(()=>{
    server.frames=frames;server.byId=new Map(frames.map(f=>[f.id,f]));server.fps=clamp(Number(raw.fps)||12,1,60);server.trash=[];cache.clear();frameRenderCache.clear();subs.clear();current=frames[0].id;layer=frames[0].layers[0].id;hostManifest();requestFrames();showNotice('作品を読み込みました');
   }catch(e){showNotice('読み込み失敗：'+e.message)} }
  function downloadBlob(blob,name){const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
-  function saveCurrentFramePNG(){
-   if(!isAnimation())return;
-   const frame=getFrame(current);
-   if(!frame){showNotice('コマを受信してから保存してください');requestFrames();return;}
-   const picture=getCanvasCache(current);if(!picture)return;
-   const output=document.createElement('canvas');output.width=room.w;output.height=room.h;
-   const brush=output.getContext('2d');brush.fillStyle='#fff';brush.fillRect(0,0,room.w,room.h);brush.drawImage(picture,0,0);
-   output.toBlob(blob=>{if(blob)downloadBlob(blob,'artopia_コマ_'+(frameList().findIndex(f=>f.id===current)+1)+'.png');else showNotice('画像保存に失敗しました');},'image/png');
+  function captureFrame(name){
+   if(!isAnimation()||!canSaveCurrentRoom())throw Error('現在のコマを保存できません。');
+   if(pen)finishStroke();
+   const frame=getFrame(current);if(!frame){requestFrames();throw Error('コマを受信してから保存してください。');}
+   const canvases=frame.layers.map(l=>{const c=E.make(room.w,room.h),x=c.getContext('2d');for(const stroke of l.strokes){if(!stroke.deleted)paintStroke(x,stroke);}return c;});
+   const image=E.make(room.w,room.h),x=image.getContext('2d'),preview=E.make(320,Math.max(1,Math.round(room.h*320/room.w)));
+   try{x.fillStyle='#fff';x.fillRect(0,0,room.w,room.h);canvases.forEach((c,i)=>{if(frame.layers[i].visible!==false)x.drawImage(c,0,0)});preview.getContext('2d').drawImage(image,0,0,preview.width,preview.height);
+    return{id:uid(),format:2,name,at:Date.now(),w:room.w,h:room.h,image:image.toDataURL('image/png'),thumb:preview.toDataURL('image/webp',.8),layers:canvases.map(c=>c.toDataURL('image/png')),opacities:frame.layers.map(l=>l.visible===false?0:100)};
+   }finally{for(const c of [...canvases,image,preview])c.width=c.height=0;}
   }
   function reloadAnimationView(){
    if(!isAnimation())return;
@@ -4889,10 +4903,10 @@ window.ArtAnimation=(()=>{
     if(ids.length)sendHost({type:'animSubscribe',ids,known:ids.map(id=>({id,revision:-1}))});}
    showNotice('現在のコマを再描画しました');
   }
- async function saveProject(){if(exporting)return;exporting=true;showNotice('保存用フレームを取得中…');try{const ok=await ensureAll(18000);if(!ok)throw Error('一部フレームを取得できませんでした');const data={format:'artopia-animation-1',width:room.w,height:room.h,fps:getManifest()?.fps||12,createdAt:new Date().toISOString(),frames:frameList().map(f=>getFrame(f.id))};downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),'artopia_animation_'+Date.now()+'.json');showNotice('プロジェクトJSONを保存しました');}catch(e){showNotice('保存失敗：'+e.message)}finally{exporting=false;}}
- async function saveVideo(){if(exporting)return;exporting=true;try{const ok=await ensureAll(18000);if(!ok)throw Error('すべてのフレームを受信できませんでした');if(!HTMLCanvasElement.prototype.captureStream||typeof MediaRecorder==='undefined')throw Error('このブラウザはWebM書き出しに対応していません');const fps=getManifest()?.fps||12,ids=frameList().map(f=>f.id),recordCanvas=document.createElement('canvas');recordCanvas.width=room.w;recordCanvas.height=room.h;const x=recordCanvas.getContext('2d'),stream=recordCanvas.captureStream(0),track=stream.getVideoTracks()[0];const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));if(!type)throw Error('WebM形式が使えません');const parts=[],rec=new MediaRecorder(stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||Error('録画失敗'))});rec.start();showNotice('動画を書き出し中…');for(const id of ids){x.fillStyle='white';x.fillRect(0,0,recordCanvas.width,recordCanvas.height);const c=getCanvasCache(id);if(c)x.drawImage(c,0,0);track.requestFrame?.();await new Promise(r=>setTimeout(r,Math.max(20,1000/fps)));}rec.stop();await done;track.stop();downloadBlob(new Blob(parts,{type}), 'artopia_animation_'+Date.now()+'.webm');showNotice('WebM動画を書き出しました');}catch(e){showNotice('動画保存失敗：'+e.message)}finally{exporting=false;}}
+ async function saveProject(name){if(!canSaveCurrentRoom()||exporting)return;exporting=true;showNotice('保存用フレームを取得中…');try{const ok=await ensureAll(18000);if(!ok)throw Error('一部フレームを取得できませんでした');const data={format:'artopia-animation-1',width:room.w,height:room.h,fps:getManifest()?.fps||12,createdAt:new Date().toISOString(),frames:frameList().map(f=>getFrame(f.id))};downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),(name||'artopia_animation_'+Date.now())+'.json');showNotice('プロジェクトJSONを保存しました');}catch(e){showNotice('保存失敗：'+e.message)}finally{exporting=false;}}
+ async function saveVideo(name){if(!canSaveCurrentRoom()||exporting)return;exporting=true;try{const ok=await ensureAll(18000);if(!ok)throw Error('すべてのフレームを受信できませんでした');if(!HTMLCanvasElement.prototype.captureStream||typeof MediaRecorder==='undefined')throw Error('このブラウザはWebM書き出しに対応していません');const fps=getManifest()?.fps||12,ids=frameList().map(f=>f.id),recordCanvas=document.createElement('canvas');recordCanvas.width=room.w;recordCanvas.height=room.h;const x=recordCanvas.getContext('2d'),stream=recordCanvas.captureStream(0),track=stream.getVideoTracks()[0];const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));if(!type)throw Error('WebM形式が使えません');const parts=[],rec=new MediaRecorder(stream,{mimeType:type});rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||Error('録画失敗'))});rec.start();showNotice('動画を書き出し中…');for(const id of ids){x.fillStyle='white';x.fillRect(0,0,recordCanvas.width,recordCanvas.height);const c=getCanvasCache(id);if(c)x.drawImage(c,0,0);track.requestFrame?.();await new Promise(r=>setTimeout(r,Math.max(20,1000/fps)));}rec.stop();await done;track.stop();downloadBlob(new Blob(parts,{type}), (name||'artopia_animation_'+Date.now())+'.webm');showNotice('WebM動画を書き出しました');}catch(e){showNotice('動画保存失敗：'+e.message)}finally{exporting=false;}}
  function reset(){endFrameDrag();closeFrameMenu();if(raf)cancelAnimationFrame(raf);raf=0;document.querySelector('#animTopControls')?.remove();document.querySelector('#animFrameDragGhost')?.remove();document.querySelector('#layerDetailsBtn')?.setAttribute('aria-expanded','false');window.ArtStudioOptions?.close?.();document.querySelector('#animNativeSettings')?.remove();if(root){root.remove();root=null;}document.querySelector('#layerHeaderPopup')?.setAttribute('hidden','');document.querySelector('#studio')?.classList.remove('animation-active','anim-show-members','anim-panel-open');document.querySelector('#memberPanel')?.style.removeProperty('display');window.ArtStudioOptions?.render?.();server=null;manifest=null;pendingPlay=null;cache.clear();subs.clear();pending.clear();current=null;layer=null;peek=null;pins.clear();pen=null;playing=null;frameRenderCache.clear();canvas=null;ctx=null;}
- return{enter,reset,hostMessage,clientMessage,requestFrames,manifest:()=>getManifest(),getFrame};
+ return{enter,reset,hostMessage,clientMessage,requestFrames,captureFrame,saveProject,saveVideo,importProject,manifest:()=>getManifest(),getFrame};
 })();
 
 </script>
