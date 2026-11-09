@@ -18525,6 +18525,7 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-6 5-6 13 0 18M12 3c6 5 6 13 0 18"/>',
   friend:'<circle cx="10" cy="8" r="4"/><path d="M3 21c0-5 3-7 7-7s7 2 7 7M19 15v7m-3-3h6"/>',
   dm:'<path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3v-5a2 2 0 0 1-1-2V7a2 2 0 0 1 2-2Z"/><circle cx="8" cy="12" r=".7"/><circle cx="12" cy="12" r=".7"/><circle cx="16" cy="12" r=".7"/>',
+  museum:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="m6 16 5-5 3 3 2-2 4 4"/><circle cx="9" cy="9" r="1"/>',
   share:'<circle cx="18" cy="5" r="3"/><circle cx="5" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8 11 7-5M8 13l7 5"/>'
  };
  function hubIcon(name){return `<svg class="hub-line-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${lineArt[name]||''}</svg>`}
@@ -18544,6 +18545,7 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
     ${row('global','グローバルチャット','›','','globe')}
     ${row('friends','フレンド','›','','friend')}
     ${row('dms','フレンドチャット','›','','dm')}
+    ${row('museum','美術館','›','','museum')}
     ${row('share','共有','›','hub-entry--share','share')}
    </details>
    <div class="hub-shortcut">${row('settings','部屋設定','›','','settings')}${row('leave','退出する')}</div>
@@ -18573,6 +18575,7 @@ if(location.protocol==='https:')setTimeout(()=>{if(!initialized&&!initializing)v
    if(window.matchMedia('(max-width:1100px)').matches){const m=$('memberPanel');m.classList.add('open');m.removeAttribute('aria-hidden');}
    $('inlineChatInput')?.focus({preventScroll:true});return;
   }
+  if(action==='museum')return window.ArtMuseum?.open?.('new');
   if(action==='global'||action==='friends'||action==='dms')return window.ArtSocial?.open?.(action==='dms'?'chats':action);
   if(action==='share')return openShare();
  }
@@ -19450,7 +19453,7 @@ const noticeChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('a
 if(noticeChannel)noticeChannel.onmessage=()=>{refreshMuseumNotices()};
 async function refreshMuseumNotices(){try{notifications=await all('notifications');updateMuseumNoticeDots();if(!shell.hidden&&tab==='alerts')alerts()}catch(e){console.warn('[Museum] notice refresh failed',e)}}
 const shell=document.createElement('div');shell.id='artMuseum';shell.hidden=true;shell.innerHTML='<div class="mu-shell"><header class="mu-head"><div class="mu-head-main"><button class="mu-btn mu-back" id="muBack" aria-label="美術館を閉じる">'+svg('back')+'</button><span class="mu-head-icon">'+svg('museum')+'</span><div class="mu-title-area"><h2>美術館</h2><small>みんなの作品を見る・投稿する</small></div></div><div class="mu-head-buttons"><span class="mu-reminder">なるべくあーとぴあで描いた絵を投稿してください</span><button class="mu-btn mu-bell" id="muBell" aria-label="通知">'+svg('bell')+'</button><button class="mu-btn primary" id="muCreate">＋ 作品を投稿</button></div></header><div class="mu-tools"><div class="mu-top-search"><span class="mu-search-icon">'+svg('search')+'</span><input id="muSearch" placeholder="作品・作者・タグを検索" aria-label="作品検索"></div><div class="mu-tabs" id="muTabs"></div></div><p class="mu-status" id="muStatus"></p><main class="mu-content" id="muContent"></main></div><div id="muActionOverlay" class="mu-overlay" hidden><div class="mu-overlay-shade" data-mu-close></div><section class="mu-action-dialog" role="dialog" aria-modal="true" aria-labelledby="muDialogTitle"><header class="mu-dialog-head"><strong id="muDialogTitle">作品メニュー</strong><button type="button" id="muDialogClose" aria-label="閉じる">×</button></header><div id="muDialogBody"></div></section></div>';document.body.append(shell);
-const status=msg=>{$('#muStatus').textContent=msg};const show=async(view='new')=>{tab=view;shell.hidden=false;document.body.classList.add('museum-open');await refresh()};const close=()=>{shell.hidden=true;document.body.classList.remove('museum-open');const ov=$('#muActionOverlay');if(ov)ov.hidden=true};$('#muBack').onclick=close;$('#muBell').onclick=()=>{tab='alerts';render()};$('#muCreate').onclick=()=>{tab='create';editId='';draftImage='';draftOrigin='external';render()};$('#muSearch').oninput=e=>{search=e.target.value;if(!['create','alerts'].includes(tab))renderBody()};
+const status=msg=>{$('#muStatus').textContent=msg};const show=async(view='new')=>{tab=view;shell.hidden=false;document.body.classList.add('museum-open');await refresh()};window.ArtMuseum=Object.freeze({open:show});const close=()=>{shell.hidden=true;document.body.classList.remove('museum-open');const ov=$('#muActionOverlay');if(ov)ov.hidden=true};$('#muBack').onclick=close;$('#muBell').onclick=()=>{tab='alerts';render()};$('#muCreate').onclick=()=>{tab='create';editId='';draftImage='';draftOrigin='external';render()};$('#muSearch').oninput=e=>{search=e.target.value;if(!['create','alerts'].includes(tab))renderBody()};
 async function refresh(){try{[loaded,likes,bookmarks,comments,notifications]=await Promise.all(['posts','likes','bookmarks','comments','notifications'].map(all));render();updateHomeMuseumPreview();updateMuseumNoticeDots()}catch(e){status('美術館の保存領域を開けませんでした。ブラウザの設定を確認してください。')}}
 const mine=post=>post.authorId===me().id,liked=id=>likes.some(x=>x.id===id+':'+me().id),bookmarked=id=>bookmarks.some(x=>x.id===id+':'+me().id);
 const avatar=p=>p.avatar&&/^data:image\/(png|jpeg|webp);base64,/i.test(p.avatar)?`<img src="${p.avatar}" alt="">`:'<span>'+svg('museum')+'</span>';
@@ -19562,7 +19565,7 @@ async function renderMuseumProfileBookmarks(uid,container){
  box.querySelectorAll('[data-mu-bookmark-post]').forEach(btn=>btn.onclick=async()=>{const postId=btn.dataset.muBookmarkPost;await show('new');focusedPost=postId;render();$('#muContent .mu-browser')?.classList.add('mu-mobile-focused')});
 }
 
-function install(){const hero=$('#home .home-hero'),galleryCard=$('#openHeroGallery');if(hero&&galleryCard&&!$('#museumHomeLaunch')){const stack=document.createElement('div');stack.className='mu-home-feature-stack';galleryCard.parentNode.insertBefore(stack,galleryCard);stack.append(galleryCard);const b=document.createElement('button');b.id='museumHomeLaunch';b.type='button';b.className='mu-home-launch';b.innerHTML='<span class="mu-preview-header"><span class="mu-preview-heading">'+svg('museum')+'<b>美術館</b></span><span class="mu-preview-go">新着を見る ›</span></span><span class="mu-slide-frame" aria-label="新着作品プレビュー"><span class="mu-slide-art"></span></span><span class="mu-slide-bottom"><span class="mu-preview-footer">みんなの新着作品</span><span class="mu-slide-controls"><span class="mu-slide-prev" role="button" tabindex="0" aria-label="前の新着作品">‹</span><span class="mu-slide-count">0/0</span><span class="mu-slide-next" role="button" tabindex="0" aria-label="次の新着作品">›</span></span></span>';b.onclick=()=>show('new');stack.prepend(b)}const more=$('#headerMore');if(more&&!$('#museumStudioButton')){const b=document.createElement('button');b.type='button';b.id='museumStudioButton';b.className='quiet';b.innerHTML=svg('museum')+' 美術館';b.onclick=()=>{$('#headerMenuToggle')?.click();show('new')};more.append(b)}}
+function install(){const hero=$('#home .home-hero'),galleryCard=$('#openHeroGallery');if(hero&&galleryCard&&!$('#museumHomeLaunch')){const stack=document.createElement('div');stack.className='mu-home-feature-stack';galleryCard.parentNode.insertBefore(stack,galleryCard);stack.append(galleryCard);const b=document.createElement('button');b.id='museumHomeLaunch';b.type='button';b.className='mu-home-launch';b.innerHTML='<span class="mu-preview-header"><span class="mu-preview-heading">'+svg('museum')+'<b>美術館</b></span><span class="mu-preview-go">新着を見る ›</span></span><span class="mu-slide-frame" aria-label="新着作品プレビュー"><span class="mu-slide-art"></span></span><span class="mu-slide-bottom"><span class="mu-preview-footer">みんなの新着作品</span><span class="mu-slide-controls"><span class="mu-slide-prev" role="button" tabindex="0" aria-label="前の新着作品">‹</span><span class="mu-slide-count">0/0</span><span class="mu-slide-next" role="button" tabindex="0" aria-label="次の新着作品">›</span></span></span>';b.onclick=()=>show('new');stack.prepend(b)}const more=$('#headerMore');if(more&&!$('#museumStudioButton')){const b=document.createElement('button');b.type='button';b.id='museumStudioButton';b.className='quiet';b.innerHTML=svg('museum')+' 美術館';b.onclick=(event)=>{event.preventDefault();event.stopPropagation();const menu=document.querySelector('#studio .header-menu');menu?.classList.remove('is-open');const toggle=document.querySelector('#headerMenuToggle');toggle?.setAttribute('aria-expanded','false');void show('new')};more.append(b)}}
 
 let museumSlideIndex=0;
 const museumEmptyIllustration='<svg viewBox="0 0 320 155" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><rect width="320" height="155" fill="#f3e9e3"/><rect y="89" width="320" height="66" fill="#dbe9e4"/><circle cx="234" cy="49" r="27" fill="#f5c9ad"/><path d="M0 108Q70 57 128 103T320 89V155H0Z" fill="#91bcb4"/><path d="M0 127Q82 104 167 123T320 112V155H0Z" fill="#6ea49e"/></svg>';
@@ -19622,6 +19625,24 @@ install();updateHomeMuseumPreview();refreshMuseumNotices();window.ArtMuseum={ope
 .mu-social-bookmarks h3{margin:0 0 12px}
 .mu-social-bookmarks h3 small{font-size:12px;font-weight:normal}
 .mu-social-bookmarks .mu-muted{font-size:12px;color:#788a8e}
+</style>
+
+<style id="museum-round-icon-and-hub-fix-160">
+/* Museum profile images must keep a square box before the circular clip. */
+#artMuseum .mu-avatar,
+#artMuseum .mu-avatar-button {
+  box-sizing:border-box!important;
+  width:35px;min-width:35px;height:35px;min-height:35px;
+  flex:0 0 35px!important;aspect-ratio:1 / 1!important;
+  border-radius:50%!important;overflow:hidden!important;
+  display:inline-grid;place-items:center;vertical-align:middle;
+  padding:0!important;
+}
+#artMuseum .mu-avatar img {display:block;width:100%!important;height:100%!important;object-fit:cover!important;aspect-ratio:1/1;}
+#artMuseum .mu-preview-meta .mu-avatar {width:25px!important;min-width:25px!important;height:25px!important;min-height:25px!important;flex-basis:25px!important;}
+#artMuseum .mu-bookmarker .mu-avatar {width:31px!important;min-width:31px!important;height:31px!important;min-height:31px!important;flex-basis:31px!important;}
+#artMuseum .mu-profile>.mu-avatar {width:54px!important;min-width:54px!important;height:54px!important;min-height:54px!important;flex-basis:54px!important;}
+#roomHubPanel .hub-line-icon {width:21px!important;height:21px!important;min-width:21px!important;flex:0 0 21px!important;aspect-ratio:1 / 1!important;object-fit:contain;}
 </style>
 </body></html>
 
