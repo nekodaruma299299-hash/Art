@@ -10487,7 +10487,23 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
  if(stage.hidden){stage.innerHTML='';return}
  if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートアーツの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><button id="artsUltimateGuide" type="button" hidden aria-label="必殺技のお手本を開く"></button><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';$('#artsField').append(artsKillFeed);bindBattle();return}
- function artsRankedFighters(v){const w=new Set(v.result?.winners||[]);return (v.fighters||[]).slice().sort((a,b)=>Number(w.has(b.id))-Number(w.has(a.id))||(b.hp||0)-(a.hp||0));}
+ function artsRankedFighters(v){
+  const fighters=(v.fighters||[]).slice(),w=new Set(v.result?.winners||[]);
+  const deaths=new Map((v.killEvents||[]).filter(e=>e&&e.victim).map(e=>[e.victim,Number(e.at)||0]));
+  // In a solo match eliminated players all have 0 HP. Order them by elimination time,
+  // not by remaining HP or their original roster order.
+  const eliminatedAt=p=>Number(p.artsBattleLog?.deathAt)||deaths.get(p.id)||0;
+  return fighters.sort((a,b)=>{
+    const winnerDiff=Number(w.has(b.id))-Number(w.has(a.id));
+    if(winnerDiff)return winnerDiff;
+    const aAt=eliminatedAt(a),bAt=eliminatedAt(b);
+    if(aAt&&bAt&&aAt!==bAt)return bAt-aAt;
+    if(aAt&&!bAt)return -1;
+    if(bAt&&!aAt)return 1;
+    const ah=Number(a.hp)||0,bh=Number(b.hp)||0;
+    return bh-ah;
+  });
+ }
  function artsRankMetrics(p){const m=p.artsBattleLog||{},num=(x)=>Number.isFinite(Number(x))?Math.round(Number(x)):null;const rows=[['与えたダメージ',num(p.damageDealt)],['受けたダメージ',num(m.damageTaken)],['総回復量（記録分）',num(m.healingDone)],['自身への回復',num(m.healingSelf)],['味方への回復',num(m.healingAllies)],['回復したHP（記録分）',num(m.healingReceived)],['インク使用量',num(m.inkSpent)],['スキル発動回数',num(m.skillsUsed)],['必殺技発動回数',num(m.ultimateUsed)],['ガード発動回数',num(m.guardUses)],['召喚による撃破',num(m.petKills)],['罠による撃破',num(m.trapKills)],['移動距離',num(m.distance)],['撃破数',num(m.kills)],['デス数',p.hp<=0?1:0],['アシスト数',num(m.assists)],['最大連続撃破数',num(m.bestStreak)],['生存時間（秒）',m.startedAt?num(((m.deathAt||m.finishedAt||Date.now())-m.startedAt)/1000):null],['防いだダメージ',null],['スキル命中回数',null]];return rows.map(([name,val])=>'<div><small>'+name+'</small><b>'+(val==null?'—':val)+'</b></div>').join('');}
  function artsRankedHTML(v){const ranks=artsRankedFighters(v),winners=v.result?.winners||[],c=['#c0963e','#8193a9','#a77552'],bg=['#fff8e7','#f0f4f8','#fff2e8'];return '<div class="arts-ranked-result"><header class="arts-ranked-heading"><small>ART ARTS / BATTLE RESULT</small><h2>'+(winners.length?winners.map(id=>esc(v.players.find(q=>q.id===id)?.name||'参加者')).join('・')+' の勝利！':'引き分け')+'</h2><p class="muted">最終順位・戦闘成績</p></header><div class="arts-ranked-list">'+ranks.map((p,i)=>{const name=esc(v.players.find(q=>q.id===p.id)?.name||'参加者'),a=v.art?.[p.id],log=p.artsBattleLog||{},border=c[i]||'#b7c3cb',background=bg[i]||'#f7fafb',tag=i===0?'1st':i===1?'2nd':i===2?'3rd':(i+1)+'th';return '<article class="arts-ranked-card rank'+(i+1)+'" style="--arts-rank-border:'+border+';--arts-rank-bg:'+background+'"><div class="arts-rank-head"><span class="arts-rank-num">'+(i===0?'♛ ':i===1?'':i===2?'':'')+tag+'</span>'+(a?.image?'<img class="arts-rank-avatar" src="'+esc(a.image)+'" alt="'+name+'のキャラクター">':'<div class="arts-rank-avatar"></div>')+'<div class="arts-rank-who"><strong>'+name+'</strong><small>'+jobLabel(p.class)+(p.active?'':' · 退出')+'</small></div><button type="button" class="arts-rank-detail" data-arts-result-details="'+i+'" aria-haspopup="dialog" aria-label="'+name+'の詳細戦績">…</button></div><div class="arts-rank-numbers"><div><span>撃破数</span><b>'+(log.kills??'—')+'</b></div><div><span>残りHP</span><b>'+Math.max(0,Math.ceil(p.hp))+'</b></div></div></article>'}).join('')+'</div></div>';}
  let body='';if(phase==='lobby'){const people=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);body='<h2>描いた相棒で、戦おう。</h2><p>自由に描いた絵がキャラクターに。<br>戦場では線を描いて、共通アーツと選んだスキルを発動します。</p><p>'+people.map(p=>esc(p.profile.name)).join(' ・ ')+(room.offline?' ＋ 練習くん':'')+'</p>'+teamLobbyHTML(people)+'<p>作成 '+view.settings.createSeconds+'秒 / 対戦 '+view.settings.battleSeconds+'秒</p><div class="modal-actions">'+(isHost?'<button id="artsStart" class="primary">キャラクター作成へ</button><button id="artsSettings">部屋設定</button>':'部屋主の開始を待っています。')+'</div>'+instructions}
