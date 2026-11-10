@@ -2203,6 +2203,69 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #studio.arts-character-editing #memberPanel #inlineChatForm{display:grid!important;}
 #studio.arts-character-editing #memberPanel #recentComment{display:none!important;}
 #studio.arts-character-editing #memberPanel #artsLiveStats{flex:1 1 auto!important;min-height:0!important;}
+</style><style></style><style id="arts-v167-hud-chat-interaction-fix">
+/* Battle chat must be visible: the generic mobile .member-panel display:none overrides the Arts grid. */
+#studio.arts-mode:not(.arts-creating) .workspace > #memberPanel {
+ display:flex!important; position:relative!important; top:auto!important; right:auto!important;
+ bottom:auto!important; left:auto!important; width:auto!important; height:auto!important;
+ min-width:0!important; min-height:0!important; max-height:none!important;
+ transform:none!important; overflow:hidden!important; visibility:visible!important;
+ opacity:1!important; pointer-events:auto!important; z-index:3!important;
+}
+#studio.arts-mode:not(.arts-creating) #memberPanel .member-bottom {
+ display:flex!important; flex-direction:column!important; flex:1 1 auto!important;
+ min-height:0!important; overflow:hidden!important;
+}
+#studio.arts-mode:not(.arts-creating) #memberPanel .studio-chatbar,
+#studio.arts-mode:not(.arts-creating) #memberPanel #inlineChatForm {
+ display:grid!important; min-height:0!important; visibility:visible!important;
+ pointer-events:auto!important; opacity:1!important;
+}
+#studio.arts-mode:not(.arts-creating) #memberPanel .studio-chatbar {
+ display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
+}
+#studio.arts-mode:not(.arts-creating) #memberPanel #inlineChatForm {
+ flex:0 0 auto!important; grid-template-columns:minmax(0,1fr) auto auto!important;
+}
+#studio.arts-mode:not(.arts-creating) #memberPanel #inlineChatInput {
+ visibility:visible!important; pointer-events:auto!important; min-width:0!important;
+}
+@media(max-width:650px) and (orientation:portrait){
+ #studio.arts-mode:not(.arts-creating) > .workspace {
+  grid-template-rows:minmax(0,1fr) minmax(175px,30dvh)!important;
+ }
+ #studio.arts-mode:not(.arts-creating) #memberPanel {padding:6px 9px!important;}
+ #studio.arts-mode:not(.arts-creating) #memberPanel .studio-chatbar {padding:3px!important;margin:0!important;}
+}
+/* HUD container does not intercept game gestures, but the small help button can be tapped. */
+#artsHUD {pointer-events:none!important}
+#artsHUD .arts-meter.matter {position:relative!important;min-height:0!important;}
+#artsHUD .arts-meter.matter > label {
+ display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+ min-height:20px!important;height:20px!important;max-height:20px!important;
+ margin:0!important;padding:0 20px 0 0!important;gap:3px!important;
+ font-size:clamp(10px,1.3vw,14px)!important;line-height:20px!important;
+ white-space:nowrap!important;position:relative!important;
+}
+#artsHUD .arts-meter.matter > label .arts-matter-label-text {
+ background:none!important;box-shadow:none!important;padding:0!important;
+ font-size:inherit!important;line-height:20px!important;white-space:nowrap!important;
+}
+#artsHUD .arts-meter.matter > label > b {
+ display:inline!important;margin-left:auto!important;white-space:nowrap!important;
+ font-size:inherit!important;line-height:20px!important;
+}
+#artsHUD .arts-meter.matter > label > .arts-matter-help-button {
+ pointer-events:auto!important;position:absolute!important;top:2px!important;right:0!important;
+ width:16px!important;height:16px!important;min-width:16px!important;max-width:16px!important;
+ min-height:16px!important;max-height:16px!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;z-index:10!important;line-height:1!important;
+ border-radius:50%!important;touch-action:manipulation!important;
+}
+@media(max-width:690px){
+ #artsHUD .arts-meter.matter>label {font-size:10px!important;}
+}
 </style><style></style></head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.7</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
