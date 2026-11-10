@@ -8703,6 +8703,50 @@ window.ArtArts=(()=>{
   }
   return result;
  }
+ // Ver.1.6.8: Final free-for-all spawn audit across every Arts stage.
+ // This runs AFTER the stage's randomized candidates are selected and BEFORE fighters are created.
+ function artsEnsureSoloSpawnSeparation(spots,blocks,plan,gimmicks=[]){
+  if(!Array.isArray(spots)||spots.length<2)return spots;
+  const W=R.W,H=R.H,margin=R.R+25,used=[];
+  const hazards=(plan?.tiles||[]).filter(t=>t.kind==='damage'||t.kind==='slow');
+  const legal=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&x>=margin&&y>=margin&&x<=W-margin&&y<=H-margin&&
+   !R.blocked(x,y,blocks,R.R+8)&&
+   !hazards.some(t=>x>t.x-30&&x<t.x+t.w+30&&y>t.y-30&&y<t.y+t.h+30)&&
+   !gimmicks.some(g=>Math.hypot(x-g.x,y-g.y)<Math.max(75,g.r+42));
+  const nearest=(x,y)=>used.length?Math.min(...used.map(p=>Math.hypot(x-p[0],y-p[1]))):Infinity;
+  const minSeparation=R.R*2+12;
+  const desired=Math.min(W,H)*(spots.length>=7?.19:.28);
+  const candidates=[];
+  const add=(x,y)=>{if(legal(x,y))candidates.push([Math.round(x),Math.round(y)]);};
+  for(const [x,y] of spots)if(Number.isFinite(x)&&Number.isFinite(y))add(x,y);
+  for(const p of plan?.spawns||[])add(p.x,p.y);
+  const gridStep=Math.max(24,Math.min(46,Math.floor(Math.min(W,H)/21)));
+  for(let y=margin;y<=H-margin;y+=gridStep)for(let x=margin;x<=W-margin;x+=gridStep)add(x,y);
+  for(let i=0;i<Math.max(600,spots.length*180);i++)add(margin+Math.random()*(W-2*margin),margin+Math.random()*(H-2*margin));
+  const result=[];
+  for(let i=0;i<spots.length;i++){
+   let chosen=null;
+   const original=spots[i];
+   if(original&&legal(original[0],original[1])&&nearest(original[0],original[1])>=desired)chosen=[...original];
+   if(!chosen){
+    let bestScore=-1;
+    for(const p of candidates){const d=nearest(...p);if(d>=minSeparation&&d>bestScore){bestScore=d;chosen=p;}}
+   }
+   // Never insert an overlapping position simply because a preferred location failed.
+   if(!chosen){
+    for(let y=margin;y<=H-margin&&!chosen;y+=Math.max(8,R.R))for(let x=margin;x<=W-margin;x+=Math.max(8,R.R)){
+     if(legal(x,y)&&nearest(x,y)>=minSeparation){chosen=[Math.round(x),Math.round(y)];break;}
+    }
+   }
+   if(!chosen){
+    // Keep a valid original rather than intentionally placing another fighter at the same coordinates.
+    chosen=original&&legal(original[0],original[1])?[...original]:[margin+minSeparation*i,margin];
+    console.warn('Art Arts: no fully separated spawn available',plan?.theme,plan?.size,i);
+   }
+   result.push(chosen);used.push(chosen);
+  }
+  return result;
+ }
  function artsBlueprintGimmicks(plan){
   if(!plan)return [];
   const result=[];
@@ -8716,7 +8760,7 @@ window.ArtArts=(()=>{
   }
   return result;
  }
- function startBattle(){if(!host||host.phase!=='equip')return;host.killEvents=[];for(const fighter of host.fighters)fighter._artsKillLogged=false;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const seed=Math.floor(Math.random()*1000000),plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,seed);host.blocks=plan?.blocks||R.map(host.settings.stage);host.stageSeed=seed;host.stageHasBlueprint=!!plan;host.stageBaseCount=host.blocks.length;host.stageLayoutSignature=stageWallSignature(host.blocks);host.lastStageBaselineAt=0;host.mineBaseCount=host.settings.stage==='mine'?host.blocks.length:0;host.stageRegions=plan?.regions||[];host.effects=[];host.shots=[];host.ultimateActs=[];host.ultimateAnnouncement=null;host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const activePlayers=host.players.filter(p=>p.active);const spreadSpots=artsRandomSpawns(activePlayers.length,host.blocks,plan,gimmickLayout);const spots=host.settings.teams==='teams'?artsGroupedSpawns(activePlayers,spreadSpots,host.blocks,plan,gimmickLayout):spreadSpots;host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),limit=host.settings.skillSlots,team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);picked.splice(limit);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,artsBattleLog:{damageTaken:0,healingDone:0,healingSelf:0,healingAllies:0,assists:0,currentStreak:0,bestStreak:0,inkSpent:0,skillsUsed:0,ultimateUsed:0,kills:0,petKills:0,trapKills:0,guardUses:0,healingReceived:0,distance:0,startedAt:Date.now()},artMatter:0,crime:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||null,guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageAudioEvents=[];host.stageNPCs=host.settings.npcEnabled?(plan?.devices||[]).filter(d=>d.type==='npc').map((d,i)=>({id:i+1,x:d.x,y:d.y,hp:90,maxHp:90,dir:i*2.1,nextFire:0,respawnAt:0})):[];host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(false)}
+ function startBattle(){if(!host||host.phase!=='equip')return;host.killEvents=[];for(const fighter of host.fighters)fighter._artsKillLogged=false;const sz=host.settings.stageSize||'medium';R.setWorldSize(sz==='small'?760:sz==='large'?2200:1120,sz==='small'?760:sz==='large'?2200:1120);const seed=Math.floor(Math.random()*1000000),plan=window.ArtArtsStageBlueprints?.generate(host.settings.stage,sz,seed);host.blocks=plan?.blocks||R.map(host.settings.stage);host.stageSeed=seed;host.stageHasBlueprint=!!plan;host.stageBaseCount=host.blocks.length;host.stageLayoutSignature=stageWallSignature(host.blocks);host.lastStageBaselineAt=0;host.mineBaseCount=host.settings.stage==='mine'?host.blocks.length:0;host.stageRegions=plan?.regions||[];host.effects=[];host.shots=[];host.ultimateActs=[];host.ultimateAnnouncement=null;host.inputs={};host.stormStart=null;host.celebration=null;const gimmickLayout=artsBlueprintGimmicks(plan);const activePlayers=host.players.filter(p=>p.active);const spreadSpots=artsRandomSpawns(activePlayers.length,host.blocks,plan,gimmickLayout);const spots=host.settings.teams==='teams'?artsGroupedSpawns(activePlayers,spreadSpots,host.blocks,plan,gimmickLayout):artsEnsureSoloSpawnSeparation(spreadSpots,host.blocks,plan,gimmickLayout);host.fighters=host.players.filter(p=>p.active).map((p,i)=>{const a=host.art[p.id],stats=a?.stats||[20,20,20,20,20],clazz=R.type(stats,a?.drawingPaths||[]),pool=R.skills(clazz),limit=host.settings.skillSlots,team=host.settings.teams==='teams'?(host.teamAssignments?.[p.id]??i%2):i%2,spot=spots[i],picked=[...(Array.isArray(a?.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);picked.splice(limit);return{id:p.id,team,x:spot[0],y:spot[1],hp:100,maxHp:100,damageDealt:0,artsBattleLog:{damageTaken:0,healingDone:0,healingSelf:0,healingAllies:0,assists:0,currentStreak:0,bestStreak:0,inkSpent:0,skillsUsed:0,ultimateUsed:0,kills:0,petKills:0,trapKills:0,guardUses:0,healingReceived:0,distance:0,startedAt:Date.now()},artMatter:0,crime:0,ink:60+stats[3]*2,maxInk:60+stats[3]*2,baseMaxInk:60+stats[3]*2,baseStats:[...stats],stats:[...stats],class:clazz,skills:picked,skillIndex:0,skill:picked[0]||null,guard:0,guardAngle:0,guardWidth:.9,guardValue:0,iron:0,reactor:0,inkLock:0,slow:0,flash:0,lastHitSeq:0,lastHitDamage:0,nextCast:p.bot?Date.now()+3500:0,artCooldowns:{},artGlobalUntil:0,dash:null,facing:1,artFacing:a?.artFacing===-1?-1:1,drawing:false,moving:false,active:true}});host.gimmicks=plan?gimmickLayout:makeArtsGimmicks(host.settings.stage,host.settings.stageSize||'medium');host.stageDrops=[];host.stageAudioEvents=[];host.stageNPCs=host.settings.npcEnabled?(plan?.devices||[]).filter(d=>d.type==='npc').map((d,i)=>({id:i+1,x:d.x,y:d.y,hp:90,maxHp:90,dir:i*2.1,nextFire:0,respawnAt:0})):[];host.phase='battle';host.deadline=Date.now()+host.settings.battleSeconds*1000;lastFrame=Date.now();sendAll(false)}
  const alive=()=>host.fighters.filter(p=>p.active&&p.hp>0);
  const friendly=(a,b)=>R.allies(a,b,host.settings.teams);
  function remainingSides(){return new Set(alive().map(p=>host.settings.teams==='teams'?p.team:p.id)).size}
@@ -10271,7 +10315,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
   // Use the same shared modal that the working "お手本を見る" control uses.
   // A separate dialog was unreliable on the game HUD; keep the small ? button untouched.
   const key=Object.prototype.hasOwnProperty.call(artsMatterHelpContent,job)?job:'attacker';
-  const jobTitle=classNames[key]||key;
+  const jobTitle=R.classNames[key]||key;
   const body='<p style="font-weight:800;margin:0 0 12px;color:#895e14">'+esc(jobTitle)+'</p>'+
    '<ul style="margin:0;padding-left:22px;line-height:1.85">'+artsMatterHelpContent[key].map(line=>'<li style="margin-bottom:8px">'+esc(line)+'</li>').join('')+'</ul>'+
    '<p style="font-size:12px;color:#536171;margin:14px 0 0">最大100まで貯まり、必殺技を発動すると0に戻ります。実際のダメージ・回復量や発動状況で増加量は変わります。</p>';
