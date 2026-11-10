@@ -18923,7 +18923,7 @@ async function syncProfile(){
 function socialIcon(name){return icon(name)}
 function installUI(){
  const shell=document.createElement('section');shell.id='artopiaSocial';shell.dataset.socialVersion='1.4.51';shell.hidden=true;shell.setAttribute('aria-label','交流');document.body.appendChild(shell);
- const home=$('home');const head=home?.querySelector('.home-header');if(head){const action=document.createElement('button');action.type='button';action.id='openArtSocial';action.className='as-launch';action.innerHTML=icon('social')+'<span>交流</span>';action.onclick=open;head.append(action)}
+ const home=$('home');const head=home?.querySelector('.home-header');if(head){const action=document.createElement('button');action.type='button';action.id='openArtSocial';action.className='as-launch';action.innerHTML=icon('social')+'<span>交流</span>';action.onclick=open;(head.querySelector('.home-utilities')||head).append(action)}
  const studioHead=$('studio')?.querySelector('.header-actions');if(studioHead){const share=document.createElement('button');share.id='as-share-room';share.type='button';share.className='quiet';share.title='公開ルームをみんなのひろばで共有';share.innerHTML=icon('share')+'<span>共有</span>';share.onclick=()=>window.ArtRoomHub?.confirmShare?.();studioHead.append(share)}
  // Replace emoji-derived game choices with proprietary monochrome SVG symbols.
  // Keep the room-creation menu and selected-mode preview in sync with the
@@ -20644,6 +20644,49 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  .home-header:has(> #artLagHomeButton){padding-inline:9px!important;gap:5px}
  .home-header:has(> #artLagHomeButton) > .profile-pill .avatar{width:35px;height:35px;min-width:35px}
  .home-header:has(> #artLagHomeButton) > .profile-pill b{max-width:70px;font-size:12px}
+}
+/* Ver 1.6.9: restore the header's independent centre logo and right actions. */
+#home > .home-header:has(#artLagHomeButton){
+ position:relative;display:flex;flex-wrap:nowrap;align-items:center;
+ gap:10px;min-height:100px;padding:14px 3.4%;
+}
+#home > .home-header > #homeSettings{order:0;flex:0 0 44px;margin:0;}
+#home > .home-header > #artLagHomeButton{order:1;flex:0 0 auto;margin:0;}
+#home > .home-header > #myProfile{order:2;flex:0 1 auto;min-width:0;margin:0;}
+#home > .home-header > .art-home-right{
+ order:3;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ margin:0;display:flex;align-items:center;justify-content:center;pointer-events:none;
+}
+#home > .home-header > .home-utilities{order:4;margin-left:auto;flex:0 0 auto;}
+#home > .home-header .home-utilities > #openArtSocial{width:auto;min-width:86px;padding:8px 12px;min-height:44px;flex:0 0 auto;white-space:nowrap}
+/* At medium widths the centre logo gets its own row instead of overlapping actions. */
+@media(max-width:1100px){
+ #home > .home-header:has(#artLagHomeButton){
+  display:grid;grid-template-columns:44px auto minmax(0,1fr) auto;
+  grid-template-rows:auto auto;column-gap:9px;row-gap:9px;
+  padding:12px 18px!important;min-height:0;height:auto;
+ }
+ #home > .home-header > .art-home-right{
+  grid-column:1/-1;grid-row:1;position:static;transform:none;
+  justify-self:center;align-self:center;pointer-events:auto;
+ }
+ #home > .home-header > #homeSettings{grid-column:1;grid-row:2;}
+ #home > .home-header > #artLagHomeButton{grid-column:2;grid-row:2;}
+ #home > .home-header > #myProfile{grid-column:3;grid-row:2;justify-self:start;margin:0;}
+ #home > .home-header > .home-utilities{grid-column:4;grid-row:2;justify-self:end;margin:0;}
+}
+/* Compact phones: no overlap or reorder; actions get their own right-aligned row. */
+@media(max-width:600px){
+ #home > .home-header:has(#artLagHomeButton){
+  grid-template-columns:44px 44px minmax(0,1fr);
+  grid-template-rows:auto auto auto;padding:10px 12px!important;gap:7px;
+ }
+ #home > .home-header > .art-home-right{grid-column:1/-1;grid-row:1;}
+ #home > .home-header > #homeSettings{grid-column:1;grid-row:2;}
+ #home > .home-header > #artLagHomeButton{grid-column:2;grid-row:2;width:44px;height:44px;padding:0;}
+ #home > .home-header > #myProfile{grid-column:3;grid-row:2;justify-self:start;min-width:0;}
+ #home > .home-header > .home-utilities{grid-column:1/-1;grid-row:3;justify-self:end;margin:0;}
+ #home > .home-header > #artLagHomeButton span{display:none;}
 }
 #artLagDialog{border:0;border-radius:18px;padding:0;max-height:90dvh;width:min(92vw,490px);box-shadow:0 22px 70px #102f3850;color:#203942;background:#fff}
 #artLagDialog::backdrop{background:#13282d99}
