@@ -2179,7 +2179,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
   #home .mu-home-feature-stack > #openHeroGallery {height: 218px !important;max-height: 218px !important;}
 }
 </style>
-</head><body>
+<style id="arts-matter-help-v167">#artsHUD .arts-matter-help-button{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;margin:0 5px;border:1px solid #bdd2ed;border-radius:50%;background:#f5f9ff;color:#233954;font-size:13px;font-weight:800;vertical-align:middle;cursor:pointer;touch-action:manipulation}#artsHUD .arts-meter.matter label{justify-content:flex-start;align-items:center;gap:3px}#artsHUD .arts-meter.matter label>b{margin-left:auto}.arts-matter-charge-dialog{width:min(430px,calc(100vw - 24px));max-height:calc(100dvh - 40px);overflow:auto;padding:20px;border:1px solid #9eb0c8;border-radius:16px;background:#192435;color:#f3f7ff;box-shadow:0 18px 70px #0009}.arts-matter-charge-dialog::backdrop{background:#091323b8}.arts-matter-charge-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.arts-matter-charge-head h3{font-size:19px;margin:0}.arts-matter-charge-head button{border:1px solid #8298b2;background:#26364d;color:white;border-radius:9px;width:32px;height:32px;font-size:23px;cursor:pointer}.arts-matter-charge-job{font-weight:800;color:#f2ce80;margin:13px 0}.arts-matter-charge-dialog ul{margin:0;padding-left:22px;line-height:1.75}.arts-matter-charge-dialog li+li{margin-top:9px}.arts-matter-charge-foot{font-size:12px;color:#b4c4d8;margin:16px 0 0}</style></head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.7</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
@@ -2666,6 +2666,42 @@ function mosaicPaint(c,a){
 // Pixel actions are rasterized at one logical pixel per cell, then enlarged
 // without interpolation. Metadata travels with history and network actions.
 function pixelApply(c,a){
+ // 1.6.7: Pixel erasing must NEVER resample/rewrite the entire layer.
+ // The former 8px downscale/upscale destroyed surrounding fine detail on every erase.
+ // Remove only touched grid cells, in the original full-resolution layer.
+ if(a.tool==='eraser'){
+  const grid=8, points=Array.isArray(a.points)?a.points:[];
+  if(!points.length)return;
+  const ctx=c.getContext('2d');
+  const count=Math.max(1,Math.round((Number(a.size)||grid)/grid));
+  const alpha=Math.max(0,Math.min(1,(Number(a.strength)||100)/100));
+  const visited=new Set();
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation='destination-out';
+  ctx.globalAlpha=alpha;ctx.fillStyle='#000';
+  function eraseAt(px,py){
+   const ix=Math.floor(px/grid)-Math.floor((count-1)/2);
+   const iy=Math.floor(py/grid)-Math.floor((count-1)/2);
+   for(let dy=0;dy<count;dy++)for(let dx=0;dx<count;dx++){
+    const cx=ix+dx,cy=iy+dy;
+    if(cx<0||cy<0||cx*grid>=c.width||cy*grid>=c.height)continue;
+    const key=cx+','+cy;
+    if(visited.has(key))continue;
+    visited.add(key);
+    ctx.fillRect(cx*grid,cy*grid,grid,grid);
+   }
+  }
+  for(let i=0;i<points.length;i++){
+   const p=points[i],q=points[Math.max(0,i-1)];
+   const steps=Math.max(1,Math.ceil(Math.max(Math.abs(p[0]-q[0]),Math.abs(p[1]-q[1]))/(grid/2)));
+   for(let j=0;j<=steps;j++){
+    const t=j/steps;
+    eraseAt(q[0]+(p[0]-q[0])*t,q[1]+(p[1]-q[1])*t);
+   }
+  }
+  ctx.restore();
+  return;
+ }
  const g=8,w=c.width/g,h=c.height/g,small=make(w,h),x=small.getContext('2d');
  x.imageSmoothingEnabled=false;x.drawImage(c,0,0,w,h);
  const b={...a,pixelGrid:0,points:a.points.map(p=>[p[0]/g,p[1]/g,...p.slice(2)]),size:Math.max(1,Math.round(a.size/g)),fillExpand:0,fillVersion:1};
@@ -5946,8 +5982,8 @@ window.ArtsRules=(()=>{
  const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,100,30,600),teams:s?.teams==='teams'?'teams':'solo',teamAssignMode:s?.teamAssignMode==='manual'?'manual':'random',stage:['garden','ruins','forest','arena','portal','mine','factory'].includes(s?.stage)?s.stage:'arena',stageSize:['small','medium','large'].includes(s?.stageSize)?s.stageSize:'medium',skillSlots:int(s?.skillSlots,2,0,6),npcEnabled:!!s?.npcEnabled});
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
- guard:{name:'ガード',rate:.035,cooldown:0,text:'クールダウンなし。大きく描くほど長時間（0.5〜3秒）維持でき、耐久力が増します。耐久力以下のマジック・スラッシュを吸収してインク回復。限界を超える攻撃では破壊されます。敵も味方も通れません。'},
- slash:{name:'スラッシュ',rate:.055,cooldown:0,text:'クールダウンなし。描いた線そのものが斬撃の攻撃範囲です。短い斬撃は低威力・省インクで連撃向き。長い斬撃は高威力・高コストで、ガードの耐久力を超えると破壊して貫通します。'},
+ guard:{name:'ガード',rate:.035,cooldown:0,text:'クールダウンなし。大きく描くほど長時間（約0.5〜3秒）維持でき、耐久力が増します。耐久力以下のマジック・スラッシュを吸収してインク回復。限界を超える攻撃では破壊されます。敵も味方も通れません。'},
+ slash:{name:'スラッシュ',rate:.055,cooldown:0,text:'クールダウンなし。描いた方向へ見えない照準が進み、指定位置または途中の壁に到達した場所で斬撃が発生します。短い斬撃は低威力・省インクで連撃向き。長い斬撃は高威力・高コストで、ガードの耐久力を超えると破壊して貫通します。'},
  magic:{name:'マジック',rate:.16,cooldown:0,text:'クールダウンなし。弾の大きさは固定。短い線は少ないインクで連射できる代わりに、威力・速度・ノックバックが低く少しブレます。長い線は高威力・高速・強ノックバックで正確に飛びます。射程は描画可能範囲と同じです。'},
  thrust:{name:'スラストダッシュ',class:'attacker',rate:.07,cooldown:2200,text:'△を一筆で閉じると、自分から描いた三角形の中心へ向かって一定距離を直進。三角形の尖る向きには左右されず、移動距離は一定です。地形や外周に当たると停止。'},
  cross:{name:'クロスラッシュ',class:'attacker',rate:.085,cooldown:4200,text:'左上→右下→右上→左下と一筆で描くと2連斬撃。×の右端同士を縦線でつなぐ形。'},
@@ -10118,7 +10154,40 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
     }
     previousFx.add(e.id);
    }previousFx=new Set(view.effects.map(e=>e.id));if(!raf)raf=requestAnimationFrame(frame)}if(old?.phase!==view.phase||view.phase!=='battle')renderControls()}
- function ultimateHudHTML(p){const v=Math.max(0,Math.min(100,Math.floor(p.artMatter||0))),ready=v>=100;return '<div class="arts-meter matter'+(ready?' ready':'')+'"><label>アートマター <b>'+v+' / 100</b></label><progress max="100" value="'+v+'" aria-label="アートマター"></progress>'+(ready?'<strong class="arts-am-ready">✦ 必殺技発動可能 ✦</strong>':'')+'</div>'}
+ function ultimateHudHTML(p){const v=Math.max(0,Math.min(100,Math.floor(p.artMatter||0))),ready=v>=100;return '<div class="arts-meter matter'+(ready?' ready':'')+'"><label>アートマター <button type="button" class="arts-matter-help-button" data-arts-matter-job="'+String(p.class||'')+'" aria-label="この職業のアートマター獲得条件" title="アートマター獲得条件">?</button><b>'+v+' / 100</b></label><progress max="100" value="'+v+'" aria-label="アートマター"></progress>'+(ready?'<strong class="arts-am-ready">✦ 必殺技発動可能 ✦</strong>':'')+'</div>'}
+
+ // Ver.1.6.7: Art Matter help is derived from the current host-side charge rules.
+ const artsMatterHelpContent={
+  attacker:['敵に与えた実際のHPダメージと同じ量が貯まります。','ガードや防御で軽減された分は対象外です。'],
+  tank:['自分が受けたHPダメージ、装甲で吸収したダメージ、ガードで防いだ攻撃によって貯まります。','連続被弾などの追加ボーナスには短い獲得間隔があります。'],
+  magician:['敵へ与えた実際のHPダメージ、および職業固有スキルで消費したインク量に応じて貯まります。','通常のスラッシュ・ガード・マジックの発動自体にはスキル使用ボーナスはありません。'],
+  trickster:['実際に移動した距離に応じて少しずつ貯まります。','その場で止まっている間は移動による加算はありません。'],
+  gunner:['発射した弾の威力と、実際に敵へ命中させたダメージで貯まります。','弱い弾の連射だけでは貯まりにくく、発射分には短い獲得間隔があります。必殺技の弾では再チャージしません。'],
+  executioner:['敵に与えたHPダメージと、自分が受けたHPダメージで貯まります。','命中・被弾に応じた追加ボーナスもあり、短い獲得間隔が設定されています。'],
+  dreamer:['移動も描画もしていない間に、時間経過で貯まります。','敵への与ダメージによっても少量貯まります。'],
+  saint:['自分や仲間への実際の回復量に応じて貯まります。','有効な強化効果にもボーナスがあります。同じ相手へ同じ強化を繰り返しても、短時間で何度も獲得できません。'],
+  kemono:['召喚スキルを使用すると種類に応じて貯まります。','召喚獣が敵にダメージを与えた場合も貯まります。同じ召喚や連続攻撃のボーナスには獲得間隔があります。'],
+  vampire:['敵への攻撃、吸血による実際の回復、HPを使う血の技などで貯まります。','複数の獲得手段があるため、獲得量には職業固有の補正があります。']
+ };
+ function openArtsMatterHelp(job){
+  const key=Object.prototype.hasOwnProperty.call(artsMatterHelpContent,job)?job:'attacker';
+  let dialog=document.getElementById('artsMatterChargeDialog');
+  if(!dialog){
+   dialog=document.createElement('dialog');dialog.id='artsMatterChargeDialog';dialog.className='arts-matter-charge-dialog';
+   document.body.appendChild(dialog);
+   dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+  }
+  dialog.replaceChildren();
+  const head=document.createElement('div');head.className='arts-matter-charge-head';
+  const heading=document.createElement('h3');heading.textContent='アートマターの貯め方';head.appendChild(heading);
+  const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','閉じる');close.onclick=()=>dialog.close();head.appendChild(close);
+  dialog.appendChild(head);
+  const jobName=document.createElement('p');jobName.className='arts-matter-charge-job';jobName.textContent=classNames[key]||key;dialog.appendChild(jobName);
+  const list=document.createElement('ul');for(const line of artsMatterHelpContent[key]){const li=document.createElement('li');li.textContent=line;list.appendChild(li)}dialog.appendChild(list);
+  const foot=document.createElement('p');foot.className='arts-matter-charge-foot';foot.textContent='最大100まで貯まり、必殺技を発動すると0に戻ります。実際のダメージ・回復量や発動状況で増加量は変わります。';dialog.appendChild(foot);
+  if(!dialog.open)dialog.showModal();
+ }
+ document.addEventListener('click',event=>{const trigger=event.target.closest?.('.arts-matter-help-button');if(!trigger)return;event.preventDefault();event.stopPropagation();openArtsMatterHelp(trigger.dataset.artsMatterJob)},true);
  function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress>'+((p.armorHP||0)>0?'<span class="arts-armor-indicator">◆ 装甲 <b>'+Math.ceil(p.armorHP)+'</b></span>':'')+'</div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div>'+ultimateHudHTML(p)+'</div>'}
  function skillDetails(k){const m=moves[k];return '<p><b>描き方の判定：</b>'+esc(m.gesture)+'</p><p><b>クールダウン：</b>'+(self()?.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒</p><p><b>効果：</b>'+esc(m.effect)+'</p><p><b>範囲：</b>'+esc(m.range)+'</p>'}
  function equipCardsHTML(a,choice,locked){
@@ -10126,7 +10195,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
  return '<div class="arts-equip-grid">'+R.skills(a.class).map(k=>{const m=moves[k],picked=choice.includes(k);return '<article class="arts-equip-card '+(picked?'selected':'')+'"><button type="button" class="arts-equip-pick" data-arts-pick="'+k+'" aria-pressed="'+picked+'" '+(locked?'disabled':'')+'><div class="arts-equip-symbol arts-equip-graphic">'+guideSVG(k)+'</div><span class="arts-equip-copy"><b>'+esc(m.name)+'</b><small>'+(a.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒'+(m.fixedCost!==undefined?' · インク'+m.fixedCost:'')+'</small><span class="arts-equip-summary">'+esc(summary[k]||m.effect||m.text)+'</span></span><span class="arts-equip-check">'+(picked?'✓':'＋')+'</span></button></article>'}).join('')+'</div>';
  }
  function statsHTML(stats){return '<div class="arts-statlist">'+stats.map((n,i)=>'<span>'+names[i]+' <b>'+n+'</b></span>').join('')+'</div>'}
- const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます（端末・ブラウザによって同時操作が制限される場合があります）。</li><li><b>iPad・Apple Pencilでの操作について：</b>iPadOSのSafariなどでは、指で移動スティックを押しながらApple Pencilで描く同時操作ができない場合があります。これはブラウザ側の入力制限による可能性があります。うまく描けない場合は、指を離してからApple Pencilで描くか、指だけで操作してください。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ、プレイヤーの前を横切る線＝1秒ガード、自分から外へ伸びる線＝マジック。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程が高いほど描画円と弾の飛距離が広がります。マジックのダメージは攻撃力とインク量に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値で通常6職＋上級4職のいずれかが決まり、職業別の6種類から固有スキルを2つ装備します。2つとも図形を描くだけで発動します。</li><li>木の壁はHP10、補強壁はHP100で破壊。石壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
+ const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます（端末・ブラウザによって同時操作が制限される場合があります）。</li><li><b>iPad・Apple Pencilでの操作について：</b>iPadOSのSafariなどでは、指で移動スティックを押しながらApple Pencilで描く同時操作ができない場合があります。これはブラウザ側の入力制限による可能性があります。うまく描けない場合は、指を離してからApple Pencilで描くか、指だけで操作してください。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ（指定地点に斬撃）、プレイヤーの前を横切る線＝ガード（大きさに応じて持続時間と耐久力が変化）、自分から外へ伸びる線＝マジック（線の長さで威力や弾速が変化）。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程が高いほど描画円とマジックの飛距離が広がります。短い線でもマジックの射程は短くなりません。マジックのダメージは攻撃力とインク量に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値で通常6職＋上級4職のいずれかが決まり、職業別の6種類から固有スキルを2つ装備します。2つとも図形を描くだけで発動します。</li><li>木の壁はHP10、補強壁はHP100で破壊。石壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
 
  function teamLobbyHTML(people){
   if(view?.settings?.teams!=='teams')return '';
@@ -14118,7 +14187,7 @@ window.ArtShadow=(()=>{
  return '<div class="shadow-equip-grid">'+R.skills(a.class).map(k=>{const m=moves[k],picked=choice.includes(k);return '<article class="shadow-equip-card '+(picked?'selected':'')+'"><button type="button" class="shadow-equip-pick" data-shadow-pick="'+k+'" aria-pressed="'+picked+'" '+(locked?'disabled':'')+'><span class="shadow-equip-symbol">'+artIconSVG(k)+'</span><span class="shadow-equip-copy"><b>'+esc(m.name)+'</b><small>'+m.cooldown/1000+'秒'+(m.fixedCost!==undefined?' · インク'+m.fixedCost:'')+'</small><span class="shadow-equip-summary">'+esc(summary[k]||m.effect||m.text)+'</span></span><span class="shadow-equip-check">'+(picked?'✓':'＋')+'</span></button><button type="button" class="shadow-equip-info" data-shadow-detail="'+k+'">お手本・詳細</button></article>'}).join('')+'</div>';
  }
  function statsHTML(stats){return '<div class="shadow-statlist">'+stats.map((n,i)=>'<span>'+names[i]+' <b>'+n+'</b></span>').join('')+'</div>'}
- const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます（端末・ブラウザによって同時操作が制限される場合があります）。</li><li><b>iPad・Apple Pencilでの操作について：</b>iPadOSのSafariなどでは、指で移動スティックを押しながらApple Pencilで描く同時操作ができない場合があります。これはブラウザ側の入力制限による可能性があります。うまく描けない場合は、指を離してからApple Pencilで描くか、指だけで操作してください。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ、プレイヤーの前を横切る線＝1秒ガード、自分から外へ伸びる線＝マジック。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程の数値が高いほど描画円が広がり、低いほど狭くなります。マジックのダメージは攻撃力に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値で通常5職＋上級3職のいずれかが決まり、職業別の6種類から固有スキルを2つ装備します。2つとも図形を描くだけで発動します。</li><li>木の壁はHP10、補強壁はHP100で破壊。石壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
+ const instructions='<ul><li>タッチ操作は大きな左スティックで移動。PCは↑→↓←／WASDで移動し、マウスで同時に描画。</li><li>戦場にはそのまま直接描けます。すべてのアーツを一筆で描けます。ペンや指を離した瞬間に判定します。描画中も移動でき、線は自分についてきます（端末・ブラウザによって同時操作が制限される場合があります）。</li><li><b>iPad・Apple Pencilでの操作について：</b>iPadOSのSafariなどでは、指で移動スティックを押しながらApple Pencilで描く同時操作ができない場合があります。これはブラウザ側の入力制限による可能性があります。うまく描けない場合は、指を離してからApple Pencilで描くか、指だけで操作してください。</li><li>中央：装備スキルの説明・なぞり書きのお手本。発動ボタンではありません。</li><li>ゆるい弧＝スラッシュ（指定地点に斬撃）、プレイヤーの前を横切る線＝ガード（大きさに応じて持続時間と耐久力が変化）、自分から外へ伸びる線＝マジック（線の長さで威力や弾速が変化）。三角形・Zの移動技は描き始めへ進み、線を描いた順になぞります。すべてのアーツは射程円内に描く必要があります。円からはみ出すとインクを消費せずキャンセルされます。方向はキャラクターを基準に判定します。</li><li>射程の数値が高いほど描画円とマジックの飛距離が広がります。マジックの威力は攻撃力と使用インク量に依存します。描く線が長いほどインク消費・威力が増加。インクは自動回復します。認識失敗でも少量のインクを消費します。</li><li>絵の能力値で通常5職＋上級3職のいずれかが決まり、職業別の6種類から固有スキルを2つ装備します。2つとも図形を描くだけで発動します。</li><li>木の壁はHP10、補強壁はHP100で破壊。石壁は破壊不可。奈落は攻撃だけ通過。マジックは壁や石の障害物に当たると消えます。茂みは接近・攻撃・被弾で見つかります。</li><li>最後の1人／1チームが勝利。制限時間後は安全地帯が縮まり、外側でHPが減ります。</li></ul>';
 
  function teamLobbyHTML(people){
   if(view?.settings?.teams!=='teams')return '';
