@@ -3572,9 +3572,19 @@ function gameInProgress(){const g=window.ArtGame?.getHost?.();return !!(window.A
 function removeMember(id,reason='退出しました',immediate=false){if(id===localId)return;const m=members.get(id),c=connections.get(id);connections.delete(id);const keep=!!(m&&!m.spectator&&gameInProgress());if(keep){m.disconnected=true}else{members.delete(id);resumeKeys.delete(id)}presenceSeen.delete(id);for(const [k,l]of locks)if(l.owner===id)locks.delete(k);remoteDrafts.delete(id);incomingDrafts.delete(id);remoteCursors.delete(id);dropRemoteInk(id);if(m){if(!keep)window.ArtGame?.departed(id,immediate);if(keep)reason='離席中です（復帰できます）';if(!migrationOut)roomEvent(m.profile.name+' さんが'+reason);broadcast({type:'roster',members:[...members.values()]});broadcastLocks();renderMembers();scheduleSceneRender()}if(c?.open){if(retiredPeers.has(id))setTimeout(()=>c.close(),200);else c.close()}}
 async function leaveGuest(){if(isHost||!hostConn?.open)return;window.ArtHistory?.flush();await new Promise(resolve=>{const done=()=>{if(guestLeaveAck===done)guestLeaveAck=null;resolve()};guestLeaveAck=done;sendHost({type:'leave'});setTimeout(done,1200)});hostConn?.close()}
 function gameProgressStamp(state){return state?JSON.stringify([state.id,state.phase,state.round??null]):''}
-function presenceTick(now=Date.now()){if(!room||!connected)return;if(isHost){if(!migrationOut){for(const id of viewers.keys()){const seen=presenceSeen.get(id);if(seen!==undefined&&now-seen>45000){connections.get(id)?.close();removeViewer(id)}}for(const id of members.keys())if(id!==localId&&!members.get(id)?.disconnected){const seen=presenceSeen.get(id);if(seen===undefined)presenceSeen.set(id,now);else if(now-seen>45000)removeMember(id,'接続が切れたため退出しました')}let changed=false;for(const[k,l]of locks)if(!members.has(l.owner)||now-l.at>15000){locks.delete(k);changed=true}if(changed)broadcastLocks()}}else sendHost({type:'heartbeat',gameProgress:gameProgressStamp(window.ArtGame?.getView?.())});if(selection&&selection.mode!=='paste'&&room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:bounds({...selection,tool:'transform'})}})}
+function presenceTick(now=Date.now()){if(!room||!connected)return;if(isHost){if(!migrationOut){for(const id of viewers.keys()){const seen=presenceSeen.get(id);if(seen!==undefined&&now-seen>120000){connections.get(id)?.close();removeViewer(id)}}for(const id of members.keys())if(id!==localId&&!members.get(id)?.disconnected){const seen=presenceSeen.get(id);if(seen===undefined)presenceSeen.set(id,now);else if(now-seen>120000)removeMember(id,'接続が切れたため退出しました')}let changed=false;for(const[k,l]of locks)if(!members.has(l.owner)||now-l.at>15000){locks.delete(k);changed=true}if(changed)broadcastLocks()}}else sendHost({type:'heartbeat',gameProgress:gameProgressStamp(window.ArtGame?.getView?.())});if(selection&&selection.mode!=='paste'&&room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:bounds({...selection,tool:'transform'})}})}
 setInterval(()=>presenceTick(),5000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)presenceTick()});
+// Resume a suspended host peer after the browser tab or PC wakes up.
+function resumeRoomSignaling(){
+ if(!room||room.ended||!connected)return;
+ for(const p of [peer,aliasPeer]){
+  if(p&&!p.destroyed&&p.disconnected){try{p.reconnect()}catch(e){console.warn('[Artopia] Peer reconnect on resume',e)}}
+ }
+ presenceTick();
+}
+window.addEventListener('focus',resumeRoomSignaling);
+window.addEventListener('pageshow',resumeRoomSignaling);
 
 
 
@@ -3686,7 +3696,20 @@ async function joinRoom(code,spectator){if(code.length<2)throw Error('合言葉�
   try{await Promise.race([window.ArtSocial?.registerRoomIdentity?.(localId)||Promise.resolve(),new Promise(r=>setTimeout(r,3500))]);}catch{}
   if(hostConn!==thisConn||token!==sessionToken)return;
   sendWire(hostConn,{type:'hello',drawingProtocol:18,resumeKey,profile:validProfile(profile),spectator});
- });hostConn.on('data',m=>decodeWire(hostConn,m,async msg=>{if(token!==sessionToken||hostConn!==thisConn)return;if(msg.type==='redirect'&&typeof msg.target==='string'&&msg.target!==thisConn.peer){connectTo(msg.target);thisConn.close();return}if(msg.type==='reject'){fail(Error(msg.message));return}if(msg.type==='welcome'){localId=msg.memberId||localId;if(msg.room?.drawingProtocol!==18){fail(Error('部屋主側の更新が必要です。全員でページを再読み込みして部屋を作り直してください。'));return}try{syncing=true;room={...msg.room,code};localViewer=!!msg.viewer;localViewerRequested=false;viewerRoster=msg.viewers||[];viewerCount=msg.viewerCount||0;engine=new E.Engine(msg.engine.w,msg.engine.h);await engine.restore(msg.engine);prefs.opacities=(room.initialOpacities||[100,100,100]).slice();members=new Map(msg.members.map(x=>[x.peerId,x]));if(localViewer)members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:true,viewer:true});sharedPalette=msg.sharedPalette||[];chat=msg.chat||[];locks=new Map((msg.locks||[]).map(l=>[l.id,l]));connected=true;enterStudio();await window.ArtSessionUI?.importLobby?.(msg.waitingCanvas);window.ArtSessionUI?.prepareWelcome?.(msg.game);window.ArtGame?.welcome(msg.game);viewerStateUI();syncing=false;for(const q of deferredMessages)handleClient(q);deferredMessages=[];done=true;clearTimeout(timer);res()}catch(e){fail(e)}return}if(syncing){deferredMessages.push(msg);return}handleClient(msg)}));hostConn.on('close',()=>{if(token!==sessionToken||hostConn!==thisConn)return;if(!done)fail(Error('接続が閉じられました。'));if(room){connected=false;$('#connectionState').textContent='部屋主と切断・保存できます';toast('部屋主との接続が切れました。絵を保存してから再入室できます。');pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();window.ArtHistory?.clear();stroke=null;render();renderControls();scheduleReconnect()}});hostConn.on('error',e=>{if(hostConn===thisConn)fail(e)})};connectTo(await roomPeerId(code))})}
+ });hostConn.on('data',m=>decodeWire(hostConn,m,async msg=>{if(token!==sessionToken||hostConn!==thisConn)return;if(msg.type==='redirect'&&typeof msg.target==='string'&&msg.target!==thisConn.peer){connectTo(msg.target);thisConn.close();return}if(msg.type==='reject'){fail(Error(msg.message));return}if(msg.type==='welcome'){localId=msg.memberId||localId;if(msg.room?.drawingProtocol!==18){fail(Error('部屋主側の更新が必要です。全員でページを再読み込みして部屋を作り直してください。'));return}try{syncing=true;room={...msg.room,code};localViewer=!!msg.viewer;localViewerRequested=false;viewerRoster=msg.viewers||[];viewerCount=msg.viewerCount||0;engine=new E.Engine(msg.engine.w,msg.engine.h);await engine.restore(msg.engine);prefs.opacities=(room.initialOpacities||[100,100,100]).slice();members=new Map(msg.members.map(x=>[x.peerId,x]));if(localViewer)members.set(localId,{peerId:localId,profile:validProfile(profile),spectator:true,viewer:true});sharedPalette=msg.sharedPalette||[];chat=msg.chat||[];locks=new Map((msg.locks||[]).map(l=>[l.id,l]));connected=true;enterStudio();await window.ArtSessionUI?.importLobby?.(msg.waitingCanvas);window.ArtSessionUI?.prepareWelcome?.(msg.game);window.ArtGame?.welcome(msg.game);viewerStateUI();syncing=false;for(const q of deferredMessages)handleClient(q);deferredMessages=[];done=true;clearTimeout(timer);res()}catch(e){fail(e)}return}if(syncing){deferredMessages.push(msg);return}handleClient(msg)}));hostConn.on('close',()=>{if(token!==sessionToken||hostConn!==thisConn)return;if(!done)fail(Error('接続が閉じられました。'));if(room&&!room.ended){
+ connected=false;
+ $('#connectionState').textContent='接続を確認中・元の部屋へ再接続します';
+ pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();window.ArtHistory?.clear();stroke=null;
+ render();renderControls();scheduleReconnect();
+ // Do not show an alarming toast for a brief connection restart, including
+ // restarts around the transition from the battle to the result screen.
+ const closedToken=sessionToken;
+ setTimeout(()=>{
+  if(sessionToken===closedToken&&room&&!room.ended&&!connected&&!isHost&&hostConn===thisConn){
+   toast('部屋主との接続を確認しています。元の部屋への再接続を試みています。');
+  }
+ },15000);
+}});hostConn.on('error',e=>{if(hostConn===thisConn)fail(e)})};connectTo(await roomPeerId(code))})}
 
 
 /* SECTION: app/12-handoff.js */
@@ -3771,7 +3794,19 @@ function setChatPanelVisible(visible){
  if(!visible&&document.activeElement?.id==='inlineChatInput')document.activeElement.blur();
 }
 $('#toggleChatPanel').onclick=()=>setChatPanelVisible($('#studio').classList.contains('chat-collapsed'));
-function enterStudio(){if(room&&!room.offline)setTimeout(()=>{window.ArtSocial?.recordRoom?.(room);void syncRoomSocialIdentity()},1200);setChatPanelVisible(true);if(!$('#viewerAccessNotice')){const note=document.createElement('div');note.id='viewerAccessNotice';note.hidden=true;$('#memberList').before(note)}window.ArtSound?.play('page',2);$('#home').hidden=true;$('#studio').hidden=false;$('#roomTitle').textContent=room.name;$('#connectionState').textContent=room.offline?'ひとりで試す':isHost?'部屋主として接続中':'接続中';$('#canvasSize').textContent=`${engine.w} × ${engine.h} px`;for(const c of [$('#display'),$('#overlay')]){c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';renderMembers();viewerStateUI();updateInlineComment();renderControls();render();requestAnimationFrame(fitView);window.ArtGame?.enter();window.ArtAnimation?.enter()}
+// PC: after typing in chat/settings, clicking the actual drawing surface restores
+// keyboard shortcuts. Pointer handling and drawing remain owned by the canvas.
+(function restoreDrawingKeyboardFocus(){
+ const surface=$('#canvasSurface');
+ surface.setAttribute('tabindex','-1');
+ surface.addEventListener('pointerdown',()=>{
+  if(!room||$('#studio').hidden||$('#modal').open)return;
+  const active=document.activeElement;
+  if(active&&active!==surface&&active.matches?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])'))active.blur();
+  try{surface.focus({preventScroll:true})}catch{surface.focus()}
+ },{capture:true,passive:true});
+})();
+function enterStudio(){if(room&&!room.offline)setTimeout(()=>{window.ArtSocial?.recordRoom?.(room);void syncRoomSocialIdentity()},1200);setChatPanelVisible(true);if(!$('#viewerAccessNotice')){const note=document.createElement('div');note.id='viewerAccessNotice';note.hidden=true;$('#memberList').before(note)}window.ArtSound?.play('page',2);$('#home').hidden=true;$('#studio').hidden=false;$('#roomTitle').textContent=room.name;$('#connectionState').textContent=room.offline?'ひとりで試す':isHost?'部屋主として接続中':'接続中';$('#canvasSize').textContent=`${engine.w} × ${engine.h} px`;for(const c of [$('#display'),$('#overlay')]){c.width=engine.w;c.height=engine.h}$('#canvasSurface').style.width=engine.w+'px';$('#canvasSurface').style.height=engine.h+'px';$('#canvasSurface').setAttribute('tabindex','-1');renderMembers();viewerStateUI();updateInlineComment();renderControls();render();requestAnimationFrame(fitView);window.ArtGame?.enter();window.ArtAnimation?.enter()}
 function sendRejection(id,text,opId){const m={type:'notice',text,opId};if(id===localId)handleClient(m);else sendWire(connections.get(id),m)}
 function bounds(a){if(a.kind==='setting')return null;if(['cut','paste','transform'].includes(a.tool))return E.area(engine.layers[a.layer],a);if(a.tool==='fill')return{x:0,y:0,w:engine.w,h:engine.h};let xs=a.points.map(p=>p[0]),ys=a.points.map(p=>p[1]),r=(a.size||1)/2+5,x=Math.min(...xs)-r,y=Math.min(...ys)-r,x2=Math.max(...xs)+r,y2=Math.max(...ys)+r;if(a.tool==='transform'){let rad=Math.hypot(x2-x,y2-y)*a.scale/2,cx=a.cx+a.dx,cy=a.cy+a.dy;x=Math.min(x,cx-rad);y=Math.min(y,cy-rad);x2=Math.max(x2,cx+rad);y2=Math.max(y2,cy+rad)}return{x,y,w:x2-x,h:y2-y}}
 const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
