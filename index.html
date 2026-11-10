@@ -2266,7 +2266,11 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 @media(max-width:690px){
  #artsHUD .arts-meter.matter>label {font-size:10px!important;}
 }
-</style><style></style></head><body>
+</style><style></style><style id="artopia-arts-matter-click-167">
+#artsHUD{pointer-events:none!important}
+#artsHUD .arts-vitals{pointer-events:none!important}
+#artsHUD .arts-meter.matter>label>.arts-matter-help-button{pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important}
+</style></head><body>
 <div id="home" class="screen home"><header class="home-header"><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.7</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
@@ -10274,7 +10278,12 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
   const foot=document.createElement('p');foot.className='arts-matter-charge-foot';foot.textContent='最大100まで貯まり、必殺技を発動すると0に戻ります。実際のダメージ・回復量や発動状況で増加量は変わります。';dialog.appendChild(foot);
   if(!dialog.open)dialog.showModal();
  }
- document.addEventListener('click',event=>{const trigger=event.target.closest?.('.arts-matter-help-button');if(!trigger)return;event.preventDefault();event.stopPropagation();openArtsMatterHelp(trigger.dataset.artsMatterJob)},true);
+ document.addEventListener('click',event=>{
+  const trigger=event.target instanceof Element?event.target.closest('.arts-matter-help-button'):null;
+  if(!trigger||!trigger.closest('#artsHUD'))return;
+  event.preventDefault();event.stopPropagation();
+  openArtsMatterHelp(trigger.dataset.artsMatterJob);
+},false);
  function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress>'+((p.armorHP||0)>0?'<span class="arts-armor-indicator">◆ 装甲 <b>'+Math.ceil(p.armorHP)+'</b></span>':'')+'</div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div>'+ultimateHudHTML(p)+'</div>'}
  function skillDetails(k){const m=moves[k];return '<p><b>描き方の判定：</b>'+esc(m.gesture)+'</p><p><b>クールダウン：</b>'+(self()?.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒</p><p><b>効果：</b>'+esc(m.effect)+'</p><p><b>範囲：</b>'+esc(m.range)+'</p>'}
  function equipCardsHTML(a,choice,locked){
@@ -12525,7 +12534,30 @@ function drawBattleOutcome(x,canvas,now){
   }
   drawUltimateScreen(x,c,now,me,dpr);
   drawBattleOutcome(x,c,now);
- const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud.innerHTML!==text)hud.innerHTML=text;const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!(me&&me.active&&me.hp>0);if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';updateSkillIcons(me,now)}}
+ const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud._artsLastText!==text){
+  // Keep the Art Matter help button node alive while changing HUD values.
+  // Replacing innerHTML during a pointer gesture destroys the click target on iPad.
+  const holder=document.createElement('div');holder.innerHTML=text;
+  const previous=hud.querySelector('.arts-vitals');
+  const incoming=holder.querySelector('.arts-vitals');
+  if(previous&&incoming&&previous.querySelector('.arts-meter.matter .arts-matter-help-button')&&incoming.querySelector('.arts-meter.matter')){
+   const oldMeters=Array.from(previous.children),newMeters=Array.from(incoming.children);
+   for(let i=0;i<Math.min(2,oldMeters.length,newMeters.length);i++)oldMeters[i].replaceWith(newMeters[i]);
+   const oldMatter=previous.querySelector('.arts-meter.matter'),newMatter=incoming.querySelector('.arts-meter.matter');
+   const oldValue=oldMatter?.querySelector('label > b'),newValue=newMatter?.querySelector('label > b');
+   if(oldValue&&newValue)oldValue.textContent=newValue.textContent;
+   const oldProgress=oldMatter?.querySelector('progress'),newProgress=newMatter?.querySelector('progress');
+   if(oldProgress&&newProgress){oldProgress.max=newProgress.max;oldProgress.value=newProgress.value}
+   oldMatter?.classList.toggle('ready',!!newMatter?.classList.contains('ready'));
+   const oldReady=oldMatter?.querySelector('.arts-am-ready'),newReady=newMatter?.querySelector('.arts-am-ready');
+   if(oldReady&&!newReady)oldReady.remove();else if(!oldReady&&newReady)oldMatter.appendChild(newReady);
+   const oldHelp=oldMatter?.querySelector('.arts-matter-help-button'),newHelp=newMatter?.querySelector('.arts-matter-help-button');
+   if(oldHelp&&newHelp)oldHelp.dataset.artsMatterJob=newHelp.dataset.artsMatterJob;
+   for(const node of Array.from(hud.children))if(node!==previous)node.remove();
+   for(const node of Array.from(holder.children))if(node!==incoming)hud.appendChild(node);
+  }else hud.innerHTML=text;
+  hud._artsLastText=text;
+ }const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!(me&&me.active&&me.hp>0);if(info&&me&&info.textContent!=='お手本を見る')info.textContent='お手本を見る';updateSkillIcons(me,now)}}
 
 /* SECTION: arts/settings-lifecycle.js */
  function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'生命の庭園',ruins:'古代遺跡',forest:'深緑の森',arena:'基本アリーナ',portal:'転送研究所',mine:'鉱石洞窟',factory:'暴走工場'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">ステージの大きさ<select id="artsStageSize">'+Object.entries({small:'小（760×760／ナイトメア5秒）',medium:'中（1120×1120／10秒）',large:'大（2200×2200／20秒）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stageSize===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field" style="display:flex;align-items:center;gap:10px"><input id="artsNpcEnabled" type="checkbox" ' +(s.npcEnabled?'checked':'')+'> 敵NPCを出現させる（巡回ドローン）</label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">チーム分け<select id="artsTeamAssignModeConfig"><option value="random" '+(s.teamAssignMode==='random'?'selected':'')+'>ランダム</option><option value="manual" '+(s.teamAssignMode==='manual'?'selected':'')+'>手動</option></select></label><label class="form-field">持ち込める固有スキル数<select id="artsSkillSlots">'+Array.from({length:7},(_,i)=>'<option value="'+i+'" '+(s.skillSlots===i?'selected':'')+'>'+i+'個'+(i===2?'（デフォルト）':'')+'</option>').join('')+'</select><small>0個なら通常攻撃のみ、6個なら職業の全スキルを使用できます。</small></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。基本アリーナは上下にインク回復、左右にHP回復、四隅に転送装置を配置。小は簡潔、大は細かい遮蔽を追加したサイズ別専用設計です。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角・二重の丸や楕円・太い外殻は防御力、横に広い胴体も防御力に少し加点。塗りつぶし・グルグルはインク量、本体から離れた弾・魔法弾は射程に特化します。初期HPは全員100。セイントの祝福で最大HPを増やせます。2〜8人。チーム戦ではランダムまたは部屋主の手動指定でチームを決定します。時間切れ後は安全地帯が縮小します。</p>'}
