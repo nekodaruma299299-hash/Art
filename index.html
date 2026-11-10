@@ -10268,29 +10268,15 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
   vampire:['敵への攻撃、吸血による実際の回復、HPを使う血の技などで貯まります。','複数の獲得手段があるため、獲得量には職業固有の補正があります。']
  };
  function openArtsMatterHelp(job){
+  // Use the same shared modal that the working "お手本を見る" control uses.
+  // A separate dialog was unreliable on the game HUD; keep the small ? button untouched.
   const key=Object.prototype.hasOwnProperty.call(artsMatterHelpContent,job)?job:'attacker';
-  let dialog=document.getElementById('artsMatterChargeDialog');
-  if(!dialog){
-   dialog=document.createElement('dialog');dialog.id='artsMatterChargeDialog';dialog.className='arts-matter-charge-dialog';
-   document.body.appendChild(dialog);
-   dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-  }
-  dialog.replaceChildren();
-  const head=document.createElement('div');head.className='arts-matter-charge-head';
-  const heading=document.createElement('h3');heading.textContent='アートマターの貯め方';head.appendChild(heading);
-  const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','閉じる');close.onclick=()=>dialog.close();head.appendChild(close);
-  dialog.appendChild(head);
-  const jobName=document.createElement('p');jobName.className='arts-matter-charge-job';jobName.textContent=classNames[key]||key;dialog.appendChild(jobName);
-  const list=document.createElement('ul');for(const line of artsMatterHelpContent[key]){const li=document.createElement('li');li.textContent=line;list.appendChild(li)}dialog.appendChild(list);
-  const foot=document.createElement('p');foot.className='arts-matter-charge-foot';foot.textContent='最大100まで貯まり、必殺技を発動すると0に戻ります。実際のダメージ・回復量や発動状況で増加量は変わります。';dialog.appendChild(foot);
-  if(!dialog.open)dialog.showModal();
+  const jobTitle=classNames[key]||key;
+  const body='<p style="font-weight:800;margin:0 0 12px;color:#895e14">'+esc(jobTitle)+'</p>'+
+   '<ul style="margin:0;padding-left:22px;line-height:1.85">'+artsMatterHelpContent[key].map(line=>'<li style="margin-bottom:8px">'+esc(line)+'</li>').join('')+'</ul>'+
+   '<p style="font-size:12px;color:#536171;margin:14px 0 0">最大100まで貯まり、必殺技を発動すると0に戻ります。実際のダメージ・回復量や発動状況で増加量は変わります。</p>';
+  modal('アートマターの貯め方',body);
  }
- document.addEventListener('click',event=>{
-  const trigger=event.target instanceof Element?event.target.closest('.arts-matter-help-button'):null;
-  if(!trigger||!trigger.closest('#artsHUD'))return;
-  event.preventDefault();event.stopPropagation();
-  openArtsMatterHelp(trigger.dataset.artsMatterJob);
-},false);
  function vitalsHTML(p){const maxHp=p.maxHp||100,hp=Math.max(0,Math.ceil(p.hp)),max=Math.max(1,p.maxInk),ink=Math.max(0,Math.floor(p.ink));return '<div class="arts-vitals">'+'<div class="arts-meter hp'+(hp<=25?' low':'')+'"><label>HP <b>'+hp+' / '+Math.round(maxHp)+'</b>'+(p.regenUntil>Date.now()?' <span style="color:#299f72">✚ 再生 '+Math.ceil((p.regenUntil-Date.now())/1000)+'秒</span>':'')+'</label><progress max="'+maxHp+'" value="'+hp+'" aria-label="HP"></progress>'+((p.armorHP||0)>0?'<span class="arts-armor-indicator">◆ 装甲 <b>'+Math.ceil(p.armorHP)+'</b></span>':'')+'</div><div class="arts-meter ink"><label>インク <b>'+ink+' / '+Math.round(max)+(ink>max?'（上限超過）':'')+'</b></label><progress max="'+Math.max(max,ink)+'" value="'+ink+'" aria-label="インク"></progress></div>'+ultimateHudHTML(p)+'</div>'}
  function skillDetails(k){const m=moves[k];return '<p><b>描き方の判定：</b>'+esc(m.gesture)+'</p><p><b>クールダウン：</b>'+(self()?.class==='vampire'&&['ghost','drain'].includes(k)?m.cooldown/2000:m.cooldown/1000)+'秒</p><p><b>効果：</b>'+esc(m.effect)+'</p><p><b>範囲：</b>'+esc(m.range)+'</p>'}
  function equipCardsHTML(a,choice,locked){
