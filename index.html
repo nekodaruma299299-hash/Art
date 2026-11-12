@@ -21234,6 +21234,66 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  apply();
 })();
 </script>
+<style id="artopia-unified-category-handle-style">
+/* One category heading now acts as both the disclosure and the long-press move handle. */
+#studio #toolButtons .art-unified-category>summary.art-group-summary {
+ display:flex!important;align-items:center;justify-content:flex-start;gap:7px;
+ width:100%;min-height:36px!important;padding:6px 8px!important;
+ border:0!important;border-radius:7px!important;background:transparent!important;
+ color:#526c73;font-weight:700!important;font-size:13px!important;
+ cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+ list-style:none;touch-action:pan-y;
+}
+#studio #toolButtons .art-unified-category>summary.art-group-summary::-webkit-details-marker{display:none}
+#studio #toolButtons .art-unified-category>summary.art-group-summary::before{
+ content:'▸';display:inline-block;flex:none;color:#66868d;font-size:15px;
+ transform:rotate(0);transition:transform .16s ease;
+}
+#studio #toolButtons .art-unified-category[open]>summary.art-group-summary::before{transform:rotate(90deg)}
+#studio #toolButtons .art-unified-category>summary.art-group-summary:focus-visible{outline:2px solid #238995;outline-offset:-2px}
+#studio #toolButtons .art-unified-category[open]>summary.art-group-summary{margin-bottom:5px}
+#studio #toolButtons .art-unified-category .art-category-body{min-width:0}
+#studio #toolButtons .art-unified-category .art-category-body>*{max-width:100%}
+#studio #toolButtons .art-unified-category.art-setting-fold{border:0;margin:0;padding:0}
+/* Detached panels retain their disclosure heading even though legacy sort handles are hidden. */
+#studio .art-floating-tool>.sort-item .art-unified-category>summary.art-group-summary{display:flex!important}
+</style>
+<script id="artopia-unified-category-handle">
+(()=>{
+ 'use strict';
+ const studio=document.getElementById('studio');
+ if(!studio)return;
+ const read=(key,defaultValue)=>{try{const v=JSON.parse(localStorage.getItem(key));return typeof v==='boolean'?v:defaultValue}catch{return defaultValue}};
+ const remember=(details,key)=>details.addEventListener('toggle',()=>{try{localStorage.setItem(key,JSON.stringify(details.open))}catch{}});
+ // Pen settings: keep its existing, independent child folders and control IDs.
+ const settings=studio.querySelector('#toolButtons>.tool-settings');
+ if(settings&&!settings.querySelector(':scope>.art-unified-category')){
+  const oldHandle=settings.querySelector(':scope>.sort-handle');
+  const details=document.createElement('details');details.className='art-unified-category';
+  const summary=document.createElement('summary');summary.className='sort-handle art-group-summary';
+  summary.textContent='ペン設定';summary.title='タップで開閉・長押しで移動';
+  summary.setAttribute('aria-label','ペン設定：タップで開閉、長押しで移動');
+  const body=document.createElement('div');body.className='art-category-body';
+  for(const child of [...settings.children])if(child!==oldHandle)body.append(child);
+  details.append(summary,body);oldHandle?.remove();settings.prepend(details);
+  details.open=read('artopia-fold-settings',true);remember(details,'artopia-fold-settings');
+ }
+ // Screen controls already have a persistent details folder. Promote its summary
+ // to the sole top-level header instead of adding another overlapping handle.
+ const view=studio.querySelector('#toolButtons>.view-controls');
+ if(view){
+  const oldHandle=view.querySelector(':scope>.sort-handle');
+  const details=view.querySelector(':scope>#artFold-view');
+  if(details){
+   const summary=details.querySelector(':scope>summary');
+   if(summary){summary.classList.add('sort-handle','art-group-summary');summary.title='タップで開閉・長押しで移動';summary.setAttribute('aria-label','画面操作：タップで開閉、長押しで移動');}
+   details.classList.add('art-unified-category');
+   details.querySelector(':scope>div')?.classList.add('art-category-body');
+   oldHandle?.remove();
+  }
+ }
+})();
+</script>
 
 <style id="artopia-operation-settings-style">
 #artChatDock{margin-left:var(--art-chat-left,0px);padding:3px 8px calc(3px + env(safe-area-inset-bottom));min-width:0}
