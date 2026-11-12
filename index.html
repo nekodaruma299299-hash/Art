@@ -21209,7 +21209,16 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
   if(value){const sync=()=>v.textContent=value.textContent;new MutationObserver(sync).observe(value,{childList:true,subtree:true,characterData:true});sync()}
   return d;
  }
- fold($('.art-size-setting'),'size','サイズ',$('#sizeValue'),true);fold($('#strengthLabel'),'opacity','不透明度・強さ',$('#strengthValue'),true);
+ const sizeOpacityFold=fold($('.art-size-setting'),'size','太さ・透明度',null,true);
+ if(sizeOpacityFold){
+  const opacityControl=$('#strengthLabel');
+  if(opacityControl)sizeOpacityFold.append(opacityControl);
+  const summaryValue=document.createElement('span');
+  sizeOpacityFold.querySelector('summary').append(summaryValue);
+  const syncValues=()=>{summaryValue.textContent=($('#sizeValue')?.textContent||'')+' / '+($('#strengthValue')?.textContent||'')};
+  for(const control of [$('#sizeValue'),$('#strengthValue')])if(control)new MutationObserver(syncValues).observe(control,{childList:true,subtree:true,characterData:true});
+  syncValues();
+ }
  const view=$('.view-controls');if(view){const content=document.createElement('div');for(const e of [...view.children])if(!e.classList.contains('sort-handle'))content.append(e);view.append(content);fold(content,'view','画面操作',null,false)}
  const tools=[...list.querySelectorAll('button[data-tool]'),...studio.querySelectorAll('.art-floating-tool button[data-tool]')];
  const optional=new Map(tools.filter(t=>!['pen','eraser'].includes(t.dataset.tool)).map(t=>[t.dataset.sortId||t.dataset.tool,t]));
