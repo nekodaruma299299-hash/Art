@@ -1065,7 +1065,7 @@ input[type=range]{touch-action:none!important;user-select:none;-webkit-user-sele
 window.ArtModeLayout=(()=>{
  const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const themes={voice:['#e9f8f7','#9ed9d5'],free:['#e9f8f7','#9ed9d5'],pixel:['#e9f8f7','#9ed9d5'],animation:['#e9f8f7','#9ed9d5'],relay:['#e1f5ef','#a5dcd0'],wolf:['#f2edfb','#d4c8e7'],answer:['#fff0e8','#edc9b5'],arts:['#fff0f0','#efcccc'],chimera:['#f0f8e7','#d3e3be'],shadow:['#f9e9f1','#cb83a8']};
-window.ArtRoomThemes={"free":["#e9f8f7","#9ed9d5","#1b8686"],"pixel":["#e9f8f7","#9ed9d5","#1b8686"],"animation":["#e9f8f7","#9ed9d5","#1b8686"],"relay":["#e1f5ef","#a5dcd0","#288876"],"wolf":["#f2edfb","#d4c8e7","#78579a"],"answer":["#fff0e8","#edc9b5","#a26a39"],"arts":["#fff0f0","#efcccc","#b05865"],"chimera":["#f0f8e7","#d3e3be","#6c9244"],"shadow":["#f9e9f1","#cb83a8","#963b6d"]};
+window.ArtRoomThemes={"voice":["#e9f8f7","#9ed9d5","#1b8686"],"free":["#e9f8f7","#9ed9d5","#1b8686"],"pixel":["#e9f8f7","#9ed9d5","#1b8686"],"animation":["#e9f8f7","#9ed9d5","#1b8686"],"relay":["#e1f5ef","#a5dcd0","#288876"],"wolf":["#f2edfb","#d4c8e7","#78579a"],"answer":["#fff0e8","#edc9b5","#a26a39"],"arts":["#fff0f0","#efcccc","#b05865"],"chimera":["#f0f8e7","#d3e3be","#6c9244"],"shadow":["#f9e9f1","#cb83a8","#963b6d"]};
  function card({id,title,description,icon,theme,badge=''}){const b=document.createElement('button');b.type='button';b.id=id;b.className='action-card mode-card';const colors=themes[theme]||['#eef5f5','#d3e1e1'];b.style.setProperty('--mode-background',colors[0]);b.style.setProperty('--mode-border',colors[1]);b.innerHTML='<span class="mode-card-icon" aria-hidden="true">'+icon+'</span><b class="mode-card-title">'+escape(title)+(badge?'<small class="mode-card-badge">'+escape(badge)+'</small>':'')+'</b><span class="mode-card-description">'+escape(description)+'</span>';return b}
  function menu({tagline='',description,actions,details='',note=''}){return '<section class="mode-menu">'+(tagline?'<h3 class="mode-menu-tagline">'+escape(tagline)+'</h3>':'')+'<p class="mode-menu-description">'+escape(description)+'</p><div class="mode-menu-actions">'+actions.map(a=>'<button type="button" id="'+escape(a.id)+'"'+(a.primary?' class="primary"':'')+'>'+escape(a.label)+'</button>').join('')+'</div>'+(details?'<details class="mode-menu-details"><summary>遊び方</summary>'+details+'</details>':'')+(note?'<p class="mode-menu-note">'+escape(note)+'</p>':'')+'</section>'}
  return Object.freeze({card,menu});
@@ -2286,7 +2286,38 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #artopiaSocial .as-room-history-scroll .as-bubble{flex:0 0 auto;max-width:min(90%,700px);overflow-wrap:anywhere}
 #artopiaSocial .as-room-history-body>.as-composer{flex:0 0 auto;margin-top:0}
 #artopiaSocial .as-room-history-body>#as-room-status{flex:0 0 auto;min-height:0;margin:0;overflow-wrap:anywhere}
-</style></head><body>
+</style><style id="artopia-voice-mode-picker-colors">
+/* Voice, animation and pixel modes share the same teal palette in both mode menus. */
+.room-mode-choice{background:var(--room-mode-bg,#fff);border-color:var(--room-mode-border,#e0e8ea)}
+.room-mode-choice[aria-pressed="true"]{background:var(--room-mode-bg,#f1faf8);border-color:var(--room-mode-accent,#67bdb8);box-shadow:inset 0 0 0 1px var(--room-mode-accent,#67bdb8)}
+.room-mode-choice .room-mode-icon{background:rgba(255,255,255,.65);color:var(--room-mode-accent,#1b8686)}
+.room-create-mode-button{background:var(--room-mode-bg,#fafdfe);border-color:var(--room-mode-border,#cfdee1)}
+.room-switch-mode-choices{display:flex;flex-direction:column;gap:8px;max-height:min(54vh,460px);overflow-y:auto;overscroll-behavior:contain;margin-bottom:12px}
+.room-switch-mode-choices .room-mode-choice{min-height:60px;padding:8px 12px}
+.room-switch-mode-choices .room-mode-icon{width:42px;height:42px;min-width:42px;border-radius:11px}
+.room-switch-mode-choices .room-mode-icon svg{width:28px;height:28px}
+#roomSwitchModeConfig[hidden]{display:none!important}
+</style><style id="artopia-room-history-reliable-layout-1616">
+#artopiaSocial .as-body.as-detail-body.as-room-history-body{display:flex;flex-direction:column;flex:1 1 0;min-height:0;min-width:0;overflow:hidden;padding:5px 10px 7px;gap:4px}
+#artopiaSocial .as-room-history-topbar{display:flex;flex:0 0 auto;align-items:center;gap:8px;min-height:38px;min-width:0}
+#artopiaSocial .as-room-history-topbar h3{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;font-size:14px}
+#artopiaSocial .as-room-history-topbar #as-detail-back{flex:0 0 auto;padding:5px 3px;font-size:12px}
+#artopiaSocial .as-room-history-topbar #as-room-retry{flex:0 0 auto;padding:5px 8px;font-size:11px;min-height:32px}
+#artopiaSocial .as-room-history-note{flex:0 0 auto;margin:0;font-size:11px;color:#647f85}
+#artopiaSocial .as-room-history-body .as-room-history-scroll{display:flex;position:relative;flex:1 1 0;min-height:0;min-width:0;overflow:hidden}
+#artopiaSocial .as-room-history-body .as-room-history-scroll>.as-thread.as-tall{display:flex;flex-direction:column;flex:1 1 0;width:100%;min-height:0;min-width:0;height:auto;max-height:none;overflow-x:hidden;overflow-y:auto;padding:4px 2px 5px;gap:6px;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#artopiaSocial .as-room-history-body .as-room-history-scroll .as-bubble{flex:0 0 auto;max-width:min(90%,700px);min-height:fit-content;padding:7px 9px;border-radius:10px;line-height:1.4;overflow-wrap:anywhere}
+#artopiaSocial .as-room-history-body .as-bubble-author{gap:5px;min-height:18px;line-height:1.3}
+#artopiaSocial .as-room-history-body .as-bubble-author>.as-inline-avatar{width:19px;height:19px;flex-basis:19px}
+#artopiaSocial .as-room-history-body .as-bubble-author small{font-size:10px}
+#artopiaSocial .as-room-history-body .as-bubble p{margin:3px 0 0;font-size:13px;line-height:1.45;white-space:pre-wrap}
+#artopiaSocial .as-room-history-body>#as-room-status{flex:0 0 auto;margin:0;font-size:11px;max-height:64px;overflow:auto}
+#artopiaSocial .as-room-history-body>#as-room-status:empty{display:none}
+#artopiaSocial .as-room-history-body>.as-composer{flex:0 0 auto;min-height:0;margin:0;padding:5px 0 max(3px,env(safe-area-inset-bottom));gap:6px}
+#artopiaSocial .as-room-history-body>.as-composer input{min-height:40px;padding:8px 10px;font-size:14px}
+#artopiaSocial .as-room-history-body>.as-composer button{min-height:40px;min-width:44px;padding:5px 9px}
+</style>
+</head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.15</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
     <div><h2 id="publicRoomsHeading">公開ルーム</h2><p class="muted public-rooms-description">みんなが遊んでいる部屋を探そう！</p></div>
@@ -16876,7 +16907,7 @@ window.ArtSessionUI=(()=>{
 })();
 /* Room modes, photo placement and whole-layer transforms. */
 window.ArtRoomTools=(()=>{
- const modes={pixel:'ドット絵',free:'自由にお絵描き',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'あーとれいたー（開発版）'};
+ const modes={voice:'ボイスチャット',animation:'アニメーション',pixel:'ドット絵',free:'自由にお絵描き',relay:'あーてぃっくふぉん',wolf:'あーとうるふ',answer:'あーとあんさー',arts:'あーとあーつ',chimera:'あーときめら',shadow:'あーとれいたー（開発版）'};
  const shared=()=>!!(room&&connected&&!members.get(localId)?.spectator&&(!window.ArtGame?.enabled()||window.ArtSessionUI?.active()));
  const canSwitch=()=>isHost&&connected&&!migrationOut&&!checkpointBusy&&!canvasRestoring&&(!window.ArtGame?.enabled()||['lobby','finished'].includes(window.ArtGame.getView?.()?.phase));
  function sync(){const photo=$('#photoInsertBtn'),move=$('#moveLayerBtn');if(photo){photo.hidden=!shared();photo.disabled=!shared()}if(move)move.disabled=!shared();}
@@ -16909,7 +16940,42 @@ window.ArtRoomTools=(()=>{
   room.canvasEpoch=epoch;room.characterOnly=false;pendingOps.clear();pendingLocal.clear();pendingHistory.clear();locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();
   $('#snapshotBtn').hidden=false;window.ArtGame.enter();renderControls();render();fitView();sync();if(config.canvasResize){const queued=deferredMessages.splice(0);for(const message of queued)handleClient(message)}
  }
- function chooseMode(){if(!canSwitch()){toast('ゲーム終了後、または待機中に部屋主が変更できます');return}modal('ゲームモードを選ぶ','<form id="createForm"><div id="modeStub" hidden><input id="newWidth" value="'+room.w+'"><input id="newHeight" value="'+room.h+'"><input id="newLimit" value="'+room.limit+'"><label><select id="newArt"></select></label><label><select id="newSnapshotInterval"></select></label><label><input id="newProtect" type="checkbox"></label><button id="localDraw" type="button"></button></div><p>通常絵とドット絵は別々に保持されます。通常絵から変換する場合は、ドット絵の設定で選んでください。</p><button type="submit" class="primary">このモードに変更</button></form>');window.ArtGame.initCreate();$('#newMode').value=room.mode||'free';$('#newMode').onchange();$('#createForm').onsubmit=e=>{e.preventDefault();if(!canSwitch()||!e.target.reportValidity())return;const config={...window.ArtGame.createConfig()},epoch=(room.canvasEpoch||0)+1;broadcast({type:'roomModeChange',roomId:room.id,config,epoch});applyMode(config,epoch);$('#modal').close();toast('ゲームモードを変更しました')};}
+ function chooseMode(){
+  if(!canSwitch()){toast('ゲーム終了後、または待機中に部屋主が変更できます');return}
+  modal('ゲームモードを選ぶ','<form id="createForm"><div id="modeStub" hidden><input id="newWidth" value="'+room.w+'"><input id="newHeight" value="'+room.h+'"><input id="newLimit" value="'+room.limit+'"><label><select id="newArt"></select></label><label><select id="newSnapshotInterval"></select></label><label><input id="newProtect" type="checkbox"></label><button id="localDraw" type="button"></button></div><div id="roomSwitchModeChoices" class="room-switch-mode-choices" role="group" aria-label="ゲームモード一覧"></div><div id="roomSwitchModeConfig"></div><p class="room-create-hint">通常絵とドット絵は別々に保持されます。</p><button type="submit" class="primary">このモードに変更</button></form>');
+  window.ArtGame.initCreate();
+  const select=$('#newMode');if(!select)return;
+  for(const [value,name] of [['voice','ボイスチャット'],['animation','アニメーション']])if(![...select.options].some(o=>o.value===value))select.add(new Option(name,value));
+  // Retain the original mode-specific game settings, but use the same mode-card selector as room creation.
+  const field=select.closest('label');if(field)field.hidden=true;
+  const choices=$('#roomSwitchModeChoices'),config=$('#roomSwitchModeConfig');
+  const originalChange=select.onchange;
+  const renderSelected=()=>{
+    const value=select.value;
+    for(const b of choices.querySelectorAll('[data-mode]')){
+      const selected=b.dataset.mode===value;b.setAttribute('aria-pressed',String(selected));b.querySelector('.room-mode-check').textContent=selected?'✓':'';
+    }
+    if(config)config.hidden=['free','voice','animation'].includes(value);
+  };
+  select.onchange=function(...args){originalChange?.apply(this,args);renderSelected()};
+  for(const [value,label] of Object.entries(modes)){
+    const theme=window.ArtRoomThemes?.[value]||window.ArtRoomThemes?.free;
+    const b=document.createElement('button');b.type='button';b.className='room-mode-choice';b.dataset.mode=value;
+    if(theme){b.style.setProperty('--room-mode-bg',theme[0]);b.style.setProperty('--room-mode-border',theme[1]);b.style.setProperty('--room-mode-accent',theme[2])}
+    b.innerHTML='<span class="room-mode-icon" aria-hidden="true">'+(window.ArtopiaOriginalIcons?.[value]||icon('brush'))+'</span><span class="room-mode-copy"><strong>'+label+'</strong></span><span class="room-mode-check"></span>';
+    b.onclick=()=>{select.value=value;select.onchange()};choices.append(b);
+  }
+  for(const id of ['gameCreate','wolfCreate','answerCreate','artsCreate','chimeraCreate','shadowCreate','dotCreate']){const el=$('#'+id);if(el)config.append(el)}
+  select.value=room.mode||'free';select.onchange();
+  $('#createForm').onsubmit=e=>{
+    e.preventDefault();if(!canSwitch()||!e.target.reportValidity())return;
+    const chosen=select.value;
+    const config=chosen==='voice'?{mode:'voice'}:chosen==='animation'?{mode:'animation',snapshotInterval:0,protect:false}:{...window.ArtGame.createConfig()};
+    const epoch=(room.canvasEpoch||0)+1;
+    broadcast({type:'roomModeChange',roomId:room.id,config,epoch});void applyMode(config,epoch);
+    $('#modal').close();toast('ゲームモードを変更しました');
+  };
+ }
  async function closeRoom(){if(!isHost||!room)return;if(!confirm('部屋を終了して全員の接続を閉じます。未保存の作品は各自で保存してください。'))return;await window.ArtPublicRooms?.stopHost();const closingRoom=room;room.ended=true;connected=false;clearTimeout(aliasTimer);clearTimeout(reconnectTimer);for(const cancel of [...pendingPeerStarts])cancel();aliasPeer?.destroy();aliasPeer=null;broadcast({type:'closing',roomId:room.id});await new Promise(r=>setTimeout(r,350));if(room!==closingRoom)return;resetSession();engine=null;$('#studio').hidden=true;$('#home').hidden=false;$('#modal').close();history.replaceState(null,'',location.pathname+location.search);await refreshGallery();}
  const settingsClick=$('#roomSettingsBtn').onclick;$('#roomSettingsBtn').onclick=()=>{settingsClick();const row=document.createElement('div');row.className='modal-actions';const choose=document.createElement('button');choose.textContent='ゲームモード：'+(modes[room.mode]||modes.free);choose.disabled=!canSwitch();choose.onclick=chooseMode;row.append(choose);if(isHost){const close=document.createElement('button');close.textContent='部屋を終了（全員）';close.onclick=closeRoom;row.append(close)}$('#modalContent').prepend(row)};
  return {sync,applyMode};
@@ -17038,6 +17104,7 @@ window.ArtDot=(()=>{
   const TTL = 90 * 1000;
   const MAX_LIST = 60;
   const MODES = {
+    voice: ['ボイスチャット',''], animation: ['アニメーション',''],
     pixel: ['ドット絵',''], free: ['おえかき',''], relay: ['あーてぃっくふぉん',''],
     wolf: ['あーとうるふ',''], answer: ['あーとあんさー',''],
     arts: ['あーとあーつ',''], chimera: ['あーときめら',''],
@@ -17090,7 +17157,8 @@ window.ArtDot=(()=>{
     if(!Number.isInteger(row.members) || row.members<1 || row.members>8)return null;
     if(!Number.isInteger(row.limit) || row.limit<2 || row.limit>8)return null;
     const pixel=row.mode==='free'&&row.name.startsWith('▦ ');
-    return {key,name:(pixel?row.name.slice(2):row.name).slice(0,40),ownerName:typeof row.ownerName==='string'?row.ownerName.slice(0,20):'',code:row.code,mode:pixel?'pixel':row.mode,
+    const oldVoice=row.mode==='free'&&row.name.startsWith('🎙 ');
+    return {key,name:(pixel||oldVoice?row.name.slice(2):row.name).slice(0,40),ownerName:typeof row.ownerName==='string'?row.ownerName.slice(0,20):'',code:row.code,mode:pixel?'pixel':oldVoice?'voice':row.mode,
       members:row.members,limit:row.limit,status:row.status==='playing'?'playing':'waiting',
       spectate:row.spectate===true,thumbnail:validImage(row.thumbnail)?row.thumbnail:'',
       updatedAt:row.updatedAt};
@@ -17130,7 +17198,7 @@ window.ArtDot=(()=>{
       if(theme){card.style.setProperty('--room-mode-border',theme[1]);card.style.setProperty('--room-mode-accent',theme[2])}
       const setText=(selector,value)=>{const el=card.querySelector(selector);if(el&&el.textContent!==value)el.textContent=value};
       setText('.public-room-name',r.name);
-      setText('.public-room-mode',r.name?.startsWith('🎙 ')?'ボイスチャット':MODES[r.mode][0]);
+      setText('.public-room-mode',MODES[r.mode][0]);
       setText('.public-room-owner','部屋主：'+(r.ownerName||'未設定'));
       setText('.public-room-count',`${r.members}/${r.limit}人`);
       setText('.public-room-tag',label);
@@ -17252,7 +17320,7 @@ window.ArtDot=(()=>{
   function dataForHost(){
     const present=[...members.values()].filter(m=>!m.disconnected).length;
     return {
-      ownerUid:user.uid,ownerName:String(profile?.name||'部屋主').trim().slice(0,20)||'部屋主',roomId:room.id,code:room.code,name:(room.mode==='voice'?'🎙 ':room.mode==='pixel'?'▦ ':'')+String(room.name||'公開ルーム').slice(0,room.mode==='voice'?37:room.mode==='pixel'?38:40),
+      ownerUid:user.uid,ownerName:String(profile?.name||'部屋主').trim().slice(0,20)||'部屋主',roomId:room.id,code:room.code,name:(room.mode==='pixel'?'▦ ':'')+String(room.name||'公開ルーム').slice(0,room.mode==='pixel'?38:40),
       mode:room.mode==='pixel'?'free':MODES[room.mode]?room.mode:'free',members:Math.max(1,Math.min(8,present)),
       limit:Math.min(8,Math.max(2,room.limit||8)),spectate:!!room.spectate,
       status:isPlaying()?'playing':'waiting',thumbnail:preview||'',createdAt:entryCreatedAt,
@@ -17402,7 +17470,7 @@ let db=null,auth=null,me=null,initialized=false,initializing=false,code='',activ
 let watchers=[], globalRows=[], globalLatestRows=[], globalOlderRows=[], globalOlderLoading=false, globalHasOlder=true, friendRows=[], incomingRows=[], sentRows=[], teams=[], messages=[];
 // v1.4.30: account-scoped local read markers. No extra database permissions.
 const unreadByFriend=new Map(), dmAlerts=new Map(), memorySeen=new Map();
-const roomAlerts=new Map(),roomAlertListeners=new Map(),roomKeys=new Set(),roomRetryAfter=new Map();
+const roomAlerts=new Map(),roomAlertListeners=new Map(),roomKeys=new Set(),roomRetryAfter=new Map(),roomMemorySeen=new Map();
 const teamAlerts=new Map(),teamAlertListeners=new Map(),teamMemorySeen=new Map();
 let pendingTeamInvites=0;
 let roomIndexOff=null,roomHistoryReadError='';
@@ -17464,8 +17532,25 @@ function refreshTeamAlerts(){
 }
 function readTeamIfVisible(id,key){if(teamIsVisible(id)&&key)markTeamSeen(id,key)}
 const roomSeenKey=id=>`artopia-room-seen-v1:${me?.uid||'guest'}:${id}`;
-function roomSeen(id){try{return localStorage.getItem(roomSeenKey(id))||''}catch{return ''}}
-function markRoomSeen(id,key){if(!id||!key||key<=roomSeen(id))return;try{localStorage.setItem(roomSeenKey(id),key)}catch{}roomAlerts.set(id,0);updateAllAlerts()}
+function roomSeen(id){const k=roomSeenKey(id);try{return [localStorage.getItem(k)||'',roomMemorySeen.get(k)||''].sort().at(-1)||''}catch{return roomMemorySeen.get(k)||''}}
+function markRoomSeen(id,key){
+ if(!id||!key||!me)return;
+ const k=roomSeenKey(id);
+ if(key>roomSeen(id)){
+  roomMemorySeen.set(k,key);
+  try{localStorage.setItem(k,key)}catch{}
+ }
+ // A listener may have been reattached after the message was already read.
+ // Clear the currently visible room indicator even when the marker was unchanged.
+ roomAlerts.set(id,0);updateAllAlerts();
+}
+function roomThreadIsVisible(id){
+ const social=document.getElementById('artopiaSocial');
+ const current=document.getElementById('as-detail-thread');
+ return activeView==='chats'&&activeRoomThread===id&&!social?.hidden&&
+  document.visibilityState==='visible'&&current?.isConnected&&
+  current.closest('.as-room-history-body')!==null;
+}
 function watchRecentRoomThreads(){
  if(!db||!me)return;
  if(!roomIndexOff){const q=ref('roomIndex/'+me.uid),cb=s=>{roomKeys.clear();for(const [id,at] of Object.entries(s.val()||{}))if(/^[a-zA-Z0-9_-]{8,100}$/.test(id)&&typeof at==='number'&&at>Date.now()-ROOM_AGE_MS)roomKeys.add(id);refreshRoomAlerts();if(activeView==='chats'&&!activeChat&&!activeTeam&&!activeRoomThread)drawChats()};q.on('value',cb,e=>{roomHistoryReadError=errors(e)});roomIndexOff=()=>q.off('value',cb)}
@@ -17477,7 +17562,13 @@ function refreshRoomAlerts(){
  for(const [id,off] of [...roomAlertListeners])if(!wanted.has(id)){off();roomAlertListeners.delete(id);roomAlerts.delete(id)}
  for(const id of wanted){if(roomAlertListeners.has(id))continue;
   const q=ref('roomThreads/'+id+'/messages').orderByKey().limitToLast(40);
-  const cb=s=>{let count=0,last='';s.forEach(ch=>{last=ch.key;const m=ch.val();if(m&&m.from!==me.uid&&ch.key>roomSeen(id))count++});roomAlerts.set(id,count);if(activeRoomThread===id&&!document.getElementById('artopiaSocial')?.hidden&&document.visibilityState==='visible'&&last)markRoomSeen(id,last);updateAllAlerts();if(activeView==='chats'&&!activeChat&&!activeTeam&&!activeRoomThread)paintRecentRoomList()};
+  const cb=s=>{
+    let count=0,last='';const seen=roomSeen(id);
+    s.forEach(ch=>{last=ch.key;const m=ch.val();if(m&&m.from!==me.uid&&ch.key>seen)count++});
+    if(roomThreadIsVisible(id)&&last){markRoomSeen(id,last);count=0}
+    roomAlerts.set(id,count);updateAllAlerts();
+    if(activeView==='chats'&&!activeChat&&!activeTeam&&!activeRoomThread)paintRecentRoomList();
+   };
   const err=e=>{
    roomAlerts.delete(id);q.off('value',cb);roomAlertListeners.delete(id);
    console.warn('[Artopia] 部屋履歴の通知',e?.code||e?.message);
@@ -18176,7 +18267,7 @@ function show(){let shell=$('artopiaSocial');if(!shell)return;
 function open(view='global'){dmOriginProfileUid=null;dmOriginProfileView=null;const s=$('artopiaSocial');if(!s)return;s.hidden=false;document.body.classList.add('as-open');activeView=['global','friends','chats'].includes(view)?view:'global';activeChat=null;activeTeam=null;activeRoomThread=null;if(!initialized)init();else if(activeView==='global'&&!globalListener)attachGlobalRead();show()}
 function close(){const s=$('artopiaSocial');if(s)s.hidden=true;document.body.classList.remove('as-open');clearDetailWatch();}
 let detailOff=[];
-function clearDetailWatch(){detailOff.forEach(f=>f());detailOff=[];$('as-body')?.classList.remove('as-dm-body','as-team-body');}
+function clearDetailWatch(){detailOff.forEach(f=>f());detailOff=[];$('as-body')?.classList.remove('as-dm-body','as-team-body','as-room-history-body');}
 async function textOfGlobal(msg){return msg.text||''}
 function entryByKey(k){return window.ArtPublicRooms?.findEntry?.(k)}
 function globalItem(m){
@@ -18585,7 +18676,7 @@ function paintRecentRoomList(){
  el.querySelectorAll('[data-as-recent]').forEach(b=>b.onclick=()=>{activeRoomThread=b.dataset.asRecent;activeChat=null;activeTeam=null;show()});
  updateAllAlerts();
 }
-function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeChat||activeTeam||activeRoomThread)return;el.classList.remove('as-person-body','as-global-body','as-detail-body');
+function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeChat||activeTeam||activeRoomThread)return;el.classList.remove('as-person-body','as-global-body','as-detail-body','as-room-history-body','as-dm-body','as-team-body');
  el.innerHTML=`<div class="as-subhead"><b>チャット</b><button class="as-small" id="as-team-new">${icon('add')} チームを作る</button></div><b class="as-label">DM</b><div class="as-list" id="as-dms"></div><b class="as-label">チーム</b><div class="as-list" id="as-team-list"></div><b class="as-label" id="as-team-invites-label">チーム招待</b><div class="as-list" id="as-team-invites"></div><p class="as-hint" id="as-team-decline-feedback" role="status" aria-live="polite"></p><b class="as-label">最近遊んだ部屋</b><div id="as-recent-rooms"></div><p class="as-hint">部屋の参加者だけが利用できます。履歴は7日間閲覧でき、期限後は非表示になります。</p>`;
  paintRecentRoomList();
  $('as-team-new').onclick=drawCreateTeam;
@@ -18602,22 +18693,25 @@ function drawChats(){const el=$('as-body');if(!el||activeView!=='chats'||activeC
 }
 function drawRoomThread(id){
  clearDetailWatch();const el=$('as-body');if(!el||!db||!me)return;
- el.classList.remove('as-person-body','as-global-body');el.classList.add('as-detail-body','as-room-history-body');
+ el.classList.remove('as-person-body','as-global-body','as-dm-body','as-team-body');el.classList.add('as-detail-body','as-room-history-body');
  const info=getRecentRooms().find(x=>x.id===id),label=info?.name||'以前の部屋';
- el.innerHTML=`<button type="button" id="as-detail-back" class="as-textbtn">${icon('back')} チャット一覧へ</button><h3>${icon('room')} ${safe(label)}</h3><p class="as-hint">一緒に遊んだメンバーとの再会チャットです（保存から7日以内）。</p><div class="as-room-history-scroll"><div id="as-detail-thread" class="as-thread as-tall" role="log" aria-label="部屋のチャット履歴"><p class="as-empty">履歴を読み込んでいます…</p></div></div><form id="as-composer-form" class="as-composer"><input id="as-composer-input" maxlength="300" placeholder="メッセージを入力" autocomplete="off"><button type="submit" aria-label="部屋チャットに送信">${icon('send')}</button></form><p id="as-room-status" class="as-hint" role="status"></p><button type="button" id="as-room-retry" class="as-small">履歴を再接続</button>`;
+ el.innerHTML=`<div class="as-room-history-topbar"><button type="button" id="as-detail-back" class="as-textbtn">${icon('back')} 戻る</button><h3>${icon('room')} ${safe(label)}</h3><button type="button" id="as-room-retry" class="as-small">再接続</button></div><p class="as-room-history-note">一緒に遊んだメンバーとの会話（7日間）</p><div class="as-room-history-scroll"><div id="as-detail-thread" class="as-thread as-tall" role="log" aria-label="部屋のチャット履歴"><p class="as-empty">履歴を読み込んでいます…</p></div></div><p id="as-room-status" class="as-hint" role="status"></p><form id="as-composer-form" class="as-composer"><input id="as-composer-input" maxlength="300" placeholder="メッセージを入力" autocomplete="off"><button type="submit" aria-label="部屋チャットに送信">${icon('send')}</button></form>`;
  $('as-detail-back').onclick=()=>{activeRoomThread=null;clearDetailWatch();drawChats()};
  const thread=$('as-detail-thread'),form=$('as-composer-form'),box=$('as-composer-input'),status=$('as-room-status');
  const photo=setupSocialImageComposer(form);
  const live=()=>activeRoomThread===id&&thread.isConnected;
  const q=ref('roomThreads/'+id+'/messages').orderByKey().limitToLast(60);
  let sending=false,latest='';
+ const readIfVisible=()=>{if(latest&&roomThreadIsVisible(id))markRoomSeen(id,latest)};
+ document.addEventListener('visibilitychange',readIfVisible);
+ detailOff.push(()=>document.removeEventListener('visibilitychange',readIfVisible));
  const showRows=s=>{
   if(!live())return;
-  const rows=[];s.forEach(ch=>rows.push({key:ch.key,...ch.val()}));latest=rows.at(-1)?.key||'';
+  const rows=[];s.forEach(ch=>{const m=ch.val();if(m&&typeof m==='object')rows.push({key:ch.key,...m})});latest=rows.at(-1)?.key||'';
   const wasAtBottom=thread.scrollHeight-thread.scrollTop-thread.clientHeight<75;
   thread.innerHTML=rows.length?rows.map(m=>`<article class="as-bubble ${m.from===me.uid?'mine':''}"><div class="as-bubble-author">${avatarChip(m.from)}<small>${m.from===me.uid?'あなた':safe(m.name||'参加者')} · ${stamp(m.at)}</small></div>${socialMessageText(m)?`<p>${socialMessageText(m)}</p>`:''}${socialImageHtml(m)}</article>`).join(''):'<p class="as-empty">まだメッセージはありません。</p>';
-  hydrateSocialAvatars(thread);if(wasAtBottom)thread.scrollTop=thread.scrollHeight;
-  if(latest&&document.visibilityState==='visible')markRoomSeen(id,latest);
+  hydrateSocialAvatars(thread);if(wasAtBottom)thread.scrollTop=thread.scrollHeight;if(!sending)status.textContent='';
+  readIfVisible();
  };
  const watchRoom=()=>{
   q.off('value',showRows);
@@ -18723,7 +18817,7 @@ function composer(onSend,makeMessageId){
 function drawDM(uid){
  clearDetailWatch();
   const el=$('as-body');if(!db||!el||!me)return;
-  el.classList.remove('as-person-body','as-global-body');
+  el.classList.remove('as-person-body','as-global-body','as-room-history-body','as-team-body');
   el.classList.add('as-detail-body','as-dm-body');
  el.innerHTML=`<div class="as-dm-topbar"><button id="as-detail-back" class="as-textbtn" type="button" aria-label="${dmOriginProfileUid===uid?'プロフィールへ戻る':'チャット一覧へ戻る'}">${icon('back')} 戻る</button><div class="as-dm-partner">${avatarChip(uid)}<h3 id="as-detail-title">DM</h3><button id="as-dm-profile" type="button" class="as-small as-profile-link">${icon('user')} プロフィール</button></div></div>
  <p id="as-dm-status" class="as-hint" role="status" aria-live="polite">履歴を読み込んでいます…</p>
