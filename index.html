@@ -4012,7 +4012,7 @@ $('#undoBtn').onclick=()=>{if(selection){cancelSelection();return}let a=(window.
 /* SECTION: app/20-composite-preview.js */
 function render(){if(!engine)return;window.ArtDot?.sync();let x=$('#display').getContext('2d');x.clearRect(0,0,engine.w,engine.h);if(room?.mode==='pixel')window.ArtDot.background(x);else{x.fillStyle='#fff';x.fillRect(0,0,engine.w,engine.h)}visibleLayers().forEach((l,i)=>{x.globalAlpha=prefs.opacities[i]/100;x.drawImage(l,0,0)});x.globalAlpha=1;$('#emptyHint').hidden=engine.ops.some(a=>a.kind!=='setting'&&!a.disabled)||engine.base.some(c=>c._nonempty)||!!room?.hasArt;renderOverlay()}
 let selectionPreview=null,previewWork=null;
-function releaseSelectionPreview(){if(selectionPreview){selectionPreview.hole.width=selectionPreview.hole.height=0;selectionPreview.cut.part.width=selectionPreview.cut.part.height=0;selectionPreview=null}}
+function releaseSelectionPreview(){if(selectionPreview){for(const c of [selectionPreview.hole,selectionPreview.cut?.part,selectionPreview.photoUnder,selectionPreview.photoOver])if(c)c.width=c.height=0;selectionPreview=null}}
 function releasePreviewWork(){if(previewWork){previewWork.width=previewWork.height=0;previewWork=null}}
 function workCanvas(w=engine.w,h=engine.h){if(!previewWork||previewWork.width!==w||previewWork.height!==h){releasePreviewWork();previewWork=E.make(w,h)}return previewWork}
 const remoteInk=new Map();
@@ -4053,15 +4053,38 @@ function paintLiveComposite(ctx){
 }
 function paintSelectionPreview(ctx){
  const layers=visibleLayers(),a=selection;
- if(!selectionPreview||selectionPreview.points!==a.points||selectionPreview.layer!==a.layer||selectionPreview.revision!==engine.layerVersion[a.layer]||(selectionPreview.localVersion!==localViewVersion&&layers[a.layer]!==engine.layers[a.layer])){
+ if(!selectionPreview||selectionPreview.points!==a.points||selectionPreview.layer!==a.layer||selectionPreview.revision!==engine.layerVersion[a.layer]||selectionPreview.opacities.some((n,i)=>n!==prefs.opacities[i])||(selectionPreview.localVersion!==localViewVersion&&layers[a.layer]!==engine.layers[a.layer])){
   releaseSelectionPreview();const hole=E.clone(layers[a.layer]),cut=a.mode==='paste'?E.unpackCut(a.clip):E.cutSelection(layers[a.layer],a.points);if(a.mode!=='paste')E.clearSelection(hole,a.points);
-  selectionPreview={hole,cut,points:a.points,layer:a.layer,revision:engine.layerVersion[a.layer],localVersion:localViewVersion};
+  selectionPreview={hole,cut,points:a.points,layer:a.layer,revision:engine.layerVersion[a.layer],localVersion:localViewVersion,opacities:prefs.opacities.slice()};
+  if(a.mode==='paste'){
+   // These layers do not move with the photo. Build them once per image placement,
+   // rather than compositing every static layer on every pointer movement.
+   const under=E.make(engine.w,engine.h),ux=under.getContext('2d');
+   ux.fillStyle='#fff';ux.fillRect(0,0,engine.w,engine.h);
+   for(let i=0;i<a.layer;i++){ux.globalAlpha=prefs.opacities[i]/100;ux.drawImage(layers[i],0,0)}
+   const over=E.make(engine.w,engine.h),ox=over.getContext('2d');
+   for(let i=a.layer+1;i<3;i++){ox.globalAlpha=prefs.opacities[i]/100;ox.drawImage(layers[i],0,0)}
+   selectionPreview.photoUnder=under;selectionPreview.photoOver=over;
+  }
  }
- const cache=selectionPreview;ctx.save();ctx.globalAlpha=1;ctx.fillStyle='white';ctx.fillRect(0,0,engine.w,engine.h);
+ const cache=selectionPreview;ctx.save();ctx.globalAlpha=1;
+ if(a.mode==='paste'&&cache.photoUnder){
+  ctx.drawImage(cache.photoUnder,0,0);
+  const c=workCanvas(),x=c.getContext('2d');
+  x.clearRect(0,0,engine.w,engine.h);
+  x.drawImage(cache.hole,0,0);
+  E.drawSelection(x,cache.cut,a);
+  ctx.globalAlpha=prefs.opacities[a.layer]/100;
+  ctx.drawImage(c,0,0);
+  ctx.globalAlpha=1;
+  ctx.drawImage(cache.photoOver,0,0);
+ }else{
+ ctx.fillStyle='white';ctx.fillRect(0,0,engine.w,engine.h);
  for(let i=0;i<3;i++){
   ctx.globalAlpha=prefs.opacities[i]/100;
   if(i!==a.layer||(a.mode!=='paste'&&E.identityTransform(a)))ctx.drawImage(layers[i],0,0);
   else{const c=workCanvas(),x=c.getContext('2d');x.clearRect(0,0,engine.w,engine.h);x.drawImage(cache.hole,0,0);E.drawSelection(x,cache.cut,a);ctx.drawImage(c,0,0)}
+ }
  }
  ctx.restore();ctx.save();ctx.translate(a.cx+a.dx,a.cy+a.dy);ctx.rotate(a.angle*Math.PI/180);ctx.scale(a.scale*a.flipX,a.scale*a.flipY);ctx.translate(-a.cx,-a.cy);ctx.beginPath();a.points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.setLineDash([6/prefs.view.z,4/prefs.view.z]);ctx.lineWidth=1.5/prefs.view.z/a.scale;ctx.strokeStyle='#159ca6';ctx.stroke();ctx.restore();
 }
@@ -4123,7 +4146,19 @@ let penPreview=null;
 function releasePenPreview(){if(penPreview){freeInk(penPreview);if(penPreview.canvas)penPreview.canvas.width=penPreview.canvas.height=0;if(penPreview.layer)penPreview.layer.width=penPreview.layer.height=0;penPreview=null}}
 let effectCache=null,effectFrame=0;
 function releaseEffectPreview(){if(effectCache){effectCache.canvas.width=effectCache.canvas.height=0;effectCache=null}}
-function scheduleEffectPreview(){if(!effectFrame)effectFrame=requestAnimationFrame(()=>{effectFrame=0;renderOverlay()})}
+let lastPhotoPreviewAt=0;
+function scheduleEffectPreview(){
+ if(effectFrame)return;
+ effectFrame=requestAnimationFrame(now=>{
+  effectFrame=0;
+  if(selection?.mode==='paste'&&now-lastPhotoPreviewAt<30){
+   effectFrame=requestAnimationFrame(()=>{effectFrame=0;lastPhotoPreviewAt=performance.now();renderOverlay()});
+   return;
+  }
+  if(selection?.mode==='paste')lastPhotoPreviewAt=now;
+  renderOverlay();
+ });
+}
 function paintEffectPreview(ctx){
   const a=stroke;if(!a||!['warp','blur','mosaic'].includes(a.tool))return;
   const layers=visibleLayers();
@@ -4265,7 +4300,7 @@ function appendStrokeSample(e){
  if(Math.hypot(p[0]-prev[0],p[1]-prev[1])<min&&(!stroke.pressure||Math.abs(p[2]-prev[2])<.02))return;
  if(stroke.points.length>=2699)condenseContinuousStroke(stroke);stroke.points.push(p);
 }
-viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#shadowStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if(pan||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(canvasRestoring||!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={pixelGrid:room?.mode==='pixel'?8:0,id:uid(),pointerType:e.pointerType,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(room?.mode==='arts'&&window.ArtGame?.getView?.()?.phase==='create')Object.defineProperty(stroke,'_artsStarted',{value:performance.now(),enumerable:false});if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.pixelGrid){delete stroke.opacityTaper;if(!['spray','cotton'].includes(stroke.brush))stroke.brush='normal';stroke.size=Math.max(8,Math.round(stroke.size/8)*8);}if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
+viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#shadowStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if((pan&&!((selection?.mode==='paste')&&pointers.size===1))||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch'&&selection?.mode!=='paste')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(canvasRestoring||!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={pixelGrid:room?.mode==='pixel'?8:0,id:uid(),pointerType:e.pointerType,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(room?.mode==='arts'&&window.ArtGame?.getView?.()?.phase==='create')Object.defineProperty(stroke,'_artsStarted',{value:performance.now(),enumerable:false});if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.pixelGrid){delete stroke.opacityTaper;if(!['spray','cotton'].includes(stroke.brush))stroke.brush='normal';stroke.size=Math.max(8,Math.round(stroke.size/8)*8);}if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
 viewport.onpointermove=e=>{if(e.target.closest('#artsStage'))return;if(pointers.has(e.pointerId)&&e.pointerType==='mouse'&&e.buttons===0){pointerEnd(e);return}if(pointers.has(e.pointerId))lastCanvasInput=performance.now();moveTwoTouch(e);if(pointers.has(e.pointerId)&&e.cancelable)e.preventDefault();if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(gesture){if(gesture.ids.includes(e.pointerId))gestureMove();return}let p=point(e);if(connected&&Date.now()-lastCursor>(window.ArtLagSettings?.cursorInterval?.()||70)){lastCursor=Date.now();window.ArtCursorPrefs?.sendPosition?.(p[0],p[1],false)||sendHost({type:'cursor',x:p[0],y:p[1]})}if(e.pointerId!==activePointer)return;if(dragSelection&&selection){selection.dx=dragSelection.dx+p[0]-dragSelection.p[0];selection.dy=dragSelection.dy+p[1]-dragSelection.p[1];scheduleEffectPreview();return}if(!stroke)return;const samples=e.getCoalescedEvents?.()||[];for(const sample of samples.length?samples:[e]){if(!stroke)break;appendStrokeSample(sample)}scheduleEffectPreview();if(stroke?.tool==='pen'&&!stroke._clipSource&&window.ArtLagSettings?.previewEnabled?.()!==false&&Date.now()-draftAt>(window.ArtLagSettings?.previewInterval?.()||100)){draftAt=Date.now();draftDelta(stroke)}};
 function finishStroke(){if(!stroke)return;let a=stroke;if(Number.isFinite(a._artsStarted))a.artsDuration=Math.max(16,performance.now()-a._artsStarted);stroke=null;releaseEffectPreview();if(a.tool==='lasso'){if(a.points.length>2){let b=bounds(a);selection={layer:a.layer,points:E.simplifyPoints(a.points),cx:b.x+b.w/2,cy:b.y+b.h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1};$('#transformBar').hidden=false;$('#rotateSelection').value=0;$('#selectionAngle').textContent='0°';$('#selectionAngle').classList.remove('snapped');selectionRotation=null;$('#scaleSelection').value=100;selection.lockId=uid();showSelectionControls();if(room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:b}})}}else if(a.tool!=='warp'||a.points.length>1)commit(a);render()}
 function pointerEnd(e,cancel=false){if(!pointers.has(e.pointerId))return;lastCanvasInput=performance.now();const twoTap=endTwoTouch(e,cancel);if(e.pointerType!=='mouse'||cancel)brushPointer=null;pointers.delete(e.pointerId);if(gesture){if(pointers.size)gestureStart();else{gesture=null;updateSnapOutline();if(twoTap){moveUndo=null;changeSetting('pan',twoTap.pan);toast(twoTap.pan?'画面移動 ON：ドラッグ・ピンチで操作':'画面移動 OFF：お絵描きに戻ります')}if(moveUndo){commitSetting('view',moveUndo,prefs.view);moveUndo=null}}return}if(e.pointerId===activePointer){if(cancel){if(stroke&&connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;releaseEffectPreview();renderOverlay()}else finishStroke();dragSelection=null;activePointer=null}updateBrushCursor()}
