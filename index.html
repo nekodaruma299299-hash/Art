@@ -810,6 +810,51 @@ output[role=button]{cursor:pointer;text-decoration:underline dotted;text-underli
 <style>/* CATEGORY: 3ターン制ウルフ */
 .wolf-past{text-align:left;margin:12px 0}.wolf-past summary{cursor:pointer;font-weight:700;padding:10px;background:#f0e8f6;border-radius:8px}.wolf-past figure{margin:0;min-width:0}.wolf-past img{width:100%;height:160px;object-fit:contain;background:white}.wolf-past figcaption{font-size:12px}#wolfGuessForm{display:flex;flex-wrap:wrap;align-items:end;justify-content:center;gap:10px}#wolfGuessForm label{display:flex;flex-direction:column;gap:8px}#wolfGuessInput{min-width:0;max-width:100%;font-size:18px;padding:10px}#wolfGuessError{flex-basis:100%;color:#b94054}.wolf-answer-hint{font-size:20px!important;font-weight:700;background:#fff4d7;padding:12px;border-radius:10px}#wolfUnknown{background:#e5f2fa;border:2px solid #72a3c4;font-weight:700;min-height:48px}#wolfBar .wolf-word{flex-wrap:wrap}#wolfBar .wolf-word>span{font-size:14px;font-weight:600}#wolfHistory{min-height:40px}
 </style><style>.wolf-preparation-topic{font-size:clamp(28px,5vw,56px);font-weight:800;line-height:1.3;overflow-wrap:anywhere;margin:20px 0}.wolf-countdown{font-size:64px;font-weight:800;color:#84649c}#wolfSecretForm{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}#wolfSecretInput{display:block;font-size:20px;max-width:100%;margin:10px 0}</style>
+
+<style id="artopia-wolf-stage-layout-fix">
+/* ワードウルフのゲーム画面は道具欄がないため1列目に配置する。
+   共通の3列グリッド(important)より優先し、チャット欄だけ別列に保つ。 */
+.studio.wolf-mode:not(.wolf-drawing)>.workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--chat-width,270px)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  min-height:0;
+}
+.studio.wolf-mode:not(.wolf-drawing)>.workspace>.toolbox{display:none!important}
+.studio.wolf-mode:not(.wolf-drawing)>.workspace>#viewport{
+  grid-column:1!important;
+  grid-row:1!important;
+  min-width:0;
+  min-height:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  position:relative;
+}
+.studio.wolf-mode:not(.wolf-drawing)>.workspace>.member-panel{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-height:0;
+}
+.studio.wolf-mode:not(.wolf-drawing) #wolfStage{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  box-sizing:border-box;
+}
+/* 縦長のスマートフォンでも履歴とチャットを視認可能にする。 */
+@media(max-width:650px) and (orientation:portrait){
+  .studio.wolf-mode:not(.wolf-drawing)>.workspace{
+    grid-template-columns:minmax(0,1fr) 144px!important;
+    grid-template-rows:minmax(0,1fr)!important;
+  }
+  .studio.wolf-mode:not(.wolf-drawing)>.workspace>.member-panel{
+    grid-column:2!important;
+    grid-row:1!important;
+  }
+}
+</style>
 <!-- CATEGORY: 検索向けメタデータ（GitHub Pagesの公開URL） -->
 <link rel="canonical" href="https://nekodaruma299299-hash.github.io/Art/">
 <meta property="og:type" content="website">
