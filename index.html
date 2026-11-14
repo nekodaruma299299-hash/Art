@@ -2317,6 +2317,44 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #artopiaSocial .as-room-history-body>.as-composer input{min-height:40px;padding:8px 10px;font-size:14px}
 #artopiaSocial .as-room-history-body>.as-composer button{min-height:40px;min-width:44px;padding:5px 9px}
 </style>
+
+<style id="artopia-ipad-landscape-chat-layout-20261114">
+/* iPad landscape with narrower CSS viewport: keep the right chat in row one.
+   The old <=1100px two-column grid forced the third child below the canvas. */
+@media (min-width:651px) and (max-width:1200px) and (orientation:landscape) {
+  #studio:not(.chat-collapsed)>.workspace {
+    display:grid!important;
+    grid-template-columns:clamp(126px,15vw,170px) minmax(0,1fr) clamp(190px,22vw,240px)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #studio:not(.chat-collapsed)>.workspace>.toolbox {grid-column:1;grid-row:1;min-height:0;overflow-y:auto;}
+  #studio:not(.chat-collapsed)>.workspace>.viewport {grid-column:2;grid-row:1;min-width:0;min-height:0;}
+  #studio:not(.chat-collapsed)>.workspace>#memberPanel {
+    grid-column:3!important;grid-row:1!important;
+    position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    display:flex!important;align-self:stretch!important;
+    width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;
+    border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
+    box-sizing:border-box!important;padding:8px!important;
+  }
+  #studio #memberPanel #memberList {max-height:22%!important;flex:0 1 auto!important;min-height:0!important;overflow-y:auto!important;}
+  #studio #memberPanel .member-bottom {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
+  #studio #memberPanel .studio-chatbar {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
+  #studio #memberPanel #recentComment {flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;}
+  /* Narrow right rail: a two-row composer prevents the input being squeezed or clipped. */
+  #studio #inlineChatForm {
+    display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+    grid-template-rows:38px 36px!important;
+    height:80px!important;min-height:80px!important;max-height:80px!important;flex:0 0 80px!important;
+    overflow:visible!important;gap:4px!important;
+  }
+  #studio #inlineChatInput {grid-column:1 / -1!important;grid-row:1!important;height:38px!important;min-height:38px!important;}
+  #studio #inlineChatForm button[type=submit] {grid-column:2!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
+  #studio #chatHistoryBtn {grid-column:3!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.15</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
