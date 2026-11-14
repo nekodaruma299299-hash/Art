@@ -3652,8 +3652,8 @@ async function newPeer(id){await ensurePeer();return new Promise((res,rej)=>{let
 
 /* SECTION: app/08-session.js */
 function resetSession(){window.ArtVoice?.reset();window.ArtSessionUI?.clearCache?.();roomIdentityAck=false;clearInterval(roomIdentityTimer);roomIdentityTimer=null;if(typeof cancelEmergencyHost==='function')cancelEmergencyHost();emergencyRecovered=false;approvedRoomKeys.clear();preferredHandoffPeer='';if(room&&!localViewer&&members.has(localId))window.ArtSocial?.recordRoom?.(room);window.ArtPublicRooms?.stopHost();if(room)room.ended=true;connected=false;sessionToken++;for(const cancel of [...pendingPeerStarts])cancel();window.ArtClip?.reset();window.ArtHistory?.clear();clearClipboard();window.ArtKeys?.release();window.ArtSound?.reset();window.ArtGame?.reset();window.ArtAnimation?.reset();checkpointBusy=false;lastCheckpointAt=Date.now();canvasRestoring=false;checkpointTransfer=null;checkpointRestorePending=false;cancelChatRestore();chatFocusState=null;chatPointerOrigin=null;chatComposing=false;clearTimeout(aliasTimer);aliasPeer?.destroy();aliasPeer=null;migrationOut=null;migrationIn=null;clearTimeout(displayRecoveryTimer);touchStarts.clear();twoTouch=null;pointers.clear();gesture=null;activePointer=null;releaseSelectionPreview();releasePreviewWork();releasePenPreview();releaseEffectPreview();if(engine){engine.clearCache();for(const c of [...engine.layers,...engine.base])c.width=c.height=0}brushPointer=null;updateBrushCursor();clearTimeout(reconnectTimer);reconnectAttempts=0;for(const c of connections.values())c.close();hostConn?.close();presenceSeen.clear();retiredPeers.clear();guestLeaveAck?.();peer?.destroy();peer=null;hostConn=null;room=null;connected=false;connections.clear();members.clear();viewers.clear();viewerRoster=[];viewerCount=0;viewerCount=0;localViewer=false;localViewerRequested=false;resumeKeys.clear();locks.clear();redoIds=[];pendingOps.clear();pendingLocal.clear();invalidateLocalView();pendingHistory.clear();chat=[];unread=0;remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();remoteCursors.clear();outboundQueue=[];syncing=false;deferredMessages=[];selection=null;stroke=null;$('#transformBar').hidden=true;prefs.opacities=[100,100,100];prefs.layer=0}
-async function createRoomPeer(id){const token=sessionToken;for(let attempt=0;;attempt++){if(token!==sessionToken)throw Error('部屋作成を中止しました。');try{const p=await newPeer(id);if(token!==sessionToken){p.destroy();throw Error('部屋作成を中止しました。')}return p}catch(e){if(token!==sessionToken||e?.type!=='unavailable-id'||attempt>=5)throw e;await new Promise(resolve=>setTimeout(resolve,Math.min(2000,700*(attempt+1))))}}}
-async function startRoom(r,art,offline){resetSession();if(['relay','wolf','answer','arts','chimera','shadow','animation'].includes(r.mode)){r={...r,protect:false,snapshotInterval:0};art=null}r.waitingW=Number.isInteger(r.waitingW)?r.waitingW:r.w;r.waitingH=Number.isInteger(r.waitingH)?r.waitingH:r.h;const p=offline?null:await createRoomPeer(await roomPeerId(r.code));peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,drawingProtocol:18,id:r.id||uid(),snapshotInterval:r.snapshotInterval??60,snapshotList:[],canvasEpoch:0,offline,hasArt:!!art,opacities:[100,100,100],opacityBase:[100,100,100]};engine=new E.Engine(r.w,r.h);sharedPalette=[];if(art)await loadArtLayers(art);if(r.mode==='pixel')window.ArtDot.initialize();if(p)await Promise.race([window.ArtSocial?.registerRoomIdentity?.(localId)||Promise.resolve(),new Promise(r=>setTimeout(r,3500))]);
+async function createRoomPeer(id){const token=sessionToken;for(let attempt=0;;attempt++){if(token!==sessionToken)throw Error('部屋作成を中止しました。');try{const p=await newPeer(id);if(token!==sessionToken){p.destroy();throw Error('部屋作成を中止しました。')}return p}catch(e){if(token!==sessionToken||e?.type!=='unavailable-id'||attempt>=20)throw e;await new Promise(resolve=>setTimeout(resolve,Math.min(2500,700*(attempt+1))))}}}
+async function startRoom(r,art,offline){resetSession();if(['relay','wolf','answer','arts','chimera','shadow','animation'].includes(r.mode)){r={...r,protect:false};art=null}r.waitingW=Number.isInteger(r.waitingW)?r.waitingW:r.w;r.waitingH=Number.isInteger(r.waitingH)?r.waitingH:r.h;const p=offline?null:await createRoomPeer(await roomPeerId(r.code));peer=p;localId=p?.id||'local-'+profile.id;isHost=true;connected=true;room={...r,drawingProtocol:18,id:r.id||uid(),snapshotInterval:r.snapshotInterval??60,snapshotList:[],canvasEpoch:0,offline,hasArt:!!art,opacities:[100,100,100],opacityBase:[100,100,100]};engine=new E.Engine(r.w,r.h);sharedPalette=[];if(art)await loadArtLayers(art);if(r.mode==='pixel')window.ArtDot.initialize();if(p)await Promise.race([window.ArtSocial?.registerRoomIdentity?.(localId)||Promise.resolve(),new Promise(r=>setTimeout(r,3500))]);
  const ownerProfile=validProfile(profile);ownerProfile.socialPeerId=localId;
  members.set(localId,{peerId:localId,profile:ownerProfile,spectator:false});if(p)p.on('connection',attachGuest);enterStudio();roomEvent(profile.name+' さんが部屋を作成しました');if(room.publicRoom&&!offline){try{await window.ArtPublicRooms.hostOpened()}catch(e){room.publicRoom=false;console.warn('Firebase公開ルーム登録失敗',e);throw new Error('公開登録に失敗しました：'+(e?.code||e?.message||'Firebaseのルール・接続を確認してください。'))}}}
 
@@ -3771,14 +3771,19 @@ setInterval(()=>presenceTick(),5000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)presenceTick()});
 // Resume a suspended host peer after the browser tab or PC wakes up.
 function resumeRoomSignaling(){
- if(!room||room.ended||!connected)return;
+ if(!room||room.ended)return;
  for(const p of [peer,aliasPeer]){
   if(p&&!p.destroyed&&p.disconnected){try{p.reconnect()}catch(e){console.warn('[Artopia] Peer reconnect on resume',e)}}
  }
- presenceTick();
+ if(!isHost&&!connected&&!reconnectPending&&!migrationIn)scheduleReconnect();
+ if(connected)presenceTick();
 }
 window.addEventListener('focus',resumeRoomSignaling);
 window.addEventListener('pageshow',resumeRoomSignaling);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeRoomSignaling()});
+// Desktop browsers may throttle PeerJS signaling in background tabs.
+// Restore the existing signaling session, never create a duplicate room.
+setInterval(()=>{if(room&&!room.ended&&!document.hidden)resumeRoomSignaling()},15000);
 
 
 
@@ -4794,7 +4799,7 @@ async function leaveRoom(){
   $('#leaveWithoutSave').onclick=()=>finishRoomExit(false);
   return;
  }
- if(window.ArtGame?.enabled()){
+ if(window.ArtGame?.enabled()&&!window.ArtSessionUI?.active()){
   modal('ゲームから退出しますか？','<p>'+(['answer','wolf'].includes(room.mode)?'参加者が退出すると現在のゲームを中断します。':'途中のゲームでは、残った人で続行します。')+'部屋主は次の参加者へ引き継ぎます。</p><div class="modal-actions"><button id="gameCancelLeave">戻る</button><button id="gameConfirmLeave" class="primary">退出する</button></div>');
   $('#gameCancelLeave').onclick=()=>$('#modal').close();$('#gameConfirmLeave').onclick=()=>finishRoomExit(false);return;
  }
@@ -4860,7 +4865,7 @@ let recoveryStamp='',lastCanvasInput=0,recoveryQueue=Promise.resolve(),recoveryB
 function persistRecoveryRecord(record){
  const next=recoveryQueue.catch(()=>{}).then(async()=>{const previous=await db('recovery','readonly',s=>s.get(record.id));if(previous?.roomId===record.roomId){const refs=new Map([...(previous.recoverySnapshots||[]),...(record.recoverySnapshots||[])].map(a=>[a.key,a]));const keep=[...refs.values()].sort((a,b)=>a.at-b.at).slice(-1);record={...(previous.at>record.at?previous:record),recoverySnapshots:keep}}await db('recovery','readwrite',s=>s.put(record))});recoveryQueue=next;return next;
 }
-async function saveRecovery(){if(window.ArtGame?.enabled()||!engine||!room||stroke||selection||pointers.size||performance.now()-lastCanvasInput<1800||recoveryBusy)return;const stamp=[room.id,engine.revision,localViewVersion,...prefs.opacities].join(':');if(stamp===recoveryStamp)return;recoveryBusy=true;try{const art=captureArtwork(room.name,profile.id);art.roomId=room.id;art.recoverySnapshots=(room.snapshotList||[]).slice(-1).map(a=>({key:room.id+':'+a.id,at:a.at}));await persistRecoveryRecord(art);recoveryStamp=stamp}catch{if(!recoverySaveWarned){recoverySaveWarned=true;toast('復旧保存に失敗しました。空き容量を確認し、絵を保存してください。')}}finally{recoveryBusy=false}}
+async function saveRecovery(){if((window.ArtGame?.enabled()&&!window.ArtSessionUI?.active())||!engine||!room||stroke||selection||pointers.size||performance.now()-lastCanvasInput<1800||recoveryBusy)return;const stamp=[room.id,room.mode,engine.revision,localViewVersion,...prefs.opacities].join(':');if(stamp===recoveryStamp)return;recoveryBusy=true;try{const art=captureArtwork(room.name,profile.id);art.roomId=room.id;art.recoverySnapshots=(room.snapshotList||[]).slice(-1).map(a=>({key:room.id+':'+a.id,at:a.at}));await persistRecoveryRecord(art);recoveryStamp=stamp}catch{if(!recoverySaveWarned){recoverySaveWarned=true;toast('復旧保存に失敗しました。空き容量を確認し、絵を保存してください。')}}finally{recoveryBusy=false}}
 let recoverySaveWarned=false;
 async function recoveryArtwork(record,name,id,opacities=[100,100,100]){const c=E.make(record.w,record.h),x=c.getContext('2d');try{x.fillStyle='white';x.fillRect(0,0,c.width,c.height);for(let i=0;i<3;i++){const im=await E.image(record.layers[i]);x.globalAlpha=opacities[i]/100;x.drawImage(im,0,0)}return{id,format:2,name,at:record.at,w:record.w,h:record.h,image:c.toDataURL('image/png'),thumb:record.thumb,layers:record.layers,opacities}}finally{c.width=c.height=0}}
 async function restoreRecovery(){const saved=await db('recovery','readonly',s=>s.get(profile.id));if(!saved)return;let latest=saved;
@@ -4868,7 +4873,7 @@ async function restoreRecovery(){const saved=await db('recovery','readonly',s=>s
  if(latest.w&&latest.h&&latest.thumb){const art={...latest,id:'recovery-'+profile.id,name:saved.name+'（復元・最新）',recoveryRestoredAt:Date.now()};delete art.recoverySnapshots;await db('art','readwrite',s=>s.put(art))}else{const im=await E.image(saved.image),c=E.make(im.width,im.height);try{c.getContext('2d').drawImage(im,0,0);const recovered=await saveArt(saved.name+'（復元）',c,'recovery-'+profile.id);recovered.recoveryRestoredAt=Date.now();await db('art','readwrite',s=>s.put(recovered))}finally{c.width=c.height=0}}
  await db('recovery','readwrite',s=>s.delete(profile.id));await refreshGallery();toast('最新のキャンバス1件を絵画展に復元しました');
 }
-setInterval(()=>{if(!room||!engine)return;if(window.ArtGame?.enabled()&&!window.ArtGame?.sharedCanvas?.())compactHistory(Date.now()-room.history*60000);if(isHost&&!migrationOut&&(!window.ArtGame?.enabled()||window.ArtGame?.sharedCanvas?.())){let cutoff=Date.now()-room.history*60000;if(compactHistory(cutoff))broadcast({type:'compact',cutoff});let removed=false;for(const[id,l]of locks)if(Date.now()-l.at>15000){locks.delete(id);removed=true}if(removed)broadcastLocks();}if(!window.ArtGame?.enabled()&&Date.now()-lastRecovery>20000){lastRecovery=Date.now();saveRecovery()}for(const[id,a]of remoteDrafts)if(Date.now()-a.received>7000){remoteDrafts.delete(id);incomingDrafts.delete(id);dropRemoteInk(id)};renderControls();renderCursors()},3000);
+setInterval(()=>{if(!room||!engine)return;if(window.ArtGame?.enabled()&&!window.ArtGame?.sharedCanvas?.())compactHistory(Date.now()-room.history*60000);if(isHost&&!migrationOut&&(!window.ArtGame?.enabled()||window.ArtGame?.sharedCanvas?.())){let cutoff=Date.now()-room.history*60000;if(compactHistory(cutoff))broadcast({type:'compact',cutoff});let removed=false;for(const[id,l]of locks)if(Date.now()-l.at>15000){locks.delete(id);removed=true}if(removed)broadcastLocks();}if((!window.ArtGame?.enabled()||window.ArtSessionUI?.active())&&Date.now()-lastRecovery>20000){lastRecovery=Date.now();saveRecovery()}for(const[id,a]of remoteDrafts)if(Date.now()-a.received>7000){remoteDrafts.delete(id);incomingDrafts.delete(id);dropRemoteInk(id)};renderControls();renderCursors()},3000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRecovery()});
 
 
@@ -17139,7 +17144,7 @@ window.ArtSessionUI=(()=>{
   if(['finished','interrupted'].includes(phase))return;
   if(!playingCanvas){captureLobby();selectGameCanvasSize()}
  }
- function beginGame(){if(!room||room.mode==='free')return previous.begin();const wasLobby=previous.getView?.()?.phase==='lobby';if(wasLobby){captureLobby();selectGameCanvasSize()}
+ function beginGame(){if(!room||room.mode==='free')return previous.begin();const wasLobby=previous.getView?.()?.phase==='lobby';if(wasLobby){void saveRecovery();captureLobby();selectGameCanvasSize()}
   try{return previous.begin()}finally{if(wasLobby&&previous.getView?.()?.phase==='lobby')restoreLobby()}
  }
 
@@ -17201,7 +17206,7 @@ window.ArtRoomTools=(()=>{
   room.limit=Math.max(room.limit,config.gameSettings?.players||0);
   for(const k of ['gameSettings','wolfSettings','answerSettings','artsSettings','chimeraSettings','shadowSettings'])if(config[k])room[k]=config[k];
   room.canvasEpoch=epoch;room.characterOnly=false;pendingOps.clear();pendingLocal.clear();pendingHistory.clear();locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();
-  $('#snapshotBtn').hidden=false;window.ArtGame.enter();renderControls();render();fitView();sync();if(config.canvasResize){const queued=deferredMessages.splice(0);for(const message of queued)handleClient(message)}
+  $('#snapshotBtn').hidden=false;window.ArtGame.enter();renderControls();render();fitView();sync();if(window.ArtSessionUI?.active())void saveRecovery();if(config.canvasResize){const queued=deferredMessages.splice(0);for(const message of queued)handleClient(message)}
  }
  function chooseMode(){
   if(!canSwitch()){toast('ゲーム終了後、または待機中に部屋主が変更できます');return}
