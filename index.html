@@ -2475,6 +2475,79 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
   }
 }
 </style>
+
+<style id="artopia-portrait-lobby-header-separation">
+/* Portrait lobby: separate game controls and layer controls into independent rows.
+   Do not alter the landscape header or in-match HUD. */
+@media (orientation:portrait) and (max-width:1100px) {
+  .studio.shared-lobby > .studio-header {
+    height:auto !important;
+    min-height:0 !important;
+    flex:0 0 auto !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-rows:auto auto auto !important;
+    align-content:start;
+    gap:5px !important;
+    padding:6px 9px 8px !important;
+  }
+  .studio.shared-lobby .header-identity {
+    grid-column:1 !important;
+    grid-row:1 !important;
+    display:flex;
+    flex-wrap:wrap;
+    min-width:0;
+    width:100%;
+    gap:5px;
+    justify-content:space-between;
+  }
+  .studio.shared-lobby .header-identity .room-heading {min-width:0;flex:1 1 72px;}
+  .studio.shared-lobby #lobbyStartSlot {margin-left:auto;max-width:100%;}
+  .studio.shared-lobby #layerStatus {
+    grid-column:1 !important;
+    grid-row:2 !important;
+    justify-self:center;
+    min-width:0;
+    max-width:100%;
+    margin:0;
+  }
+  .studio.shared-lobby .header-actions {
+    grid-column:1 !important;
+    grid-row:3 !important;
+    display:flex;
+    flex-wrap:wrap;
+    align-content:center;
+    justify-content:center;
+    width:100%;
+    min-width:0;
+    gap:5px;
+    position:relative;
+  }
+  .studio.shared-lobby .header-actions > #sharedLobbyBar {
+    display:flex;
+    flex:1 1 100%;
+    width:100%;
+    min-width:0;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:6px;
+    order:-1;
+  }
+  .studio.shared-lobby .header-actions > #sharedLobbyBar[hidden] {display:none !important;}
+  .studio.shared-lobby .header-actions > #sharedLobbyBar > button {
+    min-height:40px;
+    padding:7px 11px;
+    font-size:13px;
+    flex:0 1 auto;
+    max-width:100%;
+    white-space:nowrap;
+  }
+  .studio.shared-lobby #activeLayerBadge {
+    min-width:0;
+    max-width:calc(100vw - 125px);
+  }
+  .studio.shared-lobby #activeLayerBadge .current-layer-text {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -5167,7 +5240,7 @@ window.ArtClip=(()=>{
  function pick(p){const config=active();if(!picking||!['pen','eraser'].includes(prefs.tool))return false;const d=visibleLayers()[config.layer].getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;if(!d[3]){toast('このレイヤーには色がありません');return true}const colors=[...config.colors];colors[config.layer]='#'+[0,1,2].map(i=>Math.round(d[i]*(d[3]/255)+255*(1-d[3]/255)).toString(16).padStart(2,'0')).join('');change('colors',colors);rememberColor();render();toast('参照する色を設定しました');return true}
  function begin(a){const config=active(a.tool);if(!config.enabled||!['pen','eraser'].includes(a.tool))return;if(config.mode==='color'){rememberColor();renderHistory()}const layers=visibleLayers(),indices=config.mode==='all'?[0,1,2]:[config.layer],key=JSON.stringify([indices.map(i=>engine.layerVersion[i]),[...pendingLocal.values()].filter(o=>indices.includes(o.layer)).map(o=>o.id),window.ArtHistory?.hasPending()?window.ArtHistory.ops().filter(o=>indices.includes(o.layer)).map(o=>[o.id,!!o.disabled]):null,config.mode,config.layer,config.colors[config.layer],config.tolerance,!!config.softColor]);
   if(!cache||cache.engine!==engine||cache.key!==key){const data=new Uint8Array(engine.w*engine.h),color=config.colors[config.layer].match(/\w\w/g).map(h=>parseInt(h,16)),threshold=config.tolerance*255/100;
-   for(const layer of indices){const d=layers[layer].getContext('2d').getImageData(0,0,engine.w,engine.h).data;for(let i=0;i<data.length;i++){const j=i*4,alpha=d[j+3];if(!alpha)continue;let weight=1;if(config.mode==='color'){/* Match source RGB and its white-canvas appearance; keep alpha coverage unchanged. */const opacity=alpha/255;const rawDistance=Math.max(Math.abs(d[j]-color[0]),Math.abs(d[j+1]-color[1]),Math.abs(d[j+2]-color[2]));const whiteDistance=Math.max(Math.abs(Math.round(d[j]*opacity+255*(1-opacity))-color[0]),Math.abs(Math.round(d[j+1]*opacity+255*(1-opacity))-color[1]),Math.abs(Math.round(d[j+2]*opacity+255*(1-opacity))-color[2]));const distance=Math.min(rawDistance,whiteDistance);if(distance>threshold){const excess=(distance-threshold)/Math.max(1,255-threshold);weight=config.softColor?Math.pow(Math.max(0,1-excess),2):0}}data[i]=Math.max(data[i],Math.round(alpha*weight))}}
+   for(const layer of indices){const d=layers[layer].getContext('2d').getImageData(0,0,engine.w,engine.h).data;for(let i=0;i<data.length;i++){const j=i*4,alpha=d[j+3];if(!alpha)continue;let weight=1;if(config.mode==='color'){/* Match source RGB and its white-canvas appearance; keep alpha coverage unchanged. */const opacity=alpha/255;const rawDistance=Math.max(Math.abs(d[j]-color[0]),Math.abs(d[j+1]-color[1]),Math.abs(d[j+2]-color[2]));const whiteDistance=Math.max(Math.abs(Math.round(d[j]*opacity+255*(1-opacity))-color[0]),Math.abs(Math.round(d[j+1]*opacity+255*(1-opacity))-color[1]),Math.abs(Math.round(d[j+2]*opacity+255*(1-opacity))-color[2]));const distance=Math.min(rawDistance,whiteDistance);if(distance>threshold){const excess=(distance-threshold)/Math.max(1,255-threshold);weight=config.softColor?Math.pow(Math.max(0,1-excess),2):0}}data[i]=Math.max(data[i],Math.round((config.mode==='color'?255:alpha)*weight))}}
    cache={engine,key,source:{w:engine.w,h:engine.h,data}};
   }
   Object.defineProperty(a,'_clipSource',{value:cache.source,enumerable:false,configurable:true});
