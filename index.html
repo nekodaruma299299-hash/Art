@@ -2367,16 +2367,16 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 /* iPad landscape with narrower CSS viewport: keep the right chat in row one.
    The old <=1100px two-column grid forced the third child below the canvas. */
 @media (min-width:651px) and (max-width:1200px) and (orientation:landscape) {
-  #studio:not(.shadow-mode):not(.arts-mode):not(.chat-collapsed)>.workspace {
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace {
     display:grid!important;
     grid-template-columns:clamp(126px,15vw,170px) minmax(0,1fr) clamp(190px,22vw,240px)!important;
     grid-template-rows:minmax(0,1fr)!important;
     min-height:0!important;
     overflow:hidden!important;
   }
-  #studio:not(.shadow-mode):not(.arts-mode):not(.chat-collapsed)>.workspace>.toolbox {grid-column:1;grid-row:1;min-height:0;overflow-y:auto;}
-  #studio:not(.shadow-mode):not(.arts-mode):not(.chat-collapsed)>.workspace>.viewport {grid-column:2;grid-row:1;min-width:0;min-height:0;}
-  #studio:not(.shadow-mode):not(.arts-mode):not(.chat-collapsed)>.workspace>#memberPanel {
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>.toolbox {grid-column:1;grid-row:1;min-height:0;overflow-y:auto;}
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>.viewport {grid-column:2;grid-row:1;min-width:0;min-height:0;}
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>#memberPanel {
     grid-column:3!important;grid-row:1!important;
     position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
     display:flex!important;align-self:stretch!important;
@@ -2436,6 +2436,42 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 @media (min-width:651px) and (orientation:landscape) and (max-height:500px) and (pointer:coarse) {
   #studio.arts-mode:not(.arts-creating)>.workspace {
     grid-template-columns:minmax(0,1fr) clamp(150px,23vw,190px)!important;
+  }
+}
+</style>
+<style id="artopia-relay-game-workspace-fix-20261115">
+/* Relay drawing uses FOUR columns (tools, reference, canvas, chat).
+   Older iPad landscape editor rules used three columns and hid the canvas off-grid. */
+@media (min-width:651px) {
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace {
+    display:grid!important;
+    grid-template-columns:clamp(124px,15vw,194px) clamp(116px,18vw,220px) minmax(0,1fr) var(--chat-width,220px)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace>.toolbox {
+    grid-column:1!important;grid-row:1!important;min-width:0;min-height:0;
+  }
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace>#gameReference {
+    grid-column:2!important;grid-row:1!important;min-width:0;min-height:0;
+    width:100%;max-width:100%;overflow:auto;
+  }
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace>#viewport {
+    grid-column:3!important;grid-row:1!important;min-width:0;min-height:0;
+    width:100%;height:100%;
+  }
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace>#memberPanel {
+    grid-column:4!important;grid-row:1!important;min-width:0;min-height:0;
+    max-height:100%!important;
+  }
+}
+@media (min-width:651px) and (max-width:900px) and (orientation:landscape) {
+  #studio.relay-mode.game-drawing:not(.chat-collapsed) {
+    --chat-width:clamp(160px,23vw,200px);
+  }
+  #studio.relay-mode.game-drawing:not(.chat-collapsed)>.workspace {
+    grid-template-columns:clamp(98px,15vw,132px) clamp(92px,15vw,140px) minmax(0,1fr) var(--chat-width)!important;
   }
 }
 </style>
@@ -20912,7 +20948,7 @@ async function editComment(id){const x=comments.find(c=>c.id===id);if(!x||!(x.au
  }const next=prompt('コメントを編集',x.text);if(next===null)return;if(!next.trim()){alert('空のコメントは保存できません。');return}await put('comments',{...x,text:next.trim().slice(0,500),edited:Date.now()});await refresh()}
 function editor(){const old=loaded.find(x=>x.id===editId);const c=$('#muContent');c.innerHTML=`<div class="mu-editor"><h3 style="margin:0">${old?'投稿を編集':'作品を投稿'}</h3><div class="mu-note">なるべくあーとぴあで描いた絵を投稿してください。</div><button class="mu-btn" id="muPickSaved">あーとぴあの絵画展から選ぶ</button><button class="mu-btn" id="muPickFile">端末の画像を選ぶ</button><input type="file" id="muFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>${draftImage?`<img class="mu-editor-preview" src="${draftImage}" alt="投稿画像のプレビュー">`:''}<label>作品について（任意）<textarea id="muCaption" maxlength="500" rows="2" placeholder="作品についてひとこと">${esc([old?.title,old?.caption].filter(Boolean).join("\n"))}</textarea></label><label>タグ（スペース区切りで最大5個）<input id="muTags" maxlength="160" value="${esc(old?.tags?.join(' ')||'')}"></label><label>公開範囲<select id="muVisibility"><option value="public">全体公開</option><option value="friends">フレンド限定（この端末に保存）</option></select></label><div class="mu-warning">全体公開作品はFirebase接続時にオンライン投稿します。画像は共有用に縮小・圧縮されます。フレンド限定は安全のためこの端末だけに保存されます。</div><div style="display:flex;gap:8px"><button class="mu-btn primary" id="muPublish">${old?'変更を保存':'投稿する'}</button><button class="mu-btn" id="muCancel">戻る</button></div></div>`;$('#muVisibility').value=old?.visibility||'public';$('#muCancel').onclick=()=>{tab='mine';render()};$('#muPickFile').onclick=()=>$('#muFile').click();$('#muFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp|gif)$/.test(f.type)){alert('対応していない画像形式です。');return}if(f.size>20e6){alert('画像の容量が大きすぎます。');return}if(!confirm('なるべくあーとぴあで描いた絵を投稿してください。\n端末の画像を使用してよろしいですか？'))return;try{draftImage=await shrinkImage(f);draftOrigin='external';editor()}catch{alert('画像の読み込みに失敗しました。')}};$('#muPickSaved').onclick=chooseArt;$('#muPublish').onclick=publish}
 async function shrinkImage(file){return new Promise((resolve,reject)=>{let img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{const max=960,scale=Math.min(1,max/Math.max(img.width,img.height));let canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/webp',.8);URL.revokeObjectURL(url);resolve(data)}catch(e){reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('image'))};img.src=url})}
-function chooseArt(){const c=$('#muContent');c.innerHTML='<div class="mu-editor"><h3>あーとぴあの絵画展から選択</h3><div class="mu-grid" id="muArtGrid">作品を読み込んでいます。</div><button class="mu-btn" id="muArtBack">戻る</button></div>';$('#muArtBack').onclick=editor;const q=indexedDB.open('artopia',2);q.onerror=()=>{$('#muArtGrid').textContent='作品を読み込めませんでした。'};q.onsuccess=()=>{const d=q.result,tx=d.transaction('art','readonly'),r=tx.objectStore('art').getAll();r.onerror=()=>{$('#muArtGrid').textContent='読み込みに失敗しました。'};r.onsuccess=()=>{const arts=(r.result||[]).sort((a,b)=>b.at-a.at);const grid=$('#muArtGrid');if(!grid)return;grid.innerHTML=arts.length?arts.map((a,i)=>`<button data-art="${i}"><img src="${a.thumb||a.image}" alt=""><span>${esc(a.name)}</span></button>`).join(''):'保存された作品はありません。';grid.querySelectorAll('[data-art]').forEach(b=>b.onclick=()=>{const a=arts[Number(b.dataset.art)];draftImage=a.thumb||a.image;draftOrigin='artopia';selectedSource=a.id;editor();/* 作品の文章は任意。絵画展の保存名を自動挿入しない。 */});};tx.oncomplete=()=>d.close()};}
+function chooseArt(){const c=$('#muContent');c.innerHTML='<div class="mu-editor"><h3>あーとぴあの絵画展から選択</h3><div class="mu-grid" id="muArtGrid">作品を読み込んでいます。</div><button class="mu-btn" id="muArtBack">戻る</button></div>';$('#muArtBack').onclick=editor;const q=indexedDB.open('artopia',2);q.onerror=()=>{$('#muArtGrid').textContent='作品を読み込めませんでした。'};q.onsuccess=()=>{const d=q.result,tx=d.transaction('art','readonly'),r=tx.objectStore('art').getAll();r.onerror=()=>{$('#muArtGrid').textContent='読み込みに失敗しました。'};r.onsuccess=()=>{const arts=(r.result||[]).sort((a,b)=>b.at-a.at);const grid=$('#muArtGrid');if(!grid)return;grid.innerHTML=arts.length?arts.map((a,i)=>`<button data-art="${i}"><img src="${a.thumb||a.image}" alt=""><span>${esc(a.name)}</span></button>`).join(''):'保存された作品はありません。';grid.querySelectorAll('[data-art]').forEach(b=>b.onclick=()=>{const a=arts[Number(b.dataset.art)];draftImage=a.image||a.thumb;draftOrigin='artopia';selectedSource=a.id;editor();/* 作品の文章は任意。絵画展の保存名を自動挿入しない。 */});};tx.oncomplete=()=>d.close()};}
 async function publish(){const caption=$('#muCaption').value.trim(),tags=[...new Set($('#muTags').value.trim().split(/[\s,，＃#]+/).filter(Boolean))].slice(0,5),visibility=$('#muVisibility').value,old=loaded.find(x=>x.id===editId);if(!draftImage){alert('作品画像を選択してください。');return}const p=me();if(old&&!mine(old)){alert('投稿者本人だけが編集できます。');return}const post={id:old?.id||makeid(),authorId:old?.authorId||p.id,socialUid:old?.socialUid||window.ArtSocial?.authUid?.()||'',name:old?.name||p.name,avatar:old?.avatar||p.avatar,title:'',caption:caption.slice(0,500),tags,visibility,origin:draftOrigin,image:draftImage,created:old?.created||Date.now(),updated:Date.now()};try{
    if(visibility==='public' && window.ArtMuseumCloud?.uid?.()){
      if(old?.cloud){
@@ -21211,13 +21247,13 @@ install();updateHomeMuseumPreview();refreshMuseumNotices();
    const im=new Image();im.onload=()=>{try{
      const maxSide=Math.max(im.width,im.height);
      let smallest='',lastFormat='';
-     for(const max of [640,512,420,320,256,192]){
+     for(const max of [1600,1280,1024,960,800,640,512,420,320,256,192]){
        const scale=Math.min(1,max/maxSide);
        const cvs=document.createElement('canvas');cvs.width=Math.max(1,Math.round(im.width*scale));cvs.height=Math.max(1,Math.round(im.height*scale));
        const ctx=cvs.getContext('2d');if(!ctx)throw Error('CANVAS_UNAVAILABLE');ctx.drawImage(im,0,0,cvs.width,cvs.height);
        // A browser may return PNG even when WebP is requested (not a file-size error).
        // Accept actual PNG output when it fits the database rule, preserving transparency.
-       for(const quality of [.75,.60,.45,.30,.20]){
+       for(const quality of [.92,.85,.78,.70,.60,.45,.30,.20]){
          const out=cvs.toDataURL('image/webp',quality);
          const type=(out.match(/^data:image\/(webp|png|jpeg);base64,/i)||[])[1]||'';
          if(!smallest||out.length<smallest.length){smallest=out;lastFormat=type||'不明'}
