@@ -2367,16 +2367,16 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 /* iPad landscape with narrower CSS viewport: keep the right chat in row one.
    The old <=1100px two-column grid forced the third child below the canvas. */
 @media (min-width:651px) and (max-width:1200px) and (orientation:landscape) {
-  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace {
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chemist-play):not(.chat-collapsed)>.workspace {
     display:grid!important;
     grid-template-columns:clamp(126px,15vw,170px) minmax(0,1fr) clamp(190px,22vw,240px)!important;
     grid-template-rows:minmax(0,1fr)!important;
     min-height:0!important;
     overflow:hidden!important;
   }
-  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>.toolbox {grid-column:1;grid-row:1;min-height:0;overflow-y:auto;}
-  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>.viewport {grid-column:2;grid-row:1;min-width:0;min-height:0;}
-  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chat-collapsed)>.workspace>#memberPanel {
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chemist-play):not(.chat-collapsed)>.workspace>.toolbox {grid-column:1;grid-row:1;min-height:0;overflow-y:auto;}
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chemist-play):not(.chat-collapsed)>.workspace>.viewport {grid-column:2;grid-row:1;min-width:0;min-height:0;}
+  #studio:not(.shadow-mode):not(.arts-mode):not(.relay-mode):not(.chimera-mode):not(.wolf-mode):not(.answer-mode):not(.chemist-play):not(.chat-collapsed)>.workspace>#memberPanel {
     grid-column:3!important;grid-row:1!important;
     position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
     display:flex!important;align-self:stretch!important;
@@ -2384,20 +2384,20 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
     border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
     box-sizing:border-box!important;padding:8px!important;
   }
-  #studio:not(.shadow-mode) #memberPanel #memberList {max-height:22%!important;flex:0 1 auto!important;min-height:0!important;overflow-y:auto!important;}
-  #studio:not(.shadow-mode) #memberPanel .member-bottom {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
-  #studio:not(.shadow-mode) #memberPanel .studio-chatbar {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
-  #studio:not(.shadow-mode) #memberPanel #recentComment {flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #memberPanel #memberList {max-height:22%!important;flex:0 1 auto!important;min-height:0!important;overflow-y:auto!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #memberPanel .member-bottom {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #memberPanel .studio-chatbar {flex:1 1 0!important;min-height:0!important;overflow:hidden!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #memberPanel #recentComment {flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;}
   /* Narrow right rail: a two-row composer prevents the input being squeezed or clipped. */
-  #studio:not(.shadow-mode) #inlineChatForm {
+  #studio:not(.shadow-mode):not(.chemist-play) #inlineChatForm {
     display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
     grid-template-rows:38px 36px!important;
     height:80px!important;min-height:80px!important;max-height:80px!important;flex:0 0 80px!important;
     overflow:visible!important;gap:4px!important;
   }
-  #studio:not(.shadow-mode) #inlineChatInput {grid-column:1 / -1!important;grid-row:1!important;height:38px!important;min-height:38px!important;}
-  #studio:not(.shadow-mode) #inlineChatForm button[type=submit] {grid-column:2!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
-  #studio:not(.shadow-mode) #chatHistoryBtn {grid-column:3!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #inlineChatInput {grid-column:1 / -1!important;grid-row:1!important;height:38px!important;min-height:38px!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #inlineChatForm button[type=submit] {grid-column:2!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
+  #studio:not(.shadow-mode):not(.chemist-play) #chatHistoryBtn {grid-column:3!important;grid-row:2!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
 }
 </style>
 <style id="artopia-arts-battle-grid-correction-20261114">
@@ -2550,42 +2550,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 </style>
 <style>
 /* Scoped Artchemist UI */
-/* Artchemist full-width play surface: do not inherit drawing mode's 2/3-column layout. */
-#studio.chemist-play>.workspace{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:minmax(0,1fr)!important;
-  width:100%!important;min-width:0!important;
-  overflow:hidden!important;
-}
-#studio.chemist-play>.workspace>.toolbox,
-#studio.chemist-play>.workspace>.member-panel,
-#studio.chemist-play>.workspace>.mobile-chat{display:none!important}
-#studio.chemist-play>.workspace>#chemistStage{
-  display:block;grid-column:1/-1!important;grid-row:1/-1!important;
-  width:100%!important;min-width:0!important;max-width:100%!important;
-  min-height:0!important;height:100%!important;
-}
-#studio.chemist-play>.workspace>#chemistStage[hidden]{display:none!important}
-#chemistStage .ac-build,#chemistStage .ac-play-grid,#chemistStage .ac-battle-grid{max-width:100%;min-width:0}
-@media(max-width:1250px){
- #chemistStage .ac-play-grid{grid-template-columns:minmax(160px,.8fr) minmax(0,2fr)!important}
- #chemistStage .ac-play-grid>.ac-result{grid-column:1/-1}
- #chemistStage .ac-build{grid-template-columns:minmax(160px,.8fr) minmax(0,2fr)!important}
- #chemistStage .ac-build>.ac-build-summary{grid-column:1/-1}
-}
-@media(max-width:850px){
- #chemistStage .ac-build,#chemistStage .ac-play-grid,#chemistStage .ac-battle-grid{display:flex!important;flex-direction:column!important;gap:12px}
- #chemistStage .ac-build>* ,#chemistStage .ac-play-grid>* ,#chemistStage .ac-battle-grid>*{width:100%;min-width:0}
- #chemistStage .ac-play-grid>.ac-cauldron-panel{order:0}
- #chemistStage .ac-play-grid>.ac-result{order:1;display:block}
- #chemistStage .ac-play-grid>.ac-own{order:2}
- #chemistStage .ac-header{flex-wrap:wrap;align-items:flex-start}
- #chemistStage .ac-players{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-
-#studio.chemist-play .workspace{display:block!important;position:relative;overflow:hidden;min-height:0}
-#studio.chemist-play .workspace>:not(#chemistStage){display:none!important}
+/* Artchemist layout is defined once in chemist-chat-aware-layout-fix below. */
 #studio.chemist-play #snapshotBtn,#studio.chemist-play .layer-controls,#studio.chemist-play #sharedLobbyBar{display:none!important}
 #chemistStage[hidden]{display:none!important}
 #chemistStage{height:100%;width:100%;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px clamp(12px,2vw,28px) 50px;background:radial-gradient(ellipse at 50% 10%,#423058 0,transparent 60%),#191623;color:#f4eede;font-family:inherit;isolation:isolate}
@@ -2610,109 +2575,91 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage .ac-detail{display:flex;gap:22px;align-items:center;margin-top:16px}.ac-detail>img,.ac-detail>.ac-fallback{height:85px;width:85px;object-fit:contain;image-rendering:pixelated;flex:none}.ac-detail>div{flex:1}.ac-detail h3{margin-bottom:6px!important}.ac-detail>div>p{font-size:12px}.ac-detail .ac-actions{margin-top:12px}.ac-gift{margin-top:12px!important}.ac-log{margin-top:16px}.ac-log summary{cursor:pointer;color:#d8c3a4}.ac-log>div{max-height:220px;overflow:auto;font-size:12px}.ac-finish{text-align:center;padding:35px!important}.ac-footnote{text-align:center;color:#a28caf;font-size:10px;margin-top:20px!important}
 .ac-config{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ac-config label{display:flex;flex-direction:column;gap:7px}.ac-config input{width:100%}.ac-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ac-gallery img{width:100%;height:120px;object-fit:contain}.ac-gallery span{display:block}.ac-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.ac-shop>div{display:flex;flex-direction:column;align-items:center;gap:10px;border:1px solid #ccb8dd;border-radius:10px;padding:12px}.ac-shop img{width:70px;height:70px;object-fit:contain;image-rendering:pixelated}.ac-shop strong{font-size:13px}.ac-recipes{max-height:65vh;overflow:auto;margin-top:12px}.ac-recipes>div{display:flex;gap:15px;align-items:center;border-bottom:1px solid #ddd;padding:10px 0}.ac-recipes>div[hidden]{display:none}.ac-recipes img{width:45px;height:45px;object-fit:contain;image-rendering:pixelated}.ac-recipes>div>div{flex:1}.ac-recipes small{display:block;margin-top:5px}.ac-inspect>div>img{width:64px;height:64px;object-fit:contain}.ac-inspect .ac-character .ac-portrait{width:150px;height:150px;margin:auto}.ac-inspect>div{padding:10px;border-bottom:1px solid #ddd}
 @media(min-width:1550px){#chemistStage{padding-left:max(25px,calc((100% - 1450px)/2));padding-right:max(25px,calc((100% - 1450px)/2))}}
-@media(max-width:1100px){.ac-players{grid-template-columns:repeat(4,minmax(0,1fr))}.ac-build{grid-template-columns:190px 1fr}.ac-build-summary{grid-column:1/-1;display:block}.ac-picked{display:flex;flex-wrap:wrap;gap:15px;max-height:100px}.ac-build-summary .ac-primary{width:100%!important}.ac-build-summary .ac-actions{display:inline-flex}.ac-play-grid{grid-template-columns:180px 1fr}.ac-result{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;align-items:center}.ac-result-image,.ac-result-placeholder{height:70px}.ac-result>small:first-child{grid-column:1/-1}.ac-pot{width:220px}.ac-own .ac-portrait{height:100px}}
-@media(max-width:680px){#chemistStage{padding:12px 9px 45px}.ac-header{align-items:flex-start;gap:8px}.ac-header-side{gap:5px}.ac-header-side>button{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}.ac-header-side>span{padding:5px 9px;font-size:12px}.ac-header h2{font-size:20px!important}.ac-header #acClock{font-size:18px;min-width:55px}.ac-build{display:flex;flex-direction:column;gap:10px}.ac-build>.ac-panel{width:100%}.ac-build>aside:first-child{display:grid;grid-template-columns:110px 1fr;gap:7px}.ac-build>aside:first-child>.ac-portrait,.ac-build>aside:first-child>.ac-empty-art{grid-row:span 3;min-height:120px;height:120px}.ac-build>aside:first-child>p{margin:2px;font-size:12px}.ac-build>aside:first-child h3{grid-column:1/-1;margin-top:7px!important}.ac-ability{gap:5px;padding:10px 7px}.ac-ability strong{font-size:12px}.ac-ability small{font-size:10px!important}.ac-tabs{flex-wrap:wrap}.ac-tabs button{flex:1 1 28%;font-size:12px!important;min-height:37px!important;padding:6px!important}.ac-players{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.ac-player>img,.ac-player-placeholder{height:33px;width:24px}.ac-player strong{font-size:10px}.ac-player small{font-size:8px!important}#chemistStage .ac-player{padding:6px;gap:5px}.ac-play-grid{display:flex;flex-direction:column;gap:10px}.ac-own{order:2}.ac-cauldron-panel{order:0}.ac-result{order:1}.ac-own .ac-character{display:none}.ac-own .ac-meters{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ac-own .ac-meters progress{width:100px!important}.ac-own h3{margin:6px 0!important}.ac-equipped{max-height:135px}.ac-pot{width:185px}.ac-pot-cards{justify-content:flex-start}.ac-result{gap:9px}.ac-result .ac-result-image{height:50px}.ac-battle-grid{display:flex;flex-direction:column}.ac-battle-command{min-height:230px;padding:16px!important}#chemistStage .ac-panel{padding:12px}.ac-card{flex-basis:110px!important;width:110px!important}.ac-detail{gap:10px!important;align-items:flex-start!important}.ac-detail>img,.ac-detail>.ac-fallback{width:48px;height:48px}.ac-detail .ac-actions{margin-left:-58px;padding-top:10px}.ac-detail .ac-actions button{flex:1 1 29%;font-size:11px!important}.ac-shop,.ac-gallery{grid-template-columns:repeat(2,1fr)}.ac-config{grid-template-columns:1fr}.ac-recipes{font-size:12px}}
+@container (max-width:850px){.ac-players{grid-template-columns:repeat(4,minmax(0,1fr))}.ac-build{grid-template-columns:190px 1fr}.ac-build-summary{grid-column:1/-1;display:block}.ac-picked{display:flex;flex-wrap:wrap;gap:15px;max-height:100px}.ac-build-summary .ac-primary{width:100%!important}.ac-build-summary .ac-actions{display:inline-flex}.ac-play-grid{grid-template-columns:180px 1fr}.ac-result{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;align-items:center}.ac-result-image,.ac-result-placeholder{height:70px}.ac-result>small:first-child{grid-column:1/-1}.ac-pot{width:220px}.ac-own .ac-portrait{height:100px}}
+@media(max-width:680px){#studio.chemist-play #chemistStage{padding:12px 9px 45px}}
+@container (max-width:620px){.ac-header{align-items:flex-start;gap:8px}.ac-header-side{gap:5px}.ac-header-side>button{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}.ac-header-side>span{padding:5px 9px;font-size:12px}.ac-header h2{font-size:20px!important}.ac-header #acClock{font-size:18px;min-width:55px}.ac-build{display:flex;flex-direction:column;gap:10px}.ac-build>.ac-panel{width:100%}.ac-build>aside:first-child{display:grid;grid-template-columns:110px 1fr;gap:7px}.ac-build>aside:first-child>.ac-portrait,.ac-build>aside:first-child>.ac-empty-art{grid-row:span 3;min-height:120px;height:120px}.ac-build>aside:first-child>p{margin:2px;font-size:12px}.ac-build>aside:first-child h3{grid-column:1/-1;margin-top:7px!important}.ac-ability{gap:5px;padding:10px 7px}.ac-ability strong{font-size:12px}.ac-ability small{font-size:10px!important}.ac-tabs{flex-wrap:wrap}.ac-tabs button{flex:1 1 28%;font-size:12px!important;min-height:37px!important;padding:6px!important}.ac-players{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.ac-player>img,.ac-player-placeholder{height:33px;width:24px}.ac-player strong{font-size:10px}.ac-player small{font-size:8px!important}#chemistStage .ac-player{padding:6px;gap:5px}.ac-play-grid{display:flex;flex-direction:column;gap:10px}.ac-own{order:2}.ac-cauldron-panel{order:0}.ac-result{order:1}.ac-own .ac-character{display:none}.ac-own .ac-meters{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ac-own .ac-meters progress{width:100px!important}.ac-own h3{margin:6px 0!important}.ac-equipped{max-height:135px}.ac-pot{width:185px}.ac-pot-cards{justify-content:flex-start}.ac-result{gap:9px}.ac-result .ac-result-image{height:50px}.ac-battle-grid{display:flex;flex-direction:column}.ac-battle-command{min-height:230px;padding:16px!important}#chemistStage .ac-panel{padding:12px}.ac-card{flex-basis:110px!important;width:110px!important}.ac-detail{gap:10px!important;align-items:flex-start!important}.ac-detail>img,.ac-detail>.ac-fallback{width:48px;height:48px}.ac-detail .ac-actions{margin-left:-58px;padding-top:10px}.ac-detail .ac-actions button{flex:1 1 29%;font-size:11px!important}.ac-shop,.ac-gallery{grid-template-columns:repeat(2,1fr)}.ac-config{grid-template-columns:1fr}.ac-recipes{font-size:12px}}
 
 </style>
 
 <style id="chemist-chat-aware-layout-fix">
-/* Artchemist game view must reserve room for the shared room chat.
-   Keep this override after the earlier single-column chemist rules. */
+/* Artchemist only. Keep shared room chat in the layout, never under the stage. */
 #studio.chemist-play>.workspace{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) clamp(235px,24vw,335px)!important;
-  grid-template-rows:minmax(0,1fr)!important;
-  min-width:0!important;min-height:0!important;
-  overflow:hidden!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) clamp(220px,24vw,320px)!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ width:100%!important;min-width:0!important;min-height:0!important;
+ overflow:hidden!important;
 }
 #studio.chemist-play>.workspace>:not(#chemistStage):not(#memberPanel){display:none!important}
 #studio.chemist-play>.workspace>#chemistStage{
-  display:block!important;
-  grid-column:1!important;grid-row:1!important;
-  min-width:0!important;min-height:0!important;
-  width:100%!important;height:100%!important;
-  overflow:auto!important;
+ display:block!important;grid-column:1!important;grid-row:1!important;
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ max-width:100%!important;overflow-x:hidden!important;overflow-y:auto!important;
+ container-type:inline-size;
 }
 #studio.chemist-play>.workspace>#chemistStage[hidden]{display:none!important}
 #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
-  display:flex!important;
-  grid-column:2!important;grid-row:1!important;
-  position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
-  transform:none!important;
-  width:100%!important;height:100%!important;
-  min-width:0!important;min-height:0!important;max-height:none!important;
-  flex-direction:column!important;overflow:hidden!important;
-  visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+ display:flex!important;grid-column:2!important;grid-row:1!important;
+ position:relative!important;inset:auto!important;transform:none!important;
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ max-width:100%!important;max-height:100%!important;
+ flex-direction:column!important;overflow:hidden!important;
+ visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+ box-sizing:border-box!important;
 }
-#studio.chemist-play:not(.chat-collapsed) #memberPanel .member-bottom{
-  display:flex!important;flex-direction:column!important;
-  flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;
-}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel .member-bottom,
 #studio.chemist-play:not(.chat-collapsed) #memberPanel .studio-chatbar{
-  display:flex!important;flex-direction:column!important;
-  flex:1 1 auto!important;min-height:0!important;
+ display:flex!important;flex-direction:column!important;flex:1 1 0!important;
+ min-height:0!important;overflow:hidden!important;
 }
 #studio.chemist-play:not(.chat-collapsed) #memberPanel #recentComment{
-  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+ flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;
 }
 #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm{
-  display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
-  flex:0 0 auto!important;min-width:0!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+ flex:0 0 auto!important;min-width:0!important;
 }
 #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatInput{
-  min-width:0!important;visibility:visible!important;pointer-events:auto!important;
+ min-width:0!important;visibility:visible!important;pointer-events:auto!important;
 }
-/* Preserve the existing chat collapse control and return the width to the game. */
-#studio.chemist-play.chat-collapsed>.workspace{
-  grid-template-columns:minmax(0,1fr)!important;
-}
+#studio.chemist-play.chat-collapsed>.workspace{grid-template-columns:minmax(0,1fr)!important}
 #studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important}
-#studio.chemist-play.chat-collapsed>.workspace>#chemistStage{grid-column:1!important}
-/* Account for the right-side panel when laying out alchemy cards and panels. */
-@media(max-width:1450px){
- #studio.chemist-play #chemistStage .ac-build,
- #studio.chemist-play #chemistStage .ac-play-grid{
-   grid-template-columns:minmax(145px,.8fr) minmax(0,2fr)!important;
+/* A genuine game-column width breakpoint (not the whole browser width). */
+@container (max-width:850px){
+ #chemistStage .ac-build,#chemistStage .ac-play-grid{
+  grid-template-columns:minmax(0,1fr) minmax(0,1.7fr)!important;
  }
- #studio.chemist-play #chemistStage .ac-build>.ac-build-summary,
- #studio.chemist-play #chemistStage .ac-play-grid>.ac-result{grid-column:1/-1!important}
-}
-@media(max-width:1120px){
- #studio.chemist-play #chemistStage .ac-build,
- #studio.chemist-play #chemistStage .ac-play-grid,
- #studio.chemist-play #chemistStage .ac-battle-grid{
-   display:flex!important;flex-direction:column!important;gap:12px!important;
+ #chemistStage .ac-build>.ac-build-summary,#chemistStage .ac-play-grid>.ac-result{
+  grid-column:1/-1!important;
  }
- #studio.chemist-play #chemistStage .ac-build>*,
- #studio.chemist-play #chemistStage .ac-play-grid>*,
- #studio.chemist-play #chemistStage .ac-battle-grid>*{min-width:0!important;width:100%!important}
+ #chemistStage .ac-players{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-/* In portrait, show the chat below the game without hiding the send field. */
+@container (max-width:620px){
+ #chemistStage .ac-build,#chemistStage .ac-play-grid,#chemistStage .ac-battle-grid{
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+ }
+ #chemistStage .ac-build>*,#chemistStage .ac-play-grid>*,#chemistStage .ac-battle-grid>*{
+  min-width:0!important;width:100%!important;
+ }
+ #chemistStage .ac-play-grid>.ac-cauldron-panel{order:0}
+ #chemistStage .ac-play-grid>.ac-result{order:1}
+ #chemistStage .ac-play-grid>.ac-own{order:2}
+ #chemistStage .ac-header{flex-wrap:wrap}
+ #chemistStage .ac-players{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+/* Portrait: chat on second row with a stable input area. */
 @media(orientation:portrait) and (max-width:900px){
  #studio.chemist-play:not(.chat-collapsed)>.workspace{
-   grid-template-columns:minmax(0,1fr)!important;
-   grid-template-rows:minmax(0,3fr) minmax(180px,2fr)!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,3fr) minmax(180px,2fr)!important;
  }
- #studio.chemist-play:not(.chat-collapsed)>.workspace>#chemistStage{
-   grid-column:1!important;grid-row:1!important;
- }
- #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
-   grid-column:1!important;grid-row:2!important;
-   border-top:1px solid #8b70924d!important;
- }
- #studio.chemist-play.chat-collapsed>.workspace{
-   grid-template-columns:minmax(0,1fr)!important;
-   grid-template-rows:minmax(0,1fr)!important;
- }
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#chemistStage{grid-column:1!important;grid-row:1!important}
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{grid-column:1!important;grid-row:2!important}
+ #studio.chemist-play.chat-collapsed>.workspace{grid-template-rows:minmax(0,1fr)!important}
 }
-/* Extra-narrow landscape screens still leave enough width for buttons and chat. */
-@media(orientation:landscape) and (max-width:850px){
+@media(orientation:landscape) and (max-width:720px){
  #studio.chemist-play:not(.chat-collapsed)>.workspace{
-   grid-template-columns:minmax(0,1fr) minmax(185px,30vw)!important;
-   grid-template-rows:minmax(0,1fr)!important;
- }
- #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
-   grid-column:2!important;grid-row:1!important;
+  grid-template-columns:minmax(0,1fr) minmax(175px,30vw)!important;
  }
 }
 </style>
