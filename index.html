@@ -3504,6 +3504,23 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
  #chemistStage.ac-layout-battle .ac-lower-grid{grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr)!important}
 }
 </style>
+<style id="ac-grid-placement-correction-20261117">
+/* Artchemist: row 1 is the compact layer strip; row 2 is gameplay and room chat.
+   Prior stylesheet accidentally put both strip and the game in row 1 (44px). */
+@media (orientation:landscape){
+  #studio.chemist-play>.workspace{grid-template-rows:44px minmax(0,1fr)!important;}
+  #studio.chemist-play>.workspace>.toolbox{grid-row:1!important;grid-column:1/-1!important;}
+  #studio.chemist-play>.workspace>#chemistStage{grid-row:2!important;grid-column:1!important;min-height:0!important;}
+  #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{grid-row:2!important;grid-column:2!important;min-height:0!important;}
+}
+/* Portrait has a third row for the shared chat panel. */
+@media (orientation:portrait){
+  #studio.chemist-play>.workspace{grid-template-rows:44px minmax(0,1fr)!important;}
+  #studio.chemist-play>.workspace>.toolbox{grid-row:1!important;}
+  #studio.chemist-play>.workspace>#chemistStage{grid-row:2!important;grid-column:1!important;}
+  #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{grid-row:2!important;}
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
