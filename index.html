@@ -3040,6 +3040,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 }
 </style>
 
+
 <style id="artchemist-screen-geometry-fix-20261117">
 /* Artchemist only. The previous #studio.chemist-play #chemistStage .ac-pot selector
    overrides the newer size rule; explicitly supersede it here. */
@@ -3160,6 +3161,63 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
   }
   #studio.chemist-play #chemistStage.ac-layout-preparation .ac-pot-body:not(.ac-pot-is-mini):not(.ac-pot-is-zoom) .ac-pot{
     width:min(100%, 44dvh, 295px)!important;
+  }
+}
+</style>
+<style id="artchemist-item-preview-true-size-fix">
+/* Artchemist only: give the selected item's actual image a large, non-collapsing
+   drawing area. The card list uses small thumbnails; the inspector must not. */
+#studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail {
+  grid-template-columns:minmax(150px, 48%) minmax(0, 1fr)!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  gap:8px!important;
+  padding:7px!important;
+  overflow:hidden!important;
+}
+#studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail .ac-detail-icon {
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  display:block!important;
+  position:relative!important;
+  align-self:stretch!important;
+  justify-self:stretch!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:90px!important;
+  max-height:none!important;
+  padding:4px!important;
+  overflow:hidden!important;
+  aspect-ratio:auto!important;
+}
+#studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail .ac-detail-icon > img,
+#studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail .ac-detail-icon > .ac-fallback {
+  display:block!important;
+  position:absolute!important;
+  inset:3px!important;
+  width:calc(100% - 6px)!important;
+  height:calc(100% - 6px)!important;
+  max-width:none!important;
+  max-height:none!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  object-fit:contain!important;
+  image-rendering:pixelated!important;
+}
+#studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail > div {
+  overflow-y:auto!important;
+  min-height:0!important;
+}
+@container (max-width:540px) {
+  #studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail {
+    grid-template-columns:minmax(105px, 44%) minmax(0,1fr)!important;
+    gap:5px!important;
+  }
+  #studio.chemist-play #chemistStage .ac-lower-grid > .ac-detail .ac-detail-icon {
+    min-height:70px!important;
   }
 }
 </style>
@@ -17986,21 +18044,117 @@ window.AlchemistRules = (()=>{
  function battle(g,now){g.phase='battle';g.deadline=now+g.settings.battle*1000;g.offers=[];for(const p of g.players){p.pot=[];p.ready=false;p.action=null}g.event={id:g.round+':battle',sound:null,chemistSound:'turn'};log(g,'バトルタイム：行動を選んで準備完了')}
  function counts(arr){const m={};for(const i of arr)m[i.def]=(m[i.def]||0)+1;return m}
  function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
- function craftKind(d,mode){return mode==='fusion'?d?.kind==='material':!!d&&d.kind!=='material'}
+ function craftKind(d,mode){return !!d&&(mode==='fusion'?d.kind==='material':true)}
+ // Improvised transmutation uses ingredient identity AND rarity.  The category data
+ // inherited from Dream Crafter has several foods recorded as `misc`; normalize
+ // them here instead of modifying the source item catalog or other game modes.
+ const acFoodWords=/carrot|mushroom|potato|tomato|lettuce|cabbage|onion|apple|berry|strawberry|blueberry|bread|toast|jam|rice|flour|wheat|sugar|salt|fish|tuna|salmon|meat|egg|milk|butter|cheese|soy_sauce|onigiri|gummy|soup|stew|herb|healing|potion|tea|coffee|chocolate|cake|cookie|honey|vegetable|fruit|grape|corn|bean|garlic|pepper|seaweed|mackerel|shrimp|crab|clam|octopus|squid|spice|ginger/;
+ const acPlantWords=/grass|leaf|flower|vine|plant|seed|root|bamboo|herb|moss|reed|thorn|petal/;
+ const acWoodWords=/wood|log|plank|lumber|branch|stick|timber|bark/;
+ const acMetalWords=/iron|copper|steel|gold|silver|platinum|metal|ingot|bronze|tamahagane|ore/;
+ const acStoneWords=/stone|rock|gravel|flint|pebble|obsidian|slate/;
+ const acMagicWords=/magic|mana|spell|soul|holy|angel|fairy|curse|demon|spirit|crystal|gem|rune|ether|arcane|mystic/;
+ function acFamilies(d){
+  const id=String(d.id||'').toLowerCase(),cat=String(d.material_category||'').toLowerCase(),tags=(d.tags||[]).join(' ').toLowerCase();
+  const out=new Set();
+  if(d.kind==='weapon'){
+   const f=String(d.stats?.weapon_family||'').toLowerCase();
+   let family=f||(/sword|blade|knife|dagger|katana|rapier|durandal/.test(id)?'sword':/axe|hatchet|chopper/.test(id)?'axe':/spear|lance|trident/.test(id)?'spear':/bow|crossbow/.test(id)?'bow':/staff|wand|rod/.test(id)?'staff':/hammer|mace|club/.test(id)?'hammer':'other');
+   if(/blade|knife|dagger|katana|rapier/.test(f))family='sword';
+   out.add('weapon:'+family);out.add('weapon');return [...out];
+  }
+  if(d.kind==='armor'){
+   const slot=String(d.stats?.slot||'other');out.add('armor:'+slot);out.add('armor');return [...out];
+  }
+  if(d.kind==='guard_tool'){return ['guard','metal'];}
+  if(d.kind==='accessory'){out.add('accessory');if(acMagicWords.test(id+' '+tags))out.add('magic');return [...out];}
+  if(d.kind==='food'||(/potion|elixir|tonic|medicine|salve/.test(id))){
+   out.add('food');if(/potion|elixir|tonic|medicine|healing|cure/.test(id+' '+tags))out.add('healing');if(/soup|stew|vegetable|salad|mushroom|carrot|potato|tomato/.test(id))out.add('food:vegetable');if(/fish|tuna|salmon|seafood|sushi/.test(id))out.add('food:seafood');return [...out];
+  }
+  if(d.kind==='consumable'){
+   if(/scroll|spell|magic|flame|fire|frost|holy/.test(id+' '+tags))out.add('magic');
+   if(/healing|potion|medicine|cure/.test(id+' '+tags)) {out.add('food');out.add('healing');}
+   if(/bomb|explosive/.test(id+' '+tags))out.add('fire');
+   if(!out.size)out.add('utility');return [...out];
+  }
+  // Materials: semantic identity takes priority over stale generic classifications.
+  if(acFoodWords.test(id+' '+tags)||cat==='food'){out.add('food');if(/herb|healing|potion/.test(id+' '+tags))out.add('healing');if(/carrot|mushroom|potato|tomato|lettuce|cabbage|onion|vegetable/.test(id))out.add('food:vegetable');if(/tuna|fish|salmon|shrimp|crab|seaweed|squid/.test(id))out.add('food:seafood');}
+  if(acPlantWords.test(id+' '+tags)||cat==='plant')out.add('plant');
+  if(acWoodWords.test(id)||cat==='wood')out.add('wood');
+  if(acMetalWords.test(id)||cat==='ore'||cat==='metal')out.add('metal');
+  if(acStoneWords.test(id)||cat==='stone')out.add('stone');
+  if(acMagicWords.test(id+' '+tags)||['gem','gemstone','magic','soul'].includes(cat))out.add('magic');
+  if(/ice|snow|frost|cold/.test(id)||cat==='ice')out.add('ice');
+  if(/fire|flame|ember|lava/.test(id)||cat==='fire')out.add('fire');
+  if(/bone|fang|claw|hide|leather|fur/.test(id)||cat==='animal')out.add('animal');
+  if(!out.size&&cat!=='misc'&&cat)out.add(cat);
+  if(!out.size)out.add('utility');
+  return [...out];
+ }
+ function acWeight(rank){return Math.pow(2,Math.max(0,Math.min(7,(rank||1)-1)))}
  function improvisationPool(parts,mode){
-  const materials=parts.map(i=>defs[i.def]).filter(Boolean),average=materials.reduce((sum,d)=>sum+(d.class_rank_provisional||1),0)/materials.length;
-  const highest=Math.max(...materials.map(d=>d.class_rank_provisional||1));
-  const categoryWeight=new Map();materials.forEach(d=>{const c=d.material_category||'misc';categoryWeight.set(c,(categoryWeight.get(c)||0)+1)});
-  const sorted=[...categoryWeight].sort((a,b)=>b[1]-a[1]);const primary=sorted[0]?.[0];
+  const ingredients=parts.map(i=>defs[i.def]).filter(Boolean);
+  if(!ingredients.length)return {pool:[],average:1,highest:1};
+  const familyWeights=new Map(),kindWeights=new Map();
+  let total=0,weightedRanks=0,highest=1;
+  for(const d of ingredients){
+   const rank=Math.max(1,d.class_rank_provisional||1),w=acWeight(rank);
+   total+=w;weightedRanks+=rank*w;highest=Math.max(highest,rank);
+   const families=acFamilies(d);for(const f of families){const boost=(d.kind==='weapon'&&f.startsWith('weapon:'))||(d.kind==='armor'&&f.startsWith('armor:'))?2.5:1;familyWeights.set(f,(familyWeights.get(f)||0)+w*boost)}
+   if(d.kind==='weapon'||d.kind==='armor')kindWeights.set(d.kind,(kindWeights.get(d.kind)||0)+w);
+  }
+  const average=weightedRanks/total;
+  const dominant=[...familyWeights].filter(([f])=>!['weapon','armor','utility','healing','food:vegetable','food:seafood'].includes(f)).sort((a,b)=>b[1]-a[1])[0];
+  const dominantFamily=dominant?.[0]||[...familyWeights].sort((a,b)=>b[1]-a[1])[0]?.[0]||'utility';
+  const dominantShare=(dominant?.[1]||0)/total;
+  const onlyFood=ingredients.every(d=>acFamilies(d).includes('food'));
+  const hasEquipment=ingredients.some(d=>d.kind==='weapon'||d.kind==='armor');
   const consumedIds=new Set(parts.map(i=>i.def));
-  const candidates=Object.values(defs).filter(d=>craftKind(d,mode)&&!consumedIds.has(d.id)&&d.id!=='chemist_tonic'&&d.id!=='chemist_blade'&&d.class_rank_provisional<=Math.min(8,Math.max(1,Math.ceil(average)+2))&&d.class_rank_provisional>=Math.max(1,Math.floor(average)-2));
-  const pool=candidates.map(d=>{const rarity=Math.max(1,d.class_rank_provisional||1),delta=rarity-average;
-   let weight=delta<=0?1/(1+Math.abs(delta)*.65):Math.pow(.31,delta);
-   if(primary&&d.material_category===primary)weight*=1.8;
-   if(rarity>highest+1)weight*=.3;
-   return {id:d.id,weight};
-  }).filter(d=>d.weight>0);
-  return {pool,average,highest};
+  const rarityCap=Math.min(8,Math.max(highest,Math.ceil(average)+(total>=8?1:0)));
+  const pool=[];
+  for(const d of Object.values(defs)){
+   if(!craftKind(d,mode)||consumedIds.has(d.id)||['chemist_tonic','chemist_blade'].includes(d.id))continue;
+   const rank=Math.max(1,d.class_rank_provisional||1),families=acFamilies(d);
+   if(rank>rarityCap||rank<Math.max(1,Math.floor(average)-3))continue;
+   // Food-only ingredients can never magically become weapons or armor.
+   if(onlyFood&&!families.includes('food'))continue;
+   const exactWeapon=dominantFamily.startsWith('weapon:')&&families.includes(dominantFamily);
+   const exactArmor=dominantFamily.startsWith('armor:')&&families.includes(dominantFamily);
+   let affinity=0;
+   for(const f of families){
+    const vote=familyWeights.get(f)||0;
+    const broad=['weapon','armor','utility','food'].includes(f);
+    affinity+=broad?vote*.25:vote;
+   }
+   // Equipment has an explicit subtype. Don't turn a sword into an axe,
+   // or boots into a chestplate, through the random-result path.
+   if(dominantFamily.startsWith('weapon:')&&d.kind==='weapon'&&!exactWeapon)continue;
+   if(dominantFamily.startsWith('armor:')&&d.kind==='armor'&&!exactArmor)continue;
+   if(!affinity){
+    // Ingredient materials can be transformed into coherent tools:
+    // stone/wood -> primitive weapon; metals -> forged equipment.
+    if(d.kind==='weapon'&&['stone','wood','metal'].some(f=>familyWeights.has(f))){
+     const id=d.id.toLowerCase(),weaponFamily=String(d.stats?.weapon_family||'');
+     if(familyWeights.has('stone')&&/stone|axe|hammer/.test(id+' '+weaponFamily))affinity=familyWeights.get('stone')*.5;
+     else if(familyWeights.has('wood')&&/wood|bow|staff|club|spear/.test(id+' '+weaponFamily))affinity=familyWeights.get('wood')*.5;
+     else if(familyWeights.has('metal')&&/iron|steel|copper|gold|silver|sword|knife|armor|axe/.test(id))affinity=familyWeights.get('metal')*.5;
+    }else if(d.kind==='armor'&&familyWeights.has('metal'))affinity=familyWeights.get('metal')*.45;
+    else if(d.kind==='food'&&familyWeights.has('plant'))affinity=familyWeights.get('plant')*.35;
+    else if(d.kind==='accessory'&&familyWeights.has('magic'))affinity=familyWeights.get('magic')*.45;
+   }
+   if(affinity<=0)continue; // No unrelated results.
+   // Dominant family gets stronger preference, but multiple common items
+   // can outweigh one rarer item by accumulating their rarity weights.
+   let strength=affinity/total;
+   if(families.includes(dominantFamily))strength*=2.5;
+   if(onlyFood){if(d.kind==='material')strength*=.25;else if(d.kind==='food')strength*=3;else if(d.kind==='consumable')strength*=1.8;}
+   if(hasEquipment&&(exactWeapon||exactArmor)&&rank>=Math.max(...ingredients.filter(x=>x.kind==='weapon'||x.kind==='armor').map(x=>x.class_rank_provisional||1)))strength*=2.2;
+   if(exactWeapon||exactArmor)strength*=4;
+   let rarityWeight=rank<=average?1/(1+(average-rank)*.65):Math.pow(.37,rank-average);
+   if(rank>highest+1)rarityWeight*=.25;
+   pool.push({id:d.id,weight:Math.max(.000001,strength*rarityWeight)});
+  }
+  return {pool,average,highest,dominantFamily,dominantShare};
  }
  function improviseDraw(g,p,mode,parts){
   const {pool}=improvisationPool(parts,mode);
@@ -18014,7 +18168,6 @@ window.AlchemistRules = (()=>{
   const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode));
   const exact=matches.find(r=>r.id===p.recipe)||matches[0];
   if(exact)return{output:exact.output_id,count:exact.yield_quantity||1,chance:1,recipe:exact.id};
-  if(parts.some(i=>defs[i.def].kind!=='material'))return null;
   if(mode==='fusion'&&Object.keys(c).length===1){const d=defs[parts[0].def],pool=Object.values(defs).filter(q=>q.kind==='material'&&q.material_category===d.material_category&&q.class_rank_provisional===d.class_rank_provisional+1);if(pool.length){const out=pool.sort((a,b)=>a.id.localeCompare(b.id))[0].id;return {output:out,count:Math.max(1,Math.floor(parts.length/3)),chance:parts.length>=3?1:Math.min(1,2/3+(bonus(p,'alchemy_success')+passive(p,'alchemy_success_bonus'))/100),recipe:'fusion'}}}
   const {pool}=improvisationPool(parts,mode);if(!pool.length)return null;
   return {output:null,count:1,chance:1,recipe:'random_'+mode,random:true,possibilities:pool.length};
