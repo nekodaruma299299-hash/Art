@@ -3242,6 +3242,140 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage .ac-skip-scene{font-size:clamp(14px,2vw,18px);padding:10px 22px;max-width:100%}
 @media(max-height:650px){#chemistStage .ac-scene{min-height:0;gap:5px}#chemistStage .ac-scene-portrait{width:clamp(45px,12dvh,90px);height:clamp(45px,12dvh,90px)}}
 </style>
+
+<style id="artopia-chemist-character-builder-layout-20261117">
+/* Only the chemist character creator uses this larger modal. Do not change other dialogs/modes. */
+#modal:has(#acLobbyBuilder){
+  width:min(1160px,calc(100vw - 24px))!important;
+  max-width:calc(100vw - 24px)!important;
+  max-height:calc(100dvh - 20px)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#modal:has(#acLobbyBuilder) .modal-inner{padding:clamp(12px,2vw,24px)!important;min-width:0}
+#modal:has(#acLobbyBuilder) .modal-head{margin-bottom:12px;position:sticky;top:0;z-index:6;background:#fff;padding:4px 0 9px}
+#modal:has(#acLobbyBuilder) .modal-head button{min-width:40px;min-height:40px;touch-action:manipulation}
+#acLobbyBuilder{container:acChar / inline-size;min-width:0;width:100%;box-sizing:border-box;color:#eee6f5}
+#acLobbyBuilder *,#acLobbyBuilder *::before,#acLobbyBuilder *::after{box-sizing:border-box}
+#acLobbyBuilder .ac-build{display:grid!important;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,230px)!important;align-items:start;gap:12px!important;width:100%}
+#acLobbyBuilder .ac-panel{background:#252030;border:1px solid #716078;border-radius:12px;padding:14px;box-shadow:none;min-width:0;width:auto;overflow-wrap:anywhere}
+#acLobbyBuilder .ac-build>aside:first-child>button{display:block;width:100%;margin:6px 0;min-height:38px;white-space:normal}
+#acLobbyBuilder .ac-portrait{width:100%;height:160px;max-height:none;object-fit:contain;display:block;border-radius:9px;background:#30283c}
+#acLobbyBuilder .ac-empty-art{min-height:150px;margin-bottom:8px}
+#acLobbyBuilder .ac-panel h3{margin:12px 0 8px!important;font-size:15px}
+#acLobbyBuilder .ac-panel p{margin:8px 0;line-height:1.5}
+#acLobbyBuilder .ac-name{display:block;font-weight:700;margin-bottom:10px}
+#acLobbyBuilder .ac-name input{display:block;width:100%;max-width:100%;min-height:40px;margin:6px 0 0;color:#17141c;background:#fff}
+#acLobbyBuilder .ac-tabs{display:flex;gap:6px;flex-wrap:wrap;overflow:visible;padding:0;margin:8px 0}
+#acLobbyBuilder .ac-tabs button{flex:1 1 auto;min-width:0;min-height:38px;padding:7px 9px!important;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+#acLobbyBuilder .ac-tabs button.active{outline:2px solid #dec4ff;outline-offset:-2px}
+#acLobbyBuilder .ac-jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
+#acLobbyBuilder .ac-jobs button{min-height:44px;white-space:normal}
+#acLobbyBuilder .ac-ability-list{display:flex;flex-direction:column;gap:7px}
+#acLobbyBuilder .ac-ability{display:grid!important;grid-template-columns:minmax(0,1fr) auto 36px 62px 36px;align-items:center;gap:7px;padding:9px;border-radius:9px;min-width:0}
+#acLobbyBuilder .ac-ability>div{min-width:0;overflow-wrap:anywhere}
+#acLobbyBuilder .ac-ability strong{font-size:13px;line-height:1.35}
+#acLobbyBuilder .ac-ability small{font-size:11px;line-height:1.35;white-space:normal}
+#acLobbyBuilder .ac-ability>span{font-size:11px;white-space:nowrap}
+#acLobbyBuilder .ac-ability button{min-width:36px;min-height:36px;padding:4px!important;touch-action:manipulation}
+#acLobbyBuilder .ac-ability-number{width:62px!important;min-width:0!important;max-width:100%;min-height:36px;padding:3px!important;text-align:center;color:#15131b;background:#fff}
+#acLobbyBuilder .ac-build-summary{min-width:0}
+#acLobbyBuilder .ac-cp{font-size:36px;line-height:1.25}
+#acLobbyBuilder .ac-picked{max-height:180px;overflow:auto;margin:10px 0}
+#acLobbyBuilder .ac-picked p{gap:6px}
+#acLobbyBuilder .ac-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:12px 0}
+#acLobbyBuilder .ac-actions button{min-height:38px;min-width:0;padding:6px;white-space:normal}
+#acLobbyBuilder .ac-build-summary>.ac-primary{display:block;width:100%;min-height:44px;white-space:normal;line-height:1.3;margin-top:8px}
+#acLobbyBuilder .ac-ready-list{margin:10px 0 0;color:#50425e;gap:6px}
+#acLobbyBuilder .ac-ready-list span{display:inline-block;padding:4px 7px;border:1px solid #d2c5df;border-radius:7px;background:#f5f0fa}
+@container acChar (max-width:970px){
+  #acLobbyBuilder .ac-build{grid-template-columns:minmax(0,220px) minmax(0,1fr)!important}
+  #acLobbyBuilder .ac-build-summary{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,1fr);column-gap:16px;align-items:start}
+  #acLobbyBuilder .ac-build-summary .ac-picked{grid-column:1;max-height:140px}
+  #acLobbyBuilder .ac-build-summary .ac-actions{grid-column:2;grid-row:1/4;align-self:start}
+  #acLobbyBuilder .ac-build-summary>.ac-primary{grid-column:2;grid-row:4}
+}
+@container acChar (max-width:630px){
+  #acLobbyBuilder .ac-build{grid-template-columns:minmax(0,1fr)!important;gap:9px!important}
+  #acLobbyBuilder .ac-build>aside:first-child{display:grid;grid-template-columns:minmax(105px,38%) minmax(0,1fr);gap:5px 10px;align-items:start}
+  #acLobbyBuilder .ac-build>aside:first-child>.ac-portrait,
+  #acLobbyBuilder .ac-build>aside:first-child>.ac-empty-art{grid-column:1;grid-row:1/5;width:100%;height:132px;min-height:132px;margin:0}
+  #acLobbyBuilder .ac-build>aside:first-child>button{grid-column:2;margin:0!important;min-height:38px;padding:5px 7px}
+  #acLobbyBuilder .ac-build>aside:first-child h3{grid-column:1/-1;margin:7px 0 0!important}
+  #acLobbyBuilder .ac-build>aside:first-child p{grid-column:1/-1;margin:2px 0}
+  #acLobbyBuilder .ac-build-summary{grid-column:auto;display:block}
+  #acLobbyBuilder .ac-build-summary .ac-picked{max-height:140px}
+  #acLobbyBuilder .ac-ability{grid-template-columns:minmax(0,1fr) auto 34px 56px 34px;gap:4px;padding:8px 6px}
+  #acLobbyBuilder .ac-ability-number{width:56px!important}
+  #acLobbyBuilder .ac-ability button{min-width:34px;min-height:35px}
+}
+@media(max-width:460px){
+  #modal:has(#acLobbyBuilder){width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important}
+  #modal:has(#acLobbyBuilder) .modal-inner{padding:10px!important}
+  #acLobbyBuilder .ac-panel{padding:10px}
+  #acLobbyBuilder .ac-ability{grid-template-columns:minmax(0,1fr) 30px 48px 30px;gap:4px}
+  #acLobbyBuilder .ac-ability>span{grid-column:1;grid-row:2;justify-self:start}
+  #acLobbyBuilder .ac-ability button:first-of-type{grid-column:2;grid-row:1/3}
+  #acLobbyBuilder .ac-ability-number{grid-column:3;grid-row:1/3;width:48px!important}
+  #acLobbyBuilder .ac-ability button:last-of-type{grid-column:4;grid-row:1/3}
+}
+</style>
+<style id="ac-cinematic-update">
+/* Artchemist: custom character art is the central subject of every action scene. */
+#chemistStage .ac-cinematic{max-width:1050px;margin:0 auto;text-align:center;overflow:hidden}
+#chemistStage .ac-cinematic>header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+#chemistStage .ac-cinematic>header h2{margin:0}
+#chemistStage .ac-cinema-stage{position:relative;min-height:clamp(225px,39vh,420px);display:flex;align-items:center;justify-content:space-around;gap:4%;padding:24px 14px 18px;border-radius:17px;overflow:hidden;background:radial-gradient(ellipse at 50% 78%,#6d488459 0%,#252038 58%,#171624 100%);border:1px solid #7b6492}
+#chemistStage .ac-cinema-character{width:min(42%,320px);position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
+#chemistStage .ac-cinema-character strong{font-size:clamp(12px,1.7vw,18px);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 2px 6px #000}
+#chemistStage .ac-hero-frame{position:relative;width:100%;height:clamp(140px,29vh,300px);display:grid;place-items:center;transform-origin:center 75%}
+#chemistStage .ac-hero-image{width:100%;height:100%;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 9px 10px #0008)}
+#chemistStage .ac-hero-placeholder{display:grid;place-items:center;width:75%;height:90%;border-radius:30%;background:#5b426b;font-size:90px}
+#chemistStage .ac-held-item{position:absolute;right:-7%;bottom:0;width:37%;height:56%;transform:rotate(-26deg);transform-origin:25% 90%;filter:drop-shadow(0 4px 9px #000c);z-index:3}
+#chemistStage .ac-held-item img,#chemistStage .ac-held-item .ac-fallback{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+#chemistStage .ac-cinema-target{transform-origin:center 70%}
+#chemistStage .ac-cinema-impact{pointer-events:none;position:absolute;left:46%;top:48%;width:16%;height:35%;z-index:5}
+#chemistStage .ac-hit-slash,#chemistStage .ac-hit-burst,#chemistStage .ac-hit-orb,#chemistStage .ac-hit-spark{position:absolute;left:50%;top:50%;opacity:0;pointer-events:none}
+#chemistStage .ac-hit-slash{height:5px;width:clamp(100px,19vw,200px);background:linear-gradient(90deg,transparent,#fff6cd,#f4b6f8,transparent);box-shadow:0 0 15px #efcfff;transform:translate(-50%,-50%) rotate(-38deg) scaleX(.1)}
+#chemistStage .ac-hit-burst{width:90px;height:90px;border:7px solid #ffdc85;border-radius:50%;box-shadow:0 0 25px #e9a963;transform:translate(-50%,-50%) scale(.1)}
+#chemistStage .ac-hit-orb{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle,#fff,#a5dbff 40%,#874cfc 80%,transparent);box-shadow:0 0 40px #bc9aff;transform:translate(-170px,-50%) scale(.2)}
+#chemistStage .ac-hit-spark{font-size:72px;color:#ffe5aa;transform:translate(-50%,-50%) scale(.3)}
+#chemistStage .ac-scene-itemline{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px auto;flex-wrap:wrap;min-height:52px}
+#chemistStage .ac-scene-itemline .ac-scene-item{height:48px;width:48px;object-fit:contain}
+#chemistStage .ac-scene-itemline p{margin:0;font-weight:700;font-size:clamp(13px,1.8vw,18px)}
+#chemistStage .ac-cinematic .ac-skip-scene{width:min(100%,380px)}
+#chemistStage .ac-motion-slash .ac-cinema-actor,#chemistStage .ac-motion-smash .ac-cinema-actor,#chemistStage .ac-motion-thrust .ac-cinema-actor{animation:acRush 1.6s ease-in-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-slash .ac-hit-slash,#chemistStage .ac-motion-thrust .ac-hit-slash{animation:acCut 1.6s ease-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-smash .ac-hit-burst{animation:acBurst 1.6s ease-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-thrust .ac-cinema-actor{animation-name:acThrust}
+#chemistStage .ac-motion-smash .ac-cinema-actor{animation-name:acSmash}
+#chemistStage .ac-motion-ranged .ac-held-item,#chemistStage .ac-motion-magic .ac-held-item{animation:acSwing 1.65s ease-in-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-magic .ac-hit-orb,#chemistStage .ac-motion-ranged .ac-hit-orb,#chemistStage .ac-motion-throw .ac-hit-orb{animation:acOrb 1.65s ease-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-magic .ac-hit-orb{filter:hue-rotate(46deg)}
+#chemistStage .ac-motion-eat .ac-held-item,#chemistStage .ac-motion-drink .ac-held-item{animation:acConsume 1.7s ease-in-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-eat .ac-hit-spark,#chemistStage .ac-motion-drink .ac-hit-spark,#chemistStage .ac-motion-guard .ac-hit-spark{animation:acHeal 1.7s ease-out var(--ac-elapsed) both}
+#chemistStage .ac-motion-slash .ac-cinema-target,#chemistStage .ac-motion-smash .ac-cinema-target,#chemistStage .ac-motion-thrust .ac-cinema-target{animation:acHurt 1.6s ease-in-out var(--ac-elapsed) both}
+@keyframes acRush{0%,15%,100%{transform:translate(0,0)}35%{transform:translate(68%,-5%) scale(1.08)}43%{transform:translate(72%,0) rotate(5deg)}55%{transform:translate(60%,-8%)}69%{transform:translate(15%,-25%) rotate(-8deg)}85%{transform:translate(-8%,-12%)}}
+@keyframes acThrust{0%,18%,100%{transform:translate(0,0)}34%,47%{transform:translate(72%,0) scale(1.07)}65%{transform:translate(18%,-24%) rotate(-5deg)}84%{transform:translate(-4%,-10%)}}
+@keyframes acSmash{0%,16%,100%{transform:translate(0,0)}27%{transform:translate(5%,-16%) rotate(-9deg)}42%{transform:translate(67%,1%) rotate(10deg)}57%{transform:translate(60%,5%)}72%{transform:translate(10%,-23%)}88%{transform:translate(-5%,-7%)}}
+@keyframes acCut{0%,31%,60%,100%{opacity:0}41%{opacity:1;transform:translate(-50%,-50%) rotate(-38deg) scaleX(1.1)}53%{opacity:.7;transform:translate(-50%,-50%) rotate(-38deg) scaleX(1.5)}}
+@keyframes acBurst{0%,35%,75%,100%{opacity:0}44%{opacity:.9;transform:translate(-50%,-50%) scale(.45)}61%{opacity:.3;transform:translate(-50%,-50%) scale(2.6)}}
+@keyframes acOrb{0%,22%{opacity:0;transform:translate(-170px,-50%) scale(.3)}32%{opacity:1}62%{opacity:1;transform:translate(90px,-50%) scale(1.2)}74%,100%{opacity:0;transform:translate(125px,-50%) scale(1.9)}}
+@keyframes acSwing{0%,20%,100%{transform:rotate(-26deg)}35%{transform:rotate(-68deg)}51%{transform:rotate(34deg)}}
+@keyframes acConsume{0%,18%,100%{transform:translate(0,0) rotate(-26deg)}42%,55%{transform:translate(-80%,-90%) rotate(42deg)}70%{transform:translate(-60%,-60%) rotate(0)}}
+@keyframes acHeal{0%,35%,100%{opacity:0;transform:translate(-50%,-50%) scale(.3)}56%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}}
+@keyframes acHurt{0%,38%,100%{transform:translate(0,0)}49%{transform:translate(10px,3px) rotate(4deg)}58%{transform:translate(-4px,-2px)}}
+#chemistStage .ac-use-drop,#chemistStage .ac-equip-drop-grid>div{border:2px dashed #aa93bc;border-radius:10px;background:#44374e99;padding:14px 10px;text-align:center;font-size:13px;min-height:66px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+#chemistStage .ac-use-drop{margin:12px 0}#chemistStage .ac-use-selected{display:flex;justify-content:center;align-items:center;gap:10px;color:#f5dfb7}#chemistStage .ac-use-selected img{width:44px;height:44px;object-fit:contain}#chemistStage .ac-use-drop span{font-weight:750;color:#f1d4a5}
+#chemistStage .ac-equip-drop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}
+#chemistStage .ac-equip-drop-grid>div{padding:6px;min-height:54px;font-size:11px}
+#chemistStage.ac-dragging [data-drop]{outline:2px dashed #efce79;outline-offset:2px}
+#chemistStage .ac-cinema-self-label{color:#ecd2a6;font-size:14px;align-self:center}
+@media(max-width:650px){#chemistStage .ac-cinema-stage{min-height:230px;padding:12px 6px}#chemistStage .ac-hero-frame{height:150px}#chemistStage .ac-held-item{right:-2%}#chemistStage .ac-cinema-character{width:43%}#chemistStage .ac-cinema-character strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){#chemistStage .ac-cinematic *,#chemistStage .ac-cinematic *::before,#chemistStage .ac-cinematic *::after{animation:none!important;transition:none!important}}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -18440,12 +18574,21 @@ window.AlchemistRules = (()=>{
  for(const [id,k,v]of pending){const p=by(id);if(p?.alive)p.status[k]=v}const survivors=living.filter(p=>p.alive);
  // Results are calculated simultaneously above; the presentation below does not reapply damage.
  g.actionScenes=snapshot.map(p=>{
-   const a=by(p.id)?.action||{type:'defend'}, target=a.target?by(a.target):null;
-   const weapon=a.type==='attack'?equipped(by(p.id)).find(i=>defs[i.def]?.kind==='weapon'):null;
-   const tool=a.type==='use'?item(by(p.id),a.item):weapon;
-   return {actor:p.id,target:target?.id||null,item:tool?.def||null,kind:a.type,
+   const a=by(p.id)?.action||{type:'defend'},target=a.target?by(a.target):null;
+   // Read the pre-resolution snapshot: consumables and broken weapons may already be removed from live inventory.
+   const snapshotTool=a.type==='use'?item(p,a.item):a.type==='attack'?equipped(p).find(i=>defs[i.def]?.kind==='weapon'):null;
+   const toolId=snapshotTool?.def||null,d=toolId?defs[toolId]:null;
+   const id=String(toolId||'').toLowerCase(),family=String(d?.stats?.weapon_family||'').toLowerCase();
+   const tags=Array.isArray(d?.tags)?d.tags.join(' ').toLowerCase():'';
+   const magic=/staff|wand|rod/.test(family+' '+id)||/magic|spell/.test(tags);
+   const ranged=/bow|crossbow|gun|slingshot|throw/.test(family+' '+id)||/ranged/.test(tags);
+   let motion='guard';
+   if(a.type==='attack')motion=magic?'magic':ranged?'ranged':/spear|lance|trident|rapier/.test(family+' '+id)?'thrust':/axe|hammer|mace|club|hammer/.test(family+' '+id)?'smash':'slash';
+   if(a.type==='use')motion=d?.kind==='food'?'eat':/potion|drink|elixir|tonic/.test(id)?'drink':/scroll|spell|magic/.test(id+' '+tags)?'magic':d?.effects?.some(e=>e.kind==='heal')?'drink':'throw';
+   const allWeapons=a.type==='attack'?equipped(p).filter(i=>defs[i.def]?.kind==='weapon').map(i=>i.def):[];
+   return {actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,kind:a.type,motion,
     label:a.type==='attack'?'攻撃':a.type==='use'?'アイテム使用':'防御',
-    detail:a.type==='attack'?(tool?name(tool.def)+'で攻撃':'素手で攻撃'):a.type==='use'?(tool?name(tool.def)+'を使用':'アイテムを使用'):'防御の構え'};
+    detail:a.type==='attack'?(toolId?name(toolId)+'で攻撃':'素手で攻撃'):a.type==='use'?(toolId?name(toolId)+'を使用':'アイテムを使用'):'防御の構え'};
  });
  g.reveal={index:0,startedAt:now,duration:g.settings.sceneSeconds*1000,votes:[],eligible:living.filter(p=>!p.bot).map(p=>p.id)};
  g.pendingWinner=survivors.length<=1?(survivors[0]?.id||null):undefined;
@@ -18498,28 +18641,40 @@ window.ArtChemist=(()=>{
  function builder(){const p=me(),spent=R.spent(build),inLobby=view?.phase==='lobby';return `<div class="ac-build"><aside class="ac-panel">${img(portrait,'ac-portrait','キャラクター')||'<div class="ac-empty-art">絵画展や画像から<br>相棒を選ぼう</div>'}${button('ファイル画像から','file','',p?.ready&&!inLobby)}${button('絵画展から','gallery','',p?.ready&&!inLobby)}${button('現在のキャンバスから','canvas','',p?.ready&&!inLobby)}<h3>能力プレビュー</h3><p>最大HP <b>${100+(build.hp||0)}</b></p><p>近接攻撃 <b>+${(build.melee||0)*2}%</b></p><p>毎ラウンド <b>${view.settings.draw+(build.extra_draw||0)}枚ドロー</b></p><p>初期所持金 <b>${100+(build.initial_gold||0)*10}G</b></p></aside><main class="ac-panel"><label class="ac-name">キャラクターの名前 <input id="acCharacterName" type="text" maxlength="20" value="${esc(charName||p?.name||'')}" placeholder="キャラクター名"></label><nav class="ac-tabs">${button('簡単設定','buildStyle',`data-value="simple" class="${buildStyle==='simple'?'active':''}"`)}${button('詳細設定','buildStyle',`data-value="detail" class="${buildStyle==='detail'?'active':''}"`)}</nav>${buildStyle==='simple'?`<p>職業別の能力テンプレートを選べます。細かい数値は詳細設定で調整できます。</p><div class="ac-jobs">${[['fighter','戦士'],['guardian','守護者'],['mage','魔法使い'],['alchemist','錬金術師'],['merchant','商人'],['healer','回復役']].map(([id,name])=>button(name,'job',`data-value="${id}"`)).join('')}</div>`:`<nav class="ac-tabs">${R.categories.map(k=>button(cat[k],'tab',`data-value="${k}" class="${tab===k?'active':''}"`)).join('')}</nav><div class="ac-ability-list">${R.abilities.filter(a=>a.category===tab).map(a=>{const n=build[a.id]||0,cost=a.cost_cp||a.cost_per_step_cp,max=a.cost_cp?1:Math.floor(a.suggested_max_bonus/a.value_per_step);return `<div class="ac-ability"><div><strong>${abilityNames[a.id]}</strong><small>${a.cost_cp?abilityText[a.id]:`1段階で +${a.value_per_step}${a.unit==='percent'||a.unit==='percentage_points'?'%':a.unit==='gold'?'G':a.unit==='cards'?'枚':''}（最大${max}段階）`}</small></div><span>${cost} CP</span>${button('−','ability',`data-id="${a.id}" data-delta="-1" aria-label="${abilityNames[a.id]}を減らす"`,n===0||(p?.ready&&!inLobby))}<input class="ac-ability-number" data-ability-number="${a.id}" type="number" min="0" max="${max}" value="${n}" aria-label="${abilityNames[a.id]}の段階数" ${p?.ready&&!inLobby?'disabled':''}><b class="ac-sr">${n}</b>${button('＋','ability',`data-id="${a.id}" data-delta="1" aria-label="${abilityNames[a.id]}を増やす"`,n>=max||spent+cost>200||(p?.ready&&!inLobby))}</div>`}).join('')}</div>`}</main><aside class="ac-panel ac-build-summary"><small>使用CP</small><div class="ac-cp">${spent}<small> / 200</small></div><progress value="${spent}" max="200"></progress><div class="ac-picked">${R.abilities.filter(a=>build[a.id]).map(a=>`<p>${abilityNames[a.id]} <b>${a.cost_cp?'取得':a.value_per_step*build[a.id]+(a.unit==='percent'?'%':'')}</b></p>`).join('')||'<p>能力を自由に組み合わせよう</p>'}</div><div class="ac-actions">${button('おすすめ','preset','',p?.ready&&!inLobby)}${button('保存','saveBuild')}${button('読込','loadBuild','',p?.ready&&!inLobby)}${button('リセット','resetBuild','',p?.ready&&!inLobby)}</div>${button(inLobby?'キャラ設定を保存して閉じる':p?.ready?'ほかの参加者を待っています':'確定して準備完了','confirmBuild','class="ac-primary"',p?.ready&&!inLobby)}${p?.ready&&!inLobby?button('設定し直す','unreadyBuild'):''}<small>特殊能力や細かな倍率は試験調整値です。能力はすべて自動で発動します。</small></aside></div><div class="ac-ready-list">${view.players.map(p=>`<span>${esc(p.name)}：${p.ready?'準備完了':'設定中'}</span>`).join('')}</div>`}
  function players(){return `<div class="ac-players">${view.players.map(p=>`<button type="button" class="ac-player ${p.id===target?'target':''} ${!p.alive?'defeated':''}" data-player="${esc(p.id)}" ${!p.alive?'aria-disabled="true"':''}>${img(p.image,'',p.name)||'<span class="ac-player-placeholder">◇</span>'}<span><strong>${esc(p.name)}${p.id===localId?'（自分）':''}</strong><small>${p.alive?`HP ${p.hp}/${p.maxHp} · 装甲${p.armor}`:'観戦中'}</small><progress max="${p.maxHp}" value="${p.hp}"></progress><small>${p.ready?'準備完了':''}</small></span></button>`).join('')}</div>`}
  function combatRoster(open=false){return `<details class="ac-combat-roster" ${open?'open':''}><summary>バトルキャラ　${view.players.length}体 <span>画像・HP・対象を確認</span></summary>${players()}</details>`}
- function ownEquipment(p){return `<aside class="ac-panel ac-own"><h3>装備・状態</h3>${summary({...p,maxHp:R.maxHP(p)})}<h3>装備品</h3><div class="ac-equipped">${R.equipped(p).map(i=>card(i,true)).join('')||'<p>まだ装備していません</p>'}</div>${button('装備を詳しく見る','inspectSelf')}<label><input id="acAutoEquip" type="checkbox" ${p.autoEquip?'checked':''}> 武器破損時は自動装備</label></aside>`}
+ function ownEquipment(p){return `<aside class="ac-panel ac-own"><h3>装備・状態</h3>${summary({...p,maxHp:R.maxHP(p)})}<h3>装備品</h3>${view.phase==='preparation'?'<div class="ac-equip-drop-grid"><div data-drop="equip-weapon">武器をここにドラッグ</div><div data-drop="equip-helmet">兜をここにドラッグ</div><div data-drop="equip-chestplate">胸当てをここにドラッグ</div><div data-drop="equip-leggings">レギンスをここにドラッグ</div><div data-drop="equip-boots">ブーツをここにドラッグ</div><div data-drop="equip-accessory">装飾品をここにドラッグ</div></div>':''}<div class="ac-equipped">${R.equipped(p).map(i=>card(i,true)).join('')||'<p>まだ装備していません</p>'}</div>${button('装備を詳しく見る','inspectSelf')}<label><input id="acAutoEquip" type="checkbox" ${p.autoEquip?'checked':''}> 武器破損時は自動装備</label></aside>`}
  function craftDirection(p){
   const parts=p.pot.map(id=>p.items.find(i=>i.iid===id)).filter(Boolean),d=R.direction(parts);
   if(!parts.length)return '<div class="ac-direction"><small>素材を入れると系統の方向性が表示されます</small></div>';
   return `<div class="ac-direction"><strong>錬金の方向性</strong>${d.ranked.slice(0,3).map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}</span><b>${q.percent}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join('')}<small>性質：${esc(d.traitNames.join('・'))}</small>${d.reaction?`<p class="ac-mutation-hint">${esc(d.reaction)}</p>`:''}<small>割合は素材のレア度と数量による影響度です。完成確率とは異なります。</small></div>`;
  }
  function preparation(){const p=me();if(!p?.alive)return `${combatRoster(true)}<div class="ac-panel">観戦中です。バトルキャラを選ぶと詳しい情報を確認できます。</div>`;const plan=R.preview(p,potMode);return `${combatRoster(false)}<div class="ac-prep-shell"><div class="ac-play-grid">${ownEquipment(p)}<main class="ac-panel ac-cauldron-panel"><nav class="ac-tabs"><span class="ac-single-craft-title">錬金（素材・道具・装備）</span><span class="ac-flex-spacer"></span>${button(potDisplay==='mini'?'開く':'縮小','potSize','data-value="'+(potDisplay==='mini'?'normal':'mini')+'"')}${button(potDisplay==='zoom'?'通常':'拡大','potSize','data-value="'+(potDisplay==='zoom'?'normal':'zoom')+'"')}</nav><div class="ac-pot-body ${potDisplay==='mini'?'ac-pot-is-mini':potDisplay==='zoom'?'ac-pot-is-zoom':''}">${potDisplay==='zoom'?button('閉じる・通常表示','potSize','data-value="normal" class="ac-pot-zoom-close"'):''}<div class="ac-pot" data-drop="pot">${img(D.potFront,'ac-pot-back')}<div class="ac-pot-items">${p.pot.slice(-5).map(id=>{const i=p.items.find(i=>i.iid===id);return i?art(i.def):''}).join('')}</div>${img(D.potBack,'ac-pot-front')}<div class="ac-pot-cards">${p.pot.map(id=>p.items.find(i=>i.iid===id)).filter(Boolean).map(i=>card(i,true)).join('')}</div></div><div class="ac-pot-tools"><small>投入 ${p.pot.length}点（アイコンをタップすると選択）</small><div class="ac-actions">${button('おすすめ素材','auto')}${button('全部取り出す','clear','',!p.pot.length)}</div></div></div></main><aside class="ac-panel ac-result"><small>錬金結果の予測</small>${craftDirection(p)}${plan?`${plan.random?'<div class="ac-result-placeholder">?</div><h3>性質に応じて錬金</h3><p>素材の方向性から抽選（'+plan.possibilities+'候補）</p>':art(plan.output,'ac-result-image')+'<h3>'+esc(R.name(plan.output))+' ×'+plan.count+'</h3>'}<p>成功率 ${Math.round(plan.chance*100)}%</p><small>${plan.chance<1?'失敗すると投入素材を消費します。':'成功すると投入素材を消費します。'}</small>`:'<div class="ac-result-placeholder">?</div><p>素材を組み合わせよう</p>'}${button('この組み合わせで錬金','craft','class="ac-primary"',!plan)}${button('ショップ','shop')}${button('レシピ図鑑','recipes')}${button(p.ready?'準備完了を取り消す':'錬金を終えて準備完了','ready','class="ac-ready"')}<small>全員が準備完了になると戦闘へ進みます。</small></aside></div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div><div class="ac-prep-gifts">${gifts()}</div></div>`}
- function battle(){const p=me();return `${combatRoster(true)}${p?.alive?`<div class="ac-battle-shell"><div class="ac-battle-grid"><div class="ac-panel ac-battle-command"><small>バトルキャラを選んで、行動を決めよう</small><h3>${target?esc(view.players.find(q=>q.id===target)?.name||''):'対象が未選択です'}</h3><div class="ac-actions">${button('攻撃する','attack','class="ac-primary"',!target||target===localId)}${button('防御する','defend')}${button('選んだアイテムを使う','use','',!selected||!target)}${button('対象の装備を見る','inspect','',!target)}</div><div class="ac-planned"><b>今回の行動</b><p>${actionLabel(p.action)}</p><small>準備完了後も時間内は選び直せます。未選択なら防御します。</small></div>${button(p.ready?'準備完了を取り消す':'この行動で準備完了','ready','class="ac-primary"')}</div>${ownEquipment(p)}</div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div></div>`:'<div class="ac-panel">観戦中です。バトルキャラを選んで装備を確認できます。</div>'}` }
+ function battle(){const p=me();return `${combatRoster(true)}${p?.alive?`<div class="ac-battle-shell"><div class="ac-battle-grid"><div class="ac-panel ac-battle-command"><small>バトルキャラを選んで、行動を決めよう</small><h3>${target?esc(view.players.find(q=>q.id===target)?.name||''):'対象が未選択です'}</h3><div class="ac-use-drop" data-drop="use"><span>ここにドラッグ：武器・道具を使用欄へ</span>${selected&&p.items.some(i=>i.iid===selected)?`<strong class="ac-use-selected">${art(p.items.find(i=>i.iid===selected).def)}${esc(R.name(p.items.find(i=>i.iid===selected).def))}</strong>`:''}<small>${target?'対象：'+esc(view.players.find(q=>q.id===target)?.name||'未選択'):'次に対象キャラをタップしてください'} · 1ターン1行動</small></div><div class="ac-actions">${button('攻撃する','attack','class="ac-primary"',!target||target===localId)}${button('防御する','defend')}${button('選んだアイテムを使う','use','',!selected||!target)}${button('対象の装備を見る','inspect','',!target)}</div><div class="ac-planned"><b>今回の行動</b><p>${actionLabel(p.action)}</p><small>準備完了後も時間内は選び直せます。未選択なら防御します。</small></div>${button(p.ready?'準備完了を取り消す':'この行動で準備完了','ready','class="ac-primary"')}</div>${ownEquipment(p)}</div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div></div>`:'<div class="ac-panel">観戦中です。バトルキャラを選んで装備を確認できます。</div>'}` }
  function actionLabel(a){if(!a)return'未選択（時間切れで防御）';return a.type==='defend'?'防御':`${a.type==='attack'?'攻撃':R.name(me()?.items.find(i=>i.iid===a.item)?.def||'アイテム')} → ${view.players.find(p=>p.id===a.target)?.name||'対象'}`}
  function hand(p){const arr=p.items.filter(i=>!p.pot.includes(i.iid)&&(filter==='all'||R.defs[i.def].kind===filter)),pageSize=stage.clientWidth<=690?8:12,pages=Math.max(1,Math.ceil(arr.length/pageSize));handPage=Math.min(handPage,pages-1);const shown=handAll?arr:arr.slice(handPage*pageSize,handPage*pageSize+pageSize);return `<section class="ac-panel ac-inventory" data-drop="hand"><div class="ac-section-heading"><h3>手札 <small>${p.items.length-p.pot.length}枚</small></h3><div class="ac-hand-controls"><select id="acFilter" aria-label="手札の種類"><option value="all">すべて</option>${Object.entries(kinds).map(([k,n])=>`<option value="${k}" ${filter===k?'selected':''}>${n}</option>`).join('')}</select>${button(handAll?'ページ表示':'全表示','handAll')}${!handAll?`${button('‹','handPrev','aria-label="前のページ"',handPage===0)}<small>${handPage+1}/${pages}</small>${button('›','handNext','aria-label="次のページ"',handPage>=pages-1)}`:''}</div></div><div class="ac-hand ${handAll?'ac-hand-all':''}">${shown.map(i=>card(i)).join('')||'<p>この種類のカードはありません。</p>'}</div></section>`}
  function detail(p){const i=p.items.find(i=>i.iid===selected);if(!i)return'<section class="ac-panel ac-detail"><h3>道具情報</h3><p>手札のアイコンをタップすると、説明・効果・操作が表示されます。</p></section>';const d=R.defs[i.def],prep=view.phase==='preparation',inPot=p.pot.includes(i.iid);return `<section class="ac-panel ac-detail"><h3 class="ac-detail-label">道具情報</h3><button type="button" class="ac-detail-icon" data-ac="itemZoom" aria-label="アイテム画像を拡大">${art(i.def)}</button><div><h3>${esc(R.name(i.def))} <small>${kinds[d.kind]}</small></h3><p>${esc(stat(i))}</p><small>性質：${esc(R.acTraits(d).map(t=>R.acTraitNames[t]||t).join("・"))}</small><small>${esc(effects(d))}${d.kind==='accessory'?'（同じ効果には上限があります）':''}</small><p>売却 ${R.sale(p,i.def)}G ${i.maxArmor?'／修理で最大装甲は低下しません':''}</p><div class="ac-actions">${prep?`${button(inPot?'ツボから取り出す':'ツボに入れる','pot',`data-drop="pot"`,!inPot&&(i.equipped||i.locked))}${button(i.equipped?'装備を外す':'装備する','equip','',!['weapon','armor','accessory','guard_tool'].includes(d.kind)||inPot)}${button('修理','repair','',!i.maxArmor&&!i.maxUses)}${button('売却','sell','data-drop="sell"',i.locked||inPot)}${button('プレゼント','gift','',i.locked||inPot)}${button(i.locked?'保護を解除':'カードを保護','lock')}`:button('対象に使用','use','',!(['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use')))||!target)}</div></div></section>`}
  function gifts(){return view.offers.filter(o=>o.to===localId).map(o=>`<div class="ac-panel ac-gift">${esc(view.players.find(p=>p.id===o.from)?.name||'参加者')}さんから ${esc(R.name(o.def))} のプレゼント ${button('受け取る','answerGift',`data-offer="${esc(o.id)}" data-accept="true"`)}${button('辞退','answerGift',`data-offer="${esc(o.id)}" data-accept="false"`)}</div>`).join('')}
+ function sceneMotion(scene){return ['slash','smash','thrust','ranged','magic','eat','drink','throw','guard'].includes(scene?.motion)?scene.motion:'guard'}
  function actionSceneUI(){
    const scenes=view.actionScenes||[],r=view.reveal;if(!scenes.length||!r)return `<section class="ac-panel ac-finish"><h2>戦闘結果</h2></section>`;
-   const scene=scenes[Math.min(r.index,scenes.length-1)];const a=view.players.find(p=>p.id===scene.actor),t=view.players.find(p=>p.id===scene.target);
+   const scene=scenes[Math.min(r.index,scenes.length-1)],a=view.players.find(p=>p.id===scene.actor),t=view.players.find(p=>p.id===scene.target),motion=sceneMotion(scene);
    const votes=r.votes?.length||0,n=r.eligible?.length||1,ratio=Math.min(100,Math.round(votes/n*100));
    const voted=r.votes?.includes(localId),eligible=r.eligible?.includes(localId);
-   return `<section class="ac-panel ac-scene"><header><h2>行動 ${r.index+1} / ${scenes.length}</h2><small>1行動 ${view.settings.sceneSeconds}秒 · 時短 ${votes}/${n}人 (${ratio}%)</small></header>
-   <div class="ac-scene-actors"><div class="ac-scene-character">${img(a?.image,'ac-scene-portrait',a?.name)||'<span class="ac-scene-placeholder">◇</span>'}<strong>${esc(a?.name||'プレイヤー')}</strong></div><div class="ac-scene-action">${scene.item?art(scene.item,'ac-scene-item'):'<span class="ac-scene-placeholder">◇</span>'}<b>${esc(scene.label)}</b></div>${t?`<div class="ac-scene-character">${img(t.image,'ac-scene-portrait',t.name)||'<span class="ac-scene-placeholder">◇</span>'}<strong>${esc(t.name)}</strong></div>`:''}</div>
-   <p class="ac-scene-description">${esc(scene.detail)}${t?' → '+esc(t.name):''}</p>
-   ${button(voted?'時短済み':'タップして時短','skipScene','class="ac-primary ac-skip-scene"',!eligible||voted)}<small>表示中の行動だけ、1人1回時短できます。戦闘結果は全員同時に計算済みです。</small></section>`;
+   const age=Math.max(0,Math.min(2.1,(Date.now()+offset-r.startedAt)/1000));
+   const itemArt=scene.item?art(scene.item,'ac-combat-weapon'):'';
+   const actorArt=img(a?.image,'ac-hero-image',a?.name)||'<span class="ac-hero-placeholder">◇</span>';
+   const targetArt=t?(img(t.image,'ac-hero-image',t.name)||'<span class="ac-hero-placeholder">◇</span>'):'';
+   return `<section class="ac-panel ac-scene ac-cinematic ac-motion-${motion}" style="--ac-elapsed:-${age.toFixed(3)}s" aria-label="戦闘行動の演出">
+      <header><h2>行動 ${r.index+1} / ${scenes.length}</h2><small>${esc(a?.name||'キャラクター')}の行動 · 基本${view.settings.sceneSeconds}秒 · 時短 ${votes}/${n}人 (${ratio}%)</small></header>
+      <div class="ac-cinema-stage" role="img" aria-label="${esc(a?.name||'キャラクター')}：${esc(scene.detail)}">
+        <div class="ac-cinema-character ac-cinema-actor"><div class="ac-hero-frame">${actorArt}${itemArt?`<div class="ac-held-item">${itemArt}</div>`:''}</div><strong>${esc(a?.name||'プレイヤー')}</strong></div>
+        <div class="ac-cinema-impact" aria-hidden="true"><span class="ac-hit-slash"></span><span class="ac-hit-burst"></span><span class="ac-hit-orb"></span><span class="ac-hit-spark">✦</span></div>
+        ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target"><div class="ac-hero-frame">${targetArt}</div><strong>${esc(t.name)}</strong></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
+      </div>
+      <div class="ac-scene-itemline">${scene.item?art(scene.item,'ac-scene-item'):''}<p class="ac-scene-description">${esc(scene.detail)}${t?' → '+esc(t.name):''}</p></div>
+      ${button(voted?'時短済み':'画面をタップして時短','skipScene','class="ac-primary ac-skip-scene"',!eligible||voted)}<small>表示中の行動につき1人1回。戦闘結果は全員同時に計算済みです。</small>
+     </section>`;
  }
+
  function renderUI(){if(!enabled()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}if(window.ArtSessionUI?.lobby()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}const active=view&&view.phase!=='lobby';$('#studio').classList.toggle('chemist-play',!!active);stage.hidden=!active;stage.classList.toggle('ac-layout-preparation',view?.phase==='preparation');stage.classList.toggle('ac-layout-battle',view?.phase==='battle');if(!active)return;if(view.phase==='build'&&me()&&buildGame!==view.id){buildGame=view.id;build={};portrait='';try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{});portrait=safeImage(s.image)}catch{}if(me().ready){build={...me().build};portrait=me().image}}
  stage.innerHTML=header()+(view.phase==='build'?(me()?builder():'<div class="ac-panel">参加者がキャラクターを設定しています。</div>'):view.phase==='preparation'?preparation():view.phase==='battle'?battle():view.phase==='resolution'?actionSceneUI():`${players()}<section class="ac-panel ac-finish"><h2>${view.phase==='finished'?(view.winner?esc(view.players.find(p=>p.id===view.winner)?.name||'')+' の勝利！':'引き分け'):'同時行動の結果'}</h2>${view.phase==='finished'&&isHost?button('待機室へ戻る','return','class="ac-primary"'):''}</section>`)+`<details class="ac-panel ac-log" ${view.phase==='resolution'||view.phase==='finished'?'open':''}><summary>バトルログ・錬金履歴</summary><div>${(me()?.history||[]).slice(-5).map(t=>`<p>${esc(t)}</p>`).join('')}${view.logs.slice(-20).map(t=>`<p>${esc(t)}</p>`).join('')}</div></details><p class="ac-footnote">あーとけみすと · カード効果・価格・能力倍率は調整中</p>`;clock();const auto=$('#acAutoEquip');if(auto)auto.onchange=()=>request('autoEquip',{value:auto.checked});const select=$('#acFilter');if(select)select.onchange=()=>{filter=select.value;renderUI()};}
  function clock(){const el=$('#acClock');if(el)el.textContent=view?.deadline?Math.max(0,Math.ceil((view.deadline-Date.now()-offset)/1000))+' 秒':''}
@@ -18532,7 +18687,9 @@ window.ArtChemist=(()=>{
  function hostMessage(id,m){if(!enabled())return false;if(host?.phase!=='lobby'&&['op','opBatch','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock'].includes(m.type))return true;if(m.type!=='gameChemistIntent')return false;if(typeof migrationOut!=='undefined'&&migrationOut)return true;if(!isHost||!host||members.get(id)?.spectator)return true;try{if(m.op==='lobbyBuild'&&host.phase==='lobby'){const p=host.players.find(p=>p.id===id);if(!p)throw Error('参加者が見つかりません');const name=String(m.name||'').trim();if(!name||name.length>20)throw Error('キャラクター名は20文字以内です');if(typeof m.image!=='string'||m.image.length>600000||(m.image&&!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(m.image)))throw Error('画像を確認してください');p.build=R.cleanBuild(m.build);p.image=m.image;p.name=name;p.ready=true;sendAll();return true}if(m.op==='unreadyBuild'&&host.phase==='build'&&m.game===host.id){const p=host.players.find(p=>p.id===id);if(p)p.ready=false}else R.transact(host,id,m,Date.now());R.tick(host,Date.now());sendAll()}catch(e){const message={type:'gameChemistError',text:e.message};if(id===localId)receive(message);else sendWire(connections.get(id),message);sendAll()}return true}
  function playChemistFX(type){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;const ctx=window.__acAudioCtx||(window.__acAudioCtx=new Audio());if(ctx.state==='suspended')ctx.resume();const notes=type==='win'?[523,659,784,1047]:type==='craft'?[330,440,660]:type==='draw'?[550,770]:type==='start'?[392,523,659]:[300,400];notes.forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),t=ctx.currentTime+i*.095;osc.type=type==='craft'?'triangle':'sine';osc.frequency.setValueAtTime(hz,t);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.045,t+.02);gain.gain.exponentialRampToValueAtTime(.0001,t+.23);osc.connect(gain);gain.connect(ctx.destination);osc.start(t);osc.stop(t+.25)})}catch{}}
  function chemistFlash(type,label){const old=$('#acFlash');old?.remove();const el=document.createElement('div');el.id='acFlash';el.className='ac-flash ac-flash-'+type;el.textContent=label;stage.append(el);el.addEventListener('animationend',()=>el.remove(),{once:true})}
- let lastCraftId='';
+ let lastCraftId='',lastCinematicScene='';
+ function sceneAudioOnce(){if(view?.phase!=='resolution'||!view.reveal)return;const scene=view.actionScenes?.[view.reveal.index];if(!scene)return;const key=view.id+':'+view.round+':'+view.reveal.index;if(lastCinematicScene===key)return;lastCinematicScene=key;playChemistActionSound(scene.motion||'guard')}
+ function playChemistActionSound(motion){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;const ctx=window.__acAudioCtx||(window.__acAudioCtx=new Audio());if(ctx.state==='suspended')return;const t=ctx.currentTime,base={slash:440,smash:155,thrust:600,ranged:560,magic:720,eat:380,drink:480,throw:520,guard:290}[motion]||420;const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=['smash','slash','thrust'].includes(motion)?'triangle':'sine';osc.frequency.setValueAtTime(base,t);osc.frequency.exponentialRampToValueAtTime(Math.max(90,base*.47),t+.15);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.055,t+.014);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(ctx.destination);osc.start(t);osc.stop(t+.26)}catch{}}
  function showCraftReveal(c){if(!c||!c.success||!c.output||!R.defs[c.output])return;
   document.getElementById('acCraftReveal')?.remove();const d=R.defs[c.output];
   const overlay=document.createElement('div');overlay.id='acCraftReveal';overlay.className='ac-craft-reveal';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','完成アイテム');
@@ -18541,7 +18698,7 @@ window.ArtChemist=(()=>{
   const close=()=>{clearTimeout(timer);overlay.remove()};overlay.addEventListener('click',close,{once:true});document.body.append(overlay);
   const timer=setTimeout(close,3000);
  }
- function receive(m){if(m.type==='gameChemistError'){busy=false;toast(m.text);return}if(m.type!=='gameChemistState'||!m.state)return;const previousView=view,previousItems=me()?.items?.length||0,previousHistory=me()?.history?.length||0;view=m.state;for(const p of view.players){if(p.imageUnchanged)p.image=imageCache.get(p.id)||'';else imageCache.set(p.id,p.image);if(p.me)p.me.image=p.image}busy=false;offset=view.now-Date.now();room.chemistSettings=view.settings;if(view.event?.id&&lastEvent!==view.id+view.event.id){lastEvent=view.id+view.event.id;if(view.event.sound)window.ArtSound?.play(view.event.sound,3);if(view.event.chemistSound==='turn')playChemistFX('turn');if(view.phase==='finished')playChemistFX('win');else if(view.phase==='preparation'&&view.round===1)playChemistFX('start')}renderUI();if(view.phase==='finished'&&previousView?.phase!=='finished')chemistFlash('win',view.winner?`${view.players.find(p=>p.id===view.winner)?.name||'勝者'}の勝利！`:'引き分け');else if(view.phase==='preparation'&&view.round===1&&previousView?.phase!=='preparation')chemistFlash('start','錬金バトル 開始！');if(me()?.items?.length>previousItems&&previousView?.round===view.round&&view.phase==='preparation'&&previousView?.phase==='preparation'){playChemistFX('draw');chemistFlash('draw','新しいカードを獲得！')}if(me()?.lastCraft?.id&&lastCraftId!==me().lastCraft.id&&previousView?.id===view.id){lastCraftId=me().lastCraft.id;playChemistFX('craft');if(me().lastCraft.success)showCraftReveal(me().lastCraft)}renderControls();syncLobbyButtons()}
+ function receive(m){if(m.type==='gameChemistError'){busy=false;toast(m.text);return}if(m.type!=='gameChemistState'||!m.state)return;const previousView=view,previousItems=me()?.items?.length||0,previousHistory=me()?.history?.length||0;view=m.state;for(const p of view.players){if(p.imageUnchanged)p.image=imageCache.get(p.id)||'';else imageCache.set(p.id,p.image);if(p.me)p.me.image=p.image}busy=false;offset=view.now-Date.now();room.chemistSettings=view.settings;if(view.event?.id&&lastEvent!==view.id+view.event.id){lastEvent=view.id+view.event.id;if(view.event.sound)window.ArtSound?.play(view.event.sound,3);if(view.event.chemistSound==='turn')playChemistFX('turn');if(view.phase==='finished')playChemistFX('win');else if(view.phase==='preparation'&&view.round===1)playChemistFX('start')}renderUI();sceneAudioOnce();if(view.phase==='finished'&&previousView?.phase!=='finished')chemistFlash('win',view.winner?`${view.players.find(p=>p.id===view.winner)?.name||'勝者'}の勝利！`:'引き分け');else if(view.phase==='preparation'&&view.round===1&&previousView?.phase!=='preparation')chemistFlash('start','錬金バトル 開始！');if(me()?.items?.length>previousItems&&previousView?.round===view.round&&view.phase==='preparation'&&previousView?.phase==='preparation'){playChemistFX('draw');chemistFlash('draw','新しいカードを獲得！')}if(me()?.lastCraft?.id&&lastCraftId!==me().lastCraft.id&&previousView?.id===view.id){lastCraftId=me().lastCraft.id;playChemistFX('craft');if(me().lastCraft.success)showCraftReveal(me().lastCraft)}renderControls();syncLobbyButtons()}
  function tick(){if(!enabled())return;syncLobbyButtons();clock();if(!isHost||!host||(typeof migrationOut!=='undefined'&&migrationOut))return;if(host.phase==='lobby'){const key=host.players.map(p=>p.id).join();syncRoster();if(key!==host.players.map(p=>p.id).join())sendAll()}else if(R.tick(host,Date.now()))sendAll()}
  function configHTML(s={}){s=R.settings(s);return `<div class="ac-config"><label>錬金時間（秒）<input name="prep" type="number" min="15" max="300" value="${s.prep}"></label><label>戦闘時間（秒）<input name="battle" type="number" min="10" max="180" value="${s.battle}"></label><label>毎ラウンドのドロー<input name="draw" type="number" min="1" max="10" value="${s.draw}"></label><label>行動演出（秒）<input name="sceneSeconds" type="number" min="1" max="15" value="${s.sceneSeconds}"></label><label>参加人数上限<input name="players" type="number" min="2" max="10" value="${s.players}"></label><label>ひとり練習のCPU<input name="bots" type="number" min="1" max="11" value="${s.bots}"></label></div><p>錬金回数・装飾品の装備数は無制限。能力は200CP以内で構築します。</p>`}
  function readConfig(root){const s={};root?.querySelectorAll('[name]').forEach(e=>s[e.name]=+e.value);return R.settings(s)}
@@ -18556,9 +18713,9 @@ window.ArtChemist=(()=>{
  function inspect(id){const p=view.players.find(p=>p.id===id);if(!p)return;modal(p.name+' のキャラクター',`<div class="ac-inspect ac-inspect-large">${summary(p)}${p.equipment.map(i=>`<div>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><p>${esc(stat(i))}</p><small>${esc(effects(R.defs[i.def]))}</small></div>`).join('')||'<p>装備なし</p>'}</div><p>手札・素材・能力配分は公開されません。</p>`)}
  function giftPicker(){const i=me()?.items.find(i=>i.iid===selected);if(!i)return;modal('プレゼント：'+R.name(i.def),'<p>相手が受け取るまでカードは移動しません。</p>'+view.players.filter(p=>p.alive&&p.id!==localId).map(p=>`<button type="button" data-gift-to="${esc(p.id)}">${esc(p.name)}</button>`).join(''));$('#modalContent').querySelectorAll('[data-gift-to]').forEach(b=>b.onclick=()=>{request('gift',{item:selected,target:b.dataset.giftTo});$('#modal').close()})}
  function repairPicker(){const p=me(),i=p.items.find(i=>i.iid===selected);if(!i)return;const mats=R.repairMaterials(p,i);modal('修理素材を選ぶ',`<p>${esc(R.name(i.def))} · ${esc(stat(i))}</p><div class="ac-shop">${mats.map(q=>`<button type="button" data-repair="${esc(q.iid)}">${art(q.def)}${esc(R.name(q.def))}</button>`).join('')||'<p>対応する素材がありません。元レシピの素材、または同じ素材カテゴリを使用します。</p>'}</div>`);$('#modalContent').querySelectorAll('[data-repair]').forEach(b=>b.onclick=()=>{request('repair',{item:selected,material:b.dataset.repair});$('#modal').close()})}
- function help(){modal('あーとけみすとの遊び方','<p>1. 絵画展・ファイル画像からキャラクターを選び、200CPで能力を設定します。</p><p>2. 錬金タイムでカードをツボへ入れ、武器や防具を作って装備します。レシピが分からないときは「おすすめ素材」、素材2枚以上ならレシピなしのランダム錬金もできます。錬金は素材・装備・料理・薬品を作れます。大釜には性質と系統の方向性が表示され、異なる性質で突然変異や還元が起こることがあります。使用済み装備は錬金できません。</p><p>3. バトルタイムで相手と行動を選び、準備完了。戦闘結果は同時に計算され、各キャラクターの行動を順番に表示します。表示中は参加者1人につき1回タップで時短できます。回復アイテムは自分や他の人にも使用できます。</p><p>カードはタップして操作できます。手札→ツボ、ツボ→手札のドラッグも可能。プレゼントは相手の承認が必要です。</p><p>武器は回数、防具は装甲を使い切ると壊れます。壊れる前に素材で修理しましょう。脱落後は観戦できます。</p><p>最後の1人が勝利。同時に全滅なら引き分け。16ラウンド目から毎回HPを5失います。</p>')}
+ function help(){modal('あーとけみすとの遊び方','<p>1. 絵画展・ファイル画像からキャラクターを選び、200CPで能力を設定します。</p><p>2. 錬金タイムでカードをツボへ入れ、武器や防具を作って装備します。レシピが分からないときは「おすすめ素材」、素材2枚以上ならレシピなしのランダム錬金もできます。錬金は素材・装備・料理・薬品を作れます。大釜には性質と系統の方向性が表示され、異なる性質で突然変異や還元が起こることがあります。使用済み装備は、新しい素材と一緒なら型として錬金できます。</p><p>3. バトルタイムで相手と行動を選び、準備完了。戦闘結果は同時に計算され、各キャラクターの行動を順番に表示します。表示中は参加者1人につき1回タップで時短できます。回復アイテムは自分や他の人にも使用できます。</p><p>カードを大釜へドラッグすると錬金、装備欄へ置くと装備、相手に直接置くとプレゼント申請です。戦闘時は武器・道具を使用欄へドラッグし、対象を選択して行動します。プレゼントは相手の承認が必要です。</p><p>武器は回数、防具は装甲を使い切ると壊れます。壊れる前に素材で修理しましょう。脱落後は観戦できます。</p><p>最後の1人が勝利。同時に全滅なら引き分け。16ラウンド目から毎回HPを5失います。</p>')}
  async function action(b){const a=b.dataset.ac,p=me();switch(a){case'potSize':potDisplay=b.dataset.value||'normal';redraw();break;case'itemZoom':{const i=me()?.items.find(i=>i.iid===selected);if(i){modal(R.name(i.def),`<div class="ac-item-zoom">${art(i.def)}<p>${esc(effects(R.defs[i.def]))}</p></div>`)}break}case'buildStyle':buildStyle=b.dataset.value;redraw();break;case'job':try{build=R.cleanBuild(jobPresets[b.dataset.value]||{});redraw()}catch(e){toast(e.message)}break;case'handAll':handAll=!handAll;redraw();break;case'handPrev':handPage=Math.max(0,handPage-1);redraw();break;case'handNext':handPage++;redraw();break;case'tab':tab=b.dataset.value;redraw();break;case'ability':{if(p?.ready&&view?.phase!=='lobby')return;const next={...build,[b.dataset.id]:(build[b.dataset.id]||0)+Number(b.dataset.delta)};try{build=R.cleanBuild(next);redraw()}catch(e){toast(e.message)}break}case'resetBuild':build={};redraw();break;case'preset':build={hp:80,melee:20,extra_draw:1,initial_gold:20};redraw();break;case'saveBuild':try{localStorage.setItem('artopia-chemist-character',JSON.stringify({build,image:portrait,name:charName}));toast('キャラクターと能力を保存しました')}catch{toast('保存容量が足りません')}break;case'loadBuild':try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{});portrait=safeImage(s.image);charName=String(s.name||charName).slice(0,20);redraw()}catch{toast('保存データを読み込めませんでした')}break;case'confirmBuild':{charName=String($('#acCharacterName')?.value||charName||profile?.name||'キャラクター').trim().slice(0,20);if(!charName){toast('キャラクター名を入力してください');return}try{build=R.cleanBuild(build);localStorage.setItem('artopia-chemist-character',JSON.stringify({build,image:portrait,name:charName}))}catch(e){toast(e.message||'保存できませんでした');return}if(view?.phase==='lobby'){request('lobbyBuild',{build,image:portrait,name:charName});$('#modal').close();lobbyBuildOpen=false;toast('キャラクター設定を保存しました')}else request('build',{build,image:portrait});break}case'unreadyBuild':request('unreadyBuild');break;case'file':file.click();break;case'gallery':await galleryPicker();break;case'canvas':{const c=E.make(engine.w,engine.h);try{const x=c.getContext('2d');engine.layers.forEach((l,i)=>{x.globalAlpha=(prefs.opacities[i]??100)/100;x.drawImage(l,0,0)});await importImage(c.toDataURL())}finally{c.width=c.height=0}break}case'help':help();break;case'sound':document.querySelector('.sound-settings-button')?.click();break;case'potMode':potMode='alchemy';redraw();break;case'skipScene':request('skipScene');break;case'pot':case'lock':case'equip':case'sell':request(a,{item:selected});break;case'craft':request(a,{mode:'alchemy'});break;case'clear':case'ready':request(a);break;case'auto':{const r=R.recipes.find(r=>(['material','weapon','armor','food','consumable','accessory','guard_tool'].includes(R.defs[r.output_id]?.kind))&&R.inputs(p,r,true));if(r)request('fill',{recipe:r.id});else{const parts=p.items.filter(i=>!i.equipped&&!i.locked&&R.defs[i.def].kind==='material'&&R.defs[i.def].class_rank_provisional<4);if(parts.length<2)toast('自動錬金できる素材が足りません');else request('autoFill')}break}case'shop':shop();break;case'recipes':recipeBook();break;case'encyclopedia':encyclopedia();break;case'repair':repairPicker();break;case'gift':giftPicker();break;case'answerGift':request(a,{offer:b.dataset.offer,accept:b.dataset.accept==='true'});break;case'attack':request('action',{action:{type:'attack',target}});break;case'defend':request('action',{action:{type:'defend'}});break;case'use':request('action',{action:{type:'use',item:selected,target}});break;case'inspect':inspect(target);break;case'inspectSelf':inspect(localId);break;case'return':abortMatch();break;}}
- stage.addEventListener('click',e=>{if(performance.now()<cardClickGuard){e.preventDefault();e.stopPropagation();return}const c=e.target.closest('[data-card]'),p=e.target.closest('[data-player]'),b=e.target.closest('[data-ac]');if(c){selected=c.dataset.card;renderUI();return}if(p){target=p.dataset.player;if(view.phase==='battle'||!me()?.alive||view.phase==='preparation')inspect(target);else renderUI();return}if(b)void action(b).catch(e=>toast(e.message||'操作できませんでした'))});
+ stage.addEventListener('click',e=>{if(performance.now()<cardClickGuard){e.preventDefault();e.stopPropagation();return}const c=e.target.closest('[data-card]'),p=e.target.closest('[data-player]'),b=e.target.closest('[data-ac]');if(c){selected=c.dataset.card;renderUI();return}if(p){target=p.dataset.player;if(view.phase==='battle'&&me()?.alive){renderUI();return}if(!me()?.alive||view.phase==='preparation')inspect(target);else renderUI();return}if(b)void action(b).catch(e=>toast(e.message||'操作できませんでした'))});
   // Artchemist-specific direct manipulation: no native HTML drag, no long-press timeout.
   // A 5px move starts dragging immediately on mouse, pen and touch; a tap still selects.
   let cardPointer=null,cardClickGuard=0;
@@ -18615,16 +18772,29 @@ window.ArtChemist=(()=>{
    selected=id;
    if(player){
     target=player.dataset.player;
-    if(view.phase==='preparation')giftPicker();
-    else if(view.phase==='battle'){
-     const d=R.defs[item.def];
-     if(d.kind==='weapon')request('action',{action:{type:'attack',target}});
-     else if(['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use')))request('action',{action:{type:'use',item:id,target}});
-     else toast('このカードは対象へ使用できません');
-    }
+    if(view.phase==='preparation'){
+     if(target!==localId){if(item.equipped||item.locked||own.pot.includes(id))toast('装備中・保護中・投入中のカードは渡せません');
+      else{request('gift',{item:id,target});playChemistFX('draw')}}
+     else toast('自分にカードを渡すことはできません');
+    }else if(view.phase==='battle')toast('相手に直接置くとプレゼントになります。使用する場合は使用欄にドラッグしてください');
+   }else if(zone&&view.phase==='battle'&&zone.dataset.drop==='use'){
+    const d=R.defs[item.def];
+    if(d.kind==='weapon'){
+     if(!item.equipped)toast('先に錬金タイムで武器を装備してください');
+     else{selected=id;toast('攻撃対象のキャラをタップして「攻撃する」で確定してください');playChemistFX('draw')}
+    }else if(['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use'))){
+     selected=id;toast('使用対象のキャラをタップして「選んだアイテムを使う」で確定してください');playChemistFX('draw');
+    }else toast('このカードは戦闘中に使用できません');
    }else if(zone&&view.phase==='preparation'){
-    if(zone.dataset.drop==='sell')request('sell',{item:id});
-    else if((zone.dataset.drop==='pot')!==own.pot.includes(id))request('pot',{item:id});
+    const drop=zone.dataset.drop;
+    if(drop==='sell')request('sell',{item:id});
+    else if(drop==='pot'){if(!own.pot.includes(id))request('pot',{item:id});}
+    else if(drop.startsWith('equip-')){
+     const d=R.defs[item.def],slot=drop.slice(6);
+     const valid=slot===d.kind||(d.kind==='armor'&&slot===d.stats?.slot)||(slot==='accessory'&&d.kind==='accessory');
+     if(valid){if(!item.equipped)request('equip',{item:id});else toast('すでに装備しています');}
+     else toast('この装備欄には配置できません');
+    }
    }
    renderUI();
   }
