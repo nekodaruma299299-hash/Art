@@ -18056,7 +18056,27 @@ window.AlchemistRules = (()=>{
  const value=id=>defs[id].value_provisional||Math.max(3,(defs[id].class_rank_provisional||1)*7);
  const sale=(p,id)=>Math.floor(value(id)*(1+bonus(p,'sell')/100))+passive(p,'sale_value_bonus')+(setName(p)==='gold'?2:0);
  const price=(p,id)=>Math.max(sale(p,id)+1,Math.ceil(value(id)*3*(1-bonus(p,'shop_discount')/100)));
- function draw(g,p,n){const materials=Object.values(defs).filter(d=>d.kind==='material');for(let k=0;k<n;k++){const r=random(g)*100;let rank=r<50?1:r<77?2:r<90?3:r<97?4:r<99.5?5:6;if(k===0&&p.build.higher_rarity_retry&&rank===1)rank=2;const pool=materials.filter(d=>d.class_rank_provisional===rank);p.items.push(instance(g,choose(g,pool.length?pool:materials).id,p))}}
+ function draw(g,p,n){
+  const materials=Object.values(defs).filter(d=>d.kind==='material');
+  // Common crafting supplies must be obtainable without a category-selection UI.
+  // Keep the original rarity roll; only weight item identities within that rank.
+  const drawWeight=d=>{
+    const id=String(d.id||'').toLowerCase(),cat=String(d.material_category||'').toLowerCase();
+    if(['wood','iron','stone','crystal','magic_crystal'].includes(id))return 6;
+    if(cat==='wood'||cat==='ore'||cat==='metal')return 4;
+    if(cat==='gem'||cat==='gemstone'||cat==='stone')return 2.8;
+    if(/wood|lumber|log|plank|ore|ingot|iron|copper|steel|crystal|gem|mana|magic/.test(id))return 2.5;
+    return 1;
+  };
+  for(let k=0;k<n;k++){
+    const r=random(g)*100;let rank=r<50?1:r<77?2:r<90?3:r<97?4:r<99.5?5:6;
+    if(k===0&&p.build.higher_rarity_retry&&rank===1)rank=2;
+    const same=materials.filter(d=>d.class_rank_provisional===rank),pool=same.length?same:materials;
+    const sum=pool.reduce((n,d)=>n+drawWeight(d),0);let roll=random(g)*sum;
+    let chosen=pool[pool.length-1];for(const d of pool){roll-=drawWeight(d);if(roll<=0){chosen=d;break}}
+    p.items.push(instance(g,chosen.id,p));
+  }
+}
  function newPlayer(id,label,bot=false){return {id,name:label,image:'',build:{},items:[],pot:[],hp:100,extraMaxHp:0,gold:100,ready:false,alive:true,action:null,bot,status:{},used:{},discovered:[],history:[],shop:[],giftGold:0,autoEquip:true}}
  function create(id,roster,s,seed){return {id,seed:seed||123456789,serial:0,version:0,phase:'lobby',round:0,deadline:null,settings:settings(s),players:roster.map(p=>newPlayer(p.id,p.name,p.bot)),offers:[],seen:{},logs:[],event:null}}
  function log(g,t){g.logs.push(t);g.logs=g.logs.slice(-60)}
@@ -18079,6 +18099,7 @@ window.AlchemistRules = (()=>{
  function acFamilies(d){
   const id=String(d.id||'').toLowerCase(),cat=String(d.material_category||'').toLowerCase(),tags=(d.tags||[]).join(' ').toLowerCase();
   const out=new Set();
+  if(id==='scroll'||id.endsWith('_scroll')||/魔法スクロール/.test(String(d.name||'')))return ['scroll','magic'];
   if(d.kind==='weapon'){
    const f=String(d.stats?.weapon_family||'').toLowerCase();
    let family=f||(/sword|blade|knife|dagger|katana|rapier|durandal/.test(id)?'sword':/axe|hatchet|chopper/.test(id)?'axe':/spear|lance|trident/.test(id)?'spear':/bow|crossbow/.test(id)?'bow':/staff|wand|rod/.test(id)?'staff':/hammer|mace|club/.test(id)?'hammer':'other');
@@ -18091,16 +18112,42 @@ window.AlchemistRules = (()=>{
   if(d.kind==='guard_tool'){return ['guard','metal'];}
   if(d.kind==='accessory'){out.add('accessory');if(acMagicWords.test(id+' '+tags))out.add('magic');return [...out];}
   if(d.kind==='food'||(/potion|elixir|tonic|medicine|salve/.test(id))){
-   out.add('food');if(/potion|elixir|tonic|medicine|healing|cure/.test(id+' '+tags))out.add('healing');if(/soup|stew|vegetable|salad|mushroom|carrot|potato|tomato/.test(id))out.add('food:vegetable');if(/fish|tuna|salmon|seafood|sushi/.test(id))out.add('food:seafood');return [...out];
+   out.add('food');
+   // A broad food identity is never sufficient to determine random crafting output.
+   if(/potion|elixir|tonic|medicine/.test(id))out.add('food:potion');
+   if(/potion|elixir|tonic|medicine|healing|cure/.test(id+' '+tags))out.add('healing');
+   if(/mushroom|fungus/.test(id))out.add('food:fungus');
+   if(/carrot|potato|tomato|lettuce|cabbage|onion|vegetable|salad/.test(id))out.add('food:vegetable');
+   if(/fish|tuna|salmon|seafood|sushi/.test(id))out.add('food:seafood');
+   if(/water|spring_water/.test(id))out.add('food:water');
+   if(/bread|toast|flour|wheat|rice|onigiri/.test(id))out.add('food:grain');
+   if(/berry|strawberry|blueberry|fruit|apple/.test(id))out.add('food:fruit');
+   if(/jam|candy|gummy|ice_cream|cookie|cake|chocolate/.test(id))out.add('food:sweet');
+   if(/meat|egg|milk|butter|cheese/.test(id))out.add('food:protein');
+   if(/soup|stew|cooked/.test(id))out.add('food:prepared');
+   return [...out];
   }
   if(d.kind==='consumable'){
    if(/scroll|spell|magic|flame|fire|frost|holy/.test(id+' '+tags))out.add('magic');
-   if(/healing|potion|medicine|cure/.test(id+' '+tags)) {out.add('food');out.add('healing');}
+   if(/healing|potion|medicine|cure/.test(id+' '+tags)) {out.add('food');out.add('healing');out.add('food:potion');}
+   if(/mushroom|fungus/.test(id)){out.add('food');out.add('food:fungus');}
    if(/bomb|explosive/.test(id+' '+tags))out.add('fire');
    if(!out.size)out.add('utility');return [...out];
   }
   // Materials: semantic identity takes priority over stale generic classifications.
-  if(acFoodWords.test(id+' '+tags)||cat==='food'){out.add('food');if(/herb|healing|potion/.test(id+' '+tags))out.add('healing');if(/carrot|mushroom|potato|tomato|lettuce|cabbage|onion|vegetable/.test(id))out.add('food:vegetable');if(/tuna|fish|salmon|shrimp|crab|seaweed|squid/.test(id))out.add('food:seafood');}
+  if(acFoodWords.test(id+' '+tags)||cat==='food'){
+   out.add('food');
+   if(/herb|healing|potion/.test(id+' '+tags))out.add('healing');
+   if(/potion|elixir|tonic|medicine/.test(id))out.add('food:potion');
+   if(/mushroom|fungus/.test(id))out.add('food:fungus');
+   if(/carrot|potato|tomato|lettuce|cabbage|onion|vegetable/.test(id))out.add('food:vegetable');
+   if(/tuna|fish|salmon|shrimp|crab|seaweed|squid/.test(id))out.add('food:seafood');
+   if(/water|spring_water/.test(id))out.add('food:water');
+   if(/bread|toast|flour|wheat|rice|onigiri/.test(id))out.add('food:grain');
+   if(/berry|strawberry|blueberry|fruit|apple/.test(id))out.add('food:fruit');
+   if(/jam|candy|gummy|ice_cream|cookie|cake|chocolate/.test(id))out.add('food:sweet');
+   if(/meat|egg|milk|butter|cheese/.test(id))out.add('food:protein');
+  }
   if(acPlantWords.test(id+' '+tags)||cat==='plant')out.add('plant');
   if(acWoodWords.test(id)||cat==='wood')out.add('wood');
   if(acMetalWords.test(id)||cat==='ore'||cat==='metal')out.add('metal');
@@ -18114,9 +18161,25 @@ window.AlchemistRules = (()=>{
   return [...out];
  }
  function acWeight(rank){return Math.pow(2,Math.max(0,Math.min(7,(rank||1)-1)))}
+ function acIsScroll(d){return !!d&&(d.id==='scroll'||String(d.id||'').endsWith('_scroll')||/魔法スクロール/.test(String(d.name||'')))}
+ function acScrollResults(parts){
+  const ids=new Set(parts.map(x=>x.def));
+  const inputs=parts.map(x=>defs[x.def]).filter(Boolean);
+  const maxRank=Math.max(1,...inputs.map(d=>d.class_rank_provisional||1));
+  // Every random result from scroll-bearing recipes is a filled spell scroll.
+  // The blank scroll is intentionally excluded from results.
+  const all=Object.values(defs).filter(d=>d.kind==='consumable'&&acIsScroll(d)&&!ids.has(d.id));
+  const near=all.filter(d=>(d.class_rank_provisional||1)<=Math.min(8,maxRank+1));
+  return near.length?near:all;
+ }
  function improvisationPool(parts,mode){
   const ingredients=parts.map(i=>defs[i.def]).filter(Boolean);
   if(!ingredients.length)return {pool:[],average:1,highest:1};
+  if(ingredients.some(acIsScroll)){
+    const maxRank=Math.max(...ingredients.map(d=>d.class_rank_provisional||1));
+    const pool=acScrollResults(parts).map(d=>({id:d.id,weight:Math.pow(.48,Math.abs((d.class_rank_provisional||1)-maxRank))}));
+    return {pool,average:maxRank,highest:maxRank,dominantFamily:'scroll',dominantShare:1};
+  }
   const familyWeights=new Map(),kindWeights=new Map();
   let total=0,weightedRanks=0,highest=1;
   for(const d of ingredients){
@@ -18130,9 +18193,15 @@ window.AlchemistRules = (()=>{
   const dominantFamily=dominant?.[0]||[...familyWeights].sort((a,b)=>b[1]-a[1])[0]?.[0]||'utility';
   const dominantShare=(dominant?.[1]||0)/total;
   const onlyFood=ingredients.every(d=>acFamilies(d).includes('food'));
+  const onlyPotions=ingredients.every(d=>acFamilies(d).includes('food:potion'));
+  const onlyFungi=ingredients.every(d=>acFamilies(d).includes('food:fungus'));
+  const familySets=ingredients.map(d=>acFamilies(d).filter(f=>f!=='food'&&!['weapon','armor','utility','healing','magic'].includes(f)));
+  const sharedFamilies=familySets.length>=2?familySets[0].filter(f=>familySets.every(a=>a.includes(f))):[];
+  const sameFamily=sharedFamilies.length>0;
+  const upgradeStrength=sameFamily?Math.min(3,ingredients.length-1):0;
   const hasEquipment=ingredients.some(d=>d.kind==='weapon'||d.kind==='armor');
   const consumedIds=new Set(parts.map(i=>i.def));
-  const rarityCap=Math.min(8,Math.max(highest,Math.ceil(average)+(total>=8?1:0)));
+  const rarityCap=Math.min(8,Math.max(highest,Math.ceil(average)+(total>=8||onlyPotions||onlyFungi||sameFamily?1:0)));
   const pool=[];
   for(const d of Object.values(defs)){
    if(!craftKind(d,mode)||consumedIds.has(d.id)||['chemist_tonic','chemist_blade'].includes(d.id))continue;
@@ -18140,12 +18209,17 @@ window.AlchemistRules = (()=>{
    if(rank>rarityCap||rank<Math.max(1,Math.floor(average)-3))continue;
    // Food-only ingredients can never magically become weapons or armor.
    if(onlyFood&&!families.includes('food'))continue;
+   if(onlyPotions&&!families.includes('food:potion'))continue;
+   if(onlyFungi&&!families.includes('food:fungus'))continue;
    const exactWeapon=dominantFamily.startsWith('weapon:')&&families.includes(dominantFamily);
    const exactArmor=dominantFamily.startsWith('armor:')&&families.includes(dominantFamily);
    let affinity=0;
    for(const f of families){
     const vote=familyWeights.get(f)||0;
-    const broad=['weapon','armor','utility','food'].includes(f);
+    // 'food' alone joins unrelated medicines, fungi and plain water.
+    // Require matching specific families (potion, fungus, water, etc.).
+    if(f==='food')continue;
+    const broad=['weapon','armor','utility'].includes(f);
     affinity+=broad?vote*.25:vote;
    }
    // Equipment has an explicit subtype. Don't turn a sword into an axe,
@@ -18161,7 +18235,7 @@ window.AlchemistRules = (()=>{
      else if(familyWeights.has('wood')&&/wood|bow|staff|club|spear/.test(id+' '+weaponFamily))affinity=familyWeights.get('wood')*.5;
      else if(familyWeights.has('metal')&&/iron|steel|copper|gold|silver|sword|knife|armor|axe/.test(id))affinity=familyWeights.get('metal')*.5;
     }else if(d.kind==='armor'&&familyWeights.has('metal'))affinity=familyWeights.get('metal')*.45;
-    else if(d.kind==='food'&&familyWeights.has('plant'))affinity=familyWeights.get('plant')*.35;
+    else if(d.kind==='food'&&familyWeights.has('plant')&&families.includes('food:vegetable'))affinity=familyWeights.get('plant')*.35;
     else if(d.kind==='accessory'&&familyWeights.has('magic'))affinity=familyWeights.get('magic')*.45;
    }
    if(affinity<=0)continue; // No unrelated results.
@@ -18173,6 +18247,8 @@ window.AlchemistRules = (()=>{
    if(hasEquipment&&(exactWeapon||exactArmor)&&rank>=Math.max(...ingredients.filter(x=>x.kind==='weapon'||x.kind==='armor').map(x=>x.class_rank_provisional||1)))strength*=2.2;
    if(exactWeapon||exactArmor)strength*=4;
    let rarityWeight=rank<=average?1/(1+(average-rank)*.65):Math.pow(.37,rank-average);
+   if(sameFamily&&rank>highest){rarityWeight*=1+upgradeStrength*3.0;}
+   if(sameFamily&&rank===highest){rarityWeight*=.72;}
    if(rank>highest+1)rarityWeight*=.25;
    pool.push({id:d.id,weight:Math.max(.000001,strength*rarityWeight)});
   }
@@ -18230,6 +18306,8 @@ window.AlchemistRules = (()=>{
   const parts=p.pot.map(id=>item(p,id)).filter(Boolean);if(parts.length<2)return null;
   const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode));
   const exact=matches.find(r=>r.id===p.recipe)||matches[0];
+  const scrollInput=parts.some(i=>acIsScroll(defs[i.def]));
+  if(scrollInput&&(!exact||!acIsScroll(defs[exact.output_id])||defs[exact.output_id].kind!=='consumable')){const pool=acScrollResults(parts);return pool.length?{output:null,count:1,chance:1,recipe:'random_scroll_magic',random:true,possibilities:pool.length}:null;}
   const forced=mutationReaction(parts);if(forced&&defs[forced.output]&&!parts.some(i=>i.def===forced.output))return {output:forced.output,count:1,chance:1,recipe:'mutation_'+forced.output,mutation:forced.note};
   if(exact)return{output:exact.output_id,count:exact.yield_quantity||1,chance:1,recipe:exact.id};
   const mutant=mutationReaction(parts);if(mutant&&defs[mutant.output]&&!parts.some(i=>i.def===mutant.output))return {output:mutant.output,count:1,chance:1,recipe:'mutation_'+mutant.output,mutation:mutant.note};
