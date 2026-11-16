@@ -2551,7 +2551,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 <style>
 /* Scoped Artchemist UI */
 /* Artchemist layout is defined once in chemist-chat-aware-layout-fix below. */
-#studio.chemist-play #snapshotBtn,#studio.chemist-play .layer-controls,#studio.chemist-play #sharedLobbyBar{display:none!important}
+#studio.chemist-play #snapshotBtn,#studio.chemist-play #sharedLobbyBar{display:none!important}
 #chemistStage[hidden]{display:none!important}
 #chemistStage{height:100%;width:100%;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px clamp(12px,2vw,28px) 50px;background:radial-gradient(ellipse at 50% 10%,#423058 0,transparent 60%),#191623;color:#f4eede;font-family:inherit;isolation:isolate}
 #chemistStage *{box-sizing:border-box}
@@ -2646,7 +2646,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
  width:100%!important;min-width:0!important;min-height:0!important;
  overflow:hidden!important;
 }
-#studio.chemist-play>.workspace>:not(#chemistStage):not(#memberPanel){display:none!important}
+#studio.chemist-play>.workspace>:not(#chemistStage):not(#memberPanel):not(.toolbox){display:none!important}
 #studio.chemist-play>.workspace>#chemistStage{
  display:block!important;grid-column:1!important;grid-row:1!important;
  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
@@ -2680,6 +2680,24 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 }
 #studio.chemist-play.chat-collapsed>.workspace{grid-template-columns:minmax(0,1fr)!important}
 #studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important}
+/* Restore the shared layer strip without placing the drawing toolbox over gameplay. */
+#studio.chemist-play>.workspace>.toolbox{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ grid-column:1/-1!important;grid-row:1!important;position:relative!important;
+ width:100%!important;height:auto!important;min-height:44px!important;max-height:62px!important;
+ padding:5px 12px!important;margin:0!important;overflow-x:auto!important;overflow-y:hidden!important;
+ background:#272033!important;border-bottom:1px solid #756482!important;
+}
+#studio.chemist-play>.workspace>.toolbox>:not(.layer-controls){display:none!important}
+#studio.chemist-play>.workspace>.toolbox>.layer-controls{
+ display:flex!important;align-items:center!important;flex:none!important;gap:8px!important;
+ width:max-content!important;max-width:none!important;height:auto!important;padding:0!important;
+ border:0!important;background:transparent!important;overflow:visible!important;
+}
+#studio.chemist-play>.workspace>.toolbox>.layer-controls>small{display:none!important}
+#studio.chemist-play>.workspace>.toolbox>.layer-controls>label{display:flex!important;align-items:center!important;gap:5px!important;flex:none!important;white-space:nowrap!important;font-size:11px!important}
+#studio.chemist-play>.workspace>.toolbox>.layer-controls input[type=range]{width:78px!important;min-width:58px!important}
+#studio.chemist-play>.workspace>.toolbox #layerBtn{display:inline-flex!important;align-items:center!important;min-height:34px!important;padding:5px 12px!important}
 /* A genuine game-column width breakpoint (not the whole browser width). */
 @container (max-width:850px){
  #chemistStage .ac-build,#chemistStage .ac-play-grid{
@@ -2707,17 +2725,23 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 @media(orientation:portrait) and (max-width:900px){
  #studio.chemist-play:not(.chat-collapsed)>.workspace{
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:minmax(0,3fr) minmax(180px,2fr)!important;
+  grid-template-rows:auto minmax(0,3fr) minmax(180px,2fr)!important;
  }
- #studio.chemist-play:not(.chat-collapsed)>.workspace>#chemistStage{grid-column:1!important;grid-row:1!important}
- #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{grid-column:1!important;grid-row:2!important}
- #studio.chemist-play.chat-collapsed>.workspace{grid-template-rows:minmax(0,1fr)!important}
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#chemistStage{grid-column:1!important;grid-row:2!important}
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{grid-column:1!important;grid-row:3!important}
+ #studio.chemist-play.chat-collapsed>.workspace{grid-template-rows:auto minmax(0,1fr)!important}
 }
 @media(orientation:landscape) and (max-width:720px){
  #studio.chemist-play:not(.chat-collapsed)>.workspace{
   grid-template-columns:minmax(0,1fr) minmax(175px,30vw)!important;
  }
 }
+/* Artchemist pointer drag stays responsive on touch devices. */
+#chemistStage [data-card]{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#chemistStage.ac-dragging [data-card]{cursor:grabbing}
+.ac-pointer-ghost{display:flex!important;align-items:center;justify-content:center;left:0!important;top:0!important;will-change:transform;box-shadow:0 12px 28px #0008;opacity:.94}
+.ac-drag-info{position:fixed;z-index:10000;box-sizing:border-box;pointer-events:none;background:#2e243eea;color:#fff2d6;border:1px solid #d4a95b;box-shadow:0 4px 16px #0007;border-radius:10px;padding:9px 14px;font-size:13px;line-height:1.5;white-space:normal}
+#chemistStage .ac-detail{position:relative;max-width:100%;overflow-wrap:anywhere}
 </style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
@@ -17583,7 +17607,7 @@ window.ArtChemist=(()=>{
  function button(label,action,extra='',disabled=false){return `<button type="button" data-ac="${action}" ${extra} ${disabled?'disabled':''}>${label}</button>`}
  function stat(i){const d=R.defs[i.def];return d.kind==='weapon'?`攻撃 ${d.stats.damage} · ${i.uses}/${i.maxUses}回`:d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${d.stats.block_amount} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · ${R.value(i.def)}G`:effects(d)}
  function effects(d){return d.effects.map(e=>({heal:`HP ${e.amount}回復`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋炎上`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${e.armor_points}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${e.amount}`,max_hp_bonus:`最大HP +${e.amount}`,sale_value_bonus:`売値 +${e.amount}G`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`炎上 ${e.damage_per_round}×${e.duration_rounds}R`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${e.flat_damage_reduction}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・売却・修理の素材'}
- function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="true" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
+ function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="false" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
  function header(){return `<header class="ac-header"><div><small>ARTCHEMIST${view.round?' / ROUND '+view.round:''}</small><h2>${phaseName[view.phase]}</h2></div><div class="ac-header-side"><b id="acClock" role="timer"></b>${me()?`<span>${me().gold} G</span>`:''}${button('遊び方','help')}${button('効果音','sound')}</div></header>`}
  function summary(p){return `<div class="ac-character">${img(p.image,'ac-portrait',p.name)||'<div class="ac-empty-art">あなたの絵が<br>キャラクターに</div>'}<strong>${esc(p.name)}</strong></div><div class="ac-meters"><label>HP <b>${p.hp} / ${p.maxHp||R.maxHP(p)}</b></label><progress value="${p.hp}" max="${p.maxHp||R.maxHP(p)}"></progress><label>装甲 <b>${p.armor??R.armorTotal(p)}</b></label></div>`}
  const jobPresets={fighter:{hp:30,melee:22,weapon_uses:5},guardian:{hp:55,armor:25,emergency_guard:1},mage:{hp:15,magic:28,extra_draw:1},alchemist:{alchemy_success:20,extra_draw:1,recycle_material:0},merchant:{initial_gold:50,shop_discount:20,passive_income:1},healer:{hp:20,heal:30,potent_medicine:1}};
@@ -17630,11 +17654,81 @@ window.ArtChemist=(()=>{
  function repairPicker(){const p=me(),i=p.items.find(i=>i.iid===selected);if(!i)return;const mats=R.repairMaterials(p,i);modal('修理素材を選ぶ',`<p>${esc(R.name(i.def))} · ${esc(stat(i))}</p><div class="ac-shop">${mats.map(q=>`<button type="button" data-repair="${esc(q.iid)}">${art(q.def)}${esc(R.name(q.def))}</button>`).join('')||'<p>対応する素材がありません。元レシピの素材、または同じ素材カテゴリを使用します。</p>'}</div>`);$('#modalContent').querySelectorAll('[data-repair]').forEach(b=>b.onclick=()=>{request('repair',{item:selected,material:b.dataset.repair});$('#modal').close()})}
  function help(){modal('あーとけみすとの遊び方','<p>1. 絵画展・ファイル画像からキャラクターを選び、200CPで能力を設定します。</p><p>2. 錬金タイムでカードをツボへ入れ、武器や防具を作って装備します。レシピが分からないときは「おすすめ素材」、素材2枚以上なら即席錬金もできます。</p><p>3. バトルタイムで相手と行動を選び、準備完了。全員同時に解決されます。回復アイテムは自分や他の人にも使用できます。</p><p>カードはタップして操作できます。手札→ツボ、ツボ→手札のドラッグも可能。プレゼントは相手の承認が必要です。</p><p>武器は回数、防具は装甲を使い切ると壊れます。壊れる前に素材で修理しましょう。脱落後は観戦できます。</p><p>最後の1人が勝利。同時に全滅なら引き分け。16ラウンド目から毎回HPを5失います。</p>')}
  async function action(b){const a=b.dataset.ac,p=me();switch(a){case'buildStyle':buildStyle=b.dataset.value;redraw();break;case'job':try{build=R.cleanBuild(jobPresets[b.dataset.value]||{});redraw()}catch(e){toast(e.message)}break;case'handAll':handAll=!handAll;redraw();break;case'handPrev':handPage=Math.max(0,handPage-1);redraw();break;case'handNext':handPage++;redraw();break;case'tab':tab=b.dataset.value;redraw();break;case'ability':{if(p?.ready&&view?.phase!=='lobby')return;const next={...build,[b.dataset.id]:(build[b.dataset.id]||0)+Number(b.dataset.delta)};try{build=R.cleanBuild(next);redraw()}catch(e){toast(e.message)}break}case'resetBuild':build={};redraw();break;case'preset':build={hp:80,melee:20,extra_draw:1,initial_gold:20};redraw();break;case'saveBuild':try{localStorage.setItem('artopia-chemist-character',JSON.stringify({build,image:portrait,name:charName}));toast('キャラクターと能力を保存しました')}catch{toast('保存容量が足りません')}break;case'loadBuild':try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{});portrait=safeImage(s.image);charName=String(s.name||charName).slice(0,20);redraw()}catch{toast('保存データを読み込めませんでした')}break;case'confirmBuild':{charName=String($('#acCharacterName')?.value||charName||profile?.name||'キャラクター').trim().slice(0,20);if(!charName){toast('キャラクター名を入力してください');return}try{build=R.cleanBuild(build);localStorage.setItem('artopia-chemist-character',JSON.stringify({build,image:portrait,name:charName}))}catch(e){toast(e.message||'保存できませんでした');return}if(view?.phase==='lobby'){request('lobbyBuild',{build,image:portrait,name:charName});$('#modal').close();lobbyBuildOpen=false;toast('キャラクター設定を保存しました')}else request('build',{build,image:portrait});break}case'unreadyBuild':request('unreadyBuild');break;case'file':file.click();break;case'gallery':await galleryPicker();break;case'canvas':{const c=E.make(engine.w,engine.h);try{const x=c.getContext('2d');engine.layers.forEach((l,i)=>{x.globalAlpha=(prefs.opacities[i]??100)/100;x.drawImage(l,0,0)});await importImage(c.toDataURL())}finally{c.width=c.height=0}break}case'help':help();break;case'sound':document.querySelector('.sound-settings-button')?.click();break;case'potMode':potMode=b.dataset.value;redraw();break;case'pot':case'lock':case'equip':case'sell':request(a,{item:selected});break;case'craft':request(a,{mode:potMode});playChemistFX('craft');break;case'clear':case'ready':request(a);break;case'auto':{const r=R.recipes.find(r=>['weapon','armor','food','accessory','guard_tool'].includes(R.defs[r.output_id]?.kind)&&R.inputs(p,r,true));if(r)request('fill',{recipe:r.id});else{const parts=p.items.filter(i=>!i.equipped&&!i.locked&&R.defs[i.def].kind==='material'&&R.defs[i.def].class_rank_provisional<4);if(parts.length<2)toast('自動錬金できる素材が足りません');else request('autoFill')}break}case'shop':shop();break;case'recipes':recipeBook();break;case'encyclopedia':encyclopedia();break;case'repair':repairPicker();break;case'gift':giftPicker();break;case'answerGift':request(a,{offer:b.dataset.offer,accept:b.dataset.accept==='true'});break;case'attack':request('action',{action:{type:'attack',target}});break;case'defend':request('action',{action:{type:'defend'}});break;case'use':request('action',{action:{type:'use',item:selected,target}});break;case'inspect':inspect(target);break;case'inspectSelf':inspect(localId);break;case'return':abortMatch();break;}}
- stage.addEventListener('click',e=>{const c=e.target.closest('[data-card]'),p=e.target.closest('[data-player]'),b=e.target.closest('[data-ac]');if(c){selected=c.dataset.card;renderUI();return}if(p){target=p.dataset.player;if(view.phase==='battle'||!me()?.alive||view.phase==='preparation')inspect(target);else renderUI();return}if(b)void action(b).catch(e=>toast(e.message||'操作できませんでした'))});
- stage.addEventListener('dragstart',e=>{const c=e.target.closest('[data-card]');if(c){e.dataTransfer.setData('text/plain',c.dataset.card);e.dataTransfer.effectAllowed='move';const pic=c.querySelector('img');if(pic){const ghost=document.createElement('div');ghost.className='ac-drag-ghost';ghost.append(pic.cloneNode(true));document.body.append(ghost);e.dataTransfer.setDragImage(ghost,36,36);requestAnimationFrame(()=>ghost.remove())}}});
- stage.addEventListener('dragover',e=>{if(e.target.closest('[data-drop],[data-player]'))e.preventDefault()});
- stage.addEventListener('drop',e=>{const zone=e.target.closest('[data-drop]'),player=e.target.closest('[data-player]'),id=e.dataTransfer.getData('text/plain'),p=me();if(!p||!p.items.some(i=>i.iid===id))return;e.preventDefault();selected=id;if(player){target=player.dataset.player;if(view.phase==='preparation')giftPicker();else{const d=R.defs[p.items.find(i=>i.iid===id).def];request('action',{action:d.kind==='weapon'?{type:'attack',target}:{type:'use',item:id,target}})}}else if(zone&&view.phase==='preparation'){if(zone.dataset.drop==='sell')request('sell',{item:id});else if((zone.dataset.drop==='pot')!==p.pot.includes(id))request('pot',{item:id})}});
- function reset(){host=view=null;sentImages.clear();imageCache.clear();busy=false;buildGame='';selected=target=lastEvent='';stage.hidden=true;stage.innerHTML='';$('#studio').classList.remove('chemist-play')}
+ stage.addEventListener('click',e=>{if(performance.now()<cardClickGuard){e.preventDefault();e.stopPropagation();return}const c=e.target.closest('[data-card]'),p=e.target.closest('[data-player]'),b=e.target.closest('[data-ac]');if(c){selected=c.dataset.card;renderUI();return}if(p){target=p.dataset.player;if(view.phase==='battle'||!me()?.alive||view.phase==='preparation')inspect(target);else renderUI();return}if(b)void action(b).catch(e=>toast(e.message||'操作できませんでした'))});
+  // Artchemist-specific direct manipulation: no native HTML drag, no long-press timeout.
+  // A 5px move starts dragging immediately on mouse, pen and touch; a tap still selects.
+  let cardPointer=null,cardClickGuard=0;
+  function disposeCardPointer(){
+   if(!cardPointer)return;
+   cardPointer.ghost?.remove();cardPointer.info?.remove();
+   cardPointer=null;
+   stage.classList.remove('ac-dragging');
+  }
+  function pointCardGhost(pointer){
+   const {ghost,info}=pointer;
+   ghost.style.transform=`translate3d(${pointer.x-37}px,${pointer.y-42}px,0)`;
+   const bounds=stage.getBoundingClientRect();
+   info.style.left=Math.max(6,bounds.left+8)+'px';
+   info.style.bottom=Math.max(8,innerHeight-bounds.bottom+8)+'px';
+   info.style.maxWidth=Math.max(180,bounds.width-16)+'px';
+  }
+  stage.addEventListener('dragstart',e=>{if(e.target.closest('[data-card]'))e.preventDefault()});
+  stage.addEventListener('pointerdown',e=>{
+   const card=e.target.closest('[data-card]');
+   if(!card||cardPointer||!me()||e.button!==0)return;
+   const id=card.dataset.card,item=me().items.find(i=>i.iid===id);
+   if(!item)return;
+   cardPointer={id,pointerId:e.pointerId,x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,active:false,ghost:null,info:null};
+  },{passive:true});
+  document.addEventListener('pointermove',e=>{
+   const p=cardPointer;if(!p||!enabled()||p.pointerId!==e.pointerId)return;
+   p.x=e.clientX;p.y=e.clientY;
+   if(!p.active&&Math.hypot(e.clientX-p.startX,e.clientY-p.startY)<5)return;
+   if(!p.active){
+    p.active=true;
+    stage.classList.add('ac-dragging');
+    const item=me()?.items.find(i=>i.iid===p.id),def=item&&R.defs[item.def];
+    const ghost=document.createElement('div');ghost.className='ac-drag-ghost ac-pointer-ghost';
+    if(item){const artEl=document.createElement('img');artEl.src=safeImage(D.icons[item.def])||'';artEl.alt='';ghost.append(artEl)}
+    document.body.append(ghost);p.ghost=ghost;
+    const info=document.createElement('div');info.className='ac-drag-info';
+    info.textContent=def?`${R.name(item.def)}　｜　${stat(item)}　｜　${effects(def)}`:'カードを移動';
+    document.body.append(info);p.info=info;
+   }
+   pointCardGhost(p);
+   if(e.cancelable)e.preventDefault();
+  },{passive:false,capture:true});
+  function finishCardPointer(e,cancelled=false){
+   const p=cardPointer;if(!p||p.pointerId!==e.pointerId)return;
+   const moved=p.active,id=p.id;
+   if(moved)cardClickGuard=performance.now()+350;
+   disposeCardPointer();
+   if(!moved||cancelled||!enabled()||!view)return;
+   const own=me(),item=own?.items.find(i=>i.iid===id);
+   if(!item)return;
+   const hit=document.elementFromPoint(e.clientX,e.clientY);
+   const zone=hit?.closest('[data-drop]'),player=hit?.closest('[data-player]');
+   selected=id;
+   if(player){
+    target=player.dataset.player;
+    if(view.phase==='preparation')giftPicker();
+    else if(view.phase==='battle'){
+     const d=R.defs[item.def];
+     if(d.kind==='weapon')request('action',{action:{type:'attack',target}});
+     else if(['food','consumable'].includes(d.kind))request('action',{action:{type:'use',item:id,target}});
+     else toast('このカードは対象へ使用できません');
+    }
+   }else if(zone&&view.phase==='preparation'){
+    if(zone.dataset.drop==='sell')request('sell',{item:id});
+    else if((zone.dataset.drop==='pot')!==own.pot.includes(id))request('pot',{item:id});
+   }
+   renderUI();
+  }
+  document.addEventListener('pointerup',e=>finishCardPointer(e),true);
+  document.addEventListener('pointercancel',e=>finishCardPointer(e,true),true);
+  window.addEventListener('blur',()=>disposeCardPointer());
+
+ function reset(){disposeCardPointer();host=view=null;sentImages.clear();imageCache.clear();busy=false;buildGame='';selected=target=lastEvent='';stage.hidden=true;stage.innerHTML='';$('#studio').classList.remove('chemist-play')}
  function departed(id){if(!isHost||!host||(typeof migrationOut!=='undefined'&&migrationOut))return;if(host.phase==='lobby'){syncRoster();sendAll();return}const p=host.players.find(p=>p.id===id);if(p){p.hp=0;p.alive=false;p.ready=true;host.offers=host.offers.filter(o=>o.from!==id&&o.to!==id);R.tick(host,Date.now());sendAll()}}
  const api={enabled,canDraw:()=>false,localDraw:m=>['op','undo','redo','historyBatch','draft','draftPatch','draftEnd'].includes(m.type),sharedCanvas:()=>false,hostMessage,receive,begin,submit:()=>request('ready'),tick,render:renderUI,settingsDialog,initCreate,abortMatch,departed,watchMember:()=>false,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id):requested,enter:()=>{if(isHost&&!host)newHost();else renderUI()},welcome:s=>{if(s)receive({type:'gameChemistState',state:s})},welcomeFor:id=>host?R.publicFor(host,id):null,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},promoted:()=>sendAll(),leaving:()=>departed(localId),getHost:()=>host,getView:()=>view,syncLobbyButtons,reset,blankSnapshot:()=>engine.snapshot()};
  const facade={...previous};for(const k of Object.keys(api))facade[k]=(...a)=>enabled()?api[k](...a):previous[k]?.(...a);facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='chemist'?{mode:'chemist',chemistSettings:readConfig($('#chemistCreate')),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
