@@ -2962,6 +2962,83 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage.ac-layout-preparation .ac-prep-shell:has(.ac-pot-is-zoom){overflow:visible!important;z-index:5}
 #studio.chemist-play>.workspace>#chemistStage:has(.ac-pot-is-zoom){overflow:visible!important;z-index:4!important}
 </style>
+<style id="artchemist-screen-fit-20261117">
+/* Fix actual usable viewport: header/roster do not steal the bottom hand row. */
+#studio.chemist-play #chemistStage.ac-layout-preparation {
+ box-sizing:border-box!important; height:100%!important; max-height:100%!important;
+ overflow:hidden!important; display:flex!important; flex-direction:column!important;
+ padding:5px 8px 5px!important; gap:3px!important;
+}
+#chemistStage.ac-layout-preparation>.ac-header{flex:0 0 auto!important;min-height:0!important;margin:0!important;padding:1px 0 4px!important}
+#chemistStage.ac-layout-preparation>.ac-combat-roster{flex:0 0 auto!important;min-height:0!important;margin:0!important}
+#chemistStage.ac-layout-preparation>.ac-prep-shell{
+ flex:1 1 0!important;height:0!important;min-height:0!important;
+ grid-template-rows:minmax(0,1fr) minmax(150px,30%)!important;gap:5px!important;
+}
+#chemistStage.ac-layout-preparation .ac-play-grid{min-height:0!important}
+#chemistStage.ac-layout-preparation .ac-cauldron-panel{padding:4px!important}
+#chemistStage.ac-layout-preparation .ac-pot-body{flex:1 1 0!important;height:0!important;min-height:0!important;overflow:hidden!important}
+/* The whole pot is the artwork: never let the inserted icons shrink it. */
+#chemistStage.ac-layout-preparation .ac-pot-body:not(.ac-pot-is-mini) .ac-pot{
+ flex:0 0 auto!important;align-self:center!important;
+ width:min(100%, min(50dvh,430px))!important;
+ max-height:100%!important;aspect-ratio:1/1!important;
+ margin:0 auto!important;
+}
+#chemistStage.ac-layout-preparation .ac-pot-items{
+ position:absolute!important;left:20%!important;right:20%!important;top:22%!important;height:48%!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-auto-rows:minmax(0,1fr)!important;align-content:center!important;justify-items:center!important;
+ gap:2px!important;overflow:hidden!important;
+}
+#chemistStage.ac-layout-preparation .ac-pot-items>img,#chemistStage.ac-layout-preparation .ac-pot-items>.ac-fallback{
+ box-sizing:border-box!important;width:min(100%,54px)!important;height:100%!important;max-height:48px!important;
+ min-width:0!important;min-height:0!important;transform:none!important;object-fit:contain!important;
+}
+#chemistStage.ac-layout-preparation .ac-pot-cards{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-auto-rows:29px!important;align-items:center!important;justify-items:center!important;
+ left:50%!important;right:auto!important;bottom:2%!important;transform:translateX(-50%)!important;
+ width:min(86%,172px)!important;max-height:62px!important;overflow-y:auto!important;
+ padding:2px!important;pointer-events:auto!important;
+} /* tappable inserted-item icons overlay the artwork; never take document height */
+#chemistStage.ac-layout-preparation .ac-pot-tools{flex:0 0 auto!important;font-size:10px!important;min-height:0!important}
+/* Exact two rows, restricted to panel space; prevent intrinsic card height overflow. */
+#chemistStage.ac-layout-preparation .ac-lower-grid{min-height:0!important;height:100%!important;overflow:hidden!important;align-items:stretch!important}
+#chemistStage.ac-layout-preparation .ac-inventory{min-height:0!important;height:100%!important;overflow:hidden!important}
+#chemistStage.ac-layout-preparation .ac-hand:not(.ac-hand-all){
+ height:0!important;flex:1 1 0!important;min-height:0!important;max-height:100%!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;grid-auto-rows:0!important;
+ overflow:hidden!important;align-content:stretch!important;
+}
+#chemistStage.ac-layout-preparation .ac-hand:not(.ac-hand-all) .ac-card{
+ height:100%!important;max-height:100%!important;min-height:0!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+}
+#chemistStage.ac-layout-preparation .ac-hand:not(.ac-hand-all) .ac-card>img{
+ display:block!important;flex:1 1 0!important;min-height:0!important;
+ height:0!important;max-height:100%!important;width:100%!important;object-fit:contain!important;
+}
+#chemistStage.ac-layout-preparation .ac-hand:not(.ac-hand-all) .ac-card>strong{
+ display:block!important;flex:0 0 auto!important;line-height:1.1!important;min-height:0!important;
+ font-size:clamp(8px,.8vw,11px)!important;
+}
+/* Selection preview icon must exceed the thumbnail size visibly. */
+#chemistStage.ac-layout-preparation .ac-lower-grid>.ac-detail{
+ grid-template-columns:minmax(100px,43%) minmax(0,1fr)!important;
+ grid-template-rows:auto minmax(0,1fr)!important;
+}
+#chemistStage.ac-layout-preparation .ac-detail-icon{width:100%!important;height:min(100%,155px)!important;min-height:85px!important;max-height:155px!important}
+#chemistStage.ac-layout-preparation .ac-detail-icon>img{width:92%!important;height:92%!important;max-height:none!important;object-fit:contain!important}
+@container (max-width:690px){
+ #chemistStage.ac-layout-preparation .ac-lower-grid>.ac-detail{grid-template-columns:minmax(62px,40%) minmax(0,1fr)!important}
+ #chemistStage.ac-layout-preparation .ac-detail-icon{min-height:58px!important;max-height:120px!important}
+}
+@media(max-height:720px){
+ #chemistStage.ac-layout-preparation .ac-prep-shell{grid-template-rows:minmax(0,1fr) minmax(116px,32%)!important}
+ #chemistStage.ac-layout-preparation .ac-pot-body:not(.ac-pot-is-mini) .ac-pot{width:min(100%,min(46dvh,330px))!important}
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -17753,7 +17830,11 @@ window.AlchemistRules = (()=>{
  const clone=x=>JSON.parse(JSON.stringify(x)), name=id=>D.names[id]?.ja||id;
  // Confirmed examples override conflicting legacy recipes; originals remain in D.cards.
  const examples=[['chemist_large_shield','iron_large_shield',{iron:3}],['chemist_small_shield','iron_shield',{iron:1,hinoki_wood:2}],['chemist_sword','iron_knife',{iron:2,wood:1}],['chemist_spear','iron_spear',{iron:1,wood:1}]].map(([id,output_id,need])=>({id,output_id,yield_quantity:1,ingredients:Object.entries(need).map(([item_id,quantity])=>({item_id,quantity}))}));
- const recipes=[...examples,...D.cards.recipes];
+ // Reject non-productive self-recipes; a genuine multiplication recipe may remain.
+ const recipes=[...examples,...D.cards.recipes].filter(r=>{
+   const used=r.ingredients.find(q=>q.item_id===r.output_id)?.quantity||0;
+   return !used || (r.yield_quantity||1)>used;
+ });
  function settings(s={}){return {prep:num(s.prep,15,300,60),battle:num(s.battle,10,180,30),draw:num(s.draw,1,10,2),players:num(s.players,2,10,10),bots:num(s.bots,0,11,3)}}
  function cleanBuild(b={}){const out={};let cost=0;for(const a of abilities){const max=a.cost_cp?1:Math.floor(a.suggested_max_bonus/a.value_per_step),v=b[a.id]??0;if(!Number.isInteger(v)||v<0||v>max)throw Error('能力値が範囲外です');if(v){out[a.id]=v;cost+=v*(a.cost_cp||a.cost_per_step_cp)}}if(cost>200)throw Error('200CPを超えています');return out}
  const spent=b=>abilities.reduce((n,a)=>n+(b[a.id]||0)*(a.cost_cp||a.cost_per_step_cp),0);
@@ -17787,7 +17868,8 @@ window.AlchemistRules = (()=>{
   const highest=Math.max(...materials.map(d=>d.class_rank_provisional||1));
   const categoryWeight=new Map();materials.forEach(d=>{const c=d.material_category||'misc';categoryWeight.set(c,(categoryWeight.get(c)||0)+1)});
   const sorted=[...categoryWeight].sort((a,b)=>b[1]-a[1]);const primary=sorted[0]?.[0];
-  const candidates=Object.values(defs).filter(d=>craftKind(d,mode)&&d.id!=='chemist_tonic'&&d.id!=='chemist_blade'&&d.class_rank_provisional<=Math.min(8,Math.max(1,Math.ceil(average)+2))&&d.class_rank_provisional>=Math.max(1,Math.floor(average)-2));
+  const consumedIds=new Set(parts.map(i=>i.def));
+  const candidates=Object.values(defs).filter(d=>craftKind(d,mode)&&!consumedIds.has(d.id)&&d.id!=='chemist_tonic'&&d.id!=='chemist_blade'&&d.class_rank_provisional<=Math.min(8,Math.max(1,Math.ceil(average)+2))&&d.class_rank_provisional>=Math.max(1,Math.floor(average)-2));
   const pool=candidates.map(d=>{const rarity=Math.max(1,d.class_rank_provisional||1),delta=rarity-average;
    let weight=delta<=0?1/(1+Math.abs(delta)*.65):Math.pow(.31,delta);
    if(primary&&d.material_category===primary)weight*=1.8;
@@ -17859,7 +17941,7 @@ window.AlchemistRules = (()=>{
  for(const [id,k,v]of pending){const p=by(id);if(p?.alive)p.status[k]=v}const survivors=living.filter(p=>p.alive);g.event={id:g.round+':resolve',sound:survivors.length<=1?'arts_victory_new':Object.values(heals).some(n=>n>0)?'arts_new_heal':null,chemistSound:survivors.length<=1?'win':'turn'};if(survivors.length<=1){g.phase='finished';g.deadline=null;g.winner=survivors[0]?.id||null;log(g,survivors.length?survivors[0].name+' の勝利！':'引き分け')}else{g.phase='resolution';g.deadline=now+4500}}
  function transact(g,id,m,now){const p=g.players.find(p=>p.id===id);if(!p)throw Error('参加していません');if(m.game!==g.id||m.round!==g.round||m.version>g.version||(m.revision||0)!==(p.revision||0))throw Error('状態を更新しました。もう一度操作してください');if(typeof m.tx!=='string'||m.tx.length>100)throw Error('不正な操作です');if(g.seen[m.tx])return;g.seen[m.tx]=true;p.revision=(p.revision||0)+1;const ks=Object.keys(g.seen);if(ks.length>300)delete g.seen[ks[0]];if(g.deadline&&now>=g.deadline)throw Error('制限時間を過ぎています');if(m.op==='build'&&g.phase==='build'){const nextBuild=cleanBuild(m.build);if(typeof m.image!=='string'||m.image.length>600000||m.image&&!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(m.image))throw Error('画像が不正です');p.build=nextBuild;p.image=m.image;p.ready=true;return}if(!p.alive)throw Error('観戦中です');if(m.op==='ready'&&['preparation','battle'].includes(g.phase)){p.ready=!p.ready;return}if(g.phase==='battle'){if(m.op!=='action')throw Error('戦闘中は変更できません');p.action=validAction(g,p,m.action);p.ready=false;return}if(g.phase!=='preparation')throw Error('錬金タイムのみ操作できます');p.ready=false;const i=item(p,m.item);if(['pot','lock','equip','sell','repair','gift'].includes(m.op)&&!i)throw Error('カードが見つかりません');if(g.offers.some(o=>o.from===id&&o.item===m.item))throw Error('プレゼントの返答を待っています');switch(m.op){case'pot':p.recipe=null;if(p.pot.includes(i.iid)){p.pot=p.pot.filter(x=>x!==i.iid);break}if(i.equipped||i.locked)throw Error('装備中・保護中は入れられません');p.pot.push(i.iid);break;case'clear':p.pot=[];p.recipe=null;break;case'autoFill':p.pot=p.items.filter(i=>!i.equipped&&!i.locked&&defs[i.def].kind==='material'&&defs[i.def].class_rank_provisional<4).slice(0,2).map(i=>i.iid);break;case'lock':i.locked=!i.locked;if(i.locked)p.pot=p.pot.filter(x=>x!==i.iid);break;case'equip':equip(p,i);break;case'sell':if(i.locked||p.pot.includes(i.iid))throw Error('保護中・ツボ内のカードです');p.gold+=sale(p,i.def);p.items=p.items.filter(q=>q!==i);syncSetArmor(p);p.hp=Math.min(p.hp,maxHP(p));break;case'repair':repair(p,i,m.material);break;case'craft':craft(g,p,m.mode);break;case'fill':{const r=recipes.find(r=>r.id===m.recipe),ids=r&&inputs(p,r,true);if(!ids)throw Error('必要な未保護素材が足りません（自動選択はクラス3以下）');p.pot=ids;p.recipe=r.id;break}case'buy':{if(!p.shop.includes(m.def))throw Error('商品がありません');const cost=price(p,m.def);if(p.gold<cost)throw Error('ゴールドが足りません');p.gold-=cost;p.items.push(instance(g,m.def,p));break}case'gift':{if(i.locked||p.pot.includes(i.iid))throw Error('保護中・ツボ内のカードです');const target=g.players.find(q=>q.id===m.target&&q.alive&&q.id!==id);if(!target)throw Error('相手を選んでください');g.offers.push({id:m.tx,from:id,to:target.id,item:i.iid,def:i.def});break}case'answerGift':{const o=g.offers.find(q=>q.id===m.offer&&q.to===id);if(!o)throw Error('プレゼントが見つかりません');const from=g.players.find(q=>q.id===o.from),gift=from&&item(from,o.item);if(m.accept&&from?.alive&&gift){gift.equipped=false;from.items=from.items.filter(q=>q!==gift);p.items.push(gift);syncSetArmor(from);syncSetArmor(p);from.hp=Math.min(from.hp,maxHP(from));if(from.build.gift_dividend){const n=Math.min(100-from.giftGold,Math.floor(value(gift.def)*.2));from.gold+=n;from.giftGold+=n}}g.offers=g.offers.filter(q=>q!==o);break}case'autoEquip':p.autoEquip=!!m.value;break;default:throw Error('不明な操作です')}}
  function publicFor(g,id){return {id:g.id,version:g.version,round:g.round,phase:g.phase,deadline:g.deadline,now:Date.now(),settings:g.settings,winner:g.winner,event:g.event,logs:g.logs,offers:g.offers.filter(o=>o.to===id||o.from===id).map(o=>({...o})),players:g.players.map(p=>({id:p.id,name:p.name,image:p.image,hp:p.hp,maxHp:maxHP(p),armor:armorTotal(p),alive:p.alive,ready:p.ready,bot:p.bot,equipment:clone(equipped(p)),...(id===p.id?{me:{...clone(p),image:''}}:{})}))}}
- function bots(g){for(const p of g.players.filter(p=>p.bot&&p.alive)){if(g.phase==='preparation'&&!p.ready){for(let k=0;k<3;k++){const r=recipes.find(r=>['weapon','armor','food','accessory'].includes(defs[r.output_id]?.kind)&&inputs(p,r,true));if(r){p.pot=inputs(p,r,true);craft(g,p,'alchemy')}}if(!p.items.some(i=>defs[i.def].kind==='weapon')&&p.gold>=price(p,'wood')*2){p.gold-=price(p,'wood')*2;p.items.push(instance(g,'wood',p),instance(g,'wood',p));p.pot=p.items.filter(i=>i.def==='wood').slice(0,2).map(i=>i.iid);craft(g,p,'alchemy')}for(const i of p.items)if(['weapon','armor','accessory'].includes(defs[i.def].kind)&&!i.equipped)try{equip(p,i)}catch{}p.ready=true}else if(g.phase==='battle'&&!p.ready){const heal=p.items.find(i=>defs[i.def].effects.some(e=>e.kind==='heal'));const targets=g.players.filter(q=>q.alive&&q.id!==p.id);p.action=heal&&p.hp<maxHP(p)*.6?{type:'use',item:heal.iid,target:p.id}:targets.length?{type:'attack',target:choose(g,targets).id}:{type:'defend'};p.ready=true}}for(const o of [...g.offers]){const to=g.players.find(p=>p.id===o.to);if(to?.bot){transact(g,to.id,{game:g.id,round:g.round,version:g.version,revision:to.revision||0,tx:'bot:'+o.id,op:'answerGift',offer:o.id,accept:true},0)}}}
+ function bots(g){for(const p of g.players.filter(p=>p.bot&&p.alive)){if(g.phase==='preparation'&&!p.ready){for(let k=0;k<3;k++){const r=recipes.find(r=>['weapon','armor','food','accessory'].includes(defs[r.output_id]?.kind)&&inputs(p,r,true));if(r){try{p.pot=inputs(p,r,true);craft(g,p,'alchemy')}catch(_botCraftError){p.pot=[];p.recipe=null}}}if(!p.items.some(i=>defs[i.def].kind==='weapon')&&p.gold>=price(p,'wood')*2){p.gold-=price(p,'wood')*2;p.items.push(instance(g,'wood',p),instance(g,'wood',p));p.pot=p.items.filter(i=>i.def==='wood').slice(0,2).map(i=>i.iid);try{craft(g,p,'alchemy')}catch(_botCraftError){p.pot=[];p.recipe=null}}for(const i of p.items)if(['weapon','armor','accessory'].includes(defs[i.def].kind)&&!i.equipped)try{equip(p,i)}catch{}p.ready=true}else if(g.phase==='battle'&&!p.ready){const heal=p.items.find(i=>defs[i.def].effects.some(e=>e.kind==='heal'));const targets=g.players.filter(q=>q.alive&&q.id!==p.id);p.action=heal&&p.hp<maxHP(p)*.6?{type:'use',item:heal.iid,target:p.id}:targets.length?{type:'attack',target:choose(g,targets).id}:{type:'defend'};p.ready=true}}for(const o of [...g.offers]){const to=g.players.find(p=>p.id===o.to);if(to?.bot){transact(g,to.id,{game:g.id,round:g.round,version:g.version,revision:to.revision||0,tx:'bot:'+o.id,op:'answerGift',offer:o.id,accept:true},0)}}}
  function tick(g,now){const before=g.phase;bots(g);const all=g.players.filter(p=>p.alive).every(p=>p.ready);if(g.phase==='build'&&all)beginMatch(g,now);else if(g.phase==='preparation'&&(all||now>=g.deadline))battle(g,now);else if(g.phase==='battle'&&(all||now>=g.deadline))resolve(g,now);else if(g.phase==='resolution'&&now>=g.deadline)preparation(g,now);return before!==g.phase}
  return {defs,recipes,abilities,categories,slots,name,settings,cleanBuild,spent,bonus,instance,newPlayer,create,start,beginMatch,preparation,battle,resolve,transact,publicFor,tick,inputs,preview,equip,repair,repairMaterials,absorb,armorTotal,equipped,maxHP,sale,price,value,passive,clone};
 })();
@@ -18012,7 +18094,7 @@ window.ArtChemist=(()=>{
   window.addEventListener('blur',()=>disposeCardPointer());
 
  function reset(){disposeCardPointer();host=view=null;sentImages.clear();imageCache.clear();busy=false;buildGame='';selected=target=lastEvent='';stage.hidden=true;stage.innerHTML='';$('#studio').classList.remove('chemist-play')}
- function departed(id){if(!isHost||!host||(typeof migrationOut!=='undefined'&&migrationOut))return;if(host.phase==='lobby'){syncRoster();sendAll();return}const p=host.players.find(p=>p.id===id);if(p){p.hp=0;p.alive=false;p.ready=true;host.offers=host.offers.filter(o=>o.from!==id&&o.to!==id);R.tick(host,Date.now());sendAll()}}
+ function departed(id){if((!isHost&&!room?.offline)||!host||(typeof migrationOut!=='undefined'&&migrationOut&&!room?.offline))return;if(host.phase==='lobby'){syncRoster();sendAll();return}const p=host.players.find(p=>p.id===id);if(p){p.hp=0;p.alive=false;p.ready=true;host.offers=host.offers.filter(o=>o.from!==id&&o.to!==id);R.tick(host,Date.now());sendAll()}}
  const api={enabled,canDraw:()=>false,localDraw:m=>['op','undo','redo','historyBatch','draft','draftPatch','draftEnd'].includes(m.type),sharedCanvas:()=>false,hostMessage,receive,begin,submit:()=>request('ready'),tick,render:renderUI,settingsDialog,initCreate,abortMatch,departed,watchMember:()=>false,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id):requested,enter:()=>{if(isHost&&!host)newHost();else renderUI()},welcome:s=>{if(s)receive({type:'gameChemistState',state:s})},welcomeFor:id=>host?R.publicFor(host,id):null,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},promoted:()=>sendAll(),leaving:()=>departed(localId),getHost:()=>host,getView:()=>view,syncLobbyButtons,reset,blankSnapshot:()=>engine.snapshot()};
  const facade={...previous};for(const k of Object.keys(api))facade[k]=(...a)=>enabled()?api[k](...a):previous[k]?.(...a);facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='chemist'?{mode:'chemist',chemistSettings:readConfig($('#chemistCreate')),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
  window.ArtRoomThemes.chemist=['#f2ecfc','#cbb5e6','#7954a5'];
