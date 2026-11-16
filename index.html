@@ -17858,8 +17858,8 @@ window.ArtDot=(()=>{
     if(typeof row.code!=='string' || row.code.length<2 || row.code.length>32)return null;
     if(typeof row.name!=='string' || !row.name.trim())return null;
     if(!Number.isFinite(row.updatedAt) || row.updatedAt<Date.now()-TTL || row.updatedAt>Date.now()+30000)return null;
-    if(!Number.isInteger(row.members) || row.members<1 || row.members>(row.mode==='chemist'?24:10))return null;
-    if(!Number.isInteger(row.limit) || row.limit<2 || row.limit>(row.mode==='chemist'?24:10))return null;
+    if(!Number.isInteger(row.members) || row.members<1 || row.members>10)return null;
+    if(!Number.isInteger(row.limit) || row.limit<2 || row.limit>10)return null;
     const pixel=row.mode==='free'&&row.name.startsWith('▦ ');
     const oldVoice=row.mode==='free'&&row.name.startsWith('🎙 ');
     return {key,name:(pixel||oldVoice?row.name.slice(2):row.name).slice(0,40),ownerName:typeof row.ownerName==='string'?row.ownerName.slice(0,20):'',code:row.code,mode:pixel?'pixel':oldVoice?'voice':row.mode,
@@ -18025,7 +18025,7 @@ window.ArtDot=(()=>{
     const present=[...members.values()].filter(m=>!m.disconnected).length;
     return {
       ownerUid:user.uid,ownerName:String(profile?.name||'部屋主').trim().slice(0,20)||'部屋主',roomId:room.id,code:room.code,name:(room.mode==='pixel'?'▦ ':'')+String(room.name||'公開ルーム').slice(0,room.mode==='pixel'?38:40),
-      mode:room.mode==='pixel'?'free':MODES[room.mode]?room.mode:'free',members:Math.max(1,Math.min(room.mode==='chemist'?24:10,present)),
+      mode:room.mode==='pixel'?'free':MODES[room.mode]?room.mode:'free',members:Math.max(1,Math.min(10,present)),
       limit:Math.min(10,Math.max(2,room.limit||10)),spectate:!!room.spectate,
       status:isPlaying()?'playing':'waiting',thumbnail:preview||'',createdAt:entryCreatedAt,
       updatedAt:window.firebase.database.ServerValue.TIMESTAMP
@@ -18038,7 +18038,13 @@ window.ArtDot=(()=>{
     lastPublish=Date.now();
     publishing=(async()=>{
       if(!preview && ['free','pixel'].includes(room.mode))preview=await canvasPreview();
-      await entryRef.set(dataForHost());
+      try{await entryRef.set(dataForHost());}
+      catch(e){
+        if(room?.mode==='chemist' && (e?.code==='PERMISSION_DENIED'||/permission.denied/i.test(String(e?.message||'')))){
+          throw new Error('Firebaseの公開ルーム登録ルールで「chemist」が許可されていません。Realtime Databaseの artopia_public_rooms_v1/$roomKey/mode の検証パターンに chemist を追加してください。');
+        }
+        throw e;
+      }
     })().finally(()=>{publishing=null});
     return publishing;
   }
