@@ -2550,6 +2550,40 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 </style>
 <style>
 /* Scoped Artchemist UI */
+/* Artchemist full-width play surface: do not inherit drawing mode's 2/3-column layout. */
+#studio.chemist-play>.workspace{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  width:100%!important;min-width:0!important;
+  overflow:hidden!important;
+}
+#studio.chemist-play>.workspace>.toolbox,
+#studio.chemist-play>.workspace>.member-panel,
+#studio.chemist-play>.workspace>.mobile-chat{display:none!important}
+#studio.chemist-play>.workspace>#chemistStage{
+  display:block;grid-column:1/-1!important;grid-row:1/-1!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  min-height:0!important;height:100%!important;
+}
+#studio.chemist-play>.workspace>#chemistStage[hidden]{display:none!important}
+#chemistStage .ac-build,#chemistStage .ac-play-grid,#chemistStage .ac-battle-grid{max-width:100%;min-width:0}
+@media(max-width:1250px){
+ #chemistStage .ac-play-grid{grid-template-columns:minmax(160px,.8fr) minmax(0,2fr)!important}
+ #chemistStage .ac-play-grid>.ac-result{grid-column:1/-1}
+ #chemistStage .ac-build{grid-template-columns:minmax(160px,.8fr) minmax(0,2fr)!important}
+ #chemistStage .ac-build>.ac-build-summary{grid-column:1/-1}
+}
+@media(max-width:850px){
+ #chemistStage .ac-build,#chemistStage .ac-play-grid,#chemistStage .ac-battle-grid{display:flex!important;flex-direction:column!important;gap:12px}
+ #chemistStage .ac-build>* ,#chemistStage .ac-play-grid>* ,#chemistStage .ac-battle-grid>*{width:100%;min-width:0}
+ #chemistStage .ac-play-grid>.ac-cauldron-panel{order:0}
+ #chemistStage .ac-play-grid>.ac-result{order:1;display:block}
+ #chemistStage .ac-play-grid>.ac-own{order:2}
+ #chemistStage .ac-header{flex-wrap:wrap;align-items:flex-start}
+ #chemistStage .ac-players{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
 #studio.chemist-play .workspace{display:block!important;position:relative;overflow:hidden;min-height:0}
 #studio.chemist-play .workspace>:not(#chemistStage){display:none!important}
 #studio.chemist-play #snapshotBtn,#studio.chemist-play .layer-controls,#studio.chemist-play #sharedLobbyBar{display:none!important}
@@ -3399,7 +3433,7 @@ const ART_CRAFTED_MARKS = Object.freeze({
 });
 const craftedMark=(key)=>`<svg class="icon art-craft-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">${ART_CRAFTED_MARKS[key]}</svg>`;
 const icon=n=>n==='mosaic'?'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2" y="2" width="8" height="8" fill="currentColor" fill-opacity=".22"/><rect x="12" y="2" width="10" height="10"/><rect x="2" y="12" width="10" height="10"/><rect x="14" y="14" width="8" height="8" fill="currentColor" fill-opacity=".38"/></svg>':ART_CRAFTED_MARKS[n]?craftedMark(n):`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.brush}"/></svg>`;
-window.ArtopiaOriginalIcons=Object.freeze({voice:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>',animation:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 3v18M16 3v18M2 9h20M2 15h20"/><path d="m10 9 5 3-5 3z"/></svg>',pixel:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" aria-hidden="true"><path d="M3 17h4v4H3z M7 13h4v4H7z M11 9h4v4h-4z M15 5h4v4h-4z M19 1h4v4h-4z M3 3h5v5H3z"/></svg>',free:icon('drawMark'),wolf:icon('wolfMark'),answer:icon('answerMark'),join:icon('inviteMark')});
+window.ArtopiaOriginalIcons=Object.freeze({chemist:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M9 2.5h6M10 2.5v6l-5 9.1a2 2 0 0 0 1.75 3h10.5a2 2 0 0 0 1.75-3L14 8.5v-6"/><path d="M7.3 15h9.4M9.3 17.4l1.5 1.3 2.3-2.6"/><path d="M2.8 5.8l2.4-1.4 2.4 4.2-2.5 1.5z" fill="currentColor" fill-opacity=".16"/><path d="m3.1 9 2.5 4.2M20.8 6.7l-2.9-1.4-1.3 2.7 2.8 1.4z" fill="currentColor" fill-opacity=".12"/><path d="m18.2 9.6-1.3 2.5M12 11.2v2.5m-1.2-1.25h2.4"/></svg>',voice:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>',animation:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 3v18M16 3v18M2 9h20M2 15h20"/><path d="m10 9 5 3-5 3z"/></svg>',pixel:'<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" aria-hidden="true"><path d="M3 17h4v4H3z M7 13h4v4H7z M11 9h4v4h-4z M15 5h4v4h-4z M19 1h4v4h-4z M3 3h5v5H3z"/></svg>',free:icon('drawMark'),wolf:icon('wolfMark'),answer:icon('answerMark'),join:icon('inviteMark')});
 function icons(root=document){root.querySelectorAll('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon))}icons();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>crypto.randomUUID();
@@ -3614,7 +3648,6 @@ function showCreate(options={}){
  const generatedCode=Math.random().toString(36).slice(2,10).toUpperCase();
  const suggestedName=(profile.name+'の部屋').slice(0,40);
  const modes=[
-  {id:'chemist',name:'あーとけみすと',icon:'',description:'自分の絵と200CPの能力で、錬金カードバトル'},
   {id:'voice',name:'ボイスチャット',icon:'',description:'声で話しながらお絵描き。音声は同時4人まで'},
   {id:'animation',name:'アニメーション',icon:'',description:'みんなでコマを描き、個別再生・全員上映'},
    {id:'pixel',name:'ドット絵',icon:'',description:'マス単位で描く共有ドット絵キャンバス'},
@@ -3624,7 +3657,8 @@ function showCreate(options={}){
   {id:'answer',name:'あーとあんさー',icon:'',description:'描いた絵のお題をみんなで当てる'},
   {id:'arts',name:'あーとあーつ',icon:'',description:'描いたキャラクターとアーツで対戦'},
   {id:'chimera',name:'あーときめら',icon:'',description:'パーツを分担してキャラクターを完成させる'},
-  {id:'shadow',name:'あーとれいたー',icon:'',description:'その絵の裏に誰がいる？ 正体を隠して生き残る（開発版）'}
+  {id:'shadow',name:'あーとれいたー',icon:'',description:'その絵の裏に誰がいる？ 正体を隠して生き残る（開発版）'},
+  {id:'chemist',name:'あーとけみすと',icon:'',description:'自分の絵と200CPの能力で、錬金カードバトル'}
  ];
  const modeHomeIds={chemist:'chemistHome',relay:'gameHome',wolf:'wolfHome',answer:'answerHome',arts:'artsHome',chimera:'chimeraHome',shadow:'shadowHome'};
  const modeIconMarkup=m=>{if(window.ArtopiaOriginalIcons?.[m.id])return window.ArtopiaOriginalIcons[m.id];const source=modeHomeIds[m.id]&&document.getElementById(modeHomeIds[m.id])?.querySelector('.mode-card-icon');return source?.innerHTML||icon('brush')};
@@ -3732,7 +3766,7 @@ function showCreate(options={}){
   if(!name||code.length<2){$('#createError').textContent='部屋名と2文字以上の合言葉を入力してください。';$('#createPrivateCode').hidden=false;return}
   const isPublic=!offline&&$('#newPublic').checked;
   const config=$('#newMode')?.value==='voice'?{mode:'voice'}:$('#newMode')?.value==='animation'?{mode:'animation',snapshotInterval:0,protect:false}:window.ArtGame?.createConfig()||{mode:'free'};
-  const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,waitingW:+$('#newWidth').value,waitingH:+$('#newHeight').value,history:+$('#newHistory').value,limit:config.mode==='chemist'?config.chemistSettings.players:Math.min(10,Math.max(2,+$('#newLimit').value||10,config.gameSettings?.players||0)),spectate:$('#newSpectate').checked,approvalRequired:$('#newApprovalRequired').checked,autoJoin:!$('#newApprovalRequired').checked,viewerChat:$('#newViewerChat').checked,protect:$('#newProtect').checked,id:uid(),...config};
+  const r={name,code,publicRoom:isPublic,snapshotInterval:+$('#newSnapshotInterval').value,w:+$('#newWidth').value,h:+$('#newHeight').value,waitingW:+$('#newWidth').value,waitingH:+$('#newHeight').value,history:+$('#newHistory').value,limit:config.mode==='chemist'?Math.min(10,Math.max(2,config.chemistSettings.players)):Math.min(10,Math.max(2,+$('#newLimit').value||10,config.gameSettings?.players||0)),spectate:$('#newSpectate').checked,approvalRequired:$('#newApprovalRequired').checked,autoJoin:!$('#newApprovalRequired').checked,viewerChat:$('#newViewerChat').checked,protect:$('#newProtect').checked,id:uid(),...config};
    // Game-specific canvas dimensions cannot overwrite the waiting room.
    r.gameW=Number.isInteger(config.w)?config.w:(r.mode==='chimera'||r.mode==='arts'||r.mode==='shadow'?512:768);
    r.gameH=Number.isInteger(config.h)?config.h:(r.mode==='chimera'||r.mode==='arts'||r.mode==='shadow'?512:768);
@@ -17374,7 +17408,7 @@ window.AlchemistRules = (()=>{
  // Confirmed examples override conflicting legacy recipes; originals remain in D.cards.
  const examples=[['chemist_large_shield','iron_large_shield',{iron:3}],['chemist_small_shield','iron_shield',{iron:1,hinoki_wood:2}],['chemist_sword','iron_knife',{iron:2,wood:1}],['chemist_spear','iron_spear',{iron:1,wood:1}]].map(([id,output_id,need])=>({id,output_id,yield_quantity:1,ingredients:Object.entries(need).map(([item_id,quantity])=>({item_id,quantity}))}));
  const recipes=[...examples,...D.cards.recipes];
- function settings(s={}){return {prep:num(s.prep,15,300,60),battle:num(s.battle,10,180,30),draw:num(s.draw,1,10,2),players:num(s.players,2,24,12),bots:num(s.bots,0,11,3)}}
+ function settings(s={}){return {prep:num(s.prep,15,300,60),battle:num(s.battle,10,180,30),draw:num(s.draw,1,10,2),players:num(s.players,2,10,10),bots:num(s.bots,0,11,3)}}
  function cleanBuild(b={}){const out={};let cost=0;for(const a of abilities){const max=a.cost_cp?1:Math.floor(a.suggested_max_bonus/a.value_per_step),v=b[a.id]??0;if(!Number.isInteger(v)||v<0||v>max)throw Error('能力値が範囲外です');if(v){out[a.id]=v;cost+=v*(a.cost_cp||a.cost_per_step_cp)}}if(cost>200)throw Error('200CPを超えています');return out}
  const spent=b=>abilities.reduce((n,a)=>n+(b[a.id]||0)*(a.cost_cp||a.cost_per_step_cp),0);
  const bonus=(p,k)=>(p.build[k]||0)*(D.abilities.incremental.find(a=>a.id===k)?.value_per_step||1);
@@ -17468,10 +17502,10 @@ window.ArtChemist=(()=>{
  function hostMessage(id,m){if(!enabled())return false;if(host?.phase!=='lobby'&&['op','opBatch','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock'].includes(m.type))return true;if(m.type!=='gameChemistIntent')return false;if(typeof migrationOut!=='undefined'&&migrationOut)return true;if(!isHost||!host||members.get(id)?.spectator)return true;try{if(m.op==='unreadyBuild'&&host.phase==='build'&&m.game===host.id){const p=host.players.find(p=>p.id===id);if(p)p.ready=false}else R.transact(host,id,m,Date.now());R.tick(host,Date.now());sendAll()}catch(e){const message={type:'gameChemistError',text:e.message};if(id===localId)receive(message);else sendWire(connections.get(id),message);sendAll()}return true}
  function receive(m){if(m.type==='gameChemistError'){busy=false;toast(m.text);return}if(m.type!=='gameChemistState'||!m.state)return;view=m.state;for(const p of view.players){if(p.imageUnchanged)p.image=imageCache.get(p.id)||'';else imageCache.set(p.id,p.image);if(p.me)p.me.image=p.image}busy=false;offset=view.now-Date.now();room.chemistSettings=view.settings;if(view.event?.id&&lastEvent!==view.id+view.event.id){lastEvent=view.id+view.event.id;window.ArtSound?.play(view.event.sound,3)}renderUI();renderControls()}
  function tick(){if(!enabled())return;clock();if(!isHost||!host||(typeof migrationOut!=='undefined'&&migrationOut))return;if(host.phase==='lobby'){const key=host.players.map(p=>p.id).join();syncRoster();if(key!==host.players.map(p=>p.id).join())sendAll()}else if(R.tick(host,Date.now()))sendAll()}
- function configHTML(s={}){s=R.settings(s);return `<div class="ac-config"><label>錬金時間（秒）<input name="prep" type="number" min="15" max="300" value="${s.prep}"></label><label>戦闘時間（秒）<input name="battle" type="number" min="10" max="180" value="${s.battle}"></label><label>毎ラウンドのドロー<input name="draw" type="number" min="1" max="10" value="${s.draw}"></label><label>参加人数上限<input name="players" type="number" min="2" max="24" value="${s.players}"></label><label>ひとり練習のCPU<input name="bots" type="number" min="1" max="11" value="${s.bots}"></label></div><p>錬金回数・装飾品の装備数は無制限。能力は200CP以内で構築します。</p>`}
+ function configHTML(s={}){s=R.settings(s);return `<div class="ac-config"><label>錬金時間（秒）<input name="prep" type="number" min="15" max="300" value="${s.prep}"></label><label>戦闘時間（秒）<input name="battle" type="number" min="10" max="180" value="${s.battle}"></label><label>毎ラウンドのドロー<input name="draw" type="number" min="1" max="10" value="${s.draw}"></label><label>参加人数上限<input name="players" type="number" min="2" max="10" value="${s.players}"></label><label>ひとり練習のCPU<input name="bots" type="number" min="1" max="11" value="${s.bots}"></label></div><p>錬金回数・装飾品の装備数は無制限。能力は200CP以内で構築します。</p>`}
  function readConfig(root){const s={};root?.querySelectorAll('[name]').forEach(e=>s[e.name]=+e.value);return R.settings(s)}
- function settingsDialog(){modal('あーとけみすとの設定',`<form id="acSettings">${configHTML(host?.settings||view?.settings||room.chemistSettings)}${isHost?'<button class="primary">設定を保存</button>':'<p>部屋主が設定できます。</p>'}</form>`);$('#acSettings').onsubmit=e=>{e.preventDefault();if(!isHost||!host||host.phase!=='lobby'){toast('設定は待機室で変更してください');return}host.settings=readConfig(e.target);room.chemistSettings=host.settings;room.limit=host.settings.players;sendAll();$('#modal').close()}}
- function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとけみすと','chemist'));const block=document.createElement('div');block.id='chemistCreate';block.innerHTML=configHTML();$('#createForm').append(block);const prev=mode.onchange;mode.onchange=()=>{prev?.();const on=mode.value==='chemist';block.hidden=!on;block.querySelectorAll('input').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id)?.closest('label')?.setAttribute('hidden','');$('#localDraw').hidden=false;const limit=$('#newLimit');if(limit.tagName==='SELECT'&&![...limit.options].some(o=>o.value==='12'))limit.add(new Option('12人','12'));limit.value='12'}};mode.onchange()}
+ function settingsDialog(){modal('あーとけみすとの設定',`<form id="acSettings">${configHTML(host?.settings||view?.settings||room.chemistSettings)}${isHost?'<button class="primary">設定を保存</button>':'<p>部屋主が設定できます。</p>'}</form>`);$('#acSettings').onsubmit=e=>{e.preventDefault();if(!isHost||!host||host.phase!=='lobby'){toast('設定は待機室で変更してください');return}host.settings=readConfig(e.target);room.chemistSettings=host.settings;room.limit=Math.min(10,host.settings.players);sendAll();$('#modal').close()}}
+ function initCreate(){previous.initCreate();const mode=$('#newMode');mode.add(new Option('あーとけみすと','chemist'));const block=document.createElement('div');block.id='chemistCreate';block.innerHTML=configHTML();$('#createForm').append(block);const prev=mode.onchange;mode.onchange=()=>{prev?.();const on=mode.value==='chemist';block.hidden=!on;block.querySelectorAll('input').forEach(e=>e.disabled=!on);if(on){for(const id of ['newArt','newSnapshotInterval','newProtect'])$('#'+id)?.closest('label')?.setAttribute('hidden','');$('#localDraw').hidden=false;const limit=$('#newLimit');limit.value='10'}};mode.onchange()}
  async function importImage(url){const im=await E.image(url),scale=Math.min(1,320/Math.max(im.width,im.height)),c=E.make(Math.max(1,Math.round(im.width*scale)),Math.max(1,Math.round(im.height*scale)));try{c.getContext('2d').drawImage(im,0,0,c.width,c.height);portrait=c.toDataURL('image/png');renderUI()}finally{c.width=c.height=0}}
  const file=document.createElement('input');file.type='file';file.accept='image/png,image/jpeg,image/webp';file.hidden=true;document.body.append(file);file.onchange=async()=>{const f=file.files?.[0];if(!f)return;if(f.size>25*1024*1024){toast('25MB以下の画像を選んでください');return}const url=URL.createObjectURL(f);try{await importImage(url)}catch{toast('画像を読み込めませんでした')}finally{URL.revokeObjectURL(url);file.value=''}};
  async function galleryPicker(){await refreshGallery();const arts=gallery.filter(a=>a.thumb||a.image);modal('絵画展からキャラクターを選ぶ',`<div class="ac-gallery">${arts.map((a,i)=>`<button type="button" data-art="${i}">${img(a.thumb||a.image)}<span>${esc(a.name)}</span></button>`).join('')||'<p>保存した作品がありません。</p>'}</div>`);$('#modalContent').querySelectorAll('[data-art]').forEach(b=>b.onclick=async()=>{try{const row=await db('art','readonly',s=>s.get(arts[+b.dataset.art].id));if(!row?.image)throw Error();await importImage(row.image);$('#modal').close()}catch{toast('作品を読み込めませんでした')}})}
@@ -17491,7 +17525,7 @@ window.ArtChemist=(()=>{
  const api={enabled,canDraw:()=>false,localDraw:m=>['op','undo','redo','historyBatch','draft','draftPatch','draftEnd'].includes(m.type),sharedCanvas:()=>false,hostMessage,receive,begin,submit:()=>request('ready'),tick,render:renderUI,settingsDialog,initCreate,abortMatch,departed,watchMember:()=>false,spectatorFor:(id,requested)=>host&&host.phase!=='lobby'?!host.players.some(p=>p.id===id):requested,enter:()=>{if(isHost&&!host)newHost();else renderUI()},welcome:s=>{if(s)receive({type:'gameChemistState',state:s})},welcomeFor:id=>host?R.publicFor(host,id):null,exportHost:()=>host?{...host,transferTime:Date.now()}:null,importHost:s=>{host=s;if(host.deadline)host.deadline+=Date.now()-(s.transferTime||Date.now())},promoted:()=>sendAll(),leaving:()=>departed(localId),getHost:()=>host,getView:()=>view,reset,blankSnapshot:()=>engine.snapshot()};
  const facade={...previous};for(const k of Object.keys(api))facade[k]=(...a)=>enabled()?api[k](...a):previous[k]?.(...a);facade.enabled=()=>enabled()||previous.enabled();facade.initCreate=initCreate;facade.createConfig=()=>$('#newMode')?.value==='chemist'?{mode:'chemist',chemistSettings:readConfig($('#chemistCreate')),snapshotInterval:0,protect:false}:previous.createConfig();facade.reset=()=>{previous.reset();reset()};window.ArtGame=facade;
  window.ArtRoomThemes.chemist=['#f2ecfc','#cbb5e6','#7954a5'];
- const home=window.ArtModeLayout.card({id:'chemistHome',title:'あーとけみすと',description:'自分の絵と錬金カードで対戦 · 2〜24人',theme:'chemist',badge:'NEW',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3h6m-5 0v6L4 19q-1 2 2 2h12q3 0 2-2L14 9V3M7 15h10"/><path d="m9 17 2 1m3-2 1 2"/></svg>'});$('.home-actions').append(home);home.onclick=()=>{modal('あーとけみすと',window.ArtModeLayout.menu({tagline:'描いた相棒と、錬金で勝負。',description:'キャラクター画像と200CPの能力を組み合わせ、カードを錬金して同時行動バトル。',actions:[{id:'chemistCreateRoom',label:'部屋を作る',primary:true},{id:'chemistJoinRoom',label:'合言葉で入る'},{id:'chemistPractice',label:'CPUとひとり練習'}]}));$('#chemistCreateRoom').onclick=()=>{showCreate();$('#newMode').value='chemist';$('#newMode').dispatchEvent(new Event('change'))};$('#chemistJoinRoom').onclick=()=>showJoin('');$('#chemistPractice').onclick=async()=>{if(!profile.name){showProfile(true);return}await startRoom({mode:'chemist',name:'あーとけみすと 練習',code:'practice',w:768,h:768,history:3,limit:12,spectate:true,protect:false,snapshotInterval:0,chemistSettings:R.settings()},null,true);$('#modal').close()}};
+ const home=window.ArtModeLayout.card({id:'chemistHome',title:'あーとけみすと',description:'自分の絵と錬金カードで対戦 · 2〜10人',theme:'chemist',badge:'NEW',icon:window.ArtopiaOriginalIcons.chemist});$('.home-actions').append(home);home.onclick=()=>{modal('あーとけみすと',window.ArtModeLayout.menu({tagline:'描いた相棒と、錬金で勝負。',description:'キャラクター画像と200CPの能力を組み合わせ、カードを錬金して同時行動バトル。',actions:[{id:'chemistCreateRoom',label:'部屋を作る',primary:true},{id:'chemistJoinRoom',label:'合言葉で入る'},{id:'chemistPractice',label:'CPUとひとり練習'}]}));$('#chemistCreateRoom').onclick=()=>{showCreate();$('#newMode').value='chemist';$('#newMode').dispatchEvent(new Event('change'))};$('#chemistJoinRoom').onclick=()=>showJoin('');$('#chemistPractice').onclick=async()=>{if(!profile.name){showProfile(true);return}await startRoom({mode:'chemist',name:'あーとけみすと 練習',code:'practice',w:768,h:768,history:3,limit:10,spectate:true,protect:false,snapshotInterval:0,chemistSettings:R.settings()},null,true);$('#modal').close()}};
  setInterval(tick,250);return api;
 })();
 
@@ -17605,7 +17639,7 @@ window.ArtRoomTools=(()=>{
   room.waitingW=room.waitingW||engine.w;room.waitingH=room.waitingH||engine.h;
   room.w=room.waitingW;room.h=room.waitingH;
   $('#canvasSize').textContent=room.w+' × '+room.h+' px';room.mode=mode;
-  room.limit=mode==='chemist'?(config.chemistSettings?.players||12):Math.min(10,Math.max(room.limit,config.gameSettings?.players||0));
+  room.limit=mode==='chemist'?Math.min(10,Math.max(2,config.chemistSettings?.players||10)):Math.min(10,Math.max(room.limit,config.gameSettings?.players||0));
   for(const k of ['gameSettings','wolfSettings','answerSettings','artsSettings','chimeraSettings','shadowSettings','chemistSettings'])if(config[k])room[k]=config[k];
   room.canvasEpoch=epoch;room.characterOnly=false;pendingOps.clear();pendingLocal.clear();pendingHistory.clear();locks.clear();remoteDrafts.clear();incomingDrafts.clear();dropRemoteInk();invalidateLocalView();
   $('#snapshotBtn').hidden=false;window.ArtGame.enter();renderControls();render();fitView();sync();if(window.ArtSessionUI?.active())void saveRecovery();if(config.canvasResize){const queued=deferredMessages.splice(0);for(const message of queued)handleClient(message)}
@@ -17992,7 +18026,7 @@ window.ArtDot=(()=>{
     return {
       ownerUid:user.uid,ownerName:String(profile?.name||'部屋主').trim().slice(0,20)||'部屋主',roomId:room.id,code:room.code,name:(room.mode==='pixel'?'▦ ':'')+String(room.name||'公開ルーム').slice(0,room.mode==='pixel'?38:40),
       mode:room.mode==='pixel'?'free':MODES[room.mode]?room.mode:'free',members:Math.max(1,Math.min(room.mode==='chemist'?24:10,present)),
-      limit:Math.min(room.mode==='chemist'?24:10,Math.max(2,room.limit||10)),spectate:!!room.spectate,
+      limit:Math.min(10,Math.max(2,room.limit||10)),spectate:!!room.spectate,
       status:isPlaying()?'playing':'waiting',thumbnail:preview||'',createdAt:entryCreatedAt,
       updatedAt:window.firebase.database.ServerValue.TIMESTAMP
     };
