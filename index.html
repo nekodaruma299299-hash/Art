@@ -2614,6 +2614,108 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 @media(max-width:680px){#chemistStage{padding:12px 9px 45px}.ac-header{align-items:flex-start;gap:8px}.ac-header-side{gap:5px}.ac-header-side>button{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}.ac-header-side>span{padding:5px 9px;font-size:12px}.ac-header h2{font-size:20px!important}.ac-header #acClock{font-size:18px;min-width:55px}.ac-build{display:flex;flex-direction:column;gap:10px}.ac-build>.ac-panel{width:100%}.ac-build>aside:first-child{display:grid;grid-template-columns:110px 1fr;gap:7px}.ac-build>aside:first-child>.ac-portrait,.ac-build>aside:first-child>.ac-empty-art{grid-row:span 3;min-height:120px;height:120px}.ac-build>aside:first-child>p{margin:2px;font-size:12px}.ac-build>aside:first-child h3{grid-column:1/-1;margin-top:7px!important}.ac-ability{gap:5px;padding:10px 7px}.ac-ability strong{font-size:12px}.ac-ability small{font-size:10px!important}.ac-tabs{flex-wrap:wrap}.ac-tabs button{flex:1 1 28%;font-size:12px!important;min-height:37px!important;padding:6px!important}.ac-players{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.ac-player>img,.ac-player-placeholder{height:33px;width:24px}.ac-player strong{font-size:10px}.ac-player small{font-size:8px!important}#chemistStage .ac-player{padding:6px;gap:5px}.ac-play-grid{display:flex;flex-direction:column;gap:10px}.ac-own{order:2}.ac-cauldron-panel{order:0}.ac-result{order:1}.ac-own .ac-character{display:none}.ac-own .ac-meters{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ac-own .ac-meters progress{width:100px!important}.ac-own h3{margin:6px 0!important}.ac-equipped{max-height:135px}.ac-pot{width:185px}.ac-pot-cards{justify-content:flex-start}.ac-result{gap:9px}.ac-result .ac-result-image{height:50px}.ac-battle-grid{display:flex;flex-direction:column}.ac-battle-command{min-height:230px;padding:16px!important}#chemistStage .ac-panel{padding:12px}.ac-card{flex-basis:110px!important;width:110px!important}.ac-detail{gap:10px!important;align-items:flex-start!important}.ac-detail>img,.ac-detail>.ac-fallback{width:48px;height:48px}.ac-detail .ac-actions{margin-left:-58px;padding-top:10px}.ac-detail .ac-actions button{flex:1 1 29%;font-size:11px!important}.ac-shop,.ac-gallery{grid-template-columns:repeat(2,1fr)}.ac-config{grid-template-columns:1fr}.ac-recipes{font-size:12px}}
 
 </style>
+
+<style id="chemist-chat-aware-layout-fix">
+/* Artchemist game view must reserve room for the shared room chat.
+   Keep this override after the earlier single-column chemist rules. */
+#studio.chemist-play>.workspace{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) clamp(235px,24vw,335px)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  min-width:0!important;min-height:0!important;
+  overflow:hidden!important;
+}
+#studio.chemist-play>.workspace>:not(#chemistStage):not(#memberPanel){display:none!important}
+#studio.chemist-play>.workspace>#chemistStage{
+  display:block!important;
+  grid-column:1!important;grid-row:1!important;
+  min-width:0!important;min-height:0!important;
+  width:100%!important;height:100%!important;
+  overflow:auto!important;
+}
+#studio.chemist-play>.workspace>#chemistStage[hidden]{display:none!important}
+#studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
+  display:flex!important;
+  grid-column:2!important;grid-row:1!important;
+  position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+  transform:none!important;
+  width:100%!important;height:100%!important;
+  min-width:0!important;min-height:0!important;max-height:none!important;
+  flex-direction:column!important;overflow:hidden!important;
+  visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel .member-bottom{
+  display:flex!important;flex-direction:column!important;
+  flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;
+}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel .studio-chatbar{
+  display:flex!important;flex-direction:column!important;
+  flex:1 1 auto!important;min-height:0!important;
+}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel #recentComment{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+  flex:0 0 auto!important;min-width:0!important;
+}
+#studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatInput{
+  min-width:0!important;visibility:visible!important;pointer-events:auto!important;
+}
+/* Preserve the existing chat collapse control and return the width to the game. */
+#studio.chemist-play.chat-collapsed>.workspace{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+#studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important}
+#studio.chemist-play.chat-collapsed>.workspace>#chemistStage{grid-column:1!important}
+/* Account for the right-side panel when laying out alchemy cards and panels. */
+@media(max-width:1450px){
+ #studio.chemist-play #chemistStage .ac-build,
+ #studio.chemist-play #chemistStage .ac-play-grid{
+   grid-template-columns:minmax(145px,.8fr) minmax(0,2fr)!important;
+ }
+ #studio.chemist-play #chemistStage .ac-build>.ac-build-summary,
+ #studio.chemist-play #chemistStage .ac-play-grid>.ac-result{grid-column:1/-1!important}
+}
+@media(max-width:1120px){
+ #studio.chemist-play #chemistStage .ac-build,
+ #studio.chemist-play #chemistStage .ac-play-grid,
+ #studio.chemist-play #chemistStage .ac-battle-grid{
+   display:flex!important;flex-direction:column!important;gap:12px!important;
+ }
+ #studio.chemist-play #chemistStage .ac-build>*,
+ #studio.chemist-play #chemistStage .ac-play-grid>*,
+ #studio.chemist-play #chemistStage .ac-battle-grid>*{min-width:0!important;width:100%!important}
+}
+/* In portrait, show the chat below the game without hiding the send field. */
+@media(orientation:portrait) and (max-width:900px){
+ #studio.chemist-play:not(.chat-collapsed)>.workspace{
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:minmax(0,3fr) minmax(180px,2fr)!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#chemistStage{
+   grid-column:1!important;grid-row:1!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
+   grid-column:1!important;grid-row:2!important;
+   border-top:1px solid #8b70924d!important;
+ }
+ #studio.chemist-play.chat-collapsed>.workspace{
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:minmax(0,1fr)!important;
+ }
+}
+/* Extra-narrow landscape screens still leave enough width for buttons and chat. */
+@media(orientation:landscape) and (max-width:850px){
+ #studio.chemist-play:not(.chat-collapsed)>.workspace{
+   grid-template-columns:minmax(0,1fr) minmax(185px,30vw)!important;
+   grid-template-rows:minmax(0,1fr)!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
+   grid-column:2!important;grid-row:1!important;
+ }
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.6.23</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
