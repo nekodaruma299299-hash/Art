@@ -19371,13 +19371,12 @@ window.AlchemistRules = (()=>{
   if(!pool.length)return null;
   const rarity=acCraftRarity(g,parts);
   if(rarity.target<1)return null;
-  // Only select objects matching weight-derived rank (or the closest lower viable tier).
-  const exact=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)===rarity.target);
-  const lower=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)<=rarity.target);
-  const legal=exact.length?exact:lower;
-  if(!legal.length)return null;
-  const best=Math.max(...legal.map(q=>defs[q.id]?.class_rank_provisional||1));
-  const options=legal.filter(q=>(defs[q.id]?.class_rank_provisional||1)===best);
+  // Prefer the calculated rarity. If none is available, choose the nearest
+  // compatible rarity instead of destroying valuable ingredients by accident.
+  // Prefer a lower tier on equal distance; the weight calculation remains the guide.
+  const tiers=[...new Set(pool.map(q=>defs[q.id]?.class_rank_provisional||1))];
+  const best=tiers.sort((a,b)=>Math.abs(a-rarity.target)-Math.abs(b-rarity.target)||a-b)[0];
+  const options=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)===best);
   const total=options.reduce((n,q)=>n+q.weight,0);let roll=random(g)*total;
   for(const q of options){roll-=q.weight;if(roll<=0)return q.id}
   return options[options.length-1].id;
@@ -19406,8 +19405,13 @@ window.AlchemistRules = (()=>{
   }
   const pool=improvisationPool(parts,mode).pool;
   if(pool.length)return {output:null,count:1,chance:1,recipe:'trait_'+mode,random:true,possibilities:pool.length};
-  // Too little compatible weight: materials may disappear when the attempt is made.
-  return {output:null,count:0,chance:0,recipe:'insufficient_weight',random:true,weightFailure:true};
+  // No compatible candidates is NOT evidence that the rarity mass is insufficient.
+  // Only an actual Common-below-zero rarity result is allowed to consume inputs.
+  const rank=Math.max(...parts.map(i=>defs[i.def]?.class_rank_provisional||1));
+  const mass=parts.reduce((sum,i)=>sum+acEffectiveWeight(i),0);
+  const equivalent=mass/Math.max(1,acMaterialWeight({class_rank_provisional:rank}));
+  const insufficient=rank===1&&equivalent<1.75;
+  return {output:null,count:0,chance:0,recipe:insufficient?'insufficient_weight':'no_compatible_output',random:true,weightFailure:insufficient,noCandidate:!insufficient};
   // Keep uncommon legacy recipes accessible if no lawful trait-generated result exists.
   if(matches.length){const allowed=matches.filter(r=>(!parts.some(i=>defs[i.def].kind==='weapon')||defs[r.output_id]?.kind==='weapon')&&(!['weapon','armor','guard_tool'].includes(defs[r.output_id]?.kind)||acHasRequiredMaterial(parts.map(i=>({d:defs[i.def],w:acEffectiveWeight(i)})),defs[r.output_id])));if(allowed.length)return {output:allowed[0].output_id,count:allowed[0].yield_quantity||1,chance:1,recipe:allowed[0].id};}
   return null;
@@ -19418,7 +19422,10 @@ window.AlchemistRules = (()=>{
   // Draw before consuming: a valid output is guaranteed even for random crafting.
   const selectedLegacy=plan.legacyChoices?.length?choose(g,plan.legacyChoices):null;
   const result=selectedLegacy?.id||(plan.random?improviseDraw(g,p,mode,parts):plan.output);
-  const forcedFailure=plan.weightFailure||!result;
+  // An empty candidate pool or an invalid random draw must not erase items.
+  // Only the deliberately insufficient Common-rarity case is destructive.
+  if(!plan.weightFailure&&!result)throw Error('この素材に対応する完成品がありません。素材は消費していません');
+  const forcedFailure=!!plan.weightFailure;
   p.items=p.items.filter(i=>!p.pot.includes(i.iid));p.pot=[];p.recipe=null;
   const ok=!forcedFailure&&random(g)<plan.chance;
   if(ok){for(let k=0;k<(selectedLegacy?.count||plan.count);k++)p.items.push(instance(g,result,p));if(p.build.recycle_material&&random(g)<.2)p.items.push(choose(g,parts));if(!p.discovered.includes(plan.recipe))p.discovered.push(plan.recipe)}
