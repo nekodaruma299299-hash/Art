@@ -3873,6 +3873,24 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage .ac-direction>small:last-child:empty,#chemistStage .ac-footnote:empty{display:none}
 @media(prefers-reduced-motion:reduce){#chemistStage .ac-damage-number{animation:none!important;opacity:1!important;transform:translate(-50%,-22px)!important}}
 </style>
+
+<style id="ac-combat-direction-and-spacing-20261118">
+/* The drawing direction describes the original picture only. Never mirror the held item. */
+#chemistStage .ac-cinema-actor .ac-hero-frame.ac-facing-flip{transform:none!important}
+#chemistStage .ac-cinema-actor .ac-hero-frame.ac-facing-flip > .ac-hero-image,
+#chemistStage .ac-cinema-actor .ac-hero-frame.ac-facing-flip > .ac-hero-placeholder{transform:scaleX(-1)}
+/* Use smaller character frames and a clear central gap to avoid overlap in action scenes. */
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-cinema-stage{justify-content:space-between!important;gap:12%!important;padding-left:clamp(14px,4vw,56px)!important;padding-right:clamp(14px,4vw,56px)!important}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-cinema-character{width:35%!important;max-width:35%!important;flex:0 1 35%!important}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-hero-frame{height:min(29dvh,205px)!important}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item{right:-4%!important;bottom:5%!important;width:30%!important;height:48%!important;transform:rotate(23deg)!important;transform-origin:30% 90%!important}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-slash .ac-held-item{transform:rotate(23deg)!important}
+@container (max-width:600px){
+ #studio.chemist-play #chemistStage.ac-layout-resolution .ac-cinema-stage{gap:8%!important;padding-left:10px!important;padding-right:10px!important}
+ #studio.chemist-play #chemistStage.ac-layout-resolution .ac-cinema-character{width:38%!important;max-width:38%!important;flex-basis:38%!important}
+ #studio.chemist-play #chemistStage.ac-layout-resolution .ac-hero-frame{height:min(22dvh,140px)!important}
+}
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -19771,7 +19789,7 @@ window.ArtChemist=(()=>{
    return `<section class="ac-panel ac-scene ac-cinematic ac-motion-${motion}" style="--ac-elapsed:-${age.toFixed(3)}s" aria-label="戦闘行動の演出">
       <header><h2>行動 ${r.index+1} / ${scenes.length}</h2><small>${esc(a?.name||'キャラクター')}の行動 · 時短 ${votes}/${n}</small></header>
       <div class="ac-cinema-stage" role="img" aria-label="${esc(a?.name||'キャラクター')}：${esc(scene.detail)}">
-        <div class="ac-cinema-character ac-cinema-actor ${acDebuffClasses(a)}"><div class="ac-hero-frame ${a?.facing==='left'?'ac-facing-flip':''}">${actorArt}${itemArt?`<div class="ac-held-item">${itemArt}</div>`:''}</div><strong>${esc(a?.name||'プレイヤー')}</strong><span class="ac-debuff-badges">${acDebuffBadges(a)}</span></div>
+        <div class="ac-cinema-character ac-cinema-actor ${acDebuffClasses(a)}"><div class="ac-hero-frame ac-actor-frame ${a?.facing==='left'?'ac-facing-flip':''}">${actorArt}${itemArt?`<div class="ac-held-item">${itemArt}</div>`:''}</div><strong>${esc(a?.name||'プレイヤー')}</strong><span class="ac-debuff-badges">${acDebuffBadges(a)}</span></div>
         <div class="ac-cinema-impact" aria-hidden="true">${t&&t.id!==a?.id&&(scene.damage>0||scene.armorDamage>0)?`<span class="ac-damage-number">${scene.damage>0?`−${scene.damage} HP`: `装甲 −${scene.armorDamage}`}</span>`:``}<span class="ac-hit-slash"></span><span class="ac-hit-burst"></span><span class="ac-hit-orb"></span><span class="ac-hit-spark">✦</span></div>
         ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target ${acDebuffClasses(t)}"><div class="ac-hero-frame ${t.facing!=='left'?'ac-facing-flip':''}">${targetArt}</div><strong>${esc(t.name)}</strong><div class="ac-scene-hp"><span>HP ${scene.targetHp?.after??t.hp} / ${scene.targetHp?.max??t.maxHp}</span><progress max="${Math.max(1,scene.targetHp?.max??t.maxHp)}" value="${Math.max(0,scene.targetHp?.after??t.hp)}"></progress></div><span class="ac-debuff-badges">${acDebuffBadges(t)}</span></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
       </div>
@@ -19782,7 +19800,17 @@ window.ArtChemist=(()=>{
 
  function renderUI(){if(!enabled()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}if(window.ArtSessionUI?.lobby()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}const active=view&&view.phase!=='lobby';$('#studio').classList.toggle('chemist-play',!!active);stage.hidden=!active;stage.classList.toggle('ac-layout-preparation',view?.phase==='preparation');stage.classList.toggle('ac-layout-battle',view?.phase==='battle');stage.classList.toggle('ac-layout-resolution',view?.phase==='resolution');['build','finished'].forEach(ph=>stage.classList.toggle('ac-layout-'+ph,view?.phase===ph));if(!active)return;if(view.phase==='build'&&me()&&buildGame!==view.id){buildGame=view.id;build={};portrait='';try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{},currentCP());portrait=safeImage(s.image);charFacing=s.facing==='left'?'left':'right'}catch{}if(me().ready){build={...me().build};portrait=me().image;charFacing=me().facing==='left'?'left':'right'}}
  const savedStageScroll=stage.scrollTop;const previousStagePhase=stage.dataset.renderedPhase;
- stage.innerHTML=header()+(view.phase==='build'?(me()?builder():'<div class="ac-panel">参加者がキャラクターを設定しています。</div>'):view.phase==='preparation'?preparation():view.phase==='battle'?battle():view.phase==='resolution'?actionSceneUI():`${players()}<section class="ac-panel ac-finish"><h2>${view.phase==='finished'?(view.winner?esc(view.players.find(p=>p.id===view.winner)?.name||'')+' の勝利！':'引き分け'):'同時行動の結果'}</h2>${view.phase==='finished'&&isHost?button('待機室へ戻る','return','class="ac-primary"'):''}</section>`)+`<details class="ac-panel ac-log" ${view.phase==='resolution'||view.phase==='finished'?'open':''}><summary>バトルログ・錬金履歴</summary><div>${(me()?.history||[]).slice(-5).map(t=>`<p>${esc(t)}</p>`).join('')}${view.logs.slice(-20).map(t=>`<p>${esc(t)}</p>`).join('')}</div></details><p class="ac-footnote"></p>`;if(previousStagePhase!==view.phase)compactPane='main';compactLayout();stage.dataset.renderedPhase=view.phase;if(previousStagePhase===view.phase)stage.scrollTop=savedStageScroll;clock();const auto=$('#acAutoEquip');if(auto)auto.onchange=()=>request('autoEquip',{value:auto.checked});const select=$('#acFilter');if(select)select.onchange=()=>{filter=select.value;handPage=0;renderUI()};}
+  // Preserve open targeting/roster panels during the frequent host-state redraws.
+  const openPanels=[...stage.querySelectorAll('details[open]')].map(el=>({cls:el.className,html:el.querySelector('summary')?.textContent||''}));
+  const focused=document.activeElement;
+  const focusKey=focused&&stage.contains(focused)?{ac:focused.dataset?.ac,card:focused.dataset?.card,player:focused.dataset?.player,idx:focused.dataset?.index,value:focused.dataset?.value}:null;
+ stage.innerHTML=header()+(view.phase==='build'?(me()?builder():'<div class="ac-panel">参加者がキャラクターを設定しています。</div>'):view.phase==='preparation'?preparation():view.phase==='battle'?battle():view.phase==='resolution'?actionSceneUI():`${players()}<section class="ac-panel ac-finish"><h2>${view.phase==='finished'?(view.winner?esc(view.players.find(p=>p.id===view.winner)?.name||'')+' の勝利！':'引き分け'):'同時行動の結果'}</h2>${view.phase==='finished'&&isHost?button('待機室へ戻る','return','class="ac-primary"'):''}</section>`)+`<details class="ac-panel ac-log" ${view.phase==='resolution'||view.phase==='finished'?'open':''}><summary>バトルログ・錬金履歴</summary><div>${(me()?.history||[]).slice(-5).map(t=>`<p>${esc(t)}</p>`).join('')}${view.logs.slice(-20).map(t=>`<p>${esc(t)}</p>`).join('')}</div></details><p class="ac-footnote"></p>`;if(previousStagePhase!==view.phase)compactPane='main';compactLayout();stage.dataset.renderedPhase=view.phase;
+  if(previousStagePhase===view.phase){
+    stage.scrollTop=savedStageScroll;
+    for(const saved of openPanels){const panels=[...stage.querySelectorAll('details')];const match=panels.find(el=>el.className===saved.cls&&el.querySelector('summary')?.textContent===saved.html);if(match)match.open=true;}
+    if(focusKey?.ac){const match=[...stage.querySelectorAll('[data-ac]')].find(el=>el.dataset.ac===focusKey.ac&&(!focusKey.idx||el.dataset.index===focusKey.idx)&&(!focusKey.value||el.dataset.value===focusKey.value));if(match)match.focus({preventScroll:true});}
+  }
+  clock();const auto=$('#acAutoEquip');if(auto)auto.onchange=()=>request('autoEquip',{value:auto.checked});const select=$('#acFilter');if(select)select.onchange=()=>{filter=select.value;handPage=0;renderUI()};}
 
  let compactPane='main', compactQueuePage=0, compactEquipPage=0;
  function compactLayout(){
