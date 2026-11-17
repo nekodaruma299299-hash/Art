@@ -3900,6 +3900,12 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-offhand .ac-fallback{height:100%;width:100%;object-fit:contain;image-rendering:pixelated}
 #chemistStage .ac-queue-title small{display:block;font-size:11px;font-weight:600;line-height:1.4}
 </style>
+<style id="ac-draw-and-scene-sync-20261118">
+#acDrawNotice .ac-new-draw-card .ac-new-draw-icon{display:block!important;width:clamp(104px,17vw,148px)!important;height:clamp(104px,17vw,148px)!important;max-width:none!important;max-height:none!important;object-fit:contain;image-rendering:pixelated;margin:0 auto;flex-shrink:0}
+#acDrawNotice .ac-new-draw-card .ac-fallback{display:grid!important;place-items:center;border:1px solid #b7a882;border-radius:10px;background:#33334a}
+#acDrawNotice .ac-new-draw-card span:last-child{line-height:1.25;overflow-wrap:anywhere;font-weight:700}
+
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -18878,6 +18884,7 @@ window.AlchemistRules = (()=>{
  const sale=(p,id)=>Math.floor(value(id)*(1+bonus(p,'sell')/100))+passive(p,'sale_value_bonus')+(setName(p)==='gold'?2:0);
  const price=(p,id)=>Math.max(sale(p,id)+1,Math.ceil(value(id)*3*(1-bonus(p,'shop_discount')/100)));
  function draw(g,p,n){
+  const newlyDrawn=[];
   const materials=Object.values(defs).filter(d=>d.kind==='material');
   // Common crafting supplies must be obtainable without a category-selection UI.
   // Keep the original rarity roll; only weight item identities within that rank.
@@ -18906,8 +18913,9 @@ window.AlchemistRules = (()=>{
     const same=materials.filter(d=>d.class_rank_provisional===rank),pool=same.length?same:materials;
     const sum=pool.reduce((n,d)=>n+drawWeight(d),0);let roll=random(g)*sum;
     let chosen=pool[pool.length-1];for(const d of pool){roll-=drawWeight(d);if(roll<=0){chosen=d;break}}
-    p.items.push(instance(g,chosen.id,p));
+    const drawn=instance(g,chosen.id,p);p.items.push(drawn);newlyDrawn.push(drawn.iid);
   }
+  p.lastDraw={round:g.round||1,ids:newlyDrawn};
 }
  function botBuild(cp){const b={hp:Math.min(150,Math.max(1,cp))};let left=cp-b.hp;for(const [id,max,cost] of [['melee',25,1],['magic',25,1],['initial_gold',100,1]]){const n=Math.min(max,Math.floor(left/cost));if(n){b[id]=n;left-=n*cost}}return b}
  function newPlayer(id,label,bot=false){return {id,name:label,image:'',facing:'right',build:{},items:[],pot:[],hp:0,extraMaxHp:0,gold:100,ready:false,alive:true,action:null,bot,status:{},used:{},discovered:[],history:[],shop:[],giftGold:0,autoEquip:true}}
@@ -18915,7 +18923,7 @@ window.AlchemistRules = (()=>{
  function log(g,t){g.logs.push(t);g.logs=g.logs.slice(-60)}
  function start(g,now){if(g.phase!=='lobby'&&g.phase!=='finished')throw Error('待機中のみ開始できます');if(g.players.some(p=>!p.bot&&(!p.ready||!p.image||!String(p.name||'').trim())))throw Error('全員がキャラクター画像と名前を設定して準備完了するまで開始できません');g.phase='lobby';g.deadline=null;g.round=0;g.offers=[];g.logs=[];for(const p of g.players){Object.assign(p,{items:[],pot:[],ready:false,alive:true,action:null,hp:0,extraMaxHp:0,gold:100,status:{},used:{},discovered:[],history:[],giftGold:0});if(p.bot)p.build=botBuild(g.settings.cp);p.build=cleanBuild(p.build||{},g.settings.cp);if(!p.build.hp)throw Error('HPに1ポイント以上割り振ってください')}log(g,'待機場のキャラクターで試合開始');beginMatch(g,now)}
  function beginMatch(g,now){for(const p of g.players){p.hp=maxHP(p);p.gold=100+bonus(p,'initial_gold');draw(g,p,g.settings.initialHand)}g.round=0;preparation(g,now)}
- function preparation(g,now){g.phase='preparation';g.round++;g.deadline=now+g.settings.prep*1000;g.offers=[];for(const p of g.players){p.ready=false;p.action=null;p.pot=[];p.giftGold=0;if(!p.alive)continue;if(g.round>1)draw(g,p,g.settings.draw+bonus(p,'extra_draw'));if(p.build.passive_income)p.gold+=50;p.shop=[];}g.event={id:g.round+':prep',sound:'arts_new_build'};log(g,'ラウンド '+g.round+'：錬金タイム')}
+ function preparation(g,now){g.phase='preparation';g.round++;g.deadline=now+g.settings.prep*1000;g.offers=[];for(const p of g.players){p.items=p.items.filter(i=>!(i.maxUses&&i.uses<=0)&&!(i.maxArmor&&i.armor<=0));p.ready=false;p.action=null;p.pot=[];p.giftGold=0;if(!p.alive)continue;if(g.round>1)draw(g,p,g.settings.draw+bonus(p,'extra_draw'));if(p.build.passive_income)p.gold+=50;p.shop=[];}g.event={id:g.round+':prep',sound:'arts_new_build'};log(g,'ラウンド '+g.round+'：錬金タイム')}
  function battle(g,now){g.phase='battle';g.deadline=now+g.settings.battle*1000;g.offers=[];for(const p of g.players){p.pot=[];p.ready=false;p.action=null}g.event={id:g.round+':battle',sound:null,chemistSound:'turn'};log(g,'バトルタイム：行動を選んで準備完了')}
  function counts(arr){const m={};for(const i of arr)m[i.def]=(m[i.def]||0)+1;return m}
  function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&!(i.usedInBattle||i.maxArmor&&i.armor<i.maxArmor||i.maxUses&&i.uses<i.maxUses)&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
@@ -19670,7 +19678,7 @@ window.AlchemistRules = (()=>{
  }
  for(const p of living){p.hp=Math.min(maxHP(p),p.hp+heals[p.id]);const incoming=hits.filter(h=>h.to===p.id),raw=incoming.reduce((s,h)=>s+h.n,0),oldArmor=armorTotal(p),oldHp=p.hp;let multiplier=(!p.action||p.action?.type==='defend'||p.action?.type==='combo'&&(!p.action.actions.length||p.action.actions.some(x=>x.type==='defend')))?.5:1;if(p.build.emergency_guard&&!p.used.emergency_guard&&snap(p.id).hp<=maxHP(p)/2&&raw>0){multiplier*=.7;p.used.emergency_guard=true}const defense=(p.action?.type==='combo'?p.action.actions.find(x=>x.type==='defend'):p.action),shield=defense?.item?item(p,defense.item):null;let reduction=passive(p,'damage_reduction_flat')+({leather:1,iron:2,tamahagane:3}[setName(p)]||0)+barriers[p.id];if(shield&&defense?.type==='defend'&&raw>0){reduction+=defs[shield.def].stats.block_amount||0;shield.uses--;shield.usedInBattle=true}const total=Math.max(0,Math.ceil(raw*multiplier)-reduction),ratio=raw?total/raw:0;const pierce=Math.min(total,Math.floor(incoming.reduce((s,h)=>s+h.n*h.pierce,0)*ratio));absorb(p,incoming.reduce((s,h)=>s+h.armorOnly,0));const lost=absorb(p,total-pierce)+pierce;p.hp=Math.max(0,p.hp-lost);const actualLost=oldHp-p.hp;const lostArmor=Math.max(0,oldArmor-armorTotal(p));for(const h of incoming){if(!h.sceneKey||!raw)continue;const fraction=h.n/raw;sceneDamage[h.sceneKey]=(sceneDamage[h.sceneKey]||0)+Math.max(0,actualLost)*fraction;sceneArmor[h.sceneKey]=(sceneArmor[h.sceneKey]||0)+lostArmor*fraction;}sceneTargetHp[p.id]={before:snap(p.id)?.hp??oldHp,after:p.hp,max:maxHP(p)};for(const h of incoming)if(h.weapon&&snap(h.from)?.build.lifesteal)life[h.from]+=(raw?actualLost*h.n/raw:0)*.2;if(g.round>15)p.hp=Math.max(0,p.hp-5);if(raw||heals[p.id])log(g,p.name+'：HP −'+(oldHp-p.hp)+'／装甲 −'+(oldArmor-armorTotal(p))+(heals[p.id]?'／回復 +'+heals[p.id]:''));}
  for(const p of living){if(p.alive){const gain=Math.max(0,passive(p,'regen_hp'));if(gain){const healed=Math.min(gain,Math.max(0,maxHP(p)-p.hp));p.hp+=healed;if(healed)log(g,p.name+'：装飾品のリジェネでHP +'+healed);}}}
- for(const p of living){p.hp=Math.min(maxHP(p),p.hp+Math.floor(life[p.id]));if(p.hp<=0&&p.build.last_stand&&!p.used.last_stand){p.hp=1;p.used.last_stand=true;log(g,p.name+'：不屈でHP1に踏みとどまった')}p.items=p.items.filter(i=>!(i.maxArmor&&i.armor<=0)&&!(i.maxUses&&i.uses<=0));syncSetArmor(p);p.alive=p.hp>0;if(!p.alive)log(g,p.name+' が脱落');if(p.alive&&p.build.armor_regeneration){let remain=Math.min(5,50-(p.used.regen||0));for(const i of armor(p)){const n=Math.min(remain,i.maxArmor-i.armor);i.armor+=n;remain-=n;p.used.regen=(p.used.regen||0)+n}}}
+ for(const p of living){p.hp=Math.min(maxHP(p),p.hp+Math.floor(life[p.id]));if(p.hp<=0&&p.build.last_stand&&!p.used.last_stand){p.hp=1;p.used.last_stand=true;log(g,p.name+'：不屈でHP1に踏みとどまった')}p.items=p.items.filter(i=>!(i.maxArmor&&i.armor<=0)&&!(i.maxUses&&i.uses<=0&&defs[i.def]?.kind!=='weapon'));syncSetArmor(p);p.alive=p.hp>0;if(!p.alive)log(g,p.name+' が脱落');if(p.alive&&p.build.armor_regeneration){let remain=Math.min(5,50-(p.used.regen||0));for(const i of armor(p)){const n=Math.min(remain,i.maxArmor-i.armor);i.armor+=n;remain-=n;p.used.regen=(p.used.regen||0)+n}}}
  for(const [id,k,v]of pending){const p=by(id);if(p?.alive){if(AC_STATUS_NAMES[k])acStatusApply(g,p,k,v.turns);else p.status[k]=v}}const survivors=living.filter(p=>p.alive);
  // Results are calculated simultaneously above; the presentation below does not reapply damage.
  g.actionScenes=snapshot.flatMap(p=>{
@@ -19691,6 +19699,18 @@ window.AlchemistRules = (()=>{
     damage:Math.round(sceneDamage[p.id+':'+stepIndex]||0),armorDamage:Math.round(sceneArmor[p.id+':'+stepIndex]||0),targetHp:target?sceneTargetHp[target.id]||null:null,
      detail:(raw.type==='combo'?(stepIndex+1)+'/'+raw.actions.length+'行動：':'')+(a.type==='attack'?(toolId?name(toolId)+'で攻撃':'素手で攻撃'):a.type==='use'?(spellId?name(spellId)+'を発動':toolId?name(toolId)+'を使用':'アイテムを使用'):'防御の構え')};
   });});
+ // Display each hit at the correct scene, not the final HP from every action at once.
+ const shownHp={};
+ for(const scene of g.actionScenes){
+  if(!scene.target||scene.target===scene.actor)continue;
+  const original=snap(scene.target),live=by(scene.target);
+  if(!original||!live)continue;
+  const max=Math.max(1,maxHP(live));
+  const before=shownHp[scene.target]??Math.min(max,Math.max(0,original.hp));
+  const after=Math.max(0,before-Math.max(0,scene.damage||0));
+  shownHp[scene.target]=after;
+  scene.targetHp={before,after,max};
+ }
  g.reveal={index:0,startedAt:now,duration:g.settings.sceneSeconds*1000,votes:[],eligible:living.filter(p=>!p.bot).map(p=>p.id)};
  g.pendingWinner=survivors.length<=1?(survivors[0]?.id||null):undefined;
  g.event={id:g.round+':resolve',sound:Object.values(heals).some(n=>n>0)?'arts_new_heal':null,chemistSound:'turn'};g.phase='resolution';g.deadline=now+g.reveal.duration;if(survivors.length<=1)log(g,survivors.length?survivors[0].name+' の勝利！':'引き分け')}
@@ -19828,7 +19848,7 @@ window.ArtChemist=(()=>{
       <div class="ac-cinema-stage" role="img" aria-label="${esc(a?.name||'キャラクター')}：${esc(scene.detail)}">
         <div class="ac-cinema-character ac-cinema-actor ${acDebuffClasses(a)}"><div class="ac-hero-frame ac-actor-frame ${a?.facing==='left'?'ac-facing-flip':''}">${actorArt}${itemArt?`<div class="ac-held-item">${itemArt}</div>`:''}${offhandArt?`<div class="ac-held-offhand">${offhandArt}</div>`:''}</div><strong>${esc(a?.name||'プレイヤー')}</strong><span class="ac-debuff-badges">${acDebuffBadges(a)}</span></div>
         <div class="ac-cinema-impact" aria-hidden="true">${t&&t.id!==a?.id&&(scene.damage>0||scene.armorDamage>0)?`<span class="ac-damage-number">${scene.damage>0?`−${scene.damage} HP`: `装甲 −${scene.armorDamage}`}</span>`:``}<span class="ac-hit-slash"></span><span class="ac-hit-burst"></span><span class="ac-hit-orb"></span><span class="ac-hit-spark">✦</span></div>
-        ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target ${acDebuffClasses(t)}"><div class="ac-hero-frame ${t.facing!=='left'?'ac-facing-flip':''}">${targetArt}</div><strong>${esc(t.name)}</strong><div class="ac-scene-hp"><span>HP ${scene.targetHp?.after??t.hp} / ${scene.targetHp?.max??t.maxHp}</span><progress max="${Math.max(1,scene.targetHp?.max??t.maxHp)}" value="${Math.max(0,scene.targetHp?.after??t.hp)}"></progress></div><span class="ac-debuff-badges">${acDebuffBadges(t)}</span></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
+        ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target ${acDebuffClasses(t)}"><div class="ac-hero-frame ${t.facing!=='left'?'ac-facing-flip':''}">${targetArt}</div><strong>${esc(t.name)}</strong><div class="ac-scene-hp"><span data-ac-hit-hp>HP ${scene.targetHp?.before??t.hp} / ${scene.targetHp?.max??t.maxHp}</span><progress data-ac-hit-progress data-before="${Math.max(0,scene.targetHp?.before??t.hp)}" data-after="${Math.max(0,scene.targetHp?.after??t.hp)}" max="${Math.max(1,scene.targetHp?.max??t.maxHp)}" value="${Math.max(0,scene.targetHp?.before??t.hp)}"></progress></div><span class="ac-debuff-badges">${acDebuffBadges(t)}</span></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
       </div>
       <div class="ac-scene-itemline">${scene.item?art(scene.item,'ac-scene-item'):''}<p class="ac-scene-description">${esc(scene.detail)}${t?' → '+esc(t.name):''}</p></div>
       ${button(voted?'時短済み':'時短','skipScene','class="ac-primary ac-skip-scene"',!eligible||voted)}<small></small>
@@ -19904,7 +19924,9 @@ window.ArtChemist=(()=>{
   nav.innerHTML=[['main',battle?'使用アイテム':'錬金'],['own','キャラ・装備'],...(!battle?[['result','錬金結果']]:[])].map(([id,label])=>button(label,'compactPane',`data-value="${id}" aria-pressed="${compactPane===id}"`)).join('');
   grid.before(nav);grid.dataset.compactPane=compactPane;
  }
- function clock(){const el=$('#acClock');if(el)el.textContent=view?.deadline?Math.max(0,Math.ceil((view.deadline-Date.now()-offset)/1000))+' 秒':''}
+ function clock(){const el=$('#acClock');if(el)el.textContent=view?.deadline?Math.max(0,Math.ceil((view.deadline-Date.now()-offset)/1000))+' 秒':'';
+  if(view?.phase==='resolution'&&view.reveal){const hp=stage.querySelector('[data-ac-hit-progress]'),label=stage.querySelector('[data-ac-hit-hp]');if(hp&&label){const hit=(Date.now()+offset-view.reveal.startedAt)>=700,amount=Number(hp.dataset[hit?'after':'before']);if(Number.isFinite(amount)){hp.value=amount;label.textContent='HP '+Math.round(amount)+' / '+hp.max;}}}
+ }
  function request(op,data={}){if(!view||busy)return;busy=true;sendHost({type:'gameChemistIntent',game:view.id,version:view.version,revision:me()?.revision||0,round:view.round,tx:localId+':'+Date.now()+':'+(++requestCounter),op,...data});setTimeout(()=>busy=false,1000)}
  function sendAll(){if(!host||!isHost)return;host.version++;for(const id of new Set([...members.keys(),...viewers.keys()])){const state=R.publicFor(host,id),known=sentImages.get(id)||new Map();for(const p of state.players){if(known.get(p.id)===p.image){p.image='';p.imageUnchanged=true}else known.set(p.id,p.image)}sentImages.set(id,known);const packet={type:'gameChemistState',state};if(id===localId)receive(packet);else sendWire(connections.get(id),packet)}}
  function syncRoster(){if(!host||host.phase!=='lobby')return;host.players=[...members.values()].filter(m=>!m.spectator&&!m.disconnected).map(m=>host.players.find(p=>p.id===m.peerId)||R.newPlayer(m.peerId,m.profile?.name||'参加者'));}
@@ -19941,14 +19963,14 @@ window.ArtChemist=(()=>{
   document.getElementById('acDrawNotice')?.remove();
   const wrap=document.createElement('div');wrap.id='acDrawNotice';wrap.setAttribute('role','status');wrap.setAttribute('aria-label','新しいカード');
   wrap.style.cssText='position:fixed;inset:0;z-index:2147483500;background:#100f1bcf;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer';
-  const body=document.createElement('div');body.style.cssText='max-width:min(760px,94vw);width:100%;max-height:88dvh;overflow:auto;background:#1e2030;border:2px solid #dec28a;border-radius:18px;padding:15px;text-align:center;color:#f9edcf;box-shadow:0 0 35px #000a';
+  const body=document.createElement('div');body.style.cssText='max-width:min(900px,96vw);width:100%;max-height:88dvh;overflow:auto;background:#1e2030;border:2px solid #dec28a;border-radius:18px;padding:18px;text-align:center;color:#f9edcf;box-shadow:0 0 35px #000a';
   const header=document.createElement('h3');header.textContent='新しいカード';header.style.margin='0 0 12px';body.append(header);
-  const grid=document.createElement('div');grid.style.cssText='display:flex;flex-wrap:wrap;gap:12px;justify-content:center';
-  cards.slice(0,12).forEach(i=>{const d=R.defs[i.def];if(!d)return;const cell=document.createElement('div');cell.style.cssText='width:92px;min-width:70px;display:flex;flex-direction:column;gap:5px;align-items:center;font-size:12px';cell.innerHTML=art(i.def)+`<span>${esc(R.name(i.def))}</span>`;grid.append(cell)});
+  const grid=document.createElement('div');grid.style.cssText='display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:flex-start';
+  cards.slice(0,12).forEach(i=>{const d=R.defs[i.def];if(!d)return;const cell=document.createElement('div');cell.className='ac-new-draw-card';cell.style.cssText='width:clamp(112px,19vw,164px);min-width:112px;display:flex;flex-direction:column;gap:8px;align-items:center;font-size:13px';cell.innerHTML=art(i.def,'ac-new-draw-icon')+`<span>${esc(R.name(i.def))}</span>`;grid.append(cell)});
   body.append(grid);const tip=document.createElement('small');tip.textContent='タップして閉じる';tip.style.cssText='display:block;margin-top:10px;color:#c2b6a1';body.append(tip);wrap.append(body);
   let timeout;const close=()=>{clearTimeout(timeout);wrap.remove()};wrap.addEventListener('click',close,{once:true});document.body.append(wrap);timeout=setTimeout(close,3000);
  }
- function receive(m){if(m.type==='gameChemistError'){busy=false;toast(m.text);return}if(m.type!=='gameChemistState'||!m.state)return;const previousView=view,previousItems=me()?.items?.length||0,previousHistory=me()?.history?.length||0;view=m.state;if(view.phase==='battle'){const key=view.id+':'+view.round;if(battleDraftKey!==key){battleDraftKey=key;const a=me()?.action;battleDraft=a?.type==='combo'?[...a.actions]:a?[a]:[]}}else if(battleDraftKey){battleDraftKey='';battleDraft=[]}for(const p of view.players){if(p.imageUnchanged)p.image=imageCache.get(p.id)||'';else imageCache.set(p.id,p.image);if(p.me)p.me.image=p.image}if(!isHost&&view.players.some(p=>p.imageUnchanged&&!p.image)&&Date.now()-(receive.lastImageRequest||0)>1500){receive.lastImageRequest=Date.now();sendHost({type:'gameChemistSyncRequest'})}busy=false;offset=view.now-Date.now();room.chemistSettings=view.settings;if(view.event?.id&&lastEvent!==view.id+view.event.id){lastEvent=view.id+view.event.id;if(view.event.sound)window.ArtSound?.play(view.event.sound,3);if(view.event.chemistSound==='turn')playChemistFX('turn');if(view.phase==='finished')playChemistFX('win');else if(view.phase==='preparation'&&view.round===1)playChemistFX('start')}renderUI();if(view.phase==='lobby')window.ArtSessionUI?.lobby();sceneAudioOnce();if(view.phase==='finished'&&previousView?.phase!=='finished')chemistFlash('win',view.winner?`${view.players.find(p=>p.id===view.winner)?.name||'勝者'}の勝利！`:'引き分け');else if(view.phase==='preparation'&&view.round===1&&previousView?.phase!=='preparation')chemistFlash('start','錬金バトル 開始！');if(previousView?.id===view.id&&previousView?.round!==view.round&&view.round>1&&view.phase==='preparation'){const oldIds=new Set((previousView.players.find(p=>p.id===localId)?.items||[]).map(i=>i.iid));const fresh=(me()?.items||[]).filter(i=>!oldIds.has(i.iid));if(fresh.length){playChemistFX('draw');showNewDrawCards(fresh)}}if(me()?.lastCraft?.id&&lastCraftId!==me().lastCraft.id&&previousView?.id===view.id){lastCraftId=me().lastCraft.id;const craft=me().lastCraft;playChemistFX(craft.outcome==='great'?'craftGreat':craft.outcome==='failure'?'craftFail':'craftSuccess');showCraftReveal(craft)}renderControls();syncLobbyButtons()}
+ function receive(m){if(m.type==='gameChemistError'){busy=false;toast(m.text);return}if(m.type!=='gameChemistState'||!m.state)return;const previousView=view,previousItems=me()?.items?.length||0,previousHistory=me()?.history?.length||0;view=m.state;if(view.phase==='battle'){const key=view.id+':'+view.round;if(battleDraftKey!==key){battleDraftKey=key;const a=me()?.action;battleDraft=a?.type==='combo'?[...a.actions]:a?[a]:[]}}else if(battleDraftKey){battleDraftKey='';battleDraft=[]}for(const p of view.players){if(p.imageUnchanged)p.image=imageCache.get(p.id)||'';else imageCache.set(p.id,p.image);if(p.me)p.me.image=p.image}if(!isHost&&view.players.some(p=>p.imageUnchanged&&!p.image)&&Date.now()-(receive.lastImageRequest||0)>1500){receive.lastImageRequest=Date.now();sendHost({type:'gameChemistSyncRequest'})}busy=false;offset=view.now-Date.now();room.chemistSettings=view.settings;if(view.event?.id&&lastEvent!==view.id+view.event.id){lastEvent=view.id+view.event.id;if(view.event.sound)window.ArtSound?.play(view.event.sound,3);if(view.event.chemistSound==='turn')playChemistFX('turn');if(view.phase==='finished')playChemistFX('win');else if(view.phase==='preparation'&&view.round===1)playChemistFX('start')}renderUI();if(view.phase==='lobby')window.ArtSessionUI?.lobby();sceneAudioOnce();if(view.phase==='finished'&&previousView?.phase!=='finished')chemistFlash('win',view.winner?`${view.players.find(p=>p.id===view.winner)?.name||'勝者'}の勝利！`:'引き分け');else if(view.phase==='preparation'&&view.round===1&&previousView?.phase!=='preparation')chemistFlash('start','錬金バトル 開始！');if(previousView?.id===view.id&&previousView?.round!==view.round&&view.round>1&&view.phase==='preparation'){const drawInfo=me()?.lastDraw;const drawnIds=new Set(drawInfo?.round===view.round?(drawInfo.ids||[]):[]);const fresh=(me()?.items||[]).filter(i=>drawnIds.has(i.iid));if(fresh.length){playChemistFX('draw');showNewDrawCards(fresh)}}if(me()?.lastCraft?.id&&lastCraftId!==me().lastCraft.id&&previousView?.id===view.id){lastCraftId=me().lastCraft.id;const craft=me().lastCraft;playChemistFX(craft.outcome==='great'?'craftGreat':craft.outcome==='failure'?'craftFail':'craftSuccess');showCraftReveal(craft)}renderControls();syncLobbyButtons()}
  let lastLobbyBroadcast=0;
  let lastDraftSend=0;
  function syncBattleDraft(){
