@@ -3702,6 +3702,143 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage .ac-cinema-character.ac-effect-burn .ac-hero-frame,#chemistStage .ac-cinema-character.ac-effect-freeze .ac-hero-frame,#chemistStage .ac-cinema-character.ac-effect-poison .ac-hero-frame{animation:acDebuffPulse 1.3s ease-in-out infinite alternate;}
 @keyframes acDebuffPulse{from{filter:brightness(1)}to{filter:brightness(1.17)}}
 </style>
+
+<style id="ac-battle-hand-layout-20261117-final">
+/* Battle-specific correction: older compact CSS mistakenly allocated only 135px,
+   too little for two rows of cards, and forced one horizontal line. */
+#studio.chemist-play #chemistStage.ac-layout-battle > .ac-battle-shell {
+  grid-template-rows:minmax(0,1fr) minmax(202px,29%)!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid {
+  min-height:0!important;min-width:0!important;overflow:hidden!important;
+  grid-template-columns:minmax(0,1.65fr) minmax(0,.85fr)!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid > .ac-inventory {
+  display:flex!important;flex-direction:column!important;min-height:0!important;
+  height:100%!important;overflow:hidden!important;gap:4px!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-inventory .ac-section-heading {
+  flex:0 0 auto!important;min-height:32px!important;max-height:45px!important;
+  flex-wrap:wrap!important;align-items:center!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-inventory .ac-hand-controls {
+  display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;
+  flex:0 1 auto!important;max-width:100%!important;gap:3px!important;
+  scrollbar-width:thin;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-inventory .ac-hand-controls button {
+  flex:0 0 auto!important;min-width:28px!important;min-height:27px!important;
+  display:inline-flex!important;visibility:visible!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand,
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all {
+  display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  grid-template-rows:none!important;grid-auto-rows:78px!important;
+  grid-auto-flow:row!important;align-content:start!important;align-items:start!important;
+  min-width:0!important;min-height:0!important;height:0!important;max-height:none!important;
+  flex:1 1 0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:2px 3px 5px!important;gap:4px!important;touch-action:pan-y!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card,
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all .ac-card {
+  box-sizing:border-box!important;display:flex!important;visibility:visible!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  height:78px!important;min-height:78px!important;max-height:78px!important;
+  flex:0 0 auto!important;flex-direction:column!important;align-items:center!important;
+  justify-content:flex-start!important;padding:2px!important;gap:1px!important;overflow:hidden!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card img {
+  display:block!important;flex:0 0 auto!important;width:100%!important;
+  height:43px!important;min-height:0!important;max-height:43px!important;object-fit:contain!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card strong {
+  flex:0 0 auto!important;min-height:0!important;max-height:16px!important;
+  width:100%!important;line-height:1.2!important;font-size:10px!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:center!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card>small,
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card>span {
+  display:none!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid > .ac-detail {
+  min-width:0!important;min-height:0!important;max-height:100%!important;overflow:auto!important;
+}
+@media (max-width:780px) {
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all {
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+}
+@media (max-width:520px) {
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all {
+   grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+}
+@media (max-height:690px) and (orientation:landscape) {
+ #studio.chemist-play #chemistStage.ac-layout-battle > .ac-battle-shell {
+   grid-template-rows:minmax(0,1fr) minmax(166px,31%)!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all {
+   grid-auto-rows:65px!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card {
+   height:65px!important;min-height:65px!important;max-height:65px!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card img {
+   height:35px!important;max-height:35px!important;
+ }
+}
+</style>
+<style id="ac-hand-all-and-lowheight-fix">
+/* '全表示' on either phase keeps every card reachable inside a scrollable panel. */
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all {
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  grid-template-rows:none!important;grid-auto-rows:70px!important;grid-auto-flow:row!important;
+  align-content:start!important;align-items:start!important;
+  width:100%!important;min-height:0!important;height:0!important;max-height:none!important;
+  flex:1 1 0!important;overflow-x:hidden!important;overflow-y:auto!important;
+  padding:2px!important;gap:3px!important;touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card {
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;
+  width:100%!important;min-width:0!important;height:70px!important;min-height:70px!important;max-height:70px!important;
+  padding:2px!important;gap:1px!important;overflow:hidden!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card img{
+  display:block!important;height:40px!important;max-height:40px!important;min-height:0!important;width:100%!important;object-fit:contain!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card strong{
+  width:100%!important;max-height:15px!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  white-space:nowrap!important;line-height:1.15!important;font-size:10px!important;
+}
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card>small,
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card>span{display:none!important;}
+@media(max-width:780px){
+ #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+}
+@media(max-width:520px){
+ #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+}
+@media(max-height:690px) and (orientation:landscape){
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all {
+   grid-auto-rows:53px!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all .ac-card {
+   height:53px!important;min-height:53px!important;max-height:53px!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card img,
+ #studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand.ac-hand-all .ac-card img{
+   height:27px!important;max-height:27px!important;
+ }
+}
+</style>
 </head><body>
 <div id="home" class="screen home"><header class="home-header"><button type="button" id="artLagHomeButton" class="art-lag-home-btn" aria-label="ラグ改善設定を開く" title="ラグ改善設定"><svg viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="5" x2="24" y2="12" transform="rotate(0 24 24)" opacity="0.25"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(30 24 24)" opacity="0.31"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(60 24 24)" opacity="0.37"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(90 24 24)" opacity="0.43"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(120 24 24)" opacity="0.49"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(150 24 24)" opacity="0.55"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(180 24 24)" opacity="0.61"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(210 24 24)" opacity="0.67"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(240 24 24)" opacity="0.73"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(270 24 24)" opacity="0.79"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(300 24 24)" opacity="0.85"/><line x1="24" y1="5" x2="24" y2="12" transform="rotate(330 24 24)" opacity="0.91"/></svg><span>ラグ改善</span></button><button id="myProfile" class="profile-pill"><span class="avatar" id="homeAvatar">✦</span><span><b id="homeName">プレイヤー</b><small>プロフィールを編集</small></span><span class="edit-mark">✎</span></button><div class="art-home-right"><div class="brand small">あーとぴあ<i></i></div></div></header><main class="home-main"><div class="home-hero"><div class="home-hero-copy"><div class="eyebrow">ARTOPIA / VER.1.7.1</div><div class="hero-search-promo"><span class="hero-search-tag">🔎 あーとぴあの見つけ方</span><h1><span class="hero-search-word">「あーとぴあ おえかき」</span><br>で検索してね！</h1><p class="intro">あーとぴあは、まだまだ発展途中。<br>気に入ってくれたら、ぜひお友だちにも教えてね！</p></div></div><button id="openHeroGallery" class="hero-gallery-card" type="button" aria-label="あなたの絵画展を開く"><span class="hero-gallery-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 4 3 3-3 4 4"/></svg><strong>あなたの絵画展</strong><span class="hero-gallery-arrow">›</span></span><span class="hero-gallery-preview" id="heroGalleryPreview"><span class="hero-gallery-empty">あなたの作品を飾ろう</span></span><span class="hero-gallery-foot">作品を見る・作品ごとの公開範囲を変更</span></button></div><div class="home-actions"><button id="createMain" class="action-card"><span class="action-icon" data-icon="brush"></span><b>部屋を作る</b><span>公開・非公開とゲームモードを設定</span><strong>＋</strong></button><button id="joinMain" class="action-card"><span class="action-icon" data-icon="inviteMark"></span><b>合言葉で入る</b><span>合言葉を入力して参加</span><strong>↗︎</strong></button></div><section id="publicRoomsSection" class="exhibition public-rooms-section" aria-labelledby="publicRoomsHeading">
   <div class="section-head public-rooms-heading">
@@ -18520,8 +18657,19 @@ window.AlchemistRules = (()=>{
   const materials=Object.values(defs).filter(d=>d.kind==='material');
   // Common crafting supplies must be obtainable without a category-selection UI.
   // Keep the original rarity roll; only weight item identities within that rank.
+  // Assist players whose hand has accumulated timber without enough forge materials.
+  // Applied within the already rolled rarity: it never creates unavailable rare metals.
+  const ownedMaterials=p.items.filter(i=>defs[i.def]?.kind==='material'&&!p.pot.includes(i.iid));
+  const woodCount=ownedMaterials.filter(i=>defs[i.def]?.material_category==='wood'||/^(wood|.*_wood|.*_lumber|.*_log)$/.test(String(i.def))).length;
+  const metalCount=ownedMaterials.filter(i=>['metal','ore'].includes(defs[i.def]?.material_category)||/^(iron|copper|steel|silver|gold|platinum|.*_ore|.*_ingot)$/.test(String(i.def))).length;
+  const metalNeed=Math.max(0,woodCount-metalCount-1);
+  const metalBoost=1+Math.min(7,metalNeed*1.2);
   const drawWeight=d=>{
     const id=String(d.id||'').toLowerCase(),cat=String(d.material_category||'').toLowerCase();
+    const forgeMetal=['metal','ore'].includes(cat)||/^(iron|copper|steel|silver|gold|platinum|.*_ore|.*_ingot)$/.test(id);
+    const timber=cat==='wood'||/^(wood|.*_wood|.*_lumber|.*_log)$/.test(id);
+    if(metalNeed&&forgeMetal)return (['iron','copper'].includes(id)?6:4)*metalBoost;
+    if(metalNeed&&timber)return Math.max(.6,4/(1+metalNeed*.6));
     if(['wood','iron','stone','crystal','magic_crystal'].includes(id))return 6;
     if(cat==='wood'||cat==='ore'||cat==='metal')return 4;
     if(cat==='gem'||cat==='gemstone'||cat==='stone')return 2.8;
@@ -19129,7 +19277,8 @@ window.ArtChemist=(()=>{
  function art(id,cls=''){return img(D.icons[id],cls,R.name(id))||`<span class="ac-fallback ${cls}">${esc((R.name(id)||'素材').slice(0,2))}</span>`}
  function button(label,action,extra='',disabled=false){return `<button type="button" data-ac="${action}" ${extra} ${disabled?'disabled':''}>${label}</button>`}
  function stat(i){const d=R.defs[i.def];return d.kind==='weapon'?`攻撃 ${d.stats.damage} · ${i.uses}/${i.maxUses}回`:d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${d.stats.block_amount} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · ${R.value(i.def)}G`:effects(d)}
- function effects(d){return d.effects.map(e=>({apply_status:`${AC_STATUS_NAMES[e.status]||e.status} ${Math.round((e.chance??1)*100)}%・${e.duration_rounds||1}ターン`,heal:`HP ${e.amount}回復`,light_heal_percent:`最大HPの${e.percent}%回復（光魔法）`,light_retribution_phase:`このラウンドに対象から受けたダメージの${e.multiplier}倍で反撃（光魔法）`,light_retribution_total:`試合中に対象から受けた累積ダメージの${e.multiplier}倍で反撃（光魔法）`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋火傷 ${e.burn_rounds}ターン`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,bind:'対象を1ターン拘束（重ねがけ不可）',cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${e.armor_points}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${e.amount}`,max_hp_bonus:`最大HP +${e.amount}`,sale_value_bonus:`売値 +${e.amount}G`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`火傷 ${e.duration_rounds}ターン`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${e.flat_damage_reduction}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・売却・修理の素材'}
+ const AC_UI_STATUS_NAMES=Object.freeze({burn:'火傷',majorBurn:'大火傷',frostbite:'凍傷',freeze:'凍結',poison:'毒',deadlyPoison:'猛毒'});
+ function effects(d){return d.effects.map(e=>({apply_status:`${AC_UI_STATUS_NAMES[e.status]||e.status} ${Math.round((e.chance??1)*100)}%・${e.duration_rounds||1}ターン`,heal:`HP ${e.amount}回復`,light_heal_percent:`最大HPの${e.percent}%回復（光魔法）`,light_retribution_phase:`このラウンドに対象から受けたダメージの${e.multiplier}倍で反撃（光魔法）`,light_retribution_total:`試合中に対象から受けた累積ダメージの${e.multiplier}倍で反撃（光魔法）`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋火傷 ${e.burn_rounds}ターン`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,bind:'対象を1ターン拘束（重ねがけ不可）',cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${e.armor_points}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${e.amount}`,max_hp_bonus:`最大HP +${e.amount}`,sale_value_bonus:`売値 +${e.amount}G`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`火傷 ${e.duration_rounds}ターン`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${e.flat_damage_reduction}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・売却・修理の素材'}
  function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="false" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
  function header(){return `<header class="ac-header"><div><small>ARTCHEMIST${view.round?' / ROUND '+view.round:''}</small><h2>${phaseName[view.phase]}</h2></div><div class="ac-header-side"><b id="acClock" role="timer"></b>${me()?`<span>${me().gold} G</span>`:''}${button('遊び方','help')}${button('効果音','sound')}</div></header>`}
  function summary(p){return `<div class="ac-character">${img(p.image,'ac-portrait',p.name)||'<div class="ac-empty-art">あなたの絵が<br>キャラクターに</div>'}<strong>${esc(p.name)}</strong></div><div class="ac-meters"><label>HP <b>${p.hp} / ${p.maxHp||R.maxHP(p)}</b></label><progress value="${p.hp}" max="${p.maxHp||R.maxHP(p)}"></progress><label>装甲 <b>${p.armor??R.armorTotal(p)}</b></label></div>`}
