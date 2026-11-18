@@ -3966,6 +3966,12 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #acLobbyBuilder .ac-character-file-button.ac-file-disabled input{cursor:not-allowed}
 @media(max-width:620px){#acLobbyBuilder .ac-build>aside:first-child>.ac-character-file-button{grid-column:2;margin:0;min-height:38px;padding:5px 7px}}
 </style>
+<style id="ac-multiplication-recipe-filters">
+#acRecipeSearch{min-width:130px;flex:1}
+#acRecipeKind,#acRecipeRarity{min-width:105px;max-width:170px}
+.ac-ency-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.ac-ency-controls label{display:flex;flex-direction:column;gap:3px}
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -18985,6 +18991,60 @@ window.AlchemistRules = (()=>{
   // Two-tier upgrades require at least four top-rarity ingredient equivalents.
   return mass/Math.pow(2,max-1)>=4;
  }
+ // Material multiplication: only existing card IDs.  Output count is an actual card count.
+ // Products of multiplication can be used normally, but cannot fuel another multiplication
+ // recipe; that prevents short-circuit infinite loops while keeping crafting intuitive.
+ const acMultiplicationSpecs=[
+  // Heat and combustible matter.
+  ['fire_wood','fire',{fire:1,wood:1},3],
+  ['fire_hinoki','fire',{fire:1,hinoki_wood:1},4],
+  ['fire_walnut','fire',{fire:1,walnut_wood:1},5],
+  ['fire_ebony','azure_flame',{fire:1,ebony_wood:1},2],
+  ['fire_fiend','azure_flame',{fire:1,fiend_wood:1},2],
+  ['fire_fairy','azure_flame',{fire:1,fairy_wood:1},2],
+  ['fire_sefirot','azure_flame',{fire:1,sefirot_wood:1},3],
+  ['fire_coal','fire',{fire:1,coal:1},4],
+  ['flame_stone_burst','fire',{flame_stone:1},3],
+  ['flame_stone_wood','fire',{flame_stone:1,wood:1},5],
+  ['flame_stone_coal','fire',{flame_stone:1,coal:1},5],
+  ['azure_flame_wood','azure_flame',{azure_flame:1,ebony_wood:1},3],
+  // Water and ice.
+  ['ice_water','ice',{ice:1,water:1},2],
+  ['frost_stone_water','ice',{frost_stone:1,water:1},4],
+  ['frost_stone_snow','ice',{frost_stone:1,snow:1},4],
+  ['frost_stone_ice','ice',{frost_stone:1,ice:1},4],
+  ['glass_snow_water','water',{glass:1,snow:1},2],
+  ['glass_ice_water','water',{glass:1,ice:1},2],
+  ['water_snow_ice','ice',{water:1,snow:1},2],
+  // Growth and propagation; fertilizer is a real existing card.
+  ['fertilizer_grass','grass',{fertilizer:1,grass:1},3],
+  ['fertilizer_calming_grass','calming_grass',{fertilizer:1,calming_grass:1},3],
+  ['fertilizer_vine','vine',{fertilizer:1,vine:1},3],
+  ['fertilizer_rice','rice_ear',{fertilizer:1,rice_ear:1},3],
+  ['fertilizer_soy','soy',{fertilizer:1,soy:1},2],
+  ['fertilizer_strawberry','strawberry',{fertilizer:1,strawberry:1},2],
+  ['fertilizer_mushroom','mushroom',{fertilizer:1,mushroom:1},3],
+  ['fertilizer_strange_mushroom','strange_mushroom',{fertilizer:1,strange_mushroom:1},3],
+  ['fertilizer_wood','wood',{fertilizer:1,wood:1},2],
+  ['fertilizer_hinoki','hinoki_wood',{fertilizer:1,hinoki_wood:1},2],
+  ['fertilizer_fairy','fairy_wood',{fertilizer:1,fairy_wood:1},2],
+  ['seed_water_grass','grass',{magic_seed:1,water:1},4],
+  ['seed_fertilizer_wood','wood',{magic_seed:1,fertilizer:1},3],
+  ['fertilizer_seed_grass','grass',{fertilizer:1,magic_seed:1,water:1},5],
+  // Other useful material transformations using actual registered materials.
+  ['crystal_sand','crystal',{crystal:1,sand:1},2],
+  ['soul_essence_soul','soul_essence',{soul_essence:1,soul:1},2],
+  ['slime_essence_water','slime_essence',{slime_essence:1,water:1},3],
+  ['poison_mushroom','poison_item',{poison_item:1,strange_mushroom:1},2],
+  ['glass_water_snow','water',{glass:1,water:1,snow:1},3]
+ ];
+ const acDupNames=new Set();
+ const acMultiplicationRecipes=acMultiplicationSpecs.map(([tag,out,inputs,count])=>({
+  id:'ac_multiply_'+tag,output_id:out,yield_quantity:count,
+  ingredients:Object.entries(inputs).map(([item_id,quantity])=>({item_id,quantity})),
+  source:'artchemist_multiplication',match_policy:'exact_recipe'
+ })).filter(r=>defs[r.output_id]&&r.ingredients.every(q=>defs[q.item_id])&&!acDupNames.has(r.id)&&acDupNames.add(r.id));
+ D.cards.recipes.unshift(...acMultiplicationRecipes);
  const recipes=[...examples,...armorExtras,...coreArmorRecipes,...D.cards.recipes].filter(r=>{
    const used=r.ingredients.find(q=>q.item_id===r.output_id)?.quantity||0;
    return (!used || (r.yield_quantity||1)>used)&&acRecipeRarityAllowed(r);
@@ -19060,7 +19120,7 @@ window.AlchemistRules = (()=>{
  function preparation(g,now){g.phase='preparation';g.round++;g.deadline=now+g.settings.prep*1000;g.offers=[];for(const p of g.players){p.items=p.items.filter(i=>!(i.maxUses&&i.uses<=0)&&!(i.maxArmor&&i.armor<=0));p.ready=false;p.action=null;p.pot=[];p.giftGold=0;if(!p.alive)continue;if(g.round>1)draw(g,p,g.settings.draw+bonus(p,'extra_draw'));if(p.build.passive_income&&g.round>1)p.hp=Math.min(maxHP(p),p.hp+8);p.shop=[];}g.event={id:g.round+':prep',sound:'arts_new_build'};log(g,'ラウンド '+g.round+'：錬金タイム')}
  function battle(g,now){g.phase='battle';g.deadline=now+g.settings.battle*1000;g.offers=[];for(const p of g.players){p.pot=[];p.ready=false;p.action=null}g.event={id:g.round+':battle',sound:null,chemistSound:'turn'};log(g,'バトルタイム：行動を選んで準備完了')}
  function counts(arr){const m={};for(const i of arr)m[i.def]=(m[i.def]||0)+1;return m}
- function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&!(i.usedInBattle||i.maxArmor&&i.armor<i.maxArmor||i.maxUses&&i.uses<i.maxUses)&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
+ function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&!(i.usedInBattle||i.maxArmor&&i.armor<i.maxArmor||i.maxUses&&i.uses<i.maxUses)&&!(r.source==='artchemist_multiplication'&&i.acMultiplied)&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
  function craftKind(d,mode){return !!d}
  // Improvised transmutation uses ingredient identity AND rarity.  The category data
  // inherited from Dream Crafter has several foods recorded as `misc`; normalize
@@ -19661,7 +19721,9 @@ window.AlchemistRules = (()=>{
  }
  function preview(p,mode='alchemy'){
   const parts=p.pot.map(id=>item(p,id)).filter(Boolean);if(!parts.length)return null;
-  const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode));
+  const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode)&&!(r.source==='artchemist_multiplication'&&parts.some(i=>i.acMultiplied)));
+  const multiplication=matches.find(r=>r.source==='artchemist_multiplication');
+  if(multiplication&&!parts.some(i=>i.acMultiplied))return {output:multiplication.output_id,count:multiplication.yield_quantity,chance:1,recipe:multiplication.id,multiplication:true};
   const scrollInput=parts.some(i=>acIsScroll(defs[i.def]));
   if(scrollInput&&parts.length===2&&parts.some(i=>i.def==='book')){
    const spellBook=matches.find(r=>defs[r.output_id]?.artchemist_generated_spellbook);
@@ -19713,7 +19775,7 @@ window.AlchemistRules = (()=>{
   const forcedFailure=!!plan.weightFailure;
   p.items=p.items.filter(i=>!p.pot.includes(i.iid));p.pot=[];p.recipe=null;
   const ok=!forcedFailure&&random(g)<plan.chance;
-  if(ok){for(let k=0;k<(selectedLegacy?.count||plan.count);k++)p.items.push(instance(g,result,p));if(p.build.recycle_material&&random(g)<.2)p.items.push(choose(g,parts));if(!p.discovered.includes(plan.recipe))p.discovered.push(plan.recipe)}
+  if(ok){for(let k=0;k<(selectedLegacy?.count||plan.count);k++){const produced=instance(g,result,p);if(plan.multiplication)produced.acMultiplied=true;p.items.push(produced)}if(p.build.recycle_material&&random(g)<.2)p.items.push(choose(g,parts));if(!p.discovered.includes(plan.recipe))p.discovered.push(plan.recipe)}
   else if(p.build.alchemy_failure_salvage)p.items.push(...parts.slice(0,Math.floor(parts.length/2)));
   const finalCount=selectedLegacy?.count||plan.count;
   const outputRank=ok&&result?(defs[result]?.class_rank_provisional||inputRank):0;
@@ -20175,7 +20237,13 @@ window.ArtChemist=(()=>{
  }
  async function galleryPicker(){await refreshGallery();const arts=gallery.filter(a=>a.thumb||a.image);modal('絵画展からキャラクターを選ぶ',`<div class="ac-gallery">${arts.map((a,i)=>`<button type="button" data-art="${i}">${img(a.thumb||a.image)}<span>${esc(a.name)}</span></button>`).join('')||'<p>保存した作品がありません。</p>'}</div>`);$('#modalContent').querySelectorAll('[data-art]').forEach(b=>b.onclick=async()=>{try{const row=await db('art','readonly',s=>s.get(arts[+b.dataset.art].id));if(!row?.image)throw Error();await importImage(row.image);$('#modal').close();if(view?.phase==='lobby')showLobbyBuilder(true)}catch{toast('作品を読み込めませんでした')}})}
 
- function recipeBook(){const p=me();modal('レシピ図鑑',`<p>登録レシピ ${R.recipes.length}通り（同じ完成品の別ルートを含む）。発見 ${p.discovered.length}件。保護中・クラス4以上は自動選択しません。</p><input id="acRecipeSearch" placeholder="作りたいカード名で検索" aria-label="レシピ検索"><div class="ac-recipes">${R.recipes.map(r=>`<div data-recipe-name="${esc(R.name(r.output_id))}">${art(r.output_id)}<div><strong>${p.discovered.includes(r.id)?'発見済み · ':''}${esc(R.name(r.output_id))}</strong><small>${r.ingredients.map(q=>esc(R.name(q.item_id))+'×'+q.quantity).join(' ＋ ')}</small></div><button type="button" data-recipe="${r.id}" ${!R.inputs(p,r,true)?'disabled':''}>投入</button></div>`).join('')}</div>`);$('#acRecipeSearch').oninput=e=>$('#modalContent').querySelectorAll('[data-recipe-name]').forEach(row=>row.hidden=!row.dataset.recipeName.includes(e.target.value));$('#modalContent').querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{request('fill',{recipe:b.dataset.recipe});$('#modal').close()})}
+ function recipeBook(){
+  const p=me();
+  modal('レシピ図鑑',`<div class="ac-ency-controls"><label>カテゴリー<select id="acRecipeKind"><option value="">すべて</option>${Object.entries(kinds).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}</select></label><label>レアリティ<select id="acRecipeRarity"><option value="">すべて</option>${rarities.slice(1).map((v,i)=>`<option value="${i+1}">${esc(v)}</option>`).join('')}</select></label><input id="acRecipeSearch" placeholder="カード名で検索" aria-label="レシピ検索"></div><div class="ac-recipes">${R.recipes.map(r=>{const d=R.defs[r.output_id];return `<div data-recipe-kind="${esc(d.kind)}" data-recipe-rarity="${d.class_rank_provisional||1}" data-recipe-name="${esc(R.name(r.output_id))}">${art(r.output_id)}<div><strong>${p.discovered.includes(r.id)?'発見済み · ':''}${esc(R.name(r.output_id))}${r.yield_quantity>1?' ×'+r.yield_quantity:''}</strong><small>${r.ingredients.map(q=>esc(R.name(q.item_id))+'×'+q.quantity).join(' ＋ ')}</small></div><button type="button" data-recipe="${esc(r.id)}" ${!R.inputs(p,r,true)?'disabled':''}>投入</button></div>`}).join('')}</div>`);
+  const root=$('#modalContent'),update=()=>{const kind=root.querySelector('#acRecipeKind').value,rarity=root.querySelector('#acRecipeRarity').value,q=root.querySelector('#acRecipeSearch').value.trim();root.querySelectorAll('[data-recipe-name]').forEach(row=>{row.hidden=!!((kind&&row.dataset.recipeKind!==kind)||(rarity&&row.dataset.recipeRarity!==rarity)||(q&&!row.dataset.recipeName.includes(q)))})};
+  root.querySelectorAll('#acRecipeKind,#acRecipeRarity,#acRecipeSearch').forEach(input=>input.addEventListener('input',update));
+  root.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{request('fill',{recipe:b.dataset.recipe});$('#modal').close()});
+ }
  function encyclopedia(){const all=Object.values(R.defs);const content=`<div class="ac-ency-controls"><label>レアリティ<select id="acEncyRarity"><option value="">すべて</option>${rarities.slice(1).map((n,i)=>`<option value="${i+1}">${n}</option>`).join('')}</select></label><label>カテゴリー<select id="acEncyKind"><option value="">すべて</option>${Object.entries(kinds).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><input id="acEncySearch" placeholder="アイテム名で検索"></div><div class="ac-ency-list">${all.map(d=>`<article data-ency-kind="${d.kind}" data-ency-rank="${d.class_rank_provisional}" data-ency-name="${esc(R.name(d.id))}">${art(d.id)}<div><strong>${esc(R.name(d.id))}</strong><small>${rarities[d.class_rank_provisional]||'ミスティック'} · ${kinds[d.kind]||d.kind}</small><p>${esc(effects(d)||'効果なし')}</p><small>基礎価値 ${R.value(d.id)}G ${d.kind==='weapon'?' · 攻撃 '+Math.round((d.stats.damage||0)*1.5):''}</small></div></article>`).join('')}</div>`;modal('あーとけみすと・アイテム図鑑',content);const root=$('#modalContent'),update=()=>{const rank=root.querySelector('#acEncyRarity').value,kind=root.querySelector('#acEncyKind').value,q=root.querySelector('#acEncySearch').value;root.querySelectorAll('[data-ency-kind]').forEach(a=>a.hidden=!!((rank&&a.dataset.encyRank!==rank)||(kind&&a.dataset.encyKind!==kind)||(q&&!a.dataset.encyName.includes(q))))};root.querySelectorAll('.ac-ency-controls select,.ac-ency-controls input').forEach(el=>el.addEventListener('input',update))}
  function inspect(id){const p=view.players.find(p=>p.id===id);if(!p)return;modal(p.name+' のキャラクター',`<div class="ac-inspect ac-inspect-large">${summary(p)}${p.equipment.map(i=>`<div>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><p>${esc(stat(i))}</p><small>${esc(effects(R.defs[i.def]))}</small></div>`).join('')||'<p>装備なし</p>'}</div><p>手札・素材・能力配分は公開されません。</p>`)}
  function giftPicker(){const i=me()?.items.find(i=>i.iid===selected);if(!i)return;modal('プレゼント：'+R.name(i.def),'<p>相手が受け取るまでカードは移動しません。</p>'+view.players.filter(p=>p.alive&&p.id!==localId).map(p=>`<button type="button" data-gift-to="${esc(p.id)}">${esc(p.name)}</button>`).join(''));$('#modalContent').querySelectorAll('[data-gift-to]').forEach(b=>b.onclick=()=>{request('gift',{item:selected,target:b.dataset.giftTo});$('#modal').close()})}
