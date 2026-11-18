@@ -18889,6 +18889,44 @@ window.AlchemistRules = (()=>{
   D.cards.recipes.push({id:'ac_book_from_'+scroll.id,output_id:id,ingredients:[{item_id:'book',quantity:1},{item_id:scroll.id,quantity:1}],yield_quantity:1,source:'artchemist_book_from_scroll',match_policy:'exact_recipe'});
  }
 
+ // Dream Crafter alpha 7.17.5 soul progression. Keep the original source item IDs
+ // where present; Artchemist's 'restraint_soul_blade' is its condensed blade.
+ for(const [id,rank] of Object.entries({soul_essence:2,soul:3,soul_crystal:4,wavering_soul:3,restraint_soul_blade:4,soul_crystal_blade:5,durandal:6})){
+  if(defs[id])defs[id].class_rank_provisional=rank;
+ }
+ for(const id of ['soul_essence','soul','soul_crystal','wavering_soul'])if(defs[id]){
+  defs[id].tags=[...new Set([...(defs[id].tags||[]),'soul','magic'])];
+  defs[id].material_category='soul';
+ }
+ // Remove inconsistent alternate soul recipes, including direct metal-to-soul-blade recipes.
+ const soulOutputs=new Set(['soul','soul_crystal','wavering_soul','restraint_soul_blade','soul_crystal_blade','durandal']);
+ D.cards.recipes=D.cards.recipes.filter(r=>!soulOutputs.has(r.output_id));
+ const soulRecipeData=[
+  ['soul',{soul_essence:3}],
+  ['soul_crystal',{soul:3}],
+  ['wavering_soul',{soul_essence:2,curse_wood:1}],
+  ['restraint_soul_blade',{soul:2,curse_wood:2,wavering_soul:1}],
+  ['soul_crystal_blade',{soul:10,fiend_wood:1,restraint_soul_blade:1}],
+  ['durandal',{soul_crystal:2,fiend_wood:2,soul_crystal_blade:1}]
+ ];
+ for(const [output,ingredients] of soulRecipeData){
+  if(!defs[output]||Object.keys(ingredients).some(id=>!defs[id]))continue;
+  D.cards.recipes.unshift({id:'ac_dream_soul_'+output,output_id:output,ingredients:Object.entries(ingredients).map(([item_id,quantity])=>({item_id,quantity})),yield_quantity:1,source:'Dream_Crafter_alpha7_17_5_original',match_policy:'exact_recipe'});
+ }
+ // In the original game Wavering Soul is a weapon, not a basic ingredient.
+ if(defs.wavering_soul){
+  const d=defs.wavering_soul;
+  d.kind='weapon';d.stats={...d.stats,damage:10,weapon_family:'soul',handedness:'oneHanded'};
+  d.consumption={type:'uses',max_uses:2,per_attack:1,repairable:true,breaks_at_zero:true};
+ }
+ // Keep the already-published Artchemist ID for saves while using the original name.
+ if(defs.restraint_soul_blade)D.names.restraint_soul_blade={...(D.names.restraint_soul_blade||{}),ja:'凝縮したソウルの刃'};
+ // Soul blades harm life in this mode (which has no Will stat): give them a clear
+ // identity through physical-armor penetration rather than arbitrary normal sword rolls.
+ for(const [id,fraction] of [['wavering_soul',.5],['restraint_soul_blade',.5],['soul_crystal_blade',.4],['durandal',.5]])if(defs[id]){
+  defs[id].artchemist_pierce_fraction=fraction;
+  defs[id].tags=[...new Set([...(defs[id].tags||[]),'soul'])];
+ }
  // The shop is gone. Preserve saved build IDs while replacing obsolete economy bonuses.
  for(const a of D.abilities.incremental){
   if(a.id==='sell'){a.category='support';a.unit='percent';a.name_en='Healing potency';a.value_per_step=2;a.suggested_max_bonus=200;}
@@ -18918,6 +18956,16 @@ window.AlchemistRules = (()=>{
   const prefix=m==='gold'?'golden':m;
   return [['boots',1],['helmet',2],['leggings',3],['chestplate',4]].map(([part,n])=>({id:'chemist_core_'+m+'_'+part,output_id:prefix+'_'+part,yield_quantity:1,ingredients:[{item_id:m,quantity:n}]})).filter(r=>defs[r.output_id]);
  });
+ // Short, recognizable staff crafting paths, with magical material required.
+ for(const [out,ing] of [
+  ['apprentice_staff',{stick:1,magic_raw_stone:1}],
+  ['magic_staff',{wood:2,concentrated_magic_raw_stone:1}],
+  ['wizard_staff',{hinoki_wood:2,crystal:1,magic_essence:1}],
+  ['magician_staff',{walnut_wood:3,magic_shard:1}],
+  ['mage_staff',{ebony_wood:3,magic_crystal:1}]
+ ])if(defs[out]&&Object.keys(ing).every(id=>defs[id])){
+  D.cards.recipes.unshift({id:'ac_staff_access_'+out,output_id:out,ingredients:Object.entries(ing).map(([item_id,quantity])=>({item_id,quantity})),yield_quantity:1,source:'Dream_Crafter_alpha7_17_5_original'});
+ }
  // Fairy wood + holy crystal is the fairy staff, never Sephirot wood.
  // Exact recipes that leap multiple rarity tiers without sufficient weight are hidden
  // from both crafting and the encyclopedia; the inputs remain usable for trait alchemy.
@@ -18958,7 +19006,7 @@ window.AlchemistRules = (()=>{
   const lightBonus=power>0&&power<=9?1:0;
   return Math.max(1,Math.min(9,rarityGuide+hardness+lightBonus-powerPenalty));
  }
- function instance(g,id,p){const d=defs[id];if(!d)throw Error('不明なカード');const maxArmor=Math.ceil((d.stats.max_armor||0)*(1+bonus(p,'armor')/100)),baseUses=(d.kind==='weapon'?acWeaponBaseUses(d):(d.consumption.max_uses||0)),maxUses=Math.max(0,Math.ceil(baseUses*(1+bonus(p,'weapon_uses')/100)));return {iid:g.id+':'+(++g.serial),def:id,armor:maxArmor,maxArmor,baseMaxArmor:maxArmor,uses:maxUses,maxUses,equipped:false,locked:false,usedInBattle:false}}
+ function instance(g,id,p){const d=defs[id];if(!d)throw Error('不明なカード');const maxArmor=Math.ceil((d.stats.max_armor||0)*4*(1+bonus(p,'armor')/100)),baseUses=(d.kind==='weapon'?acWeaponBaseUses(d):(d.consumption.max_uses||0)),maxUses=Math.max(0,Math.ceil(baseUses*(1+bonus(p,'weapon_uses')/100)));return {iid:g.id+':'+(++g.serial),def:id,armor:maxArmor,maxArmor,baseMaxArmor:maxArmor,uses:maxUses,maxUses,equipped:false,locked:false,usedInBattle:false}}
  function item(p,id){return p.items.find(i=>i.iid===id)}
  const equipped=p=>p.items.filter(i=>i.equipped), armor=p=>equipped(p).filter(i=>defs[i.def].kind==='armor');
  const armorTotal=p=>armor(p).reduce((s,i)=>s+i.armor,0);
@@ -19488,13 +19536,14 @@ window.AlchemistRules = (()=>{
  // Used equipment is a low-quality mold: it can select the output's shape but does not restore itself for free.
  const acUsed=i=>!!(i.usedInBattle||(i.maxArmor&&i.armor<i.maxArmor)||(i.maxUses&&i.uses<i.maxUses));
  function acMaterialWeight(d){return Math.pow(2,Math.max(0,Math.min(7,(d.class_rank_provisional||1)-1)));}
- function acEffectiveWeight(i){const d=defs[i.def],w=acMaterialWeight(d);if(['weapon','armor','guard_tool'].includes(d.kind)&&acUsed(i))return w*.12;return w;}
+ function acEffectiveWeight(i){const d=defs[i.def],w=acMaterialWeight(d);if(['weapon','armor','guard_tool'].includes(d.kind)&&acUsed(i))return w*.12;return i.def==='stone_brick'?w*2.4:w;}
  const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
  // Ver.1.7.2: Equipment follows material identity before traits, rarity or total weight.
  // A supplementary resource can supply missing weight, but NEVER a missing named material.
  const acNamedMaterialAliases={golden:'gold',hinoki:'hinoki_wood',walnut:'walnut_wood',ebony:'ebony_wood',wooden:'wood',stone:'stone',iron:'iron',copper:'copper',silver:'silver',steel:'steel',platinum:'platinum',tamahagane:'tamahagane',leather:'leather'};
  const acNamedMaterials=Object.keys(acNamedMaterialAliases).sort((a,b)=>b.length-a.length);
  const acGearMaterialRules={
+  wavering_soul:['soul_essence','curse_wood'],
   dragon_bellows_sword:['dragon_scale','dragon_claw'],
   dragon_boots:['dragon_scale'],dragon_helmet:['dragon_scale'],dragon_leggings:['dragon_scale'],dragon_chestplate:['dragon_scale'],
   flame_sword:['flame_stone'],frost_greatsword:['frost_stone'],
@@ -19600,7 +19649,8 @@ window.AlchemistRules = (()=>{
   // compatible rarity instead of destroying valuable ingredients by accident.
   // Prefer a lower tier on equal distance; the weight calculation remains the guide.
   const maximum=rarity.highest+(rarity.equivalent>=4?2:1);
-  const lawful=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)<=maximum);
+  const brickMixed=parts.length>1&&parts.some(i=>i.def==='stone_brick');
+  const lawful=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)<=maximum&&(!brickMixed||(defs[q.id]?.class_rank_provisional||1)>=rarity.highest));
   if(!lawful.length)return null; // No candidate: never destroy the cards.
   const tiers=[...new Set(lawful.map(q=>defs[q.id]?.class_rank_provisional||1))];
   const best=tiers.sort((a,b)=>Math.abs(a-rarity.target)-Math.abs(b-rarity.target)||a-b)[0];
@@ -19626,6 +19676,8 @@ window.AlchemistRules = (()=>{
   if(isBare&&matches.length){return {output:matches[0].output_id,count:matches[0].yield_quantity||1,chance:1,recipe:matches[0].id,legacyChoices:matches.map(r=>({id:r.output_id,count:r.yield_quantity||1,recipe:r.id}))};}
   // The exact recipes are guaranteed; improvised traits are fallback only.
   if(matches.length){
+   const dreamSoul=matches.find(r=>r.id?.startsWith('ac_dream_soul_'));
+   if(dreamSoul)return {output:dreamSoul.output_id,count:1,chance:1,recipe:dreamSoul.id};
    const ids=parts.map(i=>defs[i.def]);
    const wood=ids.some(d=>d.material_category==='wood'||acTraits(d).includes('woody'));
    const metal=ids.some(d=>['ore','metal'].includes(d.material_category)||acTraits(d).includes('metallic'));
@@ -19680,7 +19732,7 @@ window.AlchemistRules = (()=>{
  function repairMaterials(p,i){const source=recipes.find(r=>r.output_id===i.def)?.ingredients.map(q=>defs[q.item_id]).filter(Boolean)||[];return p.items.filter(q=>q.iid!==i.iid&&!q.locked&&!q.equipped&&!p.pot.includes(q.iid)&&defs[q.def].kind==='material'&&source.some(d=>d.id===q.def||d.material_category&&d.material_category===defs[q.def].material_category))}
  function repair(p,i,materialId){const q=repairMaterials(p,i).find(q=>q.iid===materialId);if(!q)throw Error('対応する修理素材を選んでください');if(i.armor===i.maxArmor&&i.uses===i.maxUses)throw Error('修理の必要はありません');if(!(i.maxArmor||i.maxUses))throw Error('修理できません');const r=1+bonus(p,'repair')/100;i.armor=Math.min(i.maxArmor,i.armor+Math.max(1,Math.round(i.maxArmor*(.08+.02*Math.min(4,defs[q.def].class_rank_provisional))*r)));i.uses=Math.min(i.maxUses,i.uses+Math.max(1,Math.floor(r)));p.items=p.items.filter(x=>x!==q)}
  // Largest remainder, stable body-slot order, overflow redistribution.
- function absorb(p,damage){let left=Math.max(0,Math.round(damage));while(left>0){const a=armor(p).filter(i=>i.armor>0).sort((a,b)=>slots.indexOf(defs[a.def].stats.slot)-slots.indexOf(defs[b.def].stats.slot));if(!a.length)break;const total=a.reduce((s,i)=>s+i.maxArmor,0),parts=a.map((i,k)=>({i,k,n:Math.floor(left*i.maxArmor/total),f:left*i.maxArmor/total%1}));let rem=left-parts.reduce((s,q)=>s+q.n,0);for(const q of [...parts].sort((a,b)=>b.f-a.f||a.k-b.k)){if(rem--<=0)break;q.n++}let used=0;for(const q of parts){const n=Math.min(q.n,q.i.armor);q.i.armor-=n;if(n>0)i.usedInBattle=true;used+=n}if(!used)break;left-=used}return left}
+ function absorb(p,damage){let left=Math.max(0,Math.round(damage));while(left>0){const a=armor(p).filter(i=>i.armor>0).sort((a,b)=>slots.indexOf(defs[a.def].stats.slot)-slots.indexOf(defs[b.def].stats.slot));if(!a.length)break;const total=a.reduce((s,i)=>s+i.maxArmor,0),parts=a.map((i,k)=>({i,k,n:Math.floor(left*i.maxArmor/total),f:left*i.maxArmor/total%1}));let rem=left-parts.reduce((s,q)=>s+q.n,0);for(const q of [...parts].sort((a,b)=>b.f-a.f||a.k-b.k)){if(rem--<=0)break;q.n++}let used=0;for(const q of parts){const n=Math.min(q.n,q.i.armor);q.i.armor-=n;if(n>0)q.i.usedInBattle=true;used+=n}if(!used)break;left-=used}return left}
  function consume(p,i,g){if(!i)return;i.usedInBattle=true;if(!p.build.weapon_mastery||random(g)>=.25)i.uses--}
  const AC_STATUS_NAMES={burn:'火傷',majorBurn:'大火傷',frostbite:'凍傷',freeze:'凍結',poison:'毒',deadlyPoison:'猛毒'};
  function acStatusApply(g,p,k,turns){
@@ -19763,8 +19815,23 @@ window.AlchemistRules = (()=>{
   acStatusTick(g,by(p.id),hit);if(p.status.bomb?.at<=g.round){hit(null,p.id,p.status.bomb.damage);delete by(p.id).status.bomb}if(by(p.id).status.weakness?.turns>0)by(p.id).status.weakness.turns--;
   const steps=a.type==='combo'?a.actions:[a];const magics=steps.filter(q=>q.type==='use'&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));let magicIndex=0;
   for(const [stepIndex,step] of steps.entries()){a=step;currentActionKey=p.id+':'+stepIndex;
-  if(a.type==='attack'){const ws=a.item?[item(p,a.item)].filter(Boolean):[],targets=snap(a.target);if(!targets)continue;let damage=ws.length?0:5,ap=0,armorDamage=0;for(const w of ws){const d=defs[w.def],kind=d.tags?.includes('magic')?'magic':d.tags?.includes('ranged')?'ranged':'melee';const staffSpell=acIsStaff(d)&&magicIndex<magics.length;if(staffSpell){magicIndex++;}else damage+=(d.stats.damage||0)*1.5*(acIsStaff(d)?.42:1)*(1+bonus(p,kind)/100)*(p.build.last_strike&&w.uses===1?1.4:1);for(const e of (staffSpell?[]:d.effects)){if(e.kind==='magic_damage')damage+=(e.amount||0)*(1+bonus(p,'magic')/100);if(e.kind==='armor_pierce')ap+=e.amount||0;if(e.kind==='bonus_armor_damage')armorDamage+=e.amount||0;if(e.kind==='burn')pending.push([a.target,'burn',{turns:e.duration_rounds}]);if(e.kind==='apply_status'&&random(g)<(e.chance??1))pending.push([a.target,e.status,{turns:e.duration_rounds||1}]);if(e.kind==='weakness')pending.push([a.target,'weakness',{penalty:e.attack_penalty,turns:e.duration_rounds}])}consume(by(p.id),item(by(p.id),w.iid),g)}if(ws.length>1)damage*=.7;if(!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage+=passive(p,'attack_bonus');if(p.status.weakness?.turns>0&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage-=p.status.weakness.penalty;if(p.build.dual_wield&&steps.filter(q=>q.type==='attack'&&q.item).length===2)damage*=1.2;damage=Math.max(0,Math.round(damage));if(a.target!==p.id)hit(p.id,a.target,damage,Math.min(1,(p.build.armor_pierce?.2:0)+(damage?ap/damage:0)),armorDamage,true);
-  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
+  if(a.type==='attack'){const ws=a.item?[item(p,a.item)].filter(Boolean):[],targets=snap(a.target);if(!targets)continue;let damage=ws.length?0:5,ap=0,armorDamage=0;for(const w of ws){const d=defs[w.def],kind=d.tags?.includes('magic')?'magic':d.tags?.includes('ranged')?'ranged':'melee';const staffSpell=acIsStaff(d)&&magicIndex<magics.length;if(staffSpell){
+   magicIndex++;
+   const pairedSpell=magics.find(sp=>sp.target===a.target);
+   const spellCard=pairedSpell&&item(p,pairedSpell.item);
+   const spellDef=spellCard&&acSpellDef(g,p,spellCard);
+   if(spellDef&&(spellDef.class_rank_provisional||1)>(d.class_rank_provisional||1)){
+    const staffLive=item(by(p.id),w.iid);
+    if(staffLive){staffLive.uses=0;staffLive.usedInBattle=true;}
+    log(g,name(d.id)+'は上位魔法に耐えられず破損！');
+   }
+  }else damage+=acIsStaff(d)?0:(d.stats.damage||0)*1.5*(1+bonus(p,kind)/100)*(p.build.last_strike&&w.uses===1?1.4:1);for(const e of (staffSpell?[]:d.effects)){if(e.kind==='magic_damage')damage+=(e.amount||0)*(1+bonus(p,'magic')/100);if(e.kind==='armor_pierce')ap+=e.amount||0;if(e.kind==='bonus_armor_damage')armorDamage+=e.amount||0;if(e.kind==='burn')pending.push([a.target,'burn',{turns:e.duration_rounds}]);if(e.kind==='apply_status'&&random(g)<(e.chance??1))pending.push([a.target,e.status,{turns:e.duration_rounds||1}]);if(e.kind==='weakness')pending.push([a.target,'weakness',{penalty:e.attack_penalty,turns:e.duration_rounds}])}
+  const family=String(d.stats?.weapon_family||'')+' '+d.id;
+  if(/spear|lance|trident|pike|halberd/.test(family))ap+=Math.round((d.stats.damage||0)*1.5*(/iron|copper|stone/.test(family)?.2:.5));
+  if(/hammer|mace|club|bludgeon|mallet|crusher|axe/.test(family))armorDamage+=Math.max(1,Math.round((d.stats.damage||0)*.6));
+  if(d.artchemist_pierce_fraction)ap+=Math.round((d.stats.damage||0)*1.5*d.artchemist_pierce_fraction);
+  if(!acIsStaff(d))consume(by(p.id),item(by(p.id),w.iid),g)}if(ws.length>1)damage*=.7;if(!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage+=passive(p,'attack_bonus');if(p.status.weakness?.turns>0&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage-=p.status.weakness.penalty;if(p.build.dual_wield&&steps.filter(q=>q.type==='attack'&&q.item).length===2)damage*=1.2;damage=Math.max(0,Math.round(damage));if(a.target!==p.id&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))))hit(p.id,a.target,damage,Math.min(1,(p.build.armor_pierce?.2:0)+(damage?ap/damage:0)),armorDamage,true);
+  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*2*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
  }
  }
  currentActionKey=null;
@@ -19781,7 +19848,7 @@ window.AlchemistRules = (()=>{
  for(const h of hits){if(!h.from||!h.to||h.from===h.to||h.n<=0)continue;
    (g.lightDamageMemory[h.to]??={})[h.from]=((g.lightDamageMemory[h.to]||{})[h.from]||0)+h.n;
  }
- for(const p of living){p.hp=Math.min(maxHP(p),p.hp+heals[p.id]);const incoming=hits.filter(h=>h.to===p.id),raw=incoming.reduce((s,h)=>s+h.n,0),oldArmor=armorTotal(p),oldHp=p.hp;let multiplier=(!p.action||p.action?.type==='defend'||p.action?.type==='combo'&&(!p.action.actions.length||p.action.actions.some(x=>x.type==='defend')))?.5:1;if(p.build.emergency_guard&&!p.used.emergency_guard&&snap(p.id).hp<=maxHP(p)/2&&raw>0){multiplier*=.7;p.used.emergency_guard=true}const defense=(p.action?.type==='combo'?p.action.actions.find(x=>x.type==='defend'):p.action),shield=defense?.item?item(p,defense.item):null;let reduction=passive(p,'damage_reduction_flat')+({leather:1,iron:2,tamahagane:3}[setName(p)]||0)+barriers[p.id];if(shield&&defense?.type==='defend'&&raw>0){reduction+=defs[shield.def].stats.block_amount||0;shield.uses--;shield.usedInBattle=true}const total=Math.max(0,Math.ceil(raw*multiplier)-reduction),ratio=raw?total/raw:0;const pierce=Math.min(total,Math.floor(incoming.reduce((s,h)=>s+h.n*h.pierce,0)*ratio));absorb(p,incoming.reduce((s,h)=>s+h.armorOnly,0));const lost=absorb(p,total-pierce)+pierce;p.hp=Math.max(0,p.hp-lost);const actualLost=oldHp-p.hp;const lostArmor=Math.max(0,oldArmor-armorTotal(p));for(const h of incoming){if(!h.sceneKey||!raw)continue;const fraction=h.n/raw;sceneDamage[h.sceneKey]=(sceneDamage[h.sceneKey]||0)+Math.max(0,actualLost)*fraction;sceneArmor[h.sceneKey]=(sceneArmor[h.sceneKey]||0)+lostArmor*fraction;}sceneTargetHp[p.id]={before:snap(p.id)?.hp??oldHp,after:p.hp,max:maxHP(p)};for(const h of incoming)if(h.weapon&&snap(h.from)?.build.lifesteal)life[h.from]+=(raw?actualLost*h.n/raw:0)*.2;if(g.round>15)p.hp=Math.max(0,p.hp-5);if(raw||heals[p.id])log(g,p.name+'：HP −'+(oldHp-p.hp)+'／装甲 −'+(oldArmor-armorTotal(p))+(heals[p.id]?'／回復 +'+heals[p.id]:''));}
+ for(const p of living){p.hp=Math.min(maxHP(p),p.hp+heals[p.id]);const incoming=hits.filter(h=>h.to===p.id),raw=incoming.reduce((s,h)=>s+h.n,0),oldArmor=armorTotal(p),oldHp=p.hp;let multiplier=(!p.action||p.action?.type==='defend'||p.action?.type==='combo'&&(!p.action.actions.length||p.action.actions.some(x=>x.type==='defend')))?.5:1;if(p.build.emergency_guard&&!p.used.emergency_guard&&snap(p.id).hp<=maxHP(p)/2&&raw>0){multiplier*=.7;p.used.emergency_guard=true}const defense=(p.action?.type==='combo'?p.action.actions.find(x=>x.type==='defend'):p.action),shield=defense?.item?item(p,defense.item):null;let reduction=2*(passive(p,'damage_reduction_flat')+({leather:1,iron:2,tamahagane:3}[setName(p)]||0))+barriers[p.id];if(shield&&defense?.type==='defend'&&raw>0){reduction+=2*(defs[shield.def].stats.block_amount||0);shield.uses--;shield.usedInBattle=true}const total=Math.max(0,Math.ceil(raw*multiplier)-reduction),ratio=raw?total/raw:0;const pierce=Math.min(total,Math.floor(incoming.reduce((s,h)=>s+h.n*h.pierce,0)*ratio));absorb(p,incoming.reduce((s,h)=>s+h.armorOnly,0));const lost=absorb(p,total-pierce)+pierce;p.hp=Math.max(0,p.hp-lost);const actualLost=oldHp-p.hp;const lostArmor=Math.max(0,oldArmor-armorTotal(p));for(const h of incoming){if(!h.sceneKey||!raw)continue;const fraction=h.n/raw;sceneDamage[h.sceneKey]=(sceneDamage[h.sceneKey]||0)+Math.max(0,actualLost)*fraction;sceneArmor[h.sceneKey]=(sceneArmor[h.sceneKey]||0)+lostArmor*fraction;}sceneTargetHp[p.id]={before:snap(p.id)?.hp??oldHp,after:p.hp,max:maxHP(p)};for(const h of incoming)if(h.weapon&&snap(h.from)?.build.lifesteal)life[h.from]+=(raw?actualLost*h.n/raw:0)*.2;if(g.round>15)p.hp=Math.max(0,p.hp-5);if(raw||heals[p.id])log(g,p.name+'：HP −'+(oldHp-p.hp)+'／装甲 −'+(oldArmor-armorTotal(p))+(heals[p.id]?'／回復 +'+heals[p.id]:''));}
  for(const p of living){if(p.alive){const gain=Math.max(0,passive(p,'regen_hp'));if(gain){const healed=Math.min(gain,Math.max(0,maxHP(p)-p.hp));p.hp+=healed;if(healed)log(g,p.name+'：装飾品のリジェネでHP +'+healed);}}}
  for(const p of living){p.hp=Math.min(maxHP(p),p.hp+Math.floor(life[p.id]));if(p.hp<=0&&p.build.last_stand&&!p.used.last_stand){p.hp=1;p.used.last_stand=true;log(g,p.name+'：不屈でHP1に踏みとどまった')}p.items=p.items.filter(i=>!(i.maxArmor&&i.armor<=0)&&!(i.maxUses&&i.uses<=0&&defs[i.def]?.kind!=='weapon'));syncSetArmor(p);p.alive=p.hp>0;if(!p.alive)log(g,p.name+' が脱落');if(p.alive&&p.build.armor_regeneration){let remain=Math.min(5,50-(p.used.regen||0));for(const i of armor(p)){const n=Math.min(remain,i.maxArmor-i.armor);i.armor+=n;remain-=n;p.used.regen=(p.used.regen||0)+n}}}
  for(const [id,k,v]of pending){const p=by(id);if(p?.alive){if(AC_STATUS_NAMES[k])acStatusApply(g,p,k,v.turns);else p.status[k]=v}}const survivors=living.filter(p=>p.alive);
@@ -19855,9 +19922,9 @@ window.ArtChemist=(()=>{
  const img=(src,cls='',alt='')=>safeImage(src)?`<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}">`:'';
  function art(id,cls=''){return img(D.icons[id],cls,R.name(id))||`<span class="ac-fallback ${cls}">${esc((R.name(id)||'素材').slice(0,2))}</span>`}
  function button(label,action,extra='',disabled=false){return `<button type="button" data-ac="${action}" ${extra} ${disabled?'disabled':''}>${label}</button>`}
- function stat(i){const d=R.defs[i.def];return d.kind==='weapon'?`攻撃 ${Math.round((d.stats.damage||0)*1.5)} · ${i.uses}/${i.maxUses}回`:d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${d.stats.block_amount} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · 素材`:effects(d)}
+ function stat(i){const d=R.defs[i.def];return d.kind==='weapon'?(R.acIsStaff(d)?`魔法専用 · 上位魔法で破損`:`攻撃 ${Math.round((d.stats.damage||0)*1.5)} · ${i.uses}/${i.maxUses}回`):d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${2*(d.stats.block_amount||0)} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · 素材`:effects(d)}
  const AC_UI_STATUS_NAMES=Object.freeze({burn:'火傷',majorBurn:'大火傷',frostbite:'凍傷',freeze:'凍結',poison:'毒',deadlyPoison:'猛毒'});
- function effects(d){return d.effects.map(e=>({apply_status:`${AC_UI_STATUS_NAMES[e.status]||e.status} ${Math.round((e.chance??1)*100)}%・${e.duration_rounds||1}ターン`,heal:`HP ${e.amount}回復`,light_heal_percent:`最大HPの${e.percent}%回復（光魔法）`,light_retribution_phase:`このラウンドに対象から受けたダメージの${e.multiplier}倍で反撃（光魔法）`,light_retribution_total:`試合中に対象から受けた累積ダメージの${e.multiplier}倍で反撃（光魔法）`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋火傷 ${e.burn_rounds}ターン`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,bind:'対象を1ターン拘束（重ねがけ不可）',cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${e.armor_points}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${e.amount}`,max_hp_bonus:`最大HP +${e.amount}`,regen_hp:`毎ターンHP ${e.amount}回復`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`火傷 ${e.duration_rounds}ターン`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${e.flat_damage_reduction}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・修理の素材'}
+ function effects(d){return d.effects.map(e=>({apply_status:`${AC_UI_STATUS_NAMES[e.status]||e.status} ${Math.round((e.chance??1)*100)}%・${e.duration_rounds||1}ターン`,heal:`HP ${e.amount}回復`,light_heal_percent:`最大HPの${e.percent}%回復（光魔法）`,light_retribution_phase:`このラウンドに対象から受けたダメージの${e.multiplier}倍で反撃（光魔法）`,light_retribution_total:`試合中に対象から受けた累積ダメージの${e.multiplier}倍で反撃（光魔法）`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋火傷 ${e.burn_rounds}ターン`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,bind:'対象を1ターン拘束（重ねがけ不可）',cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${2*(e.armor_points||0)}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${2*(e.amount||0)}`,max_hp_bonus:`最大HP +${e.amount}`,regen_hp:`毎ターンHP ${e.amount}回復`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`火傷 ${e.duration_rounds}ターン`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${2*(e.flat_damage_reduction||0)}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・修理の素材'}
  function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="false" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
  function header(){return `<header class="ac-header"><div><small>ARTCHEMIST${view.round?' / ROUND '+view.round:''}</small><h2>${phaseName[view.phase]}</h2></div><div class="ac-header-side"><b id="acClock" role="timer"></b>${button('遊び方','help')}${button('効果音','sound')}</div></header>`}
  function summary(p){return `<div class="ac-character">${img(p.image,'ac-portrait',p.name)||'<div class="ac-empty-art">あなたの絵が<br>キャラクターに</div>'}<strong>${esc(p.name)}</strong></div><div class="ac-meters"><label>HP <b>${p.hp} / ${p.maxHp||R.maxHP(p)}</b></label><progress value="${p.hp}" max="${p.maxHp||R.maxHP(p)}"></progress><label>装甲 <b>${p.armor??R.armorTotal(p)}</b></label></div>`}
