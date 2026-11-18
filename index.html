@@ -18834,6 +18834,18 @@ const ALCHEMIST_DATA={"cards":{"schema_version":"3.0.0-proposal","language":"en"
 /* Artchemist: authoritative pure rules. Balance values remain provisional. */
 window.AlchemistRules = (()=>{
  const D=ALCHEMIST_DATA, defs=Object.fromEntries(D.cards.items.map(x=>[x.id,x])), slots=['helmet','chestplate','leggings','boots'];
+ // Give every enchanted scroll a matching-rarity permanent spellbook recipe.
+ // They intentionally retain the spell of their source scroll; older magic books retain their random spell pools.
+ const acSpellScrollCatalog=Object.values(defs).filter(d=>d.kind==='consumable'&&(String(d.id).endsWith('_scroll')||d.tags?.includes('scroll'))&&d.effects?.length);
+ for(const scroll of acSpellScrollCatalog){
+  const id='enchanted_book_'+scroll.id;if(defs[id])continue;
+  const original={...scroll,id,kind:'consumable',name_en:'Spellbook of '+(scroll.name_en||scroll.id),tags:[...new Set([...(scroll.tags||[]).filter(t=>t!=='scroll'),'magic','spellbook'])],effects:scroll.effects.map(e=>({...e})),consumption:{type:'reusable'},source_id:scroll.id,artchemist_generated_spellbook:true};
+  defs[id]=original;D.cards.items.push(original);
+  D.names[id]={...(D.names[scroll.id]||{}),ja:'魔導書・'+(D.names[scroll.id]?.ja||scroll.name_en||scroll.id)};
+  D.icons[id]=D.icons.book||D.icons.kindling_book||D.icons[scroll.id];
+  D.cards.recipes.push({id:'ac_book_from_'+scroll.id,output_id:id,ingredients:[{item_id:'book',quantity:1},{item_id:scroll.id,quantity:1}],yield_quantity:1,source:'artchemist_book_from_scroll',match_policy:'exact_recipe'});
+ }
+
  // The shop is gone. Preserve saved build IDs while replacing obsolete economy bonuses.
  for(const a of D.abilities.incremental){
   if(a.id==='sell'){a.category='support';a.unit='percent';a.name_en='Healing potency';a.value_per_step=2;a.suggested_max_bonus=200;}
@@ -19033,7 +19045,7 @@ window.AlchemistRules = (()=>{
   return [...out];
  }
  function acWeight(rank){return Math.pow(2,Math.max(0,Math.min(7,(rank||1)-1)))}
- function acIsScroll(d){return !!d&&(d.id==='scroll'||String(d.id||'').endsWith('_scroll')||/魔法スクロール/.test(String(d.name||'')))}
+ function acIsScroll(d){return !!d&&(d.id==='scroll'||(d.kind==='consumable'&&(String(d.id||'').endsWith('_scroll')||d.tags?.includes('scroll')))||/魔法スクロール/.test(String(d.name||'')))}
   function acScrollResults(parts){
    const inputs=parts.map(x=>defs[x.def]).filter(Boolean);
    const maxRank=Math.max(1,...inputs.map(d=>d.class_rank_provisional||1));
@@ -19558,6 +19570,10 @@ window.AlchemistRules = (()=>{
   const parts=p.pot.map(id=>item(p,id)).filter(Boolean);if(!parts.length)return null;
   const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode));
   const scrollInput=parts.some(i=>acIsScroll(defs[i.def]));
+  if(scrollInput&&parts.length===2&&parts.some(i=>i.def==='book')){
+   const spellBook=matches.find(r=>defs[r.output_id]?.artchemist_generated_spellbook);
+   if(spellBook)return {output:spellBook.output_id,count:1,chance:1,recipe:spellBook.id};
+  }
   if(scrollInput){const scrollMatches=matches.filter(r=>acIsScroll(defs[r.output_id])&&defs[r.output_id].kind==='consumable');if(scrollMatches.length)return{output:scrollMatches[0].output_id,count:scrollMatches[0].yield_quantity||1,chance:1,recipe:scrollMatches[0].id};const pool=acScrollResults(parts);return pool.length?{output:null,count:1,chance:1,recipe:'random_scroll_magic',random:true,possibilities:pool.length}:null;}
   const wooden=parts.length>=2&&parts.every(i=>defs[i.def]?.material_category==='wood')&&new Set(parts.map(i=>i.def)).size===1;
   if(wooden){const board=matches.find(r=>r.output_id==='wooden_board');if(board)return {output:'wooden_board',count:board.yield_quantity||1,chance:1,recipe:board.id};}
@@ -19606,7 +19622,10 @@ window.AlchemistRules = (()=>{
   else if(p.build.alchemy_failure_salvage)p.items.push(...parts.slice(0,Math.floor(parts.length/2)));
   const finalCount=selectedLegacy?.count||plan.count;
   const outputRank=ok&&result?(defs[result]?.class_rank_provisional||inputRank):0;
-  const rarityDelta=ok&&result?outputRank-inputRank:-99;
+  // Cooking fire/heat is a catalyst, not the food's rarity. Compare the final meal to the edible base ingredient.
+  const baseFoodRanks=parts.filter(i=>{const d=defs[i.def];return d&&d.material_category!=='fire'&&!d.tags?.includes('fire')&&(/meat|fish|egg|crab|shellfish|potato|steak|tuna/.test(d.id)||d.material_category==='food')}).map(i=>defs[i.def].class_rank_provisional||1);
+  const comparisonRank=ok&&defs[result]?.kind==='food'&&baseFoodRanks.length?Math.max(...baseFoodRanks):inputRank;
+  const rarityDelta=ok&&result?outputRank-comparisonRank:-99;
   const outcome=!ok||!result||rarityDelta<0?'failure':rarityDelta>0?'great':'success';
   const outcomeLabel=outcome==='great'?'大成功':outcome==='success'?'成功':'失敗';
   const outcomeText=!ok||!result?'素材が消滅しました':rarityDelta>0?`レアリティが${rarityDelta}段階上昇！`:rarityDelta===0?'レアリティ維持で完成！':`レアリティが${Math.abs(rarityDelta)}段階低下…`;
@@ -19643,8 +19662,8 @@ window.AlchemistRules = (()=>{
  function acHandCost(d){if(!d)return 0;if(d.kind==='weapon'||d.kind==='guard_tool')return d.stats?.handedness==='twoHanded'?2:1;if(d.kind==='food'&&acPreparedDish(d))return 1;return 0}
  function acIsStaff(d){return !!d&&d.kind==='weapon'&&/staff|wand|rod/.test(String(d.stats?.weapon_family||'')+' '+d.id)}
  const AC_BOOK_SPELLS={kindling_book:['flare_scroll','fireball_scroll'],fire_book:['fireball_scroll','flame_bloom_scroll','fire_ring_scroll'],book_of_hellfire:['pyroclasm_scroll','ashes_of_ignis_scroll'],cold_book:['cold_scroll','ice_spear_scroll'],frost_book:['ice_spear_scroll','ice_lance_scroll','frozen_in_ice_scroll'],the_book_of_cocytus:['blizzard_scroll','the_ice_age_scroll']};
- function acIsSpellBook(d){return !!d&&Object.prototype.hasOwnProperty.call(AC_BOOK_SPELLS,d.id)}
- function acBookSpell(g,p,i){const list=(AC_BOOK_SPELLS[i?.def]||[]).filter(id=>defs[id]);if(!list.length)return null;const key=String(g?.id||'')+':'+String(g?.round||0)+':'+String(p?.id||'')+':'+String(i?.iid||'');let hash=2166136261;for(let n=0;n<key.length;n++){hash^=key.charCodeAt(n);hash=Math.imul(hash,16777619)}return list[(hash>>>0)%list.length]}
+ function acIsSpellBook(d){return !!d&&(d.artchemist_generated_spellbook||Object.prototype.hasOwnProperty.call(AC_BOOK_SPELLS,d.id)||d.id==='the_book_of_hellfire')}
+ function acBookSpell(g,p,i){const book=defs[i?.def];const list=(book?.artchemist_generated_spellbook?[book.source_id]:i?.def==='the_book_of_hellfire'?AC_BOOK_SPELLS.book_of_hellfire:AC_BOOK_SPELLS[i?.def]||[]).filter(id=>defs[id]);if(!list.length)return null;const key=String(g?.id||'')+':'+String(g?.round||0)+':'+String(p?.id||'')+':'+String(i?.iid||'');let hash=2166136261;for(let n=0;n<key.length;n++){hash^=key.charCodeAt(n);hash=Math.imul(hash,16777619)}return list[(hash>>>0)%list.length]}
  function acSpellDef(g,p,i){return acIsSpellBook(defs[i?.def])?defs[acBookSpell(g,p,i)]:defs[i?.def]}
  function acSpellIsSelf(g,p,i){const d=acSpellDef(g,p,i);return !!d?.effects?.length&&d.effects.every(e=>['temporary_barrier','heal','light_heal_percent','cleanse','increase_max_hp'].includes(e.kind))}
  function acValidateSingle(g,p,a){
@@ -19685,7 +19704,19 @@ window.AlchemistRules = (()=>{
  function resolve(g,now){const living=g.players.filter(p=>p.alive),snapshot=clone(living),hits=[],heals={},barriers={},pending=[],life={},lightRetaliations=[],sceneDamage={},sceneArmor={},sceneTargetHp={},resolvedActions=new Map();let currentActionKey=null;const by=id=>g.players.find(p=>p.id===id),snap=id=>snapshot.find(p=>p.id===id);for(const p of living){heals[p.id]=0;barriers[p.id]=0;life[p.id]=0}
  const hit=(from,to,n,pierce=0,armorOnly=0,weapon=false)=>hits.push({from,to,n:Math.max(0,Math.round(n)),pierce,armorOnly,weapon,sceneKey:currentActionKey});
  for(const p of snapshot){for(const a of (p.action?.type==='combo'?p.action.actions:[p.action]).filter(Boolean)){if(a.type==='use'){const d=defs[item(p,a.item)?.def];if(d?.effects.some(e=>e.kind==='cleanse')){const t=snap(a.target);if(t){for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete t.status[k]}}}}}
- for(const p of snapshot){let a=p.action||{type:'defend'};try{a=validAction(g,by(p.id),a)}catch(err){log(g,p.name+'：行動を実行できませんでした（'+err.message+'）');a={type:'defend'}}if(p.status.bound?.turns>0){a={type:'defend'};by(p.id).status.bound.turns=Math.max(0,(by(p.id).status.bound.turns||1)-1)}if(p.status.freeze?.turns>0&&(a.type==='use'||a.type==='combo'&&a.actions.some(x=>x.type==='use'))){a={type:'defend'};log(g,p.name+'は凍結中のためアイテムを使用できない')}by(p.id).action=a;resolvedActions.set(p.id,clone(a));
+ for(const p of snapshot){let a=p.action||{type:'defend'};try{a=validAction(g,by(p.id),a)}catch(err){
+   log(g,p.name+'：行動の一部を再検査（'+err.message+'）');
+   // Do not convert a full combo to defense merely because one expired/missing card is invalid.
+   if(a?.type==='combo'&&Array.isArray(a.actions)){
+    let available=[];for(const q of a.actions){try{available.push(acValidateSingle(g,by(p.id),q))}catch(e){log(g,p.name+'：使用できない行動を除外（'+e.message+'）')}}
+    // A spell without a matching staff cannot activate. Revalidate the entire remaining combination.
+    try{a=validAction(g,by(p.id),{type:'combo',actions:available})}
+    catch(e){
+     available=available.filter(q=>q.type!=='use'||(!acIsScroll(defs[item(p,q.item)?.def])&&!acIsSpellBook(defs[item(p,q.item)?.def])));
+     try{a=validAction(g,by(p.id),{type:'combo',actions:available})}catch{a={type:'defend'}}
+    }
+   }else a={type:'defend'};
+  }if(p.status.bound?.turns>0){a={type:'defend'};by(p.id).status.bound.turns=Math.max(0,(by(p.id).status.bound.turns||1)-1)}if(p.status.freeze?.turns>0&&(a.type==='use'||a.type==='combo'&&a.actions.some(x=>x.type==='use'))){a={type:'defend'};log(g,p.name+'は凍結中のためアイテムを使用できない')}by(p.id).action=a;resolvedActions.set(p.id,clone(a));
   acStatusTick(g,by(p.id),hit);if(p.status.bomb?.at<=g.round){hit(null,p.id,p.status.bomb.damage);delete by(p.id).status.bomb}if(by(p.id).status.weakness?.turns>0)by(p.id).status.weakness.turns--;
   const steps=a.type==='combo'?a.actions:[a];const magics=steps.filter(q=>q.type==='use'&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));let magicIndex=0;
   for(const [stepIndex,step] of steps.entries()){a=step;currentActionKey=p.id+':'+stepIndex;
@@ -19722,14 +19753,16 @@ window.AlchemistRules = (()=>{
    const magic=/staff|wand|rod/.test(family+' '+id)||/magic|spell/.test(tags);
    const ranged=/bow|crossbow|gun|slingshot|throw/.test(family+' '+id)||/ranged/.test(tags);
    let motion='guard';
-   if(a.type==='attack')motion=magic?'magic':ranged?'ranged':/spear|lance|trident|rapier/.test(family+' '+id)?'thrust':/axe|hammer|mace|club|hammer/.test(family+' '+id)?'smash':'slash';
-   if(a.type==='use')motion=d?.kind==='food'?'eat':/potion|drink|elixir|tonic/.test(id)?'drink':/scroll|spell|magic/.test(id+' '+tags)?'magic':d?.effects?.some(e=>e.kind==='heal')?'drink':'throw';
+   if(a.type==='attack')motion=magic?'magic':ranged?'ranged':/spear|lance|trident|rapier/.test(family+' '+id)?'thrust':/axe|hammer|mace|club/.test(family+' '+id)?'smash':'slash';
+   if(a.type==='use')motion=(acIsScroll(d)||acIsSpellBook(d))?'magic':d?.kind==='food'?'eat':d?.effects?.some(e=>['heal','light_heal_percent','cleanse','increase_max_hp','temporary_barrier'].includes(e.kind))?'drink':/potion|drink|elixir|tonic/.test(id)?'drink':'throw';
    const allWeapons=(raw.type==='combo'?raw.actions:[raw]).filter(q=>q.type==='attack'&&q.item).map(q=>item(p,q.item)?.def).filter(Boolean);const isSpellUse=a.type==='use'&&(acIsScroll(d)||acIsSpellBook(d));const spellId=isSpellUse?acIsSpellBook(d)?acBookSpell(g,p,item(p,a.item)):toolId:null;const castStaff=isSpellUse?(raw.type==='combo'?raw.actions:[raw]).find(q=>q.type==='attack'&&acIsStaff(defs[item(p,q.item)?.def])&&q.target===a.target):null;const staffId=castStaff?item(p,castStaff.item)?.def:null;
-   return {actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,spellId,staffId,kind:a.type,motion:isSpellUse?'magic':motion,
-    label:a.type==='attack'?'攻撃':a.type==='use'?'アイテム使用':'防御',
+   // A staff paired with a spell is one cast, not an additional blank attack animation.
+   const pairedStaffOnly=a.type==='attack'&&acIsStaff(d)&&raw.type==='combo'&&raw.actions.some(q=>q.type==='use'&&q.target===a.target&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));
+   return {_pairedStaffOnly:pairedStaffOnly,actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,spellId,staffId,kind:a.type,motion:isSpellUse?'magic':motion,
+    label:a.type==='attack'?'攻撃':a.type==='use'?(d?.effects?.some(e=>['heal','light_heal_percent','cleanse'].includes(e.kind))?'回復':'アイテム使用'):'防御',
     damage:Math.round(sceneDamage[p.id+':'+stepIndex]||0),armorDamage:Math.round(sceneArmor[p.id+':'+stepIndex]||0),targetHp:target?sceneTargetHp[target.id]||null:null,
-     detail:(raw.type==='combo'?(stepIndex+1)+'/'+raw.actions.length+'行動：':'')+(a.type==='attack'?(toolId?name(toolId)+'で攻撃':'素手で攻撃'):a.type==='use'?(spellId?name(spellId)+'を発動':toolId?name(toolId)+'を使用':'アイテムを使用'):'防御の構え')};
-  });});
+     detail:(raw.type==='combo'&&!isSpellUse?(stepIndex+1)+'/'+raw.actions.length+'行動：':'')+(a.type==='attack'?(toolId?name(toolId)+'で攻撃':'素手で攻撃'):a.type==='use'?(spellId?name(spellId)+'を発動':toolId?name(toolId)+'を使用':'アイテムを使用'):'防御の構え')};
+  });}).filter(scene=>!scene._pairedStaffOnly);
  // Display each hit at the correct scene, not the final HP from every action at once.
  const shownHp={};
  for(const scene of g.actionScenes){
