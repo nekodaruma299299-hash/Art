@@ -19689,32 +19689,59 @@ window.AlchemistRules = (()=>{
   const traitNames=acTraitNames;
   return {ranked,traitNames:[...traits].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([id])=>traitNames[id]||id),reaction:reaction?.note||'',total};
  }
- function acCraftRarity(g,parts){
+ function acRarityMass(parts){
   const ranks=parts.map(i=>defs[i.def]?.class_rank_provisional||1);
-  const highest=Math.max(...ranks);
+  const highest=Math.max(1,...ranks);
   const unit=acMaterialWeight({class_rank_provisional:highest});
   const mass=parts.reduce((n,i)=>n+acEffectiveWeight(i),0);
   const equivalent=mass/Math.max(1,unit);
-  let target=highest+(equivalent>=2.8?1:equivalent>=1.75?0:-1);
-  // Drops of two tiers remain exceptional; material weight normally limits the loss to one.
-  if(equivalent<0.8&&random(g)<.01)target--;
-  return {target:Math.min(6,target),highest,equivalent,mass};
+  const target=Math.min(6,highest+(equivalent>=2.8?1:equivalent>=1.75?0:-1));
+  return {target,highest,equivalent,mass};
+ }
+ function acCraftRarity(g,parts){
+  const rarity=acRarityMass(parts);
+  if(rarity.equivalent<.8&&random(g)<.01)return {...rarity,target:Math.min(6,rarity.target-1)};
+  return rarity;
+ }
+ // One candidate selector is shared by the actual draw and the UI forecast.
+ function acCraftOptions(parts,pool,rarity){
+  if(rarity.target<1)return [];
+  const maximum=rarity.highest+(rarity.equivalent>=4?2:1);
+  const brickMixed=parts.length>1&&parts.some(i=>i.def==='stone_brick');
+  const lawful=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)<=maximum&&(!brickMixed||(defs[q.id]?.class_rank_provisional||1)>=rarity.highest));
+  if(!lawful.length)return [];
+  const tiers=[...new Set(lawful.map(q=>defs[q.id]?.class_rank_provisional||1))];
+  const best=tiers.sort((a,b)=>Math.abs(a-rarity.target)-Math.abs(b-rarity.target)||a-b)[0];
+  return lawful.filter(q=>(defs[q.id]?.class_rank_provisional||1)===best);
+ }
+ function acCraftForecast(parts,mode,plan){
+  if(!plan)return [];
+  const fixed=plan.legacyChoices?.length?plan.legacyChoices:[{id:plan.output}];
+  if(!plan.random){
+   const counts=new Map();
+   for(const q of fixed){const kind=defs[q.id]?.kind;if(kind)counts.set(kind,(counts.get(kind)||0)+1)}
+   return [...counts].map(([kind,n])=>({kind,probability:n/Math.max(1,fixed.length)}));
+  }
+  if(plan.weightFailure)return [{kind:'failure',probability:1}];
+  const pool=improvisationPool(parts,mode).pool;
+  const mass=acRarityMass(parts);
+  const variants=[{target:mass.target,probability:mass.equivalent<.8?.99:1}];
+  if(mass.equivalent<.8)variants.push({target:Math.min(6,mass.target-1),probability:.01});
+  const totals=new Map();
+  for(const v of variants){
+   const options=acCraftOptions(parts,pool,{...mass,target:v.target});
+   const total=options.reduce((n,q)=>n+Math.max(0,q.weight),0);
+   if(!total){totals.set('failure',(totals.get('failure')||0)+v.probability);continue}
+   for(const q of options){const kind=defs[q.id]?.kind||'material';totals.set(kind,(totals.get(kind)||0)+v.probability*Math.max(0,q.weight)/total)}
+  }
+  return [...totals].map(([kind,probability])=>({kind,probability}));
  }
  function improviseDraw(g,p,mode,parts){
   const {pool}=improvisationPool(parts,mode);
   if(!pool.length)return null;
   const rarity=acCraftRarity(g,parts);
-  if(rarity.target<1)return null;
-  // Prefer the calculated rarity. If none is available, choose the nearest
-  // compatible rarity instead of destroying valuable ingredients by accident.
-  // Prefer a lower tier on equal distance; the weight calculation remains the guide.
-  const maximum=rarity.highest+(rarity.equivalent>=4?2:1);
-  const brickMixed=parts.length>1&&parts.some(i=>i.def==='stone_brick');
-  const lawful=pool.filter(q=>(defs[q.id]?.class_rank_provisional||1)<=maximum&&(!brickMixed||(defs[q.id]?.class_rank_provisional||1)>=rarity.highest));
-  if(!lawful.length)return null; // No candidate: never destroy the cards.
-  const tiers=[...new Set(lawful.map(q=>defs[q.id]?.class_rank_provisional||1))];
-  const best=tiers.sort((a,b)=>Math.abs(a-rarity.target)-Math.abs(b-rarity.target)||a-b)[0];
-  const options=lawful.filter(q=>(defs[q.id]?.class_rank_provisional||1)===best);
+  const options=acCraftOptions(parts,pool,rarity);
+  if(!options.length)return null;
   const total=options.reduce((n,q)=>n+q.weight,0);let roll=random(g)*total;
   for(const q of options){roll-=q.weight;if(roll<=0)return q.id}
   return options[options.length-1].id;
@@ -19967,7 +19994,7 @@ window.AlchemistRules = (()=>{
    else preparation(g,now);
   }else{g.reveal.startedAt=now;g.reveal.votes=[];g.deadline=now+g.reveal.duration}
  }else if(g.phase==='resolution'&&!g.reveal&&now>=g.deadline)preparation(g,now);return before!==g.phase||beforeIndex!==(g.reveal?.index||0)}
- return {validAction,handCost:acHandCost,acIsScroll,acIsStaff,acIsSpellBook,acBookSpell,acSpellDef,acSpellIsSelf,defs,recipes,abilities,categories,slots,name,settings,cleanBuild,spent,bonus,instance,newPlayer,create,start,beginMatch,preparation,battle,resolve,transact,publicFor,tick,inputs,preview,equip,repair,repairMaterials,absorb,armorTotal,equipped,maxHP,sale,price,value,passive,clone,direction,acTraits,acTraitNames,acMaterialWeight,acMainCategory,improvisationPool};
+ return {validAction,handCost:acHandCost,acIsScroll,acIsStaff,acIsSpellBook,acBookSpell,acSpellDef,acSpellIsSelf,defs,recipes,abilities,categories,slots,name,settings,cleanBuild,spent,bonus,instance,newPlayer,create,start,beginMatch,preparation,battle,resolve,transact,publicFor,tick,inputs,preview,equip,repair,repairMaterials,absorb,armorTotal,equipped,maxHP,sale,price,value,passive,clone,direction,acTraits,acTraitNames,acMaterialWeight,acMainCategory,improvisationPool,acCraftForecast};
 })();
 
 window.ArtChemist=(()=>{
@@ -20026,20 +20053,15 @@ window.ArtChemist=(()=>{
   const plan=parts.length?R.preview(p,potMode):null;
   let outcomes=[];
   const outcomeNames={weapon:'武器',armor:'防具',material:'素材',food:'食料',consumable:'道具・魔法',accessory:'装飾品',guard_tool:'盾'};
-  if(plan?.random){
-    const pool=R.improvisationPool(parts,potMode).pool;
-    const weights=new Map();
-    for(const x of pool){const k=R.defs[x.id]?.kind||'material';weights.set(k,(weights.get(k)||0)+x.weight)}
-    const tot=[...weights.values()].reduce((a,b)=>a+b,0)||1;
-    outcomes=[...weights].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([id,w])=>({name:outcomeNames[id]||id,percent:Math.round(w/tot*100)}));
-  }else if(plan){
-    const opts=plan.legacyChoices?.length?plan.legacyChoices:[{id:plan.output}];
-    const weights=new Map();for(const o of opts){const k=R.defs[o.id]?.kind||'material';weights.set(k,(weights.get(k)||0)+1)}
-    outcomes=[...weights].sort((a,b)=>b[1]-a[1]).map(([id,n])=>({name:outcomeNames[id]||id,percent:Math.round(n/opts.length*100)}));
+  if(plan){
+    const probabilities=R.acCraftForecast(parts,potMode,plan);
+    // The forecast uses precisely the same rarity-tier filter and weights as the draw.
+    // Do not conceal lower-probability categories by truncating to four rows.
+    outcomes=probabilities.filter(q=>q.probability>0).sort((a,b)=>b.probability-a.probability).map(q=>({name:outcomeNames[q.kind]|| (q.kind==='failure'?'失敗':q.kind),percent:q.probability*100}));
   }
 
   if(!parts.length)return '<div class="ac-direction"><small>素材を入れると系統の方向性が表示されます</small></div>';
-  return `<div class="ac-direction"><strong>完成カテゴリーの予測</strong>${outcomes.length?outcomes.map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}ができそう</span><b>約${q.percent}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join(''):'<small>候補を予測できません</small>'}<strong>素材の系統</strong>${d.ranked.slice(0,3).map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}</span><b>${q.percent}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join('')}<small>性質：${esc(d.traitNames.join('・'))}</small>${d.reaction?`<p class="ac-mutation-hint">${esc(d.reaction)}</p>`:''}<small></small></div>`;
+  return `<div class="ac-direction"><strong>完成カテゴリーの予測</strong>${outcomes.length?outcomes.map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}ができそう</span><b>${q.percent>=1?Number(q.percent.toFixed(1)):Number(q.percent.toFixed(2))}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join(''):'<small>候補を予測できません</small>'}<strong>素材の系統</strong>${d.ranked.slice(0,3).map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}</span><b>${q.percent}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join('')}<small>性質：${esc(d.traitNames.join('・'))}</small>${d.reaction?`<p class="ac-mutation-hint">${esc(d.reaction)}</p>`:''}<small></small></div>`;
  }
  function preparation(){const p=me();if(!p?.alive)return `${combatRoster(true)}<div class="ac-panel">観戦中です。バトルキャラを選ぶと詳しい情報を確認できます。</div>`;const plan=R.preview(p,potMode);return `${combatRoster(false)}<div class="ac-prep-shell"><div class="ac-play-grid">${ownEquipment(p)}<main class="ac-panel ac-cauldron-panel"><nav class="ac-tabs"><span class="ac-single-craft-title">錬金</span><span class="ac-flex-spacer"></span></nav><div class="ac-pot-body ${potDisplay==='mini'?'ac-pot-is-mini':potDisplay==='zoom'?'ac-pot-is-zoom':''}"><div class="ac-pot" data-drop="pot">${img(D.potFront,'ac-pot-back')}<div class="ac-pot-items">${p.pot.slice(-5).map(id=>{const i=p.items.find(i=>i.iid===id);return i?art(i.def):''}).join('')}</div>${img(D.potBack,'ac-pot-front')}<div class="ac-pot-cards">${p.pot.map(id=>p.items.find(i=>i.iid===id)).filter(Boolean).map(i=>card(i,true)).join('')}</div></div><div class="ac-pot-tools"><small>投入 ${p.pot.length}枚</small><div class="ac-actions">${button('おすすめ素材','auto')}${button('全部取り出す','clear','',!p.pot.length)}</div></div></div></main><aside class="ac-panel ac-result"><small>錬金結果の予測</small>${craftDirection(p)}${plan?`${plan.random?'<div class="ac-result-placeholder">?</div><h3>性質に応じて錬金</h3><p>候補 '+plan.possibilities+'候補）</p>':art(plan.output,'ac-result-image')+'<h3>'+esc(R.name(plan.output))+' ×'+plan.count+'</h3>'}<p>成功率 ${Math.round(plan.chance*100)}%</p><small>${plan.chance<1?'':''}</small>`:'<div class="ac-result-placeholder">?</div><p>素材を組み合わせよう</p>'}${button('この組み合わせで錬金','craft','class="ac-primary"',!plan)}${button('レシピ図鑑','recipes')}${button(p.ready?'準備完了を取り消す':'錬金を終えて準備完了','ready','class="ac-ready"')}<small></small></aside></div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div><div class="ac-prep-gifts">${gifts()}</div></div>`}
  function battle(){const p=me(),item=p?.items.find(i=>i.iid===useSelected),d=item&&R.defs[item.def],canUse=!!item&&(['weapon','guard_tool'].includes(d.kind)?true:['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use')));return `${combatRoster(false)}${p?.alive?`<div class="ac-battle-shell"><div class="ac-battle-grid"><div class="ac-panel ac-battle-command"><h3>カードを追加</h3><div class="ac-use-drop" data-drop="use"><span>ここにカードをドラッグ</span>${item?`<strong class="ac-use-selected">${art(item.def)}${esc(R.name(item.def))}</strong>`:'<small></small>'}<small>${item&&!canUse?'使用できません':d?.kind==='guard_tool'?'防御':d?.kind==='weapon'?'武器を使用':d&&R.acIsSpellBook(d)?'今回：'+R.name(R.acBookSpell(view,p,item))+'（杖が必要）':d&&R.acIsScroll(d)?'杖が必要':'手の上限：2'}</small></div><strong>追加するカードの対象</strong><div class="ac-target-picks">${view.players.filter(q=>q.alive).map(q=>button((q.id===localId?'自分：':'')+esc(q.name),'pickTarget',`data-value="${esc(q.id)}" class="${target===q.id?'ac-target-active':''}"`,!item)).join('')}</div><p class="ac-target-caption">${target?'対象：'+esc(view.players.find(q=>q.id===target)?.name||''):'対象を選択'}</p><div class="ac-actions">${button('使用欄に追加','performUse','class="ac-primary"',!canUse||(d?.kind!=='guard_tool'&&!target)||(d?.kind==='weapon'&&target===localId&&!R.acIsStaff(d)))}${button('防御する','defend')}${button('対象の装備を見る','inspect','',!target)}</div><div class="ac-planned ac-action-queue" id="acActionQueue"><div class="ac-queue-head"><div><b>使用欄（${battleDraft.length}件）</b><small></small></div><strong>手 ${battleDraft.reduce((n,x)=>{const def=x.item?R.defs[p.items.find(i=>i.iid===x.item)?.def]:null;return n+(x.type==='attack'||x.type==='defend'?(def?R.handCost(def):2):x.type==='use'?R.handCost(def):0)},0)} / 2</strong></div><div class="ac-queue-list">${battleDraft.length?battleDraft.map((x,index)=>{const used=x.item?p.items.find(it=>it.iid===x.item):null,def=used&&R.defs[used.def],selfAction=x.type==='defend',who=view.players.find(q=>q.id===x.target),isScroll=def&&R.acIsScroll?.(def),isBook=def&&R.acIsSpellBook?.(def),bookSpell=isBook?R.acBookSpell(view,p,used):null;return `<article class="ac-queue-item"><div class="ac-queue-top"><b class="ac-queue-num">${index+1}</b>${used?art(used.def):'<span class="ac-queue-icon">防</span>'}<div class="ac-queue-title"><strong>${esc(def?R.name(used.def):x.type==='attack'?'素手攻撃':'防御')}${bookSpell?`<small>今回：${esc(R.name(bookSpell))} · ${esc(effects(R.defs[bookSpell]))}</small>`:''}</strong><small>${x.type==='attack'?'攻撃':x.type==='defend'?'防御':isBook||isScroll?'杖と魔法を発動':'使用'} · 手 ${def?R.handCost(def):2}</small></div>${button('削除','removeDraft',`data-index="${index}" class="ac-queue-remove"`,p.ready)}</div><div class="ac-queue-target"><span>対象：${esc(selfAction?'自分':who?.name||'未指定')}</span>${selfAction?'<small>防御は自分に使用</small>':`<div class="ac-queue-targets">${view.players.filter(q=>q.alive&&(x.type!=='attack'||q.id!==localId||R.acIsStaff(def))).map(q=>button(q.id===localId?'自分':esc(q.name),'draftTarget',`data-index="${index}" data-value="${esc(q.id)}" class="${x.target===q.id?'ac-target-active':''}"`,p.ready)).join('')}</div>`}</div></article>`}).join(''):'<div class="ac-queue-empty">カードをドラッグ</div>'}</div>${button('使用欄を空にする','clearBattle','class="ac-queue-clear"',p.ready||!battleDraft.length)}</div>${button(p.ready?'準備完了を取り消す':'この行動で準備完了','ready','class="ac-primary"')}</div>${ownEquipment(p)}</div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div></div>`:'<div class="ac-panel">観戦中です。バトルキャラを選んで装備を確認できます。</div>'}` }
