@@ -19933,6 +19933,24 @@ window.AlchemistRules = (()=>{
    if(spellBook)return {output:spellBook.output_id,count:1,chance:1,recipe:spellBook.id};
   }
   if(scrollInput){const scrollMatches=matches.filter(r=>acIsScroll(defs[r.output_id])&&defs[r.output_id].kind==='consumable');if(scrollMatches.length)return{output:scrollMatches[0].output_id,count:scrollMatches[0].yield_quantity||1,chance:1,recipe:scrollMatches[0].id};const pool=acScrollResults(parts);return pool.length?{output:null,count:1,chance:1,recipe:'random_scroll_magic',random:true,possibilities:pool.length}:null;}
+  // Wood + a magic ore/crystal is always a staff-crafting path.
+  // Named staff recipes keep priority, and all other outcomes respect the existing rarity mass.
+  const acStaffWoodAndStone=parts.length>=2&&parts.every(i=>defs[i.def]?.kind==='material')
+    &&parts.some(i=>defs[i.def]?.material_category==='wood')
+    &&parts.some(i=>['magic_raw_stone','concentrated_magic_raw_stone','magic_shard','magic_crystal','magic_rose_crystal'].includes(i.def));
+  if(acStaffWoodAndStone){
+   const named=matches.find(r=>acIsStaff(defs[r.output_id]));
+   if(named)return {output:named.output_id,count:named.yield_quantity||1,chance:1,recipe:named.id};
+   const rarity=acRarityMass(parts);
+   const goal=Math.max(2,Math.min(6,rarity.target));
+   const available=['apprentice_staff','magic_staff','wizard_staff','magician_staff','mage_staff']
+    .filter(id=>defs[id]&&(defs[id].class_rank_provisional||1)<=rarity.highest+1);
+   if(available.length){
+    const chosen=[...available].sort((a,b)=>Math.abs((defs[a].class_rank_provisional||1)-goal)-Math.abs((defs[b].class_rank_provisional||1)-goal)
+      ||(defs[a].class_rank_provisional||1)-(defs[b].class_rank_provisional||1))[0];
+    return {output:chosen,count:1,chance:1,recipe:'ac_staff_wood_magic_affinity'};
+   }
+  }
   const wooden=parts.length>=2&&parts.every(i=>defs[i.def]?.material_category==='wood')&&new Set(parts.map(i=>i.def)).size===1;
   if(wooden){const board=matches.find(r=>r.output_id==='wooden_board');if(board)return {output:'wooden_board',count:board.yield_quantity||1,chance:1,recipe:board.id};}
   const forced=mutationReaction(parts);if(forced&&defs[forced.output]&&!parts.some(i=>i.def===forced.output))return {output:forced.output,count:1,chance:1,recipe:'mutation_'+forced.output,mutation:forced.note};
