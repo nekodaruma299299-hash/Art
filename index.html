@@ -25174,67 +25174,7 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
 
 
 
-<style id="ac-mobile-preparation-hand-match-battle-20261119">
-/* Phone preparation hand: match battle hand's fixed tile height instead of
-   dividing a constrained panel into two flexible rows. Keep battle untouched. */
-@media (max-width:650px) and (orientation:portrait) {
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid > .ac-inventory {
-    min-height:0!important;
-    overflow:hidden!important;
-    display:flex!important;
-    flex-direction:column!important;
-  }
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand,
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand:not(.ac-hand-all),
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all {
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    grid-template-rows:none!important;
-    grid-auto-rows:78px!important;
-    grid-auto-flow:row!important;
-    align-content:start!important;
-    align-items:start!important;
-    flex:1 1 0!important;
-    height:0!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow-x:hidden!important;
-    overflow-y:auto!important;
-    padding:2px 3px 5px!important;
-    gap:4px!important;
-    touch-action:pan-y!important;
-    overscroll-behavior:contain!important;
-    -webkit-overflow-scrolling:touch;
-  }
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand .ac-card,
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand:not(.ac-hand-all) .ac-card {
-    box-sizing:border-box!important;
-    width:100%!important;
-    min-width:0!important;
-    max-width:100%!important;
-    height:78px!important;
-    min-height:78px!important;
-    max-height:78px!important;
-    flex:0 0 auto!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    padding:2px!important;
-    gap:1px!important;
-    overflow:hidden!important;
-  }
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand .ac-card > img,
-  #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand:not(.ac-hand-all) .ac-card > img {
-    display:block!important;
-    flex:1 1 0!important;
-    width:100%!important;
-    height:100%!important;
-    min-height:0!important;
-    max-height:none!important;
-    object-fit:contain!important;
-  }
-}
-</style>
+
 </body></html>
 
 <style>
@@ -25942,65 +25882,7 @@ window.ArtVoice=(()=>{
 
 </style>
 
-<style id="ac-mobile-viewport-overlay-repair-20261119">
-/* Phone portrait: the chemist occupies the workspace. The shared chat must not
-   create a second grid track or cover the playable screen. */
-@media (max-width:650px) and (orientation:portrait) {
-  #studio#studio#studio.chemist-play { overflow:hidden!important; }
-  #studio#studio#studio.chemist-play>.workspace {
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:minmax(0,1fr)!important;
-    align-content:stretch!important;
-    align-items:stretch!important;
-    width:100%!important;
-    flex:1 1 0!important;
-    min-height:0!important;
-    height:0!important;
-    overflow:hidden!important;
-    position:relative!important;
-    padding:0!important;
-    gap:0!important;
-  }
-  #studio#studio#studio.chemist-play>.workspace>#chemistStage {
-    grid-area:1 / 1 / 2 / 2!important;
-    display:flex!important;
-    width:100%!important;
-    height:100%!important;
-    max-width:100%!important;
-    max-height:100%!important;
-    min-width:0!important;
-    min-height:0!important;
-    overflow:hidden!important;
-    position:relative!important;
-    z-index:1!important;
-  }
-  #studio#studio#studio.chemist-play>.workspace>#chemistStage[hidden] {display:none!important;}
-  #studio#studio#studio.chemist-play>.workspace>#memberPanel {
-    display:flex!important;
-    position:absolute!important;
-    grid-area:1 / 1 / 2 / 2!important;
-    top:0!important;
-    right:0!important;
-    bottom:0!important;
-    left:auto!important;
-    width:min(86vw,320px)!important;
-    max-width:86vw!important;
-    height:100%!important;
-    max-height:100%!important;
-    min-height:0!important;
-    margin:0!important;
-    border-radius:12px 0 0 12px!important;
-    box-shadow:-6px 0 20px #0c11233d!important;
-    overflow-y:auto!important;
-    z-index:15!important;
-  }
-  #studio#studio#studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important;}
-  #studio#studio#studio.chemist-play #toggleChatPanel {z-index:23!important;}
-  #studio#studio#studio.chemist-play>.workspace>.toolbox,
-  #studio#studio#studio.chemist-play>.workspace>#viewport {display:none!important;}
-}
-</style>
+
 <script id="ac-mobile-chat-start-collapsed-20261119">
 /* Keep the canvas-sized game visible when entering Artchemist on a phone.
    Opening/closing chat afterwards remains controlled by the existing toggle. */
