@@ -19875,6 +19875,9 @@ window.ArtChemist=(()=>{
  let phoneChatRestore=null,phoneResizeTimer=0,phoneLastWidth=0;
  function syncPhoneFrame(active){
   const studio=$('#studio'),on=!!active&&phoneLayout();
+  // The drawing viewport is hidden during Chemist; keep comments outside it.
+  const fly=$('#flyLayer'),flyHost=active?studio.querySelector('.workspace'):$('#viewport');
+  if(fly&&flyHost&&fly.parentElement!==flyHost)flyHost.append(fly);
   if(on&&phoneChatRestore===null){phoneChatRestore=!studio.classList.contains('chat-collapsed');setChatPanelVisible(false)}
   else if(!on&&phoneChatRestore!==null){const previous=phoneChatRestore;phoneChatRestore=null;setChatPanelVisible(previous)}
   if(on&&!$('#acPhoneCloseChat')){const close=document.createElement('button');close.type='button';close.id='acPhoneCloseChat';close.className='ac-phone-chat-close';close.textContent='チャットを閉じてゲームへ';close.onclick=()=>setChatPanelVisible(false);$('#memberPanel').prepend(close)}
@@ -24779,7 +24782,7 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:center!important;flex:none!important;width:100%!important;height:100%!important;min-height:0!important;min-width:0!important;padding:2px!important;gap:1px!important;overflow:hidden!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card>img{flex:1 1 0!important;min-height:0!important;height:0!important;max-height:none!important;width:100%!important;object-fit:contain!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card>strong{flex:0 0 12px!important;line-height:12px!important;font-size:9px!important;width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid{display:grid!important;grid-column:1!important;grid-row:2!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important;grid-template-rows:minmax(0,1fr)!important;align-items:stretch!important;gap:4px!important;height:100%!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid{display:grid!important;grid-column:1!important;grid-row:2!important;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)!important;grid-template-rows:minmax(0,1fr)!important;align-items:stretch!important;gap:4px!important;height:100%!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid>.ac-cauldron-panel{grid-area:1 / 1 / 2 / 2!important;display:flex!important;min-width:0!important;min-height:0!important;height:100%!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid>.ac-result{grid-area:1 / 2 / 2 / 3!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important;align-items:stretch!important;justify-content:normal!important;min-width:0!important;height:100%!important;overflow:hidden!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-result-summary{width:100%!important;min-height:0!important;height:100%!important;max-height:none!important;overflow:auto!important}
@@ -24791,6 +24794,15 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board{min-height:240px!important;flex-basis:240px!important;grid-template-rows:34px minmax(0,1fr)!important}
 #studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-lower-grid{grid-column:2!important;grid-row:1 / 3!important;height:100%!important;min-height:232px!important}
 }
+</style>
+<style id="ac-floating-chat-host-fix">
+#studio.chemist-play>.workspace{position:relative!important}
+#studio#studio.chemist-play>.workspace>#flyLayer{
+ display:block!important;position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;z-index:90!important;
+ overflow:hidden!important;pointer-events:none!important;
+}
+#studio#studio.chemist-play>.workspace>#flyLayer *{pointer-events:none!important}
 </style>
 </body></html>
 
