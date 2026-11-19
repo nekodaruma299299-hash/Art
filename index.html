@@ -19028,6 +19028,27 @@ window.AlchemistRules = (()=>{
   // Two-tier upgrades require at least four top-rarity ingredient equivalents.
   return mass/Math.pow(2,max-1)>=4;
  }
+ // Paper should be an accessible crafting supply, not a major resource sink.
+ // Exact recipes keep the usual preview and crafting path; no special UI is needed.
+ for(const r of D.cards.recipes){
+  if(r.output_id!=='paper')continue;
+  if(r.ingredients.length===1 && r.ingredients[0].quantity===3
+    && ['grass','vine','calming_grass'].includes(r.ingredients[0].item_id)){
+   r.yield_quantity=3;
+  }
+ }
+ const rawScrollRecipe=D.cards.recipes.find(r=>r.id==='scroll_raw'&&r.output_id==='scroll');
+ if(rawScrollRecipe){const ore=rawScrollRecipe.ingredients.find(q=>q.item_id==='magic_raw_stone');if(ore)ore.quantity=2;}
+ for(const [tag,inputs,count] of [
+  ['grass_2',{grass:2},2],
+  ['vine_2',{vine:2},2],
+  ['calming_grass_2',{calming_grass:2},2],
+  ['wood_water',{wood:1,water:1},2]
+ ])if(defs.paper&&Object.keys(inputs).every(id=>defs[id])){
+  D.cards.recipes.unshift({id:'ac_easy_paper_'+tag,output_id:'paper',yield_quantity:count,
+   ingredients:Object.entries(inputs).map(([item_id,quantity])=>({item_id,quantity})),
+   source:'artchemist_paper_access',match_policy:'exact_recipe'});
+ }
  // Material multiplication: only existing card IDs.  Output count is an actual card count.
  // Products of multiplication can be used normally, but cannot fuel another multiplication
  // recipe; that prevents short-circuit infinite loops while keeping crafting intuitive.
@@ -19153,7 +19174,7 @@ window.AlchemistRules = (()=>{
  const price=(p,id)=>Math.max(sale(p,id)+1,Math.ceil(value(id)*3*(1-bonus(p,'shop_discount')/100)));
  function draw(g,p,n){
   acClearCraftContext();const newlyDrawn=[];
-  const materials=Object.values(defs).filter(d=>d.kind==='material'&&!['paper','scroll','snowball'].includes(d.id));
+  const materials=Object.values(defs).filter(d=>d.kind==='material'&&d.id!=='snowball');
   // Common crafting supplies must be obtainable without a category-selection UI.
   // Keep the original rarity roll; only weight item identities within that rank.
   // Assist players whose hand has accumulated timber without enough forge materials.
@@ -19173,6 +19194,9 @@ window.AlchemistRules = (()=>{
     // This changes identity weights only within the already-selected rarity tier.
     // Keep the adaptive metal supply above this rule to avoid all-wood hands.
     if(['grass','magic_raw_stone','concentrated_magic_raw_stone','magic_essence','magic_shard','magic_crystal','magic_rose_crystal'].includes(id))return 12;
+    // Crafted paper and blank scrolls can appear naturally, but remain uncommon.
+    if(id==='paper')return 3;
+    if(id==='scroll')return 1.5;
     if(id==='leather')return 13;
     if(['magic_leaves','magic_herbs','vine','stick','long_stick'].includes(id))return 7;
     if(['wood','iron','stone','crystal'].includes(id))return 6;
