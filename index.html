@@ -3981,6 +3981,108 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 .ac-ency-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
 .ac-ency-controls label{display:flex;flex-direction:column;gap:3px}
 </style>
+
+<style id="ac-mobile-chat-corrective-20261119">
+/* Phone-only: a chat drawer floats over the play area instead of compressing
+   the entire game into a short strip. No game rules or other modes touched. */
+@media (max-width:650px) and (orientation:portrait){
+ #studio.chemist-play>.workspace{
+   position:relative!important;
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:44px minmax(0,1fr)!important;
+   min-height:0!important;
+ }
+ #studio.chemist-play>.workspace>.toolbox{
+   grid-column:1!important;grid-row:1!important;
+   min-width:0!important;min-height:0!important;
+ }
+ #studio.chemist-play>.workspace>#chemistStage{
+   grid-column:1!important;grid-row:2!important;
+   width:100%!important;height:100%!important;min-height:0!important;
+   overflow-y:auto!important;-webkit-overflow-scrolling:touch;
+ }
+ #studio.chemist-play:not(.chat-collapsed)>.workspace>#memberPanel{
+   display:flex!important;position:absolute!important;
+   grid-column:auto!important;grid-row:auto!important;
+   inset:auto 0 0 0!important;transform:none!important;
+   width:100%!important;height:min(43dvh,340px)!important;
+   max-height:calc(100% - 50px)!important;min-height:0!important;
+   box-sizing:border-box!important;
+   padding:9px 12px calc(9px + env(safe-area-inset-bottom))!important;
+   background:#fafcfd!important;
+   border:1px solid var(--line)!important;border-radius:14px 14px 0 0!important;
+   box-shadow:0 -5px 22px #14242c38!important;
+   overflow:hidden!important;z-index:18!important;
+ }
+ #studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important}
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel>.section-head{flex:0 0 auto!important}
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #memberList{
+   flex:0 0 auto!important;max-height:54px!important;overflow-y:auto!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel .member-bottom{
+   flex:1 1 0!important;min-height:0!important;overflow:hidden!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel .studio-chatbar{
+   flex:1 1 0!important;min-height:0!important;overflow:hidden!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #recentComment{
+   flex:1 1 0!important;min-height:0!important;max-height:none!important;
+   overflow-y:auto!important;overscroll-behavior:contain!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm{
+   display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+   grid-template-rows:38px 34px!important;
+   flex:0 0 76px!important;min-height:76px!important;height:76px!important;
+   max-height:76px!important;gap:4px!important;overflow:visible!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatInput{
+   grid-column:1/-1!important;grid-row:1!important;
+   width:100%!important;min-width:0!important;height:38px!important;
+   min-height:38px!important;font-size:16px!important;box-sizing:border-box!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm button[type=submit]{
+   grid-column:2!important;grid-row:2!important;min-height:34px!important;height:34px!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #chatHistoryBtn{
+   grid-column:3!important;grid-row:2!important;min-height:34px!important;height:34px!important;
+ }
+ #studio.chemist-play #toggleChatPanel{
+   position:absolute!important;top:auto!important;bottom:clamp(10px,43dvh,340px)!important;
+   right:0!important;z-index:30!important;height:42px!important;min-height:42px!important;
+ }
+ #studio.chemist-play.chat-collapsed #toggleChatPanel{bottom:16px!important}
+}
+/* Narrow landscape phones: keep the composer readable in the right rail. */
+@media (max-width:720px) and (orientation:landscape){
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm{
+   display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+   grid-template-rows:36px 32px!important;
+   height:72px!important;min-height:72px!important;flex:0 0 72px!important;
+   gap:3px!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatInput{
+   grid-column:1/-1!important;grid-row:1!important;width:100%!important;min-width:0!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm button[type=submit]{grid-column:2!important;grid-row:2!important}
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #chatHistoryBtn{grid-column:3!important;grid-row:2!important}
+}
+</style>
+<style>
+/* Hand cards only: compact durability meter, without changes to item details or other panels. */
+#chemistStage .ac-hand .ac-card{position:relative}
+#chemistStage .ac-hand .ac-card .ac-hand-durability{
+ display:block!important;position:absolute;left:8%;right:8%;bottom:3px;
+ width:auto;height:5px;min-height:5px;margin:0;padding:0;
+ overflow:hidden;border-radius:2px;background:#141414;border:1px solid #0b0b0b;
+ box-shadow:0 0 0 1px #ffffff40;pointer-events:none;z-index:2;
+}
+#chemistStage .ac-hand .ac-card .ac-hand-durability-fill{
+ display:block!important;height:100%;min-height:0;margin:0;padding:0;border:0;border-radius:1px;
+ transition:width .15s ease,background-color .15s ease;
+}
+#chemistStage .ac-card .ac-hand-durability{display:none!important}
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -19046,6 +19148,24 @@ window.AlchemistRules = (()=>{
   ['poison_mushroom','poison_item',{poison_item:1,strange_mushroom:1},2],
   ['glass_water_snow','water',{glass:1,water:1,snow:1},3]
  ];
+ // Fertilizer supports almost all raw plants (including vegetables, fruit, herbs,
+ // flowers, timber and fungi), without multiplying finished foods or equipment.
+ // Keep the hand-tuned fertilizer recipes above; auto-fill only missing pairs.
+ const acFertilizerExisting=new Set(acMultiplicationSpecs.filter(x=>x[2]?.fertilizer===1)
+   .filter(x=>Object.keys(x[2]).length===2&&Object.values(x[2]).every(v=>v===1))
+   .map(x=>Object.keys(x[2]).find(id=>id!=='fertilizer')));
+ const acFertilizerPlantPattern=/(?:wood|grass|herb|vine|flower|seed|leaf|leaves|mushroom|mandrake|wheat|rice_ear|soy$|strawberry$|blueberry$|currant$|grape$|tomato$|basil$|potato$|carrot$|onion$|lettuce$|spice_fruit$)/;
+ for(const d of Object.values(defs)){
+  if(!d||d.id==='fertilizer'||acFertilizerExisting.has(d.id))continue;
+  const raw=d.kind==='material'||(d.kind==='food'&&/^(?:mandrake|healing_mushroom|highly_poisonous_mushroom|blueberry|currant)$/.test(d.id));
+  if(!raw)continue;
+  const plantCategory=['plant','wood'].includes(d.material_category);
+  const plantName=acFertilizerPlantPattern.test(d.id);
+  if(!plantCategory&&!plantName)continue;
+  const rank=d.class_rank_provisional||1;
+  const amount=rank>=5?2:rank>=3?2:3;
+  acMultiplicationSpecs.push(['fertilizer_auto_'+d.id,d.id,{fertilizer:1,[d.id]:1},amount]);
+ }
  const acDupNames=new Set();
  const acMultiplicationRecipes=acMultiplicationSpecs.map(([tag,out,inputs,count])=>({
   id:'ac_multiply_'+tag,output_id:out,yield_quantity:count,
@@ -19076,7 +19196,7 @@ window.AlchemistRules = (()=>{
   const lightBonus=power>0&&power<=9?1:0;
   return Math.max(1,Math.min(9,rarityGuide+hardness+lightBonus-powerPenalty));
  }
- function instance(g,id,p){const d=defs[id];if(!d)throw Error('不明なカード');const maxArmor=Math.ceil((d.stats.max_armor||0)*8*(1+bonus(p,'armor')/100)),baseUses=(d.kind==='weapon'?acWeaponBaseUses(d):(d.consumption.max_uses||0)),maxUses=Math.max(0,Math.ceil(baseUses*(1+bonus(p,'weapon_uses')/100)));return {iid:g.id+':'+(++g.serial),def:id,armor:maxArmor,maxArmor,baseMaxArmor:maxArmor,uses:maxUses,maxUses,equipped:false,locked:false,usedInBattle:false}}
+ function instance(g,id,p){const d=defs[id];if(!d)throw Error('不明なカード');const maxArmor=Math.ceil((d.stats.max_armor||0)*2*(1+bonus(p,'armor')/100)),baseUses=(d.kind==='weapon'?acWeaponBaseUses(d):(d.consumption.max_uses||0)),maxUses=Math.max(0,Math.ceil(baseUses*(1+bonus(p,'weapon_uses')/100)));return {iid:g.id+':'+(++g.serial),def:id,armor:maxArmor,maxArmor,baseMaxArmor:maxArmor,uses:maxUses,maxUses,equipped:false,locked:false,usedInBattle:false}}
  function item(p,id){return p.items.find(i=>i.iid===id)}
  const equipped=p=>p.items.filter(i=>i.equipped), armor=p=>equipped(p).filter(i=>defs[i.def].kind==='armor');
  const armorTotal=p=>armor(p).reduce((s,i)=>s+i.armor,0);
@@ -19105,7 +19225,12 @@ window.AlchemistRules = (()=>{
     const timber=cat==='wood'||/^(wood|.*_wood|.*_lumber|.*_log)$/.test(id);
     if(metalNeed&&forgeMetal)return (['iron','copper'].includes(id)?6:4)*metalBoost;
     if(metalNeed&&timber)return Math.max(.6,4/(1+metalNeed*.6));
-    if(['wood','iron','stone','crystal','magic_crystal'].includes(id))return 6;
+    // Give staple ingredients for scrolls and magic staffs a practical draw rate.
+    // This changes identity weights only within the already-selected rarity tier.
+    // Keep the adaptive metal supply above this rule to avoid all-wood hands.
+    if(['grass','magic_raw_stone','concentrated_magic_raw_stone','magic_essence','magic_shard','magic_crystal','magic_rose_crystal'].includes(id))return 12;
+    if(['magic_leaves','magic_herbs','paper','scroll','vine','stick','long_stick'].includes(id))return 7;
+    if(['wood','iron','stone','crystal'].includes(id))return 6;
     if(cat==='wood'||cat==='ore'||cat==='metal')return 4;
     if(cat==='gem'||cat==='gemstone'||cat==='stone')return 2.8;
     if(/wood|lumber|log|plank|ore|ingot|iron|copper|steel|crystal|gem|mana|magic/.test(id))return 2.5;
@@ -19127,10 +19252,10 @@ window.AlchemistRules = (()=>{
  function log(g,t){g.logs.push(t);g.logs=g.logs.slice(-60)}
  function start(g,now){if(g.phase!=='lobby'&&g.phase!=='finished')throw Error('待機中のみ開始できます');if(g.players.some(p=>!p.bot&&(!p.ready||!p.image||!String(p.name||'').trim())))throw Error('全員がキャラクター画像と名前を設定して準備完了するまで開始できません');g.phase='lobby';g.deadline=null;g.round=0;g.offers=[];g.logs=[];for(const p of g.players){Object.assign(p,{items:[],pot:[],ready:false,alive:true,action:null,hp:0,extraMaxHp:0,gold:100,status:{},used:{},discovered:[],history:[],giftGold:0});if(p.bot)p.build=botBuild(g.settings.cp);p.build=cleanBuild(p.build||{},g.settings.cp);if(!p.build.hp)throw Error('HPに1ポイント以上割り振ってください')}log(g,'待機場のキャラクターで試合開始');beginMatch(g,now)}
  function beginMatch(g,now){for(const p of g.players){p.hp=maxHP(p);p.gold=0;draw(g,p,g.settings.initialHand+Math.floor((p.build.initial_gold||0)/20))}g.round=0;preparation(g,now)}
- function preparation(g,now){g.phase='preparation';g.round++;g.deadline=now+g.settings.prep*1000;g.offers=[];for(const p of g.players){p.items=p.items.filter(i=>!(i.maxUses&&i.uses<=0)&&!(i.maxArmor&&i.armor<=0));p.ready=false;p.action=null;p.pot=[];p.giftGold=0;if(!p.alive)continue;if(g.round>1)draw(g,p,g.settings.draw+bonus(p,'extra_draw'));if(p.build.passive_income&&g.round>1)p.hp=Math.min(maxHP(p),p.hp+8);p.shop=[];}g.event={id:g.round+':prep',sound:'arts_new_build'};log(g,'ラウンド '+g.round+'：錬金タイム')}
+ function preparation(g,now){g.phase='preparation';g.round++;g.deadline=now+g.settings.prep*1000;g.offers=[];for(const p of g.players){p.items.forEach(i=>{if(acGearBroken(i))i.equipped=false});p.ready=false;p.action=null;p.pot=[];p.giftGold=0;if(!p.alive)continue;if(g.round>1)draw(g,p,g.settings.draw+bonus(p,'extra_draw'));if(p.build.passive_income&&g.round>1)p.hp=Math.min(maxHP(p),p.hp+8);p.shop=[];}g.event={id:g.round+':prep',sound:'arts_new_build'};log(g,'ラウンド '+g.round+'：錬金タイム')}
  function battle(g,now){g.phase='battle';g.deadline=now+g.settings.battle*1000;g.offers=[];for(const p of g.players){p.pot=[];p.ready=false;p.action=null}g.event={id:g.round+':battle',sound:null,chemistSound:'turn'};log(g,'バトルタイム：行動を選んで準備完了')}
  function counts(arr){const m={};for(const i of arr)m[i.def]=(m[i.def]||0)+1;return m}
- function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&!(i.usedInBattle||i.maxArmor&&i.armor<i.maxArmor||i.maxUses&&i.uses<i.maxUses)&&!(r.source==='artchemist_multiplication'&&i.acMultiplied)&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
+ function inputs(p,r,auto=false){const available=p.items.filter(i=>!i.equipped&&!i.locked&&!(r.source==='artchemist_multiplication'&&i.acMultiplied)&&(!auto||defs[i.def].class_rank_provisional<4));const ids=[];for(const q of r.ingredients){const a=available.filter(i=>i.def===q.item_id&&!ids.includes(i.iid)).slice(0,q.quantity);if(a.length!==q.quantity)return null;ids.push(...a.map(i=>i.iid))}return ids}
  function craftKind(d,mode){return !!d}
  // Improvised transmutation uses ingredient identity AND rarity.  The category data
  // inherited from Dream Crafter has several foods recorded as `misc`; normalize
@@ -19618,7 +19743,9 @@ window.AlchemistRules = (()=>{
  // Used equipment is a low-quality mold: it can select the output's shape but does not restore itself for free.
  const acUsed=i=>!!(i.usedInBattle||(i.maxArmor&&i.armor<i.maxArmor)||(i.maxUses&&i.uses<i.maxUses));
  function acMaterialWeight(d){return Math.pow(2,Math.max(0,Math.min(7,(d.class_rank_provisional||1)-1)));}
- function acEffectiveWeight(i){const d=defs[i.def],w=acMaterialWeight(d);if(['weapon','armor','guard_tool'].includes(d.kind)&&acUsed(i))return w*.12;return i.def==='stone_brick'?w*2.4:w;}
+ function acGearBroken(i){if(!i)return false;const d=defs[i.def];return d?.kind==='armor'?i.maxArmor>0&&i.armor<=0:['weapon','guard_tool'].includes(d?.kind)?i.maxUses>0&&i.uses<=0:false;}
+ function acGearWeightRatio(i){if(!i)return 1;const d=defs[i.def];if(d?.kind==='armor'&&i.maxArmor>0)return .5+.5*Math.max(0,Math.min(1,i.armor/i.maxArmor));if(['weapon','guard_tool'].includes(d?.kind)&&i.maxUses>0)return .5+.5*Math.max(0,Math.min(1,i.uses/i.maxUses));return 1;}
+ function acEffectiveWeight(i){const d=defs[i.def],w=acMaterialWeight(d);if(['weapon','armor','guard_tool'].includes(d.kind))return w*acGearWeightRatio(i);return i.def==='stone_brick'?w*2.4:w;}
  const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
  // Ver.1.7.2: Equipment follows material identity before traits, rarity or total weight.
  // A supplementary resource can supply missing weight, but NEVER a missing named material.
@@ -19867,7 +19994,7 @@ window.AlchemistRules = (()=>{
   p.lastCraft={id:(g.id||'game')+':'+g.round+':'+(++g.serial),output:ok?result:null,count:finalCount,mode,success:ok,inputRank,outputRank,rarityDelta,outcome,outcomeLabel,outcomeText};
   p.history.push(message);p.history=p.history.slice(-20);return message;
  }
- function equip(p,i){const d=defs[i.def];if(!['armor','accessory','guard_tool'].includes(d.kind))throw Error('武器は装備不要です。戦闘時に手札から使用してください');if(i.equipped){i.equipped=false;syncSetArmor(p);p.hp=Math.min(p.hp,maxHP(p));return}if(p.pot.includes(i.iid))throw Error('先にツボから取り出してください');if(d.kind==='armor')p.items.filter(q=>q.equipped&&defs[q.def].stats.slot===d.stats.slot).forEach(q=>q.equipped=false);if(d.kind==='weapon'){const weapons=equipped(p).filter(q=>defs[q.def].kind==='weapon'),two=d.stats.handedness==='twoHanded';if(two||!p.build.dual_wield||weapons.some(q=>defs[q.def].stats.handedness==='twoHanded'))weapons.forEach(q=>q.equipped=false);else if(weapons.length>=2)weapons[0].equipped=false;if(two)equipped(p).filter(q=>defs[q.def].kind==='guard_tool').forEach(q=>q.equipped=false)}if(d.kind==='guard_tool'){if(equipped(p).some(q=>defs[q.def].stats.handedness==='twoHanded'))throw Error('両手武器と盾は同時に装備できません');equipped(p).filter(q=>defs[q.def].kind==='guard_tool').forEach(q=>q.equipped=false)}i.equipped=true;syncSetArmor(p);p.hp=Math.min(p.hp,maxHP(p))}
+ function equip(p,i){const d=defs[i.def];if(!['armor','accessory','guard_tool'].includes(d.kind))throw Error('武器は装備不要です。戦闘時に手札から使用してください');if(i.equipped){i.equipped=false;syncSetArmor(p);p.hp=Math.min(p.hp,maxHP(p));return}if(acGearBroken(i))throw Error('破損した装備は修理してから使用してください');if(p.pot.includes(i.iid))throw Error('先にツボから取り出してください');if(d.kind==='armor')p.items.filter(q=>q.equipped&&defs[q.def].stats.slot===d.stats.slot).forEach(q=>q.equipped=false);if(d.kind==='weapon'){const weapons=equipped(p).filter(q=>defs[q.def].kind==='weapon'),two=d.stats.handedness==='twoHanded';if(two||!p.build.dual_wield||weapons.some(q=>defs[q.def].stats.handedness==='twoHanded'))weapons.forEach(q=>q.equipped=false);else if(weapons.length>=2)weapons[0].equipped=false;if(two)equipped(p).filter(q=>defs[q.def].kind==='guard_tool').forEach(q=>q.equipped=false)}if(d.kind==='guard_tool'){if(equipped(p).some(q=>defs[q.def].stats.handedness==='twoHanded'))throw Error('両手武器と盾は同時に装備できません');equipped(p).filter(q=>defs[q.def].kind==='guard_tool').forEach(q=>q.equipped=false)}i.equipped=true;syncSetArmor(p);p.hp=Math.min(p.hp,maxHP(p))}
  function repairMaterials(p,i){const source=recipes.find(r=>r.output_id===i.def)?.ingredients.map(q=>defs[q.item_id]).filter(Boolean)||[];return p.items.filter(q=>q.iid!==i.iid&&!q.locked&&!q.equipped&&!p.pot.includes(q.iid)&&defs[q.def].kind==='material'&&source.some(d=>d.id===q.def||d.material_category&&d.material_category===defs[q.def].material_category))}
  function repair(p,i,materialId){const q=repairMaterials(p,i).find(q=>q.iid===materialId);if(!q)throw Error('対応する修理素材を選んでください');if(i.armor===i.maxArmor&&i.uses===i.maxUses)throw Error('修理の必要はありません');if(!(i.maxArmor||i.maxUses))throw Error('修理できません');const r=1+bonus(p,'repair')/100;i.armor=Math.min(i.maxArmor,i.armor+Math.max(1,Math.round(i.maxArmor*(.08+.02*Math.min(4,defs[q.def].class_rank_provisional))*r)));i.uses=Math.min(i.maxUses,i.uses+Math.max(1,Math.floor(r)));p.items=p.items.filter(x=>x!==q)}
  // Largest remainder, stable body-slot order, overflow redistribution.
@@ -19901,7 +20028,7 @@ window.AlchemistRules = (()=>{
  function acSpellDef(g,p,i){return acIsSpellBook(defs[i?.def])?defs[acBookSpell(g,p,i)]:defs[i?.def]}
  function acSpellIsSelf(g,p,i){const d=acSpellDef(g,p,i);return !!d?.effects?.length&&d.effects.every(e=>['temporary_barrier','heal','light_heal_percent','cleanse','increase_max_hp'].includes(e.kind))}
  function acValidateSingle(g,p,a){
-  if(a?.type==='defend'){if(a.item){const sh=item(p,a.item);if(!sh||defs[sh.def]?.kind!=='guard_tool')throw Error('盾カードを選んでください');return {type:'defend',item:sh.iid}}return{type:'defend'}}
+  if(a?.type==='defend'){if(a.item){const sh=item(p,a.item);if(!sh||defs[sh.def]?.kind!=='guard_tool'||sh.uses<=0)throw Error('使用可能な盾カードを選んでください');return {type:'defend',item:sh.iid}}return{type:'defend'}}
   const t=g.players.find(q=>q.id===a?.target&&q.alive);if(!t)throw Error('対象を選んでください');
   if(a.type==='attack'){
    if(t.id===p.id&&!acIsStaff(defs[item(p,a.item)?.def]))throw Error('攻撃対象を選んでください');
@@ -19999,7 +20126,7 @@ window.AlchemistRules = (()=>{
   let reduction=1.5*(passive(p,'damage_reduction_flat')+({leather:1,iron:2,tamahagane:3}[setName(p)]||0))+barriers[p.id]*.75;
   if(shieldUses){reduction+=1.5*(defs[shield.def].stats.block_amount||0)*shieldUses;shield.uses-=shieldUses;shield.usedInBattle=true;}const total=Math.max(0,Math.ceil(raw*multiplier)-reduction),ratio=raw?total/raw:0;const pierce=Math.min(total,Math.floor(incoming.reduce((s,h)=>s+h.n*h.pierce,0)*ratio));absorb(p,incoming.reduce((s,h)=>s+h.armorOnly,0));const lost=absorb(p,total-pierce)+pierce;p.hp=Math.max(0,p.hp-lost);const actualLost=oldHp-p.hp;const lostArmor=Math.max(0,oldArmor-armorTotal(p));for(const h of incoming){if(!h.sceneKey||!raw)continue;const fraction=h.n/raw;sceneDamage[h.sceneKey]=(sceneDamage[h.sceneKey]||0)+Math.max(0,actualLost)*fraction;sceneArmor[h.sceneKey]=(sceneArmor[h.sceneKey]||0)+lostArmor*fraction;}sceneTargetHp[p.id]={before:snap(p.id)?.hp??oldHp,after:p.hp,max:maxHP(p)};for(const h of incoming)if(h.weapon&&snap(h.from)?.build.lifesteal)life[h.from]+=(raw?actualLost*h.n/raw:0)*.2;if(g.round>15)p.hp=Math.max(0,p.hp-5);if(raw||heals[p.id])log(g,p.name+'：HP −'+(oldHp-p.hp)+'／装甲 −'+(oldArmor-armorTotal(p))+(heals[p.id]?'／回復 +'+heals[p.id]:''));}
  for(const p of living){if(p.alive){const gain=Math.max(0,passive(p,'regen_hp'));if(gain){const healed=Math.min(gain,Math.max(0,maxHP(p)-p.hp));p.hp+=healed;if(healed)log(g,p.name+'：装飾品のリジェネでHP +'+healed);}}}
- for(const p of living){p.hp=Math.min(maxHP(p),p.hp+Math.floor(life[p.id]));if(p.hp<=0&&p.build.last_stand&&!p.used.last_stand){p.hp=1;p.used.last_stand=true;log(g,p.name+'：不屈でHP1に踏みとどまった')}p.items=p.items.filter(i=>!(i.maxArmor&&i.armor<=0)&&!(i.maxUses&&i.uses<=0&&defs[i.def]?.kind!=='weapon'));syncSetArmor(p);p.alive=p.hp>0;if(!p.alive)log(g,p.name+' が脱落');if(p.alive&&p.build.armor_regeneration){let remain=Math.min(5,50-(p.used.regen||0));for(const i of armor(p)){const n=Math.min(remain,i.maxArmor-i.armor);i.armor+=n;remain-=n;p.used.regen=(p.used.regen||0)+n}}}
+ for(const p of living){p.hp=Math.min(maxHP(p),p.hp+Math.floor(life[p.id]));if(p.hp<=0&&p.build.last_stand&&!p.used.last_stand){p.hp=1;p.used.last_stand=true;log(g,p.name+'：不屈でHP1に踏みとどまった')}p.items.forEach(i=>{if(acGearBroken(i))i.equipped=false});syncSetArmor(p);p.alive=p.hp>0;if(!p.alive)log(g,p.name+' が脱落');if(p.alive&&p.build.armor_regeneration){let remain=Math.min(5,50-(p.used.regen||0));for(const i of armor(p)){const n=Math.min(remain,i.maxArmor-i.armor);i.armor+=n;remain-=n;p.used.regen=(p.used.regen||0)+n}}}
  for(const [id,k,v]of pending){const p=by(id);if(p?.alive){if(AC_STATUS_NAMES[k])acStatusApply(g,p,k,v.turns);else p.status[k]=v}}const survivors=living.filter(p=>p.alive);
  // Results are calculated simultaneously above; the presentation below does not reapply damage.
  g.actionScenes=snapshot.flatMap(p=>{
@@ -20057,7 +20184,7 @@ window.AlchemistRules = (()=>{
    else preparation(g,now);
   }else{g.reveal.startedAt=now;g.reveal.votes=[];g.deadline=now+g.reveal.duration}
  }else if(g.phase==='resolution'&&!g.reveal&&now>=g.deadline)preparation(g,now);return before!==g.phase||beforeIndex!==(g.reveal?.index||0)}
- return {validAction,handCost:acHandCost,acIsScroll,acIsStaff,acIsSpellBook,acBookSpell,acSpellDef,acSpellIsSelf,defs,recipes,abilities,categories,slots,name,settings,cleanBuild,spent,bonus,instance,newPlayer,create,start,beginMatch,preparation,battle,resolve,transact,publicFor,tick,inputs,preview,equip,repair,repairMaterials,absorb,armorTotal,equipped,maxHP,sale,price,value,passive,clone,direction,acTraits,acTraitNames,acMaterialWeight,acMainCategory,improvisationPool,acCraftForecast};
+ return {validAction,handCost:acHandCost,acIsScroll,acIsStaff,acIsSpellBook,acBookSpell,acSpellDef,acSpellIsSelf,defs,recipes,abilities,categories,slots,name,settings,cleanBuild,spent,bonus,instance,newPlayer,create,start,beginMatch,preparation,battle,resolve,transact,publicFor,tick,inputs,preview,equip,repair,repairMaterials,absorb,armorTotal,equipped,maxHP,sale,price,value,passive,clone,direction,acTraits,acTraitNames,acMaterialWeight,acGearBroken,acGearWeightRatio,acEffectiveWeight,acMainCategory,improvisationPool,acCraftForecast};
 })();
 
 window.ArtChemist=(()=>{
@@ -20074,10 +20201,19 @@ window.ArtChemist=(()=>{
  const img=(src,cls='',alt='')=>safeImage(src)?`<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}">`:'';
  function art(id,cls=''){return img(D.icons[id],cls,R.name(id))||`<span class="ac-fallback ${cls}">${esc((R.name(id)||'素材').slice(0,2))}</span>`}
  function button(label,action,extra='',disabled=false){return `<button type="button" data-ac="${action}" ${extra} ${disabled?'disabled':''}>${label}</button>`}
- function stat(i){const d=R.defs[i.def];return d.kind==='weapon'?(R.acIsStaff(d)?`魔法専用 · 上位魔法で破損`:`攻撃 ${Math.round((d.stats.damage||0)*1.5)} · ${i.uses}/${i.maxUses}回`):d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${2*(d.stats.block_amount||0)} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · 素材`:effects(d)}
+ function stat(i){const d=R.defs[i.def];if(R.acGearBroken(i))return `破損・使用不可（修理/錬金可） · 重さ ${Math.round(R.acGearWeightRatio(i)*100)}%`;return d.kind==='weapon'?(R.acIsStaff(d)?`魔法専用 · 上位魔法で破損`:`攻撃 ${Math.round((d.stats.damage||0)*1.5)} · ${i.uses}/${i.maxUses}回`):d.kind==='armor'?`${slotNames[d.stats.slot]} 装甲 ${i.armor}/${i.maxArmor}`:d.kind==='guard_tool'?`防御 +${2*(d.stats.block_amount||0)} · ${i.uses}/${i.maxUses}回`:d.kind==='material'?`${rarities[d.class_rank_provisional]||'ミスティック'} · 素材`:effects(d)}
  const AC_UI_STATUS_NAMES=Object.freeze({burn:'火傷',majorBurn:'大火傷',frostbite:'凍傷',freeze:'凍結',poison:'毒',deadlyPoison:'猛毒'});
  function effects(d){return d.effects.map(e=>({apply_status:`${AC_UI_STATUS_NAMES[e.status]||e.status} ${Math.round((e.chance??1)*100)}%・${e.duration_rounds||1}ターン`,heal:`HP ${e.amount}回復`,light_heal_percent:`最大HPの${e.percent}%回復（光魔法）`,light_retribution_phase:`このラウンドに対象から受けたダメージの${e.multiplier}倍で反撃（光魔法）`,light_retribution_total:`試合中に対象から受けた累積ダメージの${e.multiplier}倍で反撃（光魔法）`,damage:`${e.amount}ダメージ`,area_damage:`最大3人に${e.amount}`,damage_and_burn:`${e.amount}ダメージ＋火傷 ${e.burn_rounds}ターン`,delayed_damage:`${e.delay_rounds}ラウンド後に${e.amount}`,bind:'対象を1ターン拘束（重ねがけ不可）',cleanse:'炎上・弱体を解除',temporary_barrier:`障壁 ${2*(e.armor_points||0)}`,attack_bonus:`攻撃 +${e.amount}`,damage_reduction_flat:`軽減 +${2*(e.amount||0)}`,max_hp_bonus:`最大HP +${e.amount}`,regen_hp:`毎ターンHP ${e.amount}回復`,alchemy_success_bonus:`融合 +${e.amount_percent}%`,armor_pierce:`装甲貫通 +${e.amount}`,bonus_armor_damage:`装甲ダメージ +${e.amount}`,magic_damage:`魔法 +${e.amount}`,burn:`火傷 ${e.duration_rounds}ターン`,weakness:`攻撃低下 ${e.attack_penalty}`,guard_bonus:`防御軽減 ${2*(e.flat_damage_reduction||0)}`}[e.kind]||'')).filter(Boolean).join(' / ')||'錬金・修理の素材'}
- function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="false" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong><span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
+ function acHandDurability(i,d){
+  if(!['weapon','armor','guard_tool'].includes(d.kind))return '';
+  const armor=d.kind==='armor',max=Number(armor?i.maxArmor:i.maxUses)||0;
+  if(max<=0)return '';
+  const current=Math.max(0,Math.min(max,Number(armor?i.armor:i.uses)||0));
+  const ratio=current/max;
+  const color=`hsl(${Math.round(ratio*120)} 85% 46%)`;
+  return `<span class="ac-hand-durability" title="耐久 ${current}/${max}" aria-hidden="true"><span class="ac-hand-durability-fill" style="width:${(ratio*100).toFixed(2)}%;background:${color}"></span></span>`;
+ }
+ function card(i,small=false){const d=R.defs[i.def];return `<button type="button" draggable="false" data-card="${esc(i.iid)}" class="ac-card ${selected===i.iid?'chosen':''} ${small?'small':''}" style="--rank:${['','#8b8c9b','#58b39b','#709ee9','#b18de3','#dfb451','#df847e'][d.class_rank_provisional]||'#aaa'}" aria-pressed="${selected===i.iid}"><small>${kinds[d.kind]||'カード'} · ${rarities[d.class_rank_provisional]||'ミスティック'}</small>${art(i.def)}<strong>${esc(R.name(i.def))}</strong>${acHandDurability(i,d)}<span>${esc(stat(i))}</span><small>${i.equipped?'装備中 ':''}${i.locked?'保護中':''}${me()?.pot.includes(i.iid)?'ツボ内':''}</small></button>`}
  function header(){return `<header class="ac-header"><div><small>ARTCHEMIST${view.round?' / ROUND '+view.round:''}</small><h2>${phaseName[view.phase]}</h2></div><div class="ac-header-side"><b id="acClock" role="timer"></b>${button('遊び方','help')}${button('効果音','sound')}</div></header>`}
  function summary(p){return `<div class="ac-character">${img(p.image,'ac-portrait',p.name)||'<div class="ac-empty-art">あなたの絵が<br>キャラクターに</div>'}<strong>${esc(p.name)}</strong></div><div class="ac-meters"><label>HP <b>${p.hp} / ${p.maxHp||R.maxHP(p)}</b></label><progress value="${p.hp}" max="${p.maxHp||R.maxHP(p)}"></progress><label>装甲 <b>${p.armor??R.armorTotal(p)}</b></label></div>`}
  const jobPresets={
