@@ -20003,7 +20003,7 @@ window.AlchemistRules = (()=>{
   }
   // A scroll changes the attack of an actively used staff into magic.
   const spells=actions.filter(x=>x.type==='use'&&(acIsScroll(defs[item(p,x.item)?.def])||acIsSpellBook(defs[item(p,x.item)?.def])));
-  if(spells.length){const staves=actions.filter(x=>x.type==='attack'&&acIsStaff(defs[item(p,x.item)?.def]));if(staves.length<spells.length)throw Error('魔法1つにつき杖を1本選んでください');const available=[...staves];for(const spell of spells){const index=available.findIndex(w=>w.target===spell.target);if(index<0)throw Error('杖と魔法の対象を合わせてください');available.splice(index,1);if(acSpellIsSelf(g,p,item(p,spell.item))&&spell.target!==p.id)throw Error('防御魔法は自分を対象にしてください')}for(const wand of staves){if(wand.target===p.id&&!spells.some(x=>x.target===p.id&&acSpellIsSelf(g,p,item(p,x.item))))throw Error('杖で自分を攻撃できません')}}else if(actions.some(x=>x.type==='attack'&&x.target===p.id))throw Error('自分を攻撃できません');
+  if(spells.length){const staves=actions.filter(x=>x.type==='attack'&&acIsStaff(defs[item(p,x.item)?.def]));if(!staves.length)throw Error('魔法には杖が1本以上必要です');for(const spell of spells){if(acSpellIsSelf(g,p,item(p,spell.item))&&spell.target!==p.id)throw Error('防御魔法は自分を対象にしてください')}}if(actions.some(x=>x.type==='attack'&&x.target===p.id)&&!spells.some(x=>x.target===p.id&&acSpellIsSelf(g,p,item(p,x.item))))throw Error('杖で自分を攻撃できません');
   if(hands>2)throw Error('片手2枠を超えています（両手武器は2枠）');
   if(actions.some(x=>x.type==='defend')&&actions.some(x=>x.type==='attack'))throw Error('攻撃と防御は同じターンに選べません');
   // Two independent one-hand weapons fit the two hand slots even without a special ability.
@@ -20027,25 +20027,17 @@ window.AlchemistRules = (()=>{
    }else a={type:'defend'};
   }if(p.status.bound?.turns>0){a={type:'defend'};by(p.id).status.bound.turns=Math.max(0,(by(p.id).status.bound.turns||1)-1)}if(p.status.freeze?.turns>0&&(a.type==='use'||a.type==='combo'&&a.actions.some(x=>x.type==='use'))){a={type:'defend'};log(g,p.name+'は凍結中のためアイテムを使用できない')}by(p.id).action=a;resolvedActions.set(p.id,clone(a));
   acStatusTick(g,by(p.id),hit);if(p.status.bomb?.at<=g.round){hit(null,p.id,p.status.bomb.damage);delete by(p.id).status.bomb}if(by(p.id).status.weakness?.turns>0)by(p.id).status.weakness.turns--;
-  const steps=a.type==='combo'?a.actions:[a];const magics=steps.filter(q=>q.type==='use'&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));let magicIndex=0;
+  const steps=a.type==='combo'?a.actions:[a];const magics=steps.filter(q=>q.type==='use'&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));const castStaves=steps.filter(q=>q.type==='attack'&&acIsStaff(defs[item(p,q.item)?.def])).map(q=>item(by(p.id),q.item)).filter(Boolean);
   for(const [stepIndex,step] of steps.entries()){a=step;currentActionKey=p.id+':'+stepIndex;
-  if(a.type==='attack'){const ws=a.item?[item(p,a.item)].filter(Boolean):[],targets=snap(a.target);if(!targets)continue;let damage=ws.length?0:5,ap=0,armorDamage=0;for(const w of ws){const d=defs[w.def],kind=d.tags?.includes('magic')?'magic':d.tags?.includes('ranged')?'ranged':'melee';const staffSpell=acIsStaff(d)&&magicIndex<magics.length;if(staffSpell){
-   magicIndex++;
-   const pairedSpell=magics.find(sp=>sp.target===a.target);
-   const spellCard=pairedSpell&&item(p,pairedSpell.item);
-   const spellDef=spellCard&&acSpellDef(g,p,spellCard);
-   if(spellDef&&(spellDef.class_rank_provisional||1)>(d.class_rank_provisional||1)){
-    const staffLive=item(by(p.id),w.iid);
-    if(staffLive){staffLive.uses=0;staffLive.usedInBattle=true;}
-    log(g,name(d.id)+'は上位魔法に耐えられず破損！');
-   }
+  if(a.type==='attack'){const ws=a.item?[item(p,a.item)].filter(Boolean):[],targets=snap(a.target);if(!targets)continue;let damage=ws.length?0:5,ap=0,armorDamage=0;for(const w of ws){const d=defs[w.def],kind=d.tags?.includes('magic')?'magic':d.tags?.includes('ranged')?'ranged':'melee';const staffSpell=acIsStaff(d)&&magics.length>0;if(staffSpell){
+   // 杖そのものは攻撃せず、魔法の発動と耐久の処理は各魔法の使用時に行う。
   }else damage+=acIsStaff(d)?0:(d.stats.damage||0)*1.5*(1+bonus(p,kind)/100)*(p.build.last_strike&&w.uses===1?1.4:1);for(const e of (staffSpell?[]:d.effects)){if(e.kind==='magic_damage')damage+=(e.amount||0)*(1+bonus(p,'magic')/100);if(e.kind==='armor_pierce')ap+=e.amount||0;if(e.kind==='bonus_armor_damage')armorDamage+=e.amount||0;if(e.kind==='burn')pending.push([a.target,'burn',{turns:e.duration_rounds}]);if(e.kind==='apply_status'&&random(g)<(e.chance??1))pending.push([a.target,e.status,{turns:e.duration_rounds||1}]);if(e.kind==='weakness')pending.push([a.target,'weakness',{penalty:e.attack_penalty,turns:e.duration_rounds}])}
   const family=String(d.stats?.weapon_family||'')+' '+d.id;
   if(/spear|lance|trident|pike|halberd/.test(family))ap+=Math.round((d.stats.damage||0)*1.5*(/iron|copper|stone/.test(family)?.2:.5));
   if(/hammer|mace|club|bludgeon|mallet|crusher|axe/.test(family))armorDamage+=Math.max(1,Math.round((d.stats.damage||0)*.6));
   if(d.artchemist_pierce_fraction)ap+=Math.round((d.stats.damage||0)*1.5*d.artchemist_pierce_fraction);
   if(!acIsStaff(d))consume(by(p.id),item(by(p.id),w.iid),g)}if(ws.length>1)damage*=.7;if(!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage+=passive(p,'attack_bonus');if(p.status.weakness?.turns>0&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage-=p.status.weakness.penalty;if(p.build.dual_wield&&steps.filter(q=>q.type==='attack'&&q.item).length===2)damage*=1.2;damage=Math.max(0,Math.round(damage));if(a.target!==p.id&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))))hit(p.id,a.target,damage,Math.min(1,(p.build.armor_pierce?.2:0)+(damage?ap/damage:0)),armorDamage,true);
-  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse_burn':for(const k of ['burn','majorBurn']){const status=by(t)?.status?.[k];if(status){status.turns=Math.max(0,(status.turns||0)-(e.amount||1));if(!status.turns)delete by(t).status[k];}}break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*2*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
+  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;if(acIsScroll(d)||acIsSpellBook(d)){const liveStaves=castStaves.filter(w=>item(by(p.id),w.iid)?.uses>0);if(!liveStaves.length){log(g,p.name+'：杖が破損して魔法を発動できなかった');continue;}const spellRank=spellDef?.class_rank_provisional||1;const staffRank=Math.max(...liveStaves.map(w=>defs[w.def]?.class_rank_provisional||1));const safeRank=staffRank+(liveStaves.length>=2?1:0);if(spellRank>safeRank){const stressed=liveStaves.sort((x,y)=>(x.uses||0)-(y.uses||0))[0];const current=item(by(p.id),stressed.iid);if(current){current.uses=0;current.usedInBattle=true;log(g,name(stressed.def)+'は上位魔法に耐えられず破損！');}}}const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse_burn':for(const k of ['burn','majorBurn']){const status=by(t)?.status?.[k];if(status){status.turns=Math.max(0,(status.turns||0)-(e.amount||1));if(!status.turns)delete by(t).status[k];}}break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*2*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
  }
  }
  currentActionKey=null;
@@ -20092,7 +20084,7 @@ window.AlchemistRules = (()=>{
    let motion='guard';
    if(a.type==='attack')motion=magic?'magic':ranged?'ranged':/spear|lance|trident|rapier/.test(family+' '+id)?'thrust':/axe|hammer|mace|club/.test(family+' '+id)?'smash':'slash';
    if(a.type==='use')motion=(acIsScroll(d)||acIsSpellBook(d))?'magic':d?.kind==='food'?'eat':d?.effects?.some(e=>['heal','light_heal_percent','cleanse','increase_max_hp','temporary_barrier'].includes(e.kind))?'drink':/potion|drink|elixir|tonic/.test(id)?'drink':'throw';
-   const allWeapons=(raw.type==='combo'?raw.actions:[raw]).filter(q=>q.type==='attack'&&q.item).map(q=>item(p,q.item)?.def).filter(Boolean);const isSpellUse=a.type==='use'&&(acIsScroll(d)||acIsSpellBook(d));const spellId=isSpellUse?acIsSpellBook(d)?acBookSpell(g,p,item(p,a.item)):toolId:null;const castStaff=isSpellUse?(raw.type==='combo'?raw.actions:[raw]).find(q=>q.type==='attack'&&acIsStaff(defs[item(p,q.item)?.def])&&q.target===a.target):null;const staffId=castStaff?item(p,castStaff.item)?.def:null;
+   const allWeapons=(raw.type==='combo'?raw.actions:[raw]).filter(q=>q.type==='attack'&&q.item).map(q=>item(p,q.item)?.def).filter(Boolean);const isSpellUse=a.type==='use'&&(acIsScroll(d)||acIsSpellBook(d));const spellId=isSpellUse?acIsSpellBook(d)?acBookSpell(g,p,item(p,a.item)):toolId:null;const castStaff=isSpellUse?(raw.type==='combo'?raw.actions:[raw]).find(q=>q.type==='attack'&&acIsStaff(defs[item(p,q.item)?.def])):null;const staffId=castStaff?item(p,castStaff.item)?.def:null;
    // A staff paired with a spell is one cast, not an additional blank attack animation.
    const pairedStaffOnly=a.type==='attack'&&acIsStaff(d)&&raw.type==='combo'&&raw.actions.some(q=>q.type==='use'&&q.target===a.target&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));
    return {_pairedStaffOnly:pairedStaffOnly,actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,spellId,staffId,defendShieldId:defendShield?.def||null,targetShieldId:targetShield&&hits.some(h=>h.sceneKey===p.id+':'+stepIndex&&h.to===target?.id&&h.n>0)?targetShield.def:null,kind:a.type,motion:isSpellUse?'magic':motion,
@@ -20211,7 +20203,7 @@ window.ArtChemist=(()=>{
   return `<div class="ac-direction"><strong>完成カテゴリーの予測</strong>${outcomes.length?outcomes.map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}ができそう</span><b>${q.percent>=1?Number(q.percent.toFixed(1)):Number(q.percent.toFixed(2))}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join(''):'<small>候補を予測できません</small>'}<strong>素材の系統</strong>${d.ranked.slice(0,3).map(q=>`<div class="ac-direction-row"><span>${esc(q.name)}</span><b>${q.percent}%</b></div><div class="ac-direction-meter"><i style="width:${q.percent}%"></i></div>`).join('')}<small>性質：${esc(d.traitNames.join('・'))}</small>${d.reaction?`<p class="ac-mutation-hint">${esc(d.reaction)}</p>`:''}<small></small></div>`;
  }
  function preparation(){const p=me();if(!p?.alive)return `${combatRoster(true)}<div class="ac-panel">観戦中です。バトルキャラを選ぶと詳しい情報を確認できます。</div>`;const plan=R.preview(p,potMode);return `${combatRoster(false)}<div class="ac-prep-shell"><div class="ac-play-grid">${ownEquipment(p)}<main class="ac-panel ac-cauldron-panel"><nav class="ac-tabs"><span class="ac-single-craft-title">錬金</span><span class="ac-flex-spacer"></span></nav><div class="ac-pot-body ${potDisplay==='mini'?'ac-pot-is-mini':potDisplay==='zoom'?'ac-pot-is-zoom':''}"><div class="ac-pot" data-drop="pot">${img(D.potFront,'ac-pot-back')}<div class="ac-pot-items">${p.pot.slice(-5).map(id=>{const i=p.items.find(i=>i.iid===id);return i?art(i.def):''}).join('')}</div>${img(D.potBack,'ac-pot-front')}<div class="ac-pot-cards">${p.pot.map(id=>p.items.find(i=>i.iid===id)).filter(Boolean).map(i=>card(i,true)).join('')}</div></div><div class="ac-pot-tools"><small>投入 ${p.pot.length}枚</small><div class="ac-actions">${button('おすすめ素材','auto')}${button('全部取り出す','clear','',!p.pot.length)}</div></div></div></main><aside class="ac-panel ac-result"><small>錬金結果の予測</small>${craftDirection(p)}${plan?`${plan.random?'<div class="ac-result-placeholder">?</div><h3>性質に応じて錬金</h3><p>候補 '+plan.possibilities+'候補）</p>':art(plan.output,'ac-result-image')+'<h3>'+esc(R.name(plan.output))+' ×'+plan.count+'</h3>'}<p>成功率 ${Math.round(plan.chance*100)}%</p><small>${plan.chance<1?'':''}</small>`:'<div class="ac-result-placeholder">?</div><p>素材を組み合わせよう</p>'}${button('この組み合わせで錬金','craft','class="ac-primary"',!plan)}${button('レシピ図鑑','recipes')}${button(p.ready?'準備完了を取り消す':'錬金を終えて準備完了','ready','class="ac-ready"')}<small></small></aside></div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div><div class="ac-prep-gifts">${gifts()}</div></div>`}
- function battle(){const p=me(),item=p?.items.find(i=>i.iid===useSelected),d=item&&R.defs[item.def],canUse=!!item&&(['weapon','guard_tool'].includes(d.kind)?true:['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use')));return `${combatRoster(false)}${p?.alive?`<div class="ac-battle-shell"><div class="ac-battle-grid"><div class="ac-panel ac-battle-command"><h3>カードを追加</h3><div class="ac-use-drop" data-drop="use"><span>ここにカードをドラッグ</span>${item?`<strong class="ac-use-selected">${art(item.def)}${esc(R.name(item.def))}</strong>`:'<small></small>'}<small>${item&&!canUse?'使用できません':d?.kind==='guard_tool'?'防御':d?.kind==='weapon'?'武器を使用':d&&R.acIsSpellBook(d)?'今回：'+R.name(R.acBookSpell(view,p,item))+'（杖が必要）':d&&R.acIsScroll(d)?'杖が必要':'手の上限：2'}</small></div><strong>追加するカードの対象</strong><div class="ac-target-picks">${view.players.filter(q=>q.alive).map(q=>button((q.id===localId?'自分：':'')+esc(q.name),'pickTarget',`data-value="${esc(q.id)}" class="${target===q.id?'ac-target-active':''}"`,!item)).join('')}</div><p class="ac-target-caption">${target?'対象：'+esc(view.players.find(q=>q.id===target)?.name||''):'対象を選択'}</p><div class="ac-actions">${button('使用欄に追加','performUse','class="ac-primary"',!canUse||(d?.kind!=='guard_tool'&&!target)||(d?.kind==='weapon'&&target===localId&&!R.acIsStaff(d)))}${button('防御する','defend')}${button('対象の装備を見る','inspect','',!target)}</div><div class="ac-planned ac-action-queue" id="acActionQueue"><div class="ac-queue-head"><div><b>使用欄（${battleDraft.length}件）</b><small></small></div><strong>手 ${battleDraft.reduce((n,x)=>{const def=x.item?R.defs[p.items.find(i=>i.iid===x.item)?.def]:null;return n+(x.type==='attack'||x.type==='defend'?(def?R.handCost(def):2):x.type==='use'?R.handCost(def):0)},0)} / 2</strong></div><div class="ac-queue-list">${battleDraft.length?battleDraft.map((x,index)=>{const used=x.item?p.items.find(it=>it.iid===x.item):null,def=used&&R.defs[used.def],selfAction=x.type==='defend',who=view.players.find(q=>q.id===x.target),isScroll=def&&R.acIsScroll?.(def),isBook=def&&R.acIsSpellBook?.(def),bookSpell=isBook?R.acBookSpell(view,p,used):null;return `<article class="ac-queue-item"><div class="ac-queue-top"><b class="ac-queue-num">${index+1}</b>${used?art(used.def):'<span class="ac-queue-icon">防</span>'}<div class="ac-queue-title"><strong>${esc(def?R.name(used.def):x.type==='attack'?'素手攻撃':'防御')}${bookSpell?`<small>今回：${esc(R.name(bookSpell))} · ${esc(effects(R.defs[bookSpell]))}</small>`:''}</strong><small>${x.type==='attack'?'攻撃':x.type==='defend'?'防御':isBook||isScroll?'杖と魔法を発動':'使用'} · 手 ${def?R.handCost(def):2}</small></div>${button('削除','removeDraft',`data-index="${index}" class="ac-queue-remove"`,p.ready)}</div><div class="ac-queue-target"><span>対象：${esc(selfAction?'自分':who?.name||'未指定')}</span>${selfAction?'<small>防御は自分に使用</small>':`<div class="ac-queue-targets">${view.players.filter(q=>q.alive&&(x.type!=='attack'||q.id!==localId||R.acIsStaff(def))).map(q=>button(q.id===localId?'自分':esc(q.name),'draftTarget',`data-index="${index}" data-value="${esc(q.id)}" class="${x.target===q.id?'ac-target-active':''}"`,p.ready)).join('')}</div>`}</div></article>`}).join(''):'<div class="ac-queue-empty">カードをドラッグ</div>'}</div>${button('使用欄を空にする','clearBattle','class="ac-queue-clear"',p.ready||!battleDraft.length)}</div>${button(p.ready?'準備完了を取り消す':'この行動で準備完了','ready','class="ac-primary"')}</div>${ownEquipment(p)}</div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div></div>`:'<div class="ac-panel">観戦中です。バトルキャラを選んで装備を確認できます。</div>'}` }
+ function battle(){const p=me(),item=p?.items.find(i=>i.iid===useSelected),d=item&&R.defs[item.def],canUse=!!item&&(['weapon','guard_tool'].includes(d.kind)?true:['food','consumable'].includes(d.kind)||(d.kind==='material'&&d.effects?.some(e=>e.trigger==='on_use')));return `${combatRoster(false)}${p?.alive?`<div class="ac-battle-shell"><div class="ac-battle-grid"><div class="ac-panel ac-battle-command"><h3>カードを追加</h3><div class="ac-use-drop" data-drop="use"><span>ここにカードをドラッグ</span>${item?`<strong class="ac-use-selected">${art(item.def)}${esc(R.name(item.def))}</strong>`:'<small></small>'}<small>${item&&!canUse?'使用できません':d?.kind==='guard_tool'?'防御':d?.kind==='weapon'?'武器を使用':d&&R.acIsSpellBook(d)?'今回：'+R.name(R.acBookSpell(view,p,item))+'（杖が必要）':d&&R.acIsScroll(d)?'杖が必要':'手の上限：2'}</small></div><strong>追加するカードの対象</strong><div class="ac-target-picks">${view.players.filter(q=>q.alive).map(q=>button((q.id===localId?'自分：':'')+esc(q.name),'pickTarget',`data-value="${esc(q.id)}" class="${target===q.id?'ac-target-active':''}"`,!item)).join('')}</div><p class="ac-target-caption">${target?'対象：'+esc(view.players.find(q=>q.id===target)?.name||''):'対象を選択'}</p><div class="ac-actions">${button('使用欄に追加','performUse','class="ac-primary"',!canUse||(d?.kind!=='guard_tool'&&!target)||(d?.kind==='weapon'&&target===localId&&!R.acIsStaff(d)))}${button('防御する','defend')}${button('対象の装備を見る','inspect','',!target)}</div><div class="ac-planned ac-action-queue" id="acActionQueue"><div class="ac-queue-head"><div><b>使用欄（${battleDraft.length}件）</b><small></small></div><strong>手 ${battleDraft.reduce((n,x)=>{const def=x.item?R.defs[p.items.find(i=>i.iid===x.item)?.def]:null;return n+(x.type==='attack'||x.type==='defend'?(def?R.handCost(def):2):x.type==='use'?R.handCost(def):0)},0)} / 2</strong></div><div class="ac-queue-list">${battleDraft.length?battleDraft.map((x,index)=>{const used=x.item?p.items.find(it=>it.iid===x.item):null,def=used&&R.defs[used.def],selfAction=x.type==='defend',who=view.players.find(q=>q.id===x.target),isScroll=def&&R.acIsScroll?.(def),isBook=def&&R.acIsSpellBook?.(def),bookSpell=isBook?R.acBookSpell(view,p,used):null;return `<article class="ac-queue-item"><div class="ac-queue-top"><b class="ac-queue-num">${index+1}</b>${used?art(used.def):'<span class="ac-queue-icon">防</span>'}<div class="ac-queue-title"><strong>${esc(def?R.name(used.def):x.type==='attack'?'素手攻撃':'防御')}${bookSpell?`<small>今回：${esc(R.name(bookSpell))} · ${esc(effects(R.defs[bookSpell]))}</small>`:''}</strong><small>${x.type==='attack'?'攻撃':x.type==='defend'?'防御':isBook||isScroll?'杖で魔法を発動':'使用'} · 手 ${def?R.handCost(def):2}</small></div>${button('削除','removeDraft',`data-index="${index}" class="ac-queue-remove"`,p.ready)}</div><div class="ac-queue-target"><span>対象：${esc(selfAction?'自分':who?.name||'未指定')}</span>${selfAction?'<small>防御は自分に使用</small>':`<div class="ac-queue-targets">${view.players.filter(q=>q.alive&&(x.type!=='attack'||q.id!==localId||R.acIsStaff(def))).map(q=>button(q.id===localId?'自分':esc(q.name),'draftTarget',`data-index="${index}" data-value="${esc(q.id)}" class="${x.target===q.id?'ac-target-active':''}"`,p.ready)).join('')}</div>`}</div></article>`}).join(''):'<div class="ac-queue-empty">カードをドラッグ</div>'}</div>${button('使用欄を空にする','clearBattle','class="ac-queue-clear"',p.ready||!battleDraft.length)}</div>${button(p.ready?'準備完了を取り消す':'この行動で準備完了','ready','class="ac-primary"')}</div>${ownEquipment(p)}</div><div class="ac-lower-grid">${hand(p)}${detail(p)}</div></div>`:'<div class="ac-panel">観戦中です。バトルキャラを選んで装備を確認できます。</div>'}` }
  function actionLabel(a){if(!a)return'未選択（時間切れで防御）';if(a.type==='combo')return a.actions.map((x,i)=>(i+1)+'. '+actionLabel(x)).join(' ／ ')||'未選択';return a.type==='defend'?'防御':`${a.type==='attack'?(a.item?R.name(me()?.items.find(i=>i.iid===a.item)?.def||'武器'):'素手で攻撃'):R.name(me()?.items.find(i=>i.iid===a.item)?.def||'アイテム')} → ${view.players.find(p=>p.id===a.target)?.name||'対象'}`}
  function hand(p){const available=p.items.filter(i=>!i.equipped&&!p.pot.includes(i.iid)),arr=available.filter(i=>filter==='all'||R.defs[i.def].kind===filter),pageSize=stage.clientWidth<=690?8:12,pages=Math.max(1,Math.ceil(arr.length/pageSize));handPage=Math.min(handPage,pages-1);const shown=arr.slice(handPage*pageSize,handPage*pageSize+pageSize);return `<section class="ac-panel ac-inventory" data-drop="hand"><div class="ac-section-heading"><h3>手札 <small>${available.length}枚</small></h3><div class="ac-hand-controls"><select id="acFilter" aria-label="手札の種類"><option value="all">すべて</option>${Object.entries(kinds).map(([k,n])=>`<option value="${k}" ${filter===k?'selected':''}>${n}</option>`).join('')}</select>${button('◀ 前へ','handPrev','aria-label="前のページ" class="ac-page-btn"',handPage===0)}<small>${handPage+1}/${pages}</small>${button('次へ ▶','handNext','aria-label="次のページ" class="ac-page-btn"',handPage>=pages-1)}</div></div><div class="ac-hand">${shown.map(i=>card(i)).join('')||'<p>この種類のカードはありません。</p>'}</div></section>`}
  function detail(p){
@@ -20423,7 +20415,7 @@ window.ArtChemist=(()=>{
   const actions=[...battleDraft];const chosen=next.item?p.items.find(i=>i.iid===next.item):null;const def=chosen&&R.defs[chosen.def];
   if(next.type==='use'&&def&&(R.acIsScroll(def)||R.acIsSpellBook(def))){
    if(R.acSpellIsSelf(view,p,chosen))next={...next,target:localId};
-   let matching=actions.some(a=>a.type==='attack'&&a.target===next.target&&R.acIsStaff(R.defs[p.items.find(i=>i.iid===a.item)?.def]));
+   let matching=actions.some(a=>a.type==='attack'&&R.acIsStaff(R.defs[p.items.find(i=>i.iid===a.item)?.def]));
    if(!matching){const used=new Set(actions.map(a=>a.item).filter(Boolean));const wand=p.items.find(i=>R.acIsStaff(R.defs[i.def])&&i.uses>0&&!used.has(i.iid)&&!p.pot.includes(i.iid));
     if(!wand){toast('魔法には未使用の杖が必要です');return}
     actions.push({type:'attack',item:wand.iid,target:next.target});
@@ -25071,6 +25063,8 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
   flex:1 1 0!important;
 }
 </style>
+
+
 </body></html>
 
 <style>
@@ -25771,3 +25765,86 @@ window.ArtVoice=(()=>{
 @media(max-width:600px){.shadow-vote-choices{grid-template-columns:repeat(3,minmax(0,1fr))}#shadowMeetingVote button{padding:7px 4px;font-size:12px}#shadowDrawSelection{bottom:94px;right:6px}}
 
 </style>
+
+<style id="ac-mobile-viewport-overlay-repair-20261119">
+/* Phone portrait: the chemist occupies the workspace. The shared chat must not
+   create a second grid track or cover the playable screen. */
+@media (max-width:650px) and (orientation:portrait) {
+  #studio#studio#studio.chemist-play { overflow:hidden!important; }
+  #studio#studio#studio.chemist-play>.workspace {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    align-content:stretch!important;
+    align-items:stretch!important;
+    width:100%!important;
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:0!important;
+    overflow:hidden!important;
+    position:relative!important;
+    padding:0!important;
+    gap:0!important;
+  }
+  #studio#studio#studio.chemist-play>.workspace>#chemistStage {
+    grid-area:1 / 1 / 2 / 2!important;
+    display:flex!important;
+    width:100%!important;
+    height:100%!important;
+    max-width:100%!important;
+    max-height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    position:relative!important;
+    z-index:1!important;
+  }
+  #studio#studio#studio.chemist-play>.workspace>#chemistStage[hidden] {display:none!important;}
+  #studio#studio#studio.chemist-play>.workspace>#memberPanel {
+    display:flex!important;
+    position:absolute!important;
+    grid-area:1 / 1 / 2 / 2!important;
+    top:0!important;
+    right:0!important;
+    bottom:0!important;
+    left:auto!important;
+    width:min(86vw,320px)!important;
+    max-width:86vw!important;
+    height:100%!important;
+    max-height:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    border-radius:12px 0 0 12px!important;
+    box-shadow:-6px 0 20px #0c11233d!important;
+    overflow-y:auto!important;
+    z-index:15!important;
+  }
+  #studio#studio#studio.chemist-play.chat-collapsed>.workspace>#memberPanel{display:none!important;}
+  #studio#studio#studio.chemist-play #toggleChatPanel {z-index:23!important;}
+  #studio#studio#studio.chemist-play>.workspace>.toolbox,
+  #studio#studio#studio.chemist-play>.workspace>#viewport {display:none!important;}
+}
+</style>
+<script id="ac-mobile-chat-start-collapsed-20261119">
+/* Keep the canvas-sized game visible when entering Artchemist on a phone.
+   Opening/closing chat afterwards remains controlled by the existing toggle. */
+(function(){
+  function install(){
+    const studio=document.getElementById('studio');
+    const toggle=document.getElementById('toggleChatPanel');
+    if(!studio || !toggle || studio.dataset.acMobileChatObserver==='1')return;
+    studio.dataset.acMobileChatObserver='1';
+    let inGame=studio.classList.contains('chemist-play');
+    const initial=()=>{
+      const active=studio.classList.contains('chemist-play');
+      if(active && !inGame && window.matchMedia('(max-width:650px) and (orientation:portrait)').matches && !studio.classList.contains('chat-collapsed')){
+        toggle.click();
+      }
+      inGame=active;
+    };
+    new MutationObserver(initial).observe(studio,{attributes:true,attributeFilter:['class']});
+    if(inGame && window.matchMedia('(max-width:650px) and (orientation:portrait)').matches && !studio.classList.contains('chat-collapsed')) toggle.click();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+</script>
