@@ -4012,6 +4012,27 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-hp{color:#ff6775!important;text-shadow:0 2px 2px #5b101c,0 0 11px #ed3846!important}
 @media(max-width:600px){#chemistStage .ac-cinema-target .ac-worn-armor-icon{width:22px;height:22px;flex-basis:22px}#chemistStage .ac-cinema-target .ac-cinema-worn-armor{min-height:22px;gap:2px}#chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-number{font-size:17px}}
 </style>
+
+<style id="ac-phone-collapse-grid-root-fix">
+/* Only Artchemist on narrow portrait phones. The old layout has no automatic
+   chat collapse; when the user closes chat manually, the stage fills the
+   single available grid row instead of leaving an implicit empty row. */
+@media (max-width:650px) and (orientation:portrait) {
+ #studio.chemist-play.chat-collapsed > .workspace {
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:minmax(0,1fr)!important;
+ }
+ #studio.chemist-play.chat-collapsed > .workspace > #chemistStage {
+   grid-column:1!important;
+   grid-row:1!important;
+   min-height:0!important;
+   height:100%!important;
+ }
+ #studio.chemist-play.chat-collapsed > .workspace > #memberPanel {
+   display:none!important;
+ }
+}
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -25883,26 +25904,4 @@ window.ArtVoice=(()=>{
 </style>
 
 
-<script id="ac-mobile-chat-start-collapsed-20261119">
-/* Keep the canvas-sized game visible when entering Artchemist on a phone.
-   Opening/closing chat afterwards remains controlled by the existing toggle. */
-(function(){
-  function install(){
-    const studio=document.getElementById('studio');
-    const toggle=document.getElementById('toggleChatPanel');
-    if(!studio || !toggle || studio.dataset.acMobileChatObserver==='1')return;
-    studio.dataset.acMobileChatObserver='1';
-    let inGame=studio.classList.contains('chemist-play');
-    const initial=()=>{
-      const active=studio.classList.contains('chemist-play');
-      if(active && !inGame && window.matchMedia('(max-width:650px) and (orientation:portrait)').matches && !studio.classList.contains('chat-collapsed')){
-        toggle.click();
-      }
-      inGame=active;
-    };
-    new MutationObserver(initial).observe(studio,{attributes:true,attributeFilter:['class']});
-    if(inGame && window.matchMedia('(max-width:650px) and (orientation:portrait)').matches && !studio.classList.contains('chat-collapsed')) toggle.click();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-})();
-</script>
+
