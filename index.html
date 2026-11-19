@@ -2677,7 +2677,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 .ac-ency-list article strong,.ac-ency-list article small{display:block}
 .ac-ency-list article p{font-size:11px;margin:4px 0}
 .ac-inspect-large .ac-portrait{height:230px;width:200px;max-width:100%}
-.ac-card[data-card]{touch-action:none} .ac-drag-ghost{position:fixed;left:-9999px;top:-9999px;width:74px;height:74px;display:grid;place-items:center;background:#352949;border:2px solid #d6ad6c;border-radius:12px;pointer-events:none;z-index:9999}.ac-drag-ghost img{width:58px;height:58px;object-fit:contain;image-rendering:pixelated}
+.ac-drag-ghost{position:fixed;left:-9999px;top:-9999px;width:74px;height:74px;display:grid;place-items:center;background:#352949;border:2px solid #d6ad6c;border-radius:12px;pointer-events:none;z-index:9999}.ac-drag-ghost img{width:58px;height:58px;object-fit:contain;image-rendering:pixelated}
 .ac-flash{position:sticky;bottom:15%;z-index:50;margin:-80px auto 0;max-width:max-content;background:linear-gradient(120deg,#38274de8,#79623be8);color:#fff4cf;border:2px solid #e9ca88;border-radius:16px;padding:17px 28px;font-size:clamp(18px,3vw,30px);font-weight:900;pointer-events:none;text-align:center;animation:ac-flash-show 1.35s ease-out forwards}
 @keyframes ac-flash-show{0%{opacity:0;transform:translateY(22px) scale(.85)}25%{opacity:1;transform:translateY(0) scale(1.07)}75%{opacity:1;transform:translateY(-7px) scale(1)}100%{opacity:0;transform:translateY(-30px) scale(.97)}}
 @container (max-width:790px){#chemistStage .ac-play-grid{grid-template-columns:minmax(150px,.8fr) minmax(200px,1.5fr)!important}#chemistStage .ac-play-grid .ac-result{grid-column:1/-1!important}#chemistStage .ac-players{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -3916,21 +3916,22 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 }
 <style id="ac-magic-book-animation-20261118">
 /* Mirror the weapon artwork horizontally, then rotate it 90 degrees counterclockwise. The holder and character portrait stay unchanged. */
-/* Keep the last-use weapon visible AND animated, including weapons with 1 durability. */
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item{transform:rotate(-23deg)!important;}
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-slash .ac-held-item,
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-thrust .ac-held-item,
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-smash .ac-held-item{animation:acWeaponFinalStrike 1.65s ease-in-out var(--ac-elapsed) both!important;}
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-ranged .ac-held-item,
-#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-magic .ac-held-item{animation:acWeaponFinalAim 1.65s ease-in-out var(--ac-elapsed) both!important;}
-@keyframes acWeaponFinalStrike{0%,100%{translate:0 0;}24%{translate:4% -5%;}43%,56%{translate:58% -22%;}76%{translate:12% -9%;}}
-@keyframes acWeaponFinalAim{0%,100%{translate:0 0;}30%,65%{translate:40% -12%;}}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item{transform:rotate(-23deg)!important;animation:none!important;}
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item img,
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item .ac-fallback{transform:scaleX(-1) rotate(-90deg)!important;transform-origin:center center!important;}
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-offhand{position:absolute;left:-4%;bottom:6%;width:27%;height:40%;z-index:3;transform:rotate(-16deg);filter:drop-shadow(0 4px 8px #0009)}
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-offhand img,
 #studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-offhand .ac-fallback{height:100%;width:100%;object-fit:contain;image-rendering:pixelated}
 #chemistStage .ac-queue-title small{display:block;font-size:11px;font-weight:600;line-height:1.4}
+</style>
+<style id="ac-desktop-recent-combat-animation">
+@media (min-width:901px){
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-held-item{animation:acWeaponFinalStrike 1.65s ease-in-out var(--ac-elapsed) both!important}
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-ranged .ac-held-item,
+#studio.chemist-play #chemistStage.ac-layout-resolution .ac-motion-magic .ac-held-item{animation:acWeaponFinalAim 1.65s ease-in-out var(--ac-elapsed) both!important}
+}
+@keyframes acWeaponFinalStrike{0%,100%{translate:0 0}24%{translate:4% -5%}43%,56%{translate:58% -22%}76%{translate:12% -9%}}
+@keyframes acWeaponFinalAim{0%,100%{translate:0 0}30%,65%{translate:40% -12%}}
 </style>
 <style id="ac-draw-and-scene-sync-20261118">
 #acDrawNotice .ac-new-draw-card .ac-new-draw-icon{display:block!important;width:clamp(104px,17vw,148px)!important;height:clamp(104px,17vw,148px)!important;max-width:none!important;max-height:none!important;object-fit:contain;image-rendering:pixelated;margin:0 auto;flex-shrink:0}
@@ -3973,7 +3974,7 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 #acLobbyBuilder .ac-character-file-input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;font-size:100px}
 #acLobbyBuilder .ac-character-file-button.ac-file-disabled{opacity:.65;cursor:not-allowed;background:#3e3845;color:#d4cadb}
 #acLobbyBuilder .ac-character-file-button.ac-file-disabled input{cursor:not-allowed}
-@media(max-width:620px){#acLobbyBuilder .ac-build>aside:first-child>.ac-character-file-button{grid-column:2;margin:0;min-height:38px;padding:5px 7px}}
+
 </style>
 <style id="ac-multiplication-recipe-filters">
 #acRecipeSearch{min-width:130px;flex:1}
@@ -20259,7 +20260,7 @@ window.ArtChemist=(()=>{
      </section>`;
  }
 
- function renderUI(){if(!enabled()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}if(view?.phase==='lobby')$('#studio').classList.remove('chemist-play');if(window.ArtSessionUI?.lobby()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}const active=view&&view.phase!=='lobby';$('#studio').classList.toggle('chemist-play',!!active);stage.hidden=!active;stage.classList.toggle('ac-layout-preparation',view?.phase==='preparation');stage.classList.toggle('ac-layout-battle',view?.phase==='battle');stage.classList.toggle('ac-layout-resolution',view?.phase==='resolution');['build','finished'].forEach(ph=>stage.classList.toggle('ac-layout-'+ph,view?.phase===ph));if(!active)return;if(view.phase==='build'&&me()&&buildGame!==view.id){buildGame=view.id;build={};portrait='';try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{},currentCP());portrait=safeImage(s.image);charFacing=s.facing==='left'?'left':'right'}catch{}if(me().ready){build={...me().build};portrait=me().image;charFacing=me().facing==='left'?'left':'right'}}
+ function renderUI(){if(!enabled()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}if(window.ArtSessionUI?.lobby()){stage.hidden=true;$('#studio').classList.remove('chemist-play');syncLobbyButtons();return}const active=view&&view.phase!=='lobby';$('#studio').classList.toggle('chemist-play',!!active);stage.hidden=!active;stage.classList.toggle('ac-layout-preparation',view?.phase==='preparation');stage.classList.toggle('ac-layout-battle',view?.phase==='battle');stage.classList.toggle('ac-layout-resolution',view?.phase==='resolution');['build','finished'].forEach(ph=>stage.classList.toggle('ac-layout-'+ph,view?.phase===ph));if(!active)return;if(view.phase==='build'&&me()&&buildGame!==view.id){buildGame=view.id;build={};portrait='';try{const s=JSON.parse(localStorage.getItem('artopia-chemist-character')||'{}');build=R.cleanBuild(s.build||{},currentCP());portrait=safeImage(s.image);charFacing=s.facing==='left'?'left':'right'}catch{}if(me().ready){build={...me().build};portrait=me().image;charFacing=me().facing==='left'?'left':'right'}}
  const savedStageScroll=stage.scrollTop;const previousStagePhase=stage.dataset.renderedPhase;
   // Preserve open targeting/roster panels during the frequent host-state redraws.
   const openPanels=[...stage.querySelectorAll('details[open]')].map(el=>({cls:el.className,html:el.querySelector('summary')?.textContent||''}));
@@ -20602,7 +20603,7 @@ window.ArtSessionUI=(()=>{
  }
 
  function status(){badge.hidden=!room;if(!room)return;const m=members.get(localId),caught=room.mode==='wolf'&&(previous.getView?.()?.caught||[]).includes(localId),watch=!!m?.spectator;badge.hidden=connected&&!watch&&!caught;badge.dataset.watching=String(watch||caught);badge.textContent=!connected?'接続が切れています · 再接続を待っています':caught?'閲覧中 · 発見済み人狼（全員発見後に最終回答）':watch?'👁 閲覧中 · 描画・投票には参加していません':'✎ 参加中'+(isHost?' · 部屋主':'');}
- function lobby(){status();if(helping)return false;const yes=active(),returning=!!(yes&&lastPhase&&lastPhase!=='lobby');if(returning&&room?.mode==='chemist')studio.classList.remove('chemist-play');if(returning)restoreLobby();lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=startSlot.hidden=!yes;startSlot.replaceChildren();studio.classList.toggle('shared-lobby',yes);if(!yes)return false;$('#snapshotBtn').hidden=false;
+ function lobby(){status();if(helping)return false;const yes=active(),returning=!!(yes&&lastPhase&&lastPhase!=='lobby');if(returning)restoreLobby();lastPhase=previous.getView?.()?.phase||'lobby';bar.hidden=startSlot.hidden=!yes;startSlot.replaceChildren();studio.classList.toggle('shared-lobby',yes);if(!yes)return false;$('#snapshotBtn').hidden=false;
  studio.classList.remove('relay-mode','game-drawing','wolf-mode','wolf-drawing','answer-mode','answer-drawing','arts-mode','arts-creating','arts-battle','shadow-mode','shadow-creating','shadow-character-editing','chimera-mode','chimera-drawing');
  for(const id of ['gameStage','gameBar','gameReference','wolfStage','wolfBar','answerStage','answerBar','artsStage','artsBar','shadowStage','shadowBar','shadowLiveStats','chimeraStage','chimeraBar','chimeraReference'])if($('#'+id))$('#'+id).hidden=true;
  bar.innerHTML='<button id="lobbyGameSettings" aria-label="ゲーム設定">設定</button><button id="lobbyHelp" aria-label="ゲームモードの説明">ゲーム説明</button>'+(isHost?'<button id="lobbyStart" class="primary">ゲーム開始</button>':'');
@@ -25029,6 +25030,45 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
   display:block!important;visibility:visible!important;opacity:1!important;
   height:100%!important;min-height:0!important;max-height:none!important;
   padding:0!important;margin:0!important;border:0!important;
+}
+</style>
+
+<style id="ac-hand-art-focus-20261119">
+/* Hand icons only: preserve the existing card grid, dimensions and item-detail UI. */
+#studio.chemist-play #chemistStage .ac-hand .ac-card > strong {
+  display:none!important;
+}
+#studio.chemist-play #chemistStage .ac-hand .ac-card > img,
+#studio.chemist-play #chemistStage .ac-hand .ac-card > span.ac-fallback {
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:1 1 0!important;
+  object-fit:contain!important;
+  image-rendering:pixelated;
+  margin:0!important;
+}
+#studio.chemist-play #chemistStage .ac-hand .ac-card > span.ac-fallback {
+  display:grid!important;
+  place-items:center;
+}
+/* Leave a narrow lower overlay for the durability bar, not a dedicated text row. */
+#studio.chemist-play #chemistStage .ac-hand .ac-card {
+  position:relative!important;
+}
+#studio.chemist-play #chemistStage .ac-hand .ac-card > span.ac-hand-durability {
+  bottom:3px!important;
+  z-index:30!important;
+}
+/* Compact 6-by-2 hand tiles should dedicate all available space to the icon. */
+#studio.chemist-play #chemistStage .ac-lower-grid .ac-hand .ac-card > img,
+#studio.chemist-play #chemistStage .ac-lower-grid .ac-hand .ac-card > span.ac-fallback {
+  height:100%!important;
+  max-height:none!important;
+  min-height:0!important;
+  flex:1 1 0!important;
 }
 </style>
 </body></html>
