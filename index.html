@@ -18969,10 +18969,6 @@ window.AlchemistRules = (()=>{
   const prefix=m==='gold'?'golden':m;
   return [['boots',1],['helmet',1],['leggings',2],['chestplate',2]].map(([part,n])=>({id:'chemist_leather_'+m+'_'+part,output_id:prefix+'_'+part,yield_quantity:1,ingredients:[{item_id:m,quantity:n},{item_id:'leather',quantity:1}]})).filter(r=>defs[r.output_id]);
  });
- const coreArmorRecipes=['iron','copper','silver','gold','steel','platinum'].flatMap(m=>{
-  const prefix=m==='gold'?'golden':m;
-  return [['boots',1],['helmet',1],['leggings',2],['chestplate',2]].map(([part,n])=>({id:'chemist_core_'+m+'_'+part,output_id:prefix+'_'+part,yield_quantity:1,ingredients:[{item_id:m,quantity:n}]})).filter(r=>defs[r.output_id]);
- });
  // Short, recognizable staff crafting paths, with magical material required.
  for(const [out,ing] of [
   ['apprentice_staff',{stick:1,magic_raw_stone:1}],
@@ -19057,7 +19053,9 @@ window.AlchemistRules = (()=>{
   source:'artchemist_multiplication',match_policy:'exact_recipe'
  })).filter(r=>defs[r.output_id]&&r.ingredients.every(q=>defs[q.item_id])&&!acDupNames.has(r.id)&&acDupNames.add(r.id));
  D.cards.recipes.unshift(...acMultiplicationRecipes);
- const recipes=[...examples,...armorExtras,...coreArmorRecipes,...D.cards.recipes].filter(r=>{
+ const recipes=[...examples,...armorExtras,...D.cards.recipes].filter(r=>{
+   // Armor cannot be completed using only metal; require a separate shaping material.
+   if(defs[r.output_id]?.kind==='armor'&&r.ingredients.every(q=>['metal','ore'].includes(defs[q.item_id]?.material_category)))return false;
    const used=r.ingredients.find(q=>q.item_id===r.output_id)?.quantity||0;
    return (!used || (r.yield_quantity||1)>used)&&acRecipeRarityAllowed(r);
  });
@@ -19445,7 +19443,7 @@ window.AlchemistRules = (()=>{
    if(hasWeapon&&weaponMoldFamily&&!acFamilies(d).includes(weaponMoldFamily))continue;
    if(['weapon','armor','guard_tool'].includes(d.kind)&&((!gearFamilyCompatible(d)&&!moldCompatible)||(!acHasRequiredMaterial(inputs,d)&&!moldCompatible&&!armorTraitPath)))continue;
    // Higher-rank metal must not replace the second physical metal card for legs/body.
-   if(d.kind==='armor'&&armorMetalInputs.length<armorCoreNeed&&!hasArmor)continue;
+   if(d.kind==='armor'&&!hasArmor&&(!armorTraitInputs.length||armorMetalInputs.length<armorCoreNeed))continue;
    const rank=d.class_rank_provisional||1,ft=acTraits(d),df=acFamilies(d),outKind=d.kind;
    if(onlyPotions&&!df.includes('food:potion'))continue;
    if(onlyFungi&&!df.includes('food:fungus'))continue;
@@ -19680,6 +19678,33 @@ window.AlchemistRules = (()=>{
  }
 
  function acArmorSlotTraits(slot){return {boots:['lightweight','herbaceous','fiber','wind'],helmet:['magic','crystal','mind','light'],leggings:['flexible','elastic','plant','fiber'],chestplate:['hard','heavy','earth','metallic']}[slot]||[];}
+ // The metal count determines armor size; a distinct supplementary material chooses its shape.
+ function acMetalArmorPlan(parts,matches){
+  const metals=parts.filter(i=>defs[i.def]?.kind==='material'&&['metal','ore'].includes(String(defs[i.def].material_category||''))&&!['coal','remnant_shard'].includes(i.def));
+  const extra=parts.filter(i=>!metals.includes(i));
+  if(![1,2].includes(metals.length)||!extra.length||extra.some(i=>defs[i.def]?.kind!=='material'))return null;
+  // Preserve specialized combinations for explicitly authored weapons, shields and other objects.
+  if(matches.some(r=>defs[r.output_id]?.kind!=='armor'))return null;
+  const core=acCoreMaterial(metals.map(i=>({d:defs[i.def],w:acEffectiveWeight(i)})));
+  const prefix=({gold:'golden'})[core?.id]||core?.id;
+  const slots=metals.length===1?['boots','helmet']:['leggings','chestplate'];
+  const traits=extra.flatMap(i=>acTraits(defs[i.def]));
+  const scores=slots.map(slot=>{
+   let score=traits.reduce((n,t)=>n+(acArmorSlotTraits(slot).includes(t)?2:0),0);
+   if(slot==='helmet'&&traits.includes('hard'))score+=3;
+   if(slot==='chestplate'&&traits.includes('hard'))score+=3;
+   if((slot==='boots'||slot==='leggings')&&traits.includes('flexible'))score+=2;
+   return {slot,score,id:prefix+'_'+slot};
+  }).filter(x=>defs[x.id]);
+  if(!scores.length||scores.every(x=>x.score===0))return null;
+  scores.sort((a,b)=>b.score-a.score||(a.slot==='helmet'||a.slot==='chestplate'?-1:1));
+  const selected=scores[0];
+  // Do not manufacture an item several rarity tiers above its ingredients.
+  const maxRank=Math.max(...parts.map(i=>defs[i.def].class_rank_provisional||1));
+  if((defs[selected.id].class_rank_provisional||1)>maxRank+1)return null;
+  return {output:selected.id,count:1,chance:1,recipe:'ac_trait_metal_armor_'+selected.slot};
+ }
+
  function acOutputTraits(d){return acTraits(d);}
  function acTraitSimilarity(a,b){const t=new Set(acOutputTraits(a));return acOutputTraits(b).reduce((sum,x)=>sum+(t.has(x)?1:0),0)}
  for(const d of Object.values(defs))d.alchemy_traits=acTraits(d);
@@ -19784,6 +19809,7 @@ window.AlchemistRules = (()=>{
   const wooden=parts.length>=2&&parts.every(i=>defs[i.def]?.material_category==='wood')&&new Set(parts.map(i=>i.def)).size===1;
   if(wooden){const board=matches.find(r=>r.output_id==='wooden_board');if(board)return {output:'wooden_board',count:board.yield_quantity||1,chance:1,recipe:board.id};}
   const forced=mutationReaction(parts);if(forced&&defs[forced.output]&&!parts.some(i=>i.def===forced.output))return {output:forced.output,count:1,chance:1,recipe:'mutation_'+forced.output,mutation:forced.note};
+  const shapedArmor=acMetalArmorPlan(parts,matches);if(shapedArmor)return shapedArmor;
   const isBare=parts.every(i=>defs[i.def]?.kind==='material')&&new Set(parts.map(i=>i.def)).size===1;
   // Existing all-one-material recipes are intentionally preserved, including one-card recipes.
   if(isBare&&matches.length){return {output:matches[0].output_id,count:matches[0].yield_quantity||1,chance:1,recipe:matches[0].id,legacyChoices:matches.map(r=>({id:r.output_id,count:r.yield_quantity||1,recipe:r.id}))};}
