@@ -25708,12 +25708,18 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
 </script>
 
 <style id="artopia-stable-sidebar">
-/* The composer occupies only the canvas/chat columns. Keep the sidebar at its
-   full original height even though the workspace reserves a footer row. */
+/* iPad and other limited-height layouts: the warehouse must remain inside the
+   visible toolbox.  Only the tool list scrolls; the warehouse is its footer. */
 #studio.art-chat-sidebar.chat-composer-wide:not(.chat-collapsed)>.workspace>.toolbox{
- height:calc(100% + var(--art-chat-dock-height,0px));
- max-height:none;align-self:start;box-sizing:border-box;
- margin-bottom:calc(-1 * var(--art-chat-dock-height,0px));
+ height:100%; max-height:100%; min-height:0;
+ align-self:stretch; box-sizing:border-box; margin-bottom:0;
+ overflow:hidden; display:flex; flex-direction:column;
+}
+#studio.art-chat-sidebar.chat-composer-wide:not(.chat-collapsed)>.workspace>.toolbox>#toolButtons{
+ flex:1 1 0; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+}
+#studio.art-chat-sidebar.chat-composer-wide:not(.chat-collapsed)>.workspace>.toolbox>#artToolWarehouse{
+ display:block; flex:0 0 auto; margin-top:0; position:relative;
 }
 </style>
 
