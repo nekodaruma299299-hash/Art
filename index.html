@@ -19892,6 +19892,7 @@ window.ArtChemist=(()=>{
   if(grid){
    // Keep alchemy and battle controls visible together; equipment opens independently.
    grid.dataset.compactPane='all';
+   grid.closest('.ac-prep-shell,.ac-battle-shell').classList.add('ac-phone-board');
    const tabs=grid.previousElementSibling;if(tabs?.classList.contains('ac-compact-tabs'))tabs.remove();
    const own=grid.querySelector('.ac-own');
    if(own){
@@ -24766,6 +24767,29 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  #studio#studio.chemist-play #chemistStage#chemistStage .ac-play-grid,#studio#studio.chemist-play #chemistStage#chemistStage .ac-battle-grid{grid-column:1!important;grid-row:2!important}
  #studio#studio.chemist-play #chemistStage#chemistStage .ac-lower-grid{grid-column:2!important;grid-row:1/3!important}
  #studio#studio.chemist-play #chemistStage#chemistStage .ac-pot-body:not(.ac-pot-is-zoom) .ac-pot{max-width:88px!important}
+}
+</style>
+<style id="ac-phone-board-height-fix">
+@media (max-width:620px), (max-width:1000px) and (max-height:500px) and (pointer:coarse){
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board{height:auto!important;min-height:442px!important;flex:1 0 442px!important;grid-template-rows:34px minmax(168px,1fr) 232px!important;gap:4px!important}
+#studio#studio.chemist-play #chemistStage#chemistStage:is(.ac-layout-preparation,.ac-layout-battle){overflow-y:auto!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-lower-grid{grid-column:1!important;grid-row:3!important;box-sizing:border-box!important;height:232px!important;min-height:232px!important;grid-template-rows:184px 44px!important;gap:4px!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-inventory{box-sizing:border-box!important;display:grid!important;grid-template-rows:40px minmax(0,1fr)!important;gap:3px!important;padding:4px!important;height:100%!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-inventory>.ac-hand{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr))!important;grid-auto-flow:row!important;align-items:stretch!important;align-content:stretch!important;height:100%!important;min-height:0!important;max-height:none!important;flex:none!important;padding:1px!important;gap:3px!important;overflow:hidden!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:center!important;flex:none!important;width:100%!important;height:100%!important;min-height:0!important;min-width:0!important;padding:2px!important;gap:1px!important;overflow:hidden!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card>img{flex:1 1 0!important;min-height:0!important;height:0!important;max-height:none!important;width:100%!important;object-fit:contain!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-hand>.ac-card>strong{flex:0 0 12px!important;line-height:12px!important;font-size:9px!important;width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid{display:grid!important;grid-column:1!important;grid-row:2!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important;grid-template-rows:minmax(0,1fr)!important;align-items:stretch!important;gap:4px!important;height:100%!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid>.ac-cauldron-panel{grid-area:1 / 1 / 2 / 2!important;display:flex!important;min-width:0!important;min-height:0!important;height:100%!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-play-grid>.ac-result{grid-area:1 / 2 / 2 / 3!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important;align-items:stretch!important;justify-content:normal!important;min-width:0!important;height:100%!important;overflow:hidden!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-result-summary{width:100%!important;min-height:0!important;height:100%!important;max-height:none!important;overflow:auto!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-result-controls{display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-self:end!important;max-height:none!important;width:100%!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-pot-body:not(.ac-pot-is-zoom){display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important;min-height:0!important;height:100%!important;gap:2px!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board .ac-pot-body:not(.ac-pot-is-zoom) .ac-pot{box-sizing:border-box!important;width:104px!important;height:104px!important;max-width:100%!important;max-height:100%!important;min-height:0!important;margin:auto!important;align-self:center!important}
+}
+@media (max-width:1000px) and (max-height:500px) and (orientation:landscape) and (pointer:coarse){
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board{min-height:240px!important;flex-basis:240px!important;grid-template-rows:34px minmax(0,1fr)!important}
+#studio#studio.chemist-play #chemistStage#chemistStage .ac-phone-board>.ac-lower-grid{grid-column:2!important;grid-row:1 / 3!important;height:100%!important;min-height:232px!important}
 }
 </style>
 </body></html>
