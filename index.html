@@ -25063,6 +25063,27 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  #studio.wolf-mode #wolfBar .wolf-word strong{font-size:22px}
 }
 </style>
+<!-- Artchemist durability meter: keep visible over compact card span-hiding rules -->
+<style id="ac-durability-visible-fix">
+/* Only the hand-card durability meter; do not expose hidden stat/detail spans. */
+#studio.chemist-play #chemistStage .ac-hand .ac-card > span.ac-hand-durability,
+#studio.chemist-play #chemistStage .ac-lower-grid .ac-hand .ac-card > span.ac-hand-durability,
+#studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand.ac-hand-all .ac-card > span.ac-hand-durability,
+#studio.chemist-play #chemistStage.ac-layout-battle .ac-lower-grid .ac-hand .ac-card > span.ac-hand-durability {
+  display:block!important;visibility:visible!important;opacity:1!important;
+  position:absolute!important;left:8%!important;right:8%!important;bottom:3px!important;
+  width:auto!important;height:6px!important;min-height:6px!important;max-height:6px!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  background:#191919!important;border:1px solid #050505!important;border-radius:2px!important;
+  box-shadow:0 0 0 1px #ffffff80!important;pointer-events:none!important;z-index:20!important;
+  flex:none!important;line-height:normal!important;
+}
+#studio.chemist-play #chemistStage .ac-hand .ac-card > span.ac-hand-durability > span.ac-hand-durability-fill {
+  display:block!important;visibility:visible!important;opacity:1!important;
+  height:100%!important;min-height:0!important;max-height:none!important;
+  padding:0!important;margin:0!important;border:0!important;
+}
+</style>
 </body></html>
 
 <style>
@@ -25762,4 +25783,80 @@ window.ArtVoice=(()=>{
 @media(max-height:600px){#shadowMeetingVote{max-height:48%;min-height:60px}#shadowMeetingScreen{overflow:auto}.shadow-meeting-main{min-height:130px!important}}
 @media(max-width:600px){.shadow-vote-choices{grid-template-columns:repeat(3,minmax(0,1fr))}#shadowMeetingVote button{padding:7px 4px;font-size:12px}#shadowDrawSelection{bottom:94px;right:6px}}
 
+</style>
+<style id="artchemist-phone-cascade-fix">
+/* 2026-11-19 phone layout cascade reconciliation. Artchemist only.
+   The old portrait grid had a higher-specificity third chat row which survived
+   the floating chat drawer; force the same two-row grid in both chat states. */
+@media screen and (max-width:650px) and (orientation:portrait){
+ #studio.chemist-play:not(.chat-collapsed) > .workspace,
+ #studio.chemist-play.chat-collapsed > .workspace{
+   position:relative!important;
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:44px minmax(0,1fr)!important;
+   min-width:0!important;min-height:0!important;
+   overflow:hidden!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) > .workspace > #chemistStage,
+ #studio.chemist-play.chat-collapsed > .workspace > #chemistStage{
+   grid-column:1!important;grid-row:2!important;
+   width:100%!important;height:100%!important;
+   min-width:0!important;min-height:0!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) > .workspace > #memberPanel{
+   grid-column:auto!important;grid-row:auto!important;
+   position:absolute!important;left:0!important;right:0!important;top:auto!important;bottom:0!important;
+   width:100%!important;height:min(43dvh,340px)!important;
+   max-width:100%!important;min-height:0!important;
+   overflow:hidden!important;z-index:25!important;
+   display:flex!important;flex-direction:column!important;
+ }
+ #studio.chemist-play.chat-collapsed > .workspace > #memberPanel{display:none!important}
+ /* The chat toggle belongs to #studio, not to .workspace. Anchor it to
+    the same bottom edge as the drawer, not the previous grid row. */
+ #studio.chemist-play:not(.chat-collapsed) > #toggleChatPanel{
+   position:fixed!important;top:auto!important;
+   bottom:calc(min(43dvh,340px) + max(6px,env(safe-area-inset-bottom)))!important;
+   right:8px!important;left:auto!important;z-index:50!important;
+ }
+ #studio.chemist-play.chat-collapsed > #toggleChatPanel{
+   position:fixed!important;top:auto!important;
+   bottom:calc(12px + env(safe-area-inset-bottom))!important;
+   right:8px!important;left:auto!important;z-index:50!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel .member-bottom,
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel .studio-chatbar{
+   display:flex!important;flex-direction:column!important;
+   flex:1 1 0!important;min-height:0!important;min-width:0!important;overflow:hidden!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #recentComment{
+   display:block!important;flex:1 1 0!important;min-height:0!important;
+   overflow-y:auto!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatForm{
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr) auto auto!important;
+   grid-template-rows:38px 34px!important;
+   height:76px!important;min-height:76px!important;max-height:76px!important;
+   flex:0 0 76px!important;overflow:visible!important;
+ }
+ #studio.chemist-play:not(.chat-collapsed) #memberPanel #inlineChatInput{
+   grid-column:1/-1!important;grid-row:1!important;
+   width:100%!important;min-width:0!important;height:38px!important;min-height:38px!important;
+   font-size:16px!important;
+ }
+ /* Two-column upper cauldron/result and a 6x2 hand were already in the
+    latest layout. Ensure generic container flex fallbacks cannot override them. */
+ #studio.chemist-play #chemistStage.ac-layout-preparation .ac-play-grid{
+   display:grid!important;
+   grid-template-columns:minmax(0,.6fr) minmax(0,1.4fr)!important;
+   gap:4px!important;min-width:0!important;
+ }
+ #studio.chemist-play #chemistStage.ac-layout-preparation .ac-lower-grid .ac-hand:not(.ac-hand-all){
+   display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+   grid-template-rows:repeat(2,minmax(0,1fr))!important;
+   min-width:0!important;
+ }
+}
 </style>
