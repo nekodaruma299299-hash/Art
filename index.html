@@ -3998,6 +3998,20 @@ body.art-cursor-custom :is(#home,#studio) :is(input[type="text"],input[type="sea
 }
 #chemistStage .ac-card .ac-hand-durability{display:none!important}
 </style>
+
+<style id="ac-combat-armor-damage-visuals-20261119">
+/* Combat-only: worn armor above defender, blue armor badge and distinct damage colors. */
+#chemistStage .ac-cinema-target .ac-cinema-worn-armor{display:flex;justify-content:center;align-items:center;gap:3px;min-height:26px;max-width:100%;flex-wrap:nowrap;overflow:hidden;margin-bottom:3px;position:relative;z-index:6}
+#chemistStage .ac-cinema-target .ac-worn-armor-icon{display:grid;place-items:center;flex:0 1 29px;width:29px;height:29px;min-width:0;background:#241e30cc;border:1px solid #aca0bd;border-radius:5px;padding:2px}
+#chemistStage .ac-cinema-target .ac-worn-armor-art,#chemistStage .ac-cinema-target .ac-worn-armor-icon img{width:100%!important;height:100%!important;object-fit:contain;image-rendering:pixelated}
+#chemistStage .ac-cinema-target .ac-scene-armor{display:flex;justify-content:center;align-items:center;gap:5px;font-size:15px;font-weight:900;color:#b9eaff;text-shadow:0 1px 3px #102a57;line-height:1.2;margin:3px auto}
+#chemistStage .ac-cinema-target .ac-armor-shield{display:grid;place-items:center;min-width:42px;height:37px;padding:2px 5px 5px;color:white;font-size:14px;text-shadow:0 1px 2px #103c7a;background:#237ddd;clip-path:polygon(50% 0,96% 16%,89% 67%,50% 100%,11% 67%,4% 16%);filter:drop-shadow(0 1px 2px #063a7c)}
+#chemistStage .ac-cinema-impact .ac-damage-numbers{position:absolute;inset:0;z-index:8;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px}
+#chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-number{position:relative!important;left:auto!important;top:auto!important;display:block;min-width:max-content;white-space:nowrap;font-size:clamp(17px,3vw,29px);transform-origin:center}
+#chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-armor{color:#53baff!important;text-shadow:0 2px 2px #072c65,0 0 11px #267ddc!important}
+#chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-hp{color:#ff6775!important;text-shadow:0 2px 2px #5b101c,0 0 11px #ed3846!important}
+@media(max-width:600px){#chemistStage .ac-cinema-target .ac-worn-armor-icon{width:22px;height:22px;flex-basis:22px}#chemistStage .ac-cinema-target .ac-cinema-worn-armor{min-height:22px;gap:2px}#chemistStage .ac-cinema-impact .ac-damage-numbers .ac-damage-number{font-size:17px}}
+</style>
 </head><body>
 
 <style id="ac-compact-layout-v172">
@@ -20142,6 +20156,7 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
  g.actionScenes=snapshot.flatMap(p=>{
    const raw=resolvedActions.get(p.id)||{type:'defend'};return (raw.type==='combo'&&raw.actions.length?raw.actions:[raw]).map((a,stepIndex)=>{const target=a.target?by(a.target):null;
    const originalTarget=a.target?snap(a.target):null;
+   const targetArmorItems=(originalTarget?.items||[]).filter(i=>i.equipped&&defs[i.def]?.kind==='armor'&&i.armor>0).map(i=>i.def);
    const targetShield=originalTarget?.items.find(i=>i.equipped&&defs[i.def]?.kind==='guard_tool'&&i.uses>=1);
    const defendShield=a.type==='defend'&&a.item?item(p,a.item):null;
    // Read the pre-resolution snapshot: consumables and broken weapons may already be removed from live inventory.
@@ -20157,13 +20172,13 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
    const allWeapons=(raw.type==='combo'?raw.actions:[raw]).filter(q=>q.type==='attack'&&q.item).map(q=>item(p,q.item)?.def).filter(Boolean);const isSpellUse=a.type==='use'&&(acIsScroll(d)||acIsSpellBook(d));const spellId=isSpellUse?acIsSpellBook(d)?acBookSpell(g,p,item(p,a.item)):toolId:null;const castStaff=isSpellUse?(raw.type==='combo'?raw.actions:[raw]).find(q=>q.type==='attack'&&acIsStaff(defs[item(p,q.item)?.def])):null;const staffId=castStaff?item(p,castStaff.item)?.def:null;
    // A staff paired with a spell is one cast, not an additional blank attack animation.
    const pairedStaffOnly=a.type==='attack'&&acIsStaff(d)&&raw.type==='combo'&&raw.actions.some(q=>q.type==='use'&&q.target===a.target&&(acIsScroll(defs[item(p,q.item)?.def])||acIsSpellBook(defs[item(p,q.item)?.def])));
-   return {_pairedStaffOnly:pairedStaffOnly,actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,spellId,staffId,defendShieldId:defendShield?.def||null,targetShieldId:targetShield&&hits.some(h=>h.sceneKey===p.id+':'+stepIndex&&h.to===target?.id&&h.n>0)?targetShield.def:null,kind:a.type,motion:isSpellUse?'magic':motion,
+   return {_pairedStaffOnly:pairedStaffOnly,actor:p.id,target:target?.id||null,item:toolId,items:allWeapons,spellId,staffId,defendShieldId:defendShield?.def||null,targetShieldId:targetShield&&hits.some(h=>h.sceneKey===p.id+':'+stepIndex&&h.to===target?.id&&h.n>0)?targetShield.def:null,targetArmorItems,kind:a.type,motion:isSpellUse?'magic':motion,
     label:a.type==='attack'?'攻撃':a.type==='use'?(d?.effects?.some(e=>['heal','light_heal_percent','cleanse'].includes(e.kind))?'回復':'アイテム使用'):'防御',
     damage:Math.round(sceneDamage[p.id+':'+stepIndex]||0),armorDamage:Math.round(sceneArmor[p.id+':'+stepIndex]||0),targetHp:target?sceneTargetHp[target.id]||null:null,
      detail:(raw.type==='combo'&&!isSpellUse?(stepIndex+1)+'/'+raw.actions.length+'行動：':'')+(a.type==='attack'?(toolId?name(toolId)+'で攻撃':'素手で攻撃'):a.type==='use'?(spellId?name(spellId)+'を発動':toolId?name(toolId)+'を使用':'アイテムを使用'):'防御の構え')};
   });}).filter(scene=>!scene._pairedStaffOnly);
  // Display each hit at the correct scene, not the final HP from every action at once.
- const shownHp={};
+ const shownHp={},shownArmor={};
  for(const scene of g.actionScenes){
   if(!scene.target||scene.target===scene.actor)continue;
   const original=snap(scene.target),live=by(scene.target);
@@ -20173,6 +20188,10 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
   const after=Math.max(0,before-Math.max(0,scene.damage||0));
   shownHp[scene.target]=after;
   scene.targetHp={before,after,max};
+  const armorBefore=shownArmor[scene.target]??Math.max(0,armorTotal(original));
+  const armorAfter=Math.max(0,armorBefore-Math.max(0,scene.armorDamage||0));
+  shownArmor[scene.target]=armorAfter;
+  scene.targetArmor={before:Math.round(armorBefore),after:Math.round(armorAfter)};
  }
  g.reveal={index:0,startedAt:now,duration:g.settings.sceneSeconds*1000,votes:[],eligible:living.filter(p=>!p.bot).map(p=>p.id)};
  g.pendingWinner=survivors.length<=1?(survivors[0]?.id||null):undefined;
@@ -20328,8 +20347,8 @@ window.ArtChemist=(()=>{
       <header><h2>行動 ${r.index+1} / ${scenes.length}</h2><small>${esc(a?.name||'キャラクター')}の行動 · 時短 ${votes}/${n}</small></header>
       <div class="ac-cinema-stage" role="img" aria-label="${esc(a?.name||'キャラクター')}：${esc(scene.detail)}">
         <div class="ac-cinema-character ac-cinema-actor ${acDebuffClasses(a)}"><div class="ac-hero-frame ac-actor-frame ${a?.facing==='left'?'ac-facing-flip':''}">${actorArt}${itemArt?`<div class="ac-held-item">${itemArt}</div>`:''}${offhandArt?`<div class="ac-held-offhand">${offhandArt}</div>`:''}</div><strong>${esc(a?.name||'プレイヤー')}</strong><span class="ac-debuff-badges">${acDebuffBadges(a)}</span></div>
-        <div class="ac-cinema-impact" aria-hidden="true">${motion==='throw'&&scene.item?`<div class="ac-thrown-item">${art(scene.item,'ac-thrown-art')}</div>`:''}${t&&t.id!==a?.id&&(scene.damage>0||scene.armorDamage>0)?`<span class="ac-damage-number">${scene.damage>0?`−${scene.damage} HP`: `装甲 −${scene.armorDamage}`}</span>`:``}<span class="ac-hit-slash"></span><span class="ac-hit-burst"></span><span class="ac-hit-orb"></span><span class="ac-hit-spark">✦</span></div>
-        ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target ${acDebuffClasses(t)}"><div class="ac-hero-frame ${t.facing!=='left'?'ac-facing-flip':''}">${targetArt}${scene.targetShieldId?`<div class="ac-held-shield">${art(scene.targetShieldId,'ac-combat-shield')}</div>`:''}</div><strong>${esc(t.name)}</strong><div class="ac-scene-hp"><span data-ac-hit-hp>HP ${scene.targetHp?.before??t.hp} / ${scene.targetHp?.max??t.maxHp}</span><progress data-ac-hit-progress data-before="${Math.max(0,scene.targetHp?.before??t.hp)}" data-after="${Math.max(0,scene.targetHp?.after??t.hp)}" max="${Math.max(1,scene.targetHp?.max??t.maxHp)}" value="${Math.max(0,scene.targetHp?.before??t.hp)}"></progress></div><span class="ac-debuff-badges">${acDebuffBadges(t)}</span></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
+        <div class="ac-cinema-impact" aria-hidden="true">${motion==='throw'&&scene.item?`<div class="ac-thrown-item">${art(scene.item,'ac-thrown-art')}</div>`:''}${t&&t.id!==a?.id&&(scene.damage>0||scene.armorDamage>0)?`<div class="ac-damage-numbers">${scene.armorDamage>0?`<span class="ac-damage-number ac-damage-armor">◆ −${scene.armorDamage}</span>`:''}${scene.damage>0?`<span class="ac-damage-number ac-damage-hp">♥ −${scene.damage}</span>`:''}</div>`:``}<span class="ac-hit-slash"></span><span class="ac-hit-burst"></span><span class="ac-hit-orb"></span><span class="ac-hit-spark">✦</span></div>
+        ${t&&t.id!==a?.id?`<div class="ac-cinema-character ac-cinema-target ${acDebuffClasses(t)}"><div class="ac-cinema-worn-armor" aria-label="装備中の防具">${(scene.targetArmorItems||[]).map(id=>`<span class="ac-worn-armor-icon" title="${esc(R.name(id))}">${art(id,'ac-worn-armor-art')}</span>`).join('')}</div><div class="ac-hero-frame ${t.facing!=='left'?'ac-facing-flip':''}">${targetArt}${scene.targetShieldId?`<div class="ac-held-shield">${art(scene.targetShieldId,'ac-combat-shield')}</div>`:''}</div><strong>${esc(t.name)}</strong><div class="ac-scene-armor" aria-label="装甲"><span class="ac-armor-shield"><span data-ac-hit-armor data-before="${Math.max(0,scene.targetArmor?.before??t.armor??0)}" data-after="${Math.max(0,scene.targetArmor?.after??t.armor??0)}">${Math.max(0,scene.targetArmor?.before??t.armor??0)}</span></span></div><div class="ac-scene-hp"><span data-ac-hit-hp>HP ${scene.targetHp?.before??t.hp} / ${scene.targetHp?.max??t.maxHp}</span><progress data-ac-hit-progress data-before="${Math.max(0,scene.targetHp?.before??t.hp)}" data-after="${Math.max(0,scene.targetHp?.after??t.hp)}" max="${Math.max(1,scene.targetHp?.max??t.maxHp)}" value="${Math.max(0,scene.targetHp?.before??t.hp)}"></progress></div><span class="ac-debuff-badges">${acDebuffBadges(t)}</span></div>`:'<div class="ac-cinema-self-label">自分に使用</div>'}
       </div>
       <div class="ac-scene-itemline">${scene.item?art(scene.item,'ac-scene-item'):''}<p class="ac-scene-description">${esc(scene.detail)}${t?' → '+esc(t.name):''}</p></div>
       ${button(voted?'時短済み':'時短','skipScene','class="ac-primary ac-skip-scene"',!eligible||voted)}<small></small>
@@ -20409,7 +20428,7 @@ window.ArtChemist=(()=>{
   grid.before(nav);grid.dataset.compactPane=compactPane;
  }
  function clock(){const el=$('#acClock');if(el)el.textContent=view?.deadline?Math.max(0,Math.ceil((view.deadline-Date.now()-offset)/1000))+' 秒':'';
-  if(view?.phase==='resolution'&&view.reveal){const hp=stage.querySelector('[data-ac-hit-progress]'),label=stage.querySelector('[data-ac-hit-hp]');if(hp&&label){const hit=(Date.now()+offset-view.reveal.startedAt)>=700,amount=Number(hp.dataset[hit?'after':'before']);if(Number.isFinite(amount)){hp.value=amount;label.textContent='HP '+Math.round(amount)+' / '+hp.max;}}}
+  if(view?.phase==='resolution'&&view.reveal){const armorLabel=stage.querySelector('[data-ac-hit-armor]');if(armorLabel){const impacted=(Date.now()+offset-view.reveal.startedAt)>=700,amount=Number(armorLabel.dataset[impacted?'after':'before']);if(Number.isFinite(amount))armorLabel.textContent=String(Math.round(amount));}const hp=stage.querySelector('[data-ac-hit-progress]'),label=stage.querySelector('[data-ac-hit-hp]');if(hp&&label){const hit=(Date.now()+offset-view.reveal.startedAt)>=700,amount=Number(hp.dataset[hit?'after':'before']);if(Number.isFinite(amount)){hp.value=amount;label.textContent='HP '+Math.round(amount)+' / '+hp.max;}}}
  }
  function request(op,data={}){if(!view||busy)return;busy=true;sendHost({type:'gameChemistIntent',game:view.id,version:view.version,revision:me()?.revision||0,round:view.round,tx:localId+':'+Date.now()+':'+(++requestCounter),op,...data});setTimeout(()=>busy=false,1000)}
  function sendAll(){if(!host||!isHost)return;host.version++;for(const id of new Set([...members.keys(),...viewers.keys()])){const state=R.publicFor(host,id),known=sentImages.get(id)||new Map();for(const p of state.players){if(known.get(p.id)===p.image){p.image='';p.imageUnchanged=true}else known.set(p.id,p.image)}sentImages.set(id,known);const packet={type:'gameChemistState',state};if(id===localId)receive(packet);else sendWire(connections.get(id),packet)}}
