@@ -18910,15 +18910,15 @@ window.AlchemistRules = (()=>{
  const D=ALCHEMIST_DATA, defs=Object.fromEntries(D.cards.items.map(x=>[x.id,x])), slots=['helmet','chestplate','leggings','boots'];
  // Give every enchanted scroll a matching-rarity permanent spellbook recipe.
  // They intentionally retain the spell of their source scroll; older magic books retain their random spell pools.
- const acSpellScrollCatalog=Object.values(defs).filter(d=>d.kind==='consumable'&&(String(d.id).endsWith('_scroll')||d.tags?.includes('scroll'))&&d.effects?.length);
- for(const scroll of acSpellScrollCatalog){
-  const id='enchanted_book_'+scroll.id;if(defs[id])continue;
-  const original={...scroll,id,kind:'consumable',name_en:'Spellbook of '+(scroll.name_en||scroll.id),tags:[...new Set([...(scroll.tags||[]).filter(t=>t!=='scroll'),'magic','spellbook'])],effects:scroll.effects.map(e=>({...e})),consumption:{type:'reusable'},source_id:scroll.id,artchemist_generated_spellbook:true};
-  defs[id]=original;D.cards.items.push(original);
-  D.names[id]={...(D.names[scroll.id]||{}),ja:'魔導書・'+(D.names[scroll.id]?.ja||scroll.name_en||scroll.id)};
-  D.icons[id]=D.icons.book||D.icons.kindling_book||D.icons[scroll.id];
-  D.cards.recipes.push({id:'ac_book_from_'+scroll.id,output_id:id,ingredients:[{item_id:'book',quantity:1},{item_id:scroll.id,quantity:1}],yield_quantity:1,source:'artchemist_book_from_scroll',match_policy:'exact_recipe'});
+ // Dream Crafter: use the six canonical elemental books, not a unique book for each scroll.
+ for(const [id,ja] of Object.entries({kindling_book:'火種の本',fire_book:'火炎の書',book_of_hellfire:'煉獄の禁書',cold_book:'寒冷の本',frost_book:'氷結の書',the_book_of_cocytus:'凍獄の禁書'})){
+  if(defs[id]){D.names[id]={...(D.names[id]||{}),ja};defs[id].consumption={type:'reusable'};}
  }
+ // Dream Crafter: snow yields three snowballs; snowballs are thrown instead of being dead materials.
+ if(defs.snowball){defs.snowball.kind='consumable';defs.snowball.consumption={type:'single_use'};
+  defs.snowball.effects=[{trigger:'on_use',kind:'cleanse_burn',target:'one_character',amount:1}];}
+ if(defs.snow&&defs.snowball&&!D.cards.recipes.some(r=>r.id==='ac_snow_to_snowballs'))
+  D.cards.recipes.unshift({id:'ac_snow_to_snowballs',output_id:'snowball',ingredients:[{item_id:'snow',quantity:1}],yield_quantity:3,source:'artchemist_snow_crafting',match_policy:'exact_recipe'});
 
  // Dream Crafter alpha 7.17.5 soul progression. Keep the original source item IDs
  // where present; Artchemist's 'restraint_soul_blade' is its condensed blade.
@@ -19123,7 +19123,7 @@ window.AlchemistRules = (()=>{
  const price=(p,id)=>Math.max(sale(p,id)+1,Math.ceil(value(id)*3*(1-bonus(p,'shop_discount')/100)));
  function draw(g,p,n){
   const newlyDrawn=[];
-  const materials=Object.values(defs).filter(d=>d.kind==='material');
+  const materials=Object.values(defs).filter(d=>d.kind==='material'&&!['paper','scroll','snowball'].includes(d.id));
   // Common crafting supplies must be obtainable without a category-selection UI.
   // Keep the original rarity roll; only weight item identities within that rank.
   // Assist players whose hand has accumulated timber without enough forge materials.
@@ -19143,7 +19143,8 @@ window.AlchemistRules = (()=>{
     // This changes identity weights only within the already-selected rarity tier.
     // Keep the adaptive metal supply above this rule to avoid all-wood hands.
     if(['grass','magic_raw_stone','concentrated_magic_raw_stone','magic_essence','magic_shard','magic_crystal','magic_rose_crystal'].includes(id))return 12;
-    if(['magic_leaves','magic_herbs','paper','scroll','vine','stick','long_stick'].includes(id))return 7;
+    if(id==='leather')return 13;
+    if(['magic_leaves','magic_herbs','vine','stick','long_stick'].includes(id))return 7;
     if(['wood','iron','stone','crystal'].includes(id))return 6;
     if(cat==='wood'||cat==='ore'||cat==='metal')return 4;
     if(cat==='gem'||cat==='gemstone'||cat==='stone')return 2.8;
@@ -19841,11 +19842,20 @@ window.AlchemistRules = (()=>{
   const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode)&&!(r.source==='artchemist_multiplication'&&parts.some(i=>i.acMultiplied)));
   const multiplication=matches.find(r=>r.source==='artchemist_multiplication');
   if(multiplication&&!parts.some(i=>i.acMultiplied))return {output:multiplication.output_id,count:multiplication.yield_quantity,chance:1,recipe:multiplication.id,multiplication:true};
-  const scrollInput=parts.some(i=>acIsScroll(defs[i.def]));
-  if(scrollInput&&parts.length===2&&parts.some(i=>i.def==='book')){
-   const spellBook=matches.find(r=>defs[r.output_id]?.artchemist_generated_spellbook);
-   if(spellBook)return {output:spellBook.output_id,count:1,chance:1,recipe:spellBook.id};
+  const spellScrolls=parts.filter(i=>acIsScroll(defs[i.def])&&i.def!=='scroll'&&defs[i.def]?.effects?.length);
+  const bookInput=parts.filter(i=>i.def==='book');
+  if(bookInput.length===1&&spellScrolls.length>=1&&bookInput.length+spellScrolls.length===parts.length){
+   const elements=spellScrolls.map(i=>acScrollElement(i.def));
+   if(elements.every(e=>e&&e===elements[0])){
+    const element=elements[0],weight=spellScrolls.reduce((n,i)=>n+acEffectiveWeight(i),0);
+    const maxRank=Math.max(...spellScrolls.map(i=>defs[i.def].class_rank_provisional||1));
+    const bookRank=weight>=32&&maxRank>=5?6:weight>=10&&maxRank>=3?4:3;
+    const output=element==='fire'?(bookRank===6?'book_of_hellfire':bookRank===4?'fire_book':'kindling_book')
+      :element==='ice'?(bookRank===6?'the_book_of_cocytus':bookRank===4?'frost_book':'cold_book'):null;
+    if(output&&defs[output])return {output,count:1,chance:1,recipe:'ac_elemental_book_'+element+'_'+bookRank};
+   }
   }
+  const scrollInput=parts.some(i=>acIsScroll(defs[i.def]));
   if(scrollInput){const scrollMatches=matches.filter(r=>acIsScroll(defs[r.output_id])&&defs[r.output_id].kind==='consumable');if(scrollMatches.length)return{output:scrollMatches[0].output_id,count:scrollMatches[0].yield_quantity||1,chance:1,recipe:scrollMatches[0].id};const pool=acScrollResults(parts);return pool.length?{output:null,count:1,chance:1,recipe:'random_scroll_magic',random:true,possibilities:pool.length}:null;}
   // Wood + a magic ore/crystal is always a staff-crafting path.
   // Named staff recipes keep priority, and all other outcomes respect the existing rarity mass.
@@ -19954,6 +19964,11 @@ window.AlchemistRules = (()=>{
  }
  function acHandCost(d){if(!d)return 0;if(d.kind==='weapon'||d.kind==='guard_tool')return d.stats?.handedness==='twoHanded'?2:1;if(d.kind==='food'&&acPreparedDish(d))return 1;return 0}
  function acIsStaff(d){return !!d&&d.kind==='weapon'&&/staff|wand|rod/.test(String(d.stats?.weapon_family||'')+' '+d.id)}
+ function acScrollElement(id){
+  if(/^(flare|fireball|flame_bloom|fire_ring|pyroclasm|ashes_of_ignis)_scroll$/.test(id))return 'fire';
+  if(/^(cold|ice_spear|ice_lance|frozen_in_ice|blizzard|the_ice_age)_scroll$/.test(id))return 'ice';
+  return null;
+ }
  const AC_BOOK_SPELLS={kindling_book:['flare_scroll','fireball_scroll'],fire_book:['fireball_scroll','flame_bloom_scroll','fire_ring_scroll'],book_of_hellfire:['pyroclasm_scroll','ashes_of_ignis_scroll'],cold_book:['cold_scroll','ice_spear_scroll'],frost_book:['ice_spear_scroll','ice_lance_scroll','frozen_in_ice_scroll'],the_book_of_cocytus:['blizzard_scroll','the_ice_age_scroll']};
  function acIsSpellBook(d){return !!d&&(d.artchemist_generated_spellbook||Object.prototype.hasOwnProperty.call(AC_BOOK_SPELLS,d.id)||d.id==='the_book_of_hellfire')}
  function acBookSpell(g,p,i){const book=defs[i?.def];const list=(book?.artchemist_generated_spellbook?[book.source_id]:i?.def==='the_book_of_hellfire'?AC_BOOK_SPELLS.book_of_hellfire:AC_BOOK_SPELLS[i?.def]||[]).filter(id=>defs[id]);if(!list.length)return null;const key=String(g?.id||'')+':'+String(g?.round||0)+':'+String(p?.id||'')+':'+String(i?.iid||'');let hash=2166136261;for(let n=0;n<key.length;n++){hash^=key.charCodeAt(n);hash=Math.imul(hash,16777619)}return list[(hash>>>0)%list.length]}
@@ -20029,7 +20044,7 @@ window.AlchemistRules = (()=>{
   if(/hammer|mace|club|bludgeon|mallet|crusher|axe/.test(family))armorDamage+=Math.max(1,Math.round((d.stats.damage||0)*.6));
   if(d.artchemist_pierce_fraction)ap+=Math.round((d.stats.damage||0)*1.5*d.artchemist_pierce_fraction);
   if(!acIsStaff(d))consume(by(p.id),item(by(p.id),w.iid),g)}if(ws.length>1)damage*=.7;if(!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage+=passive(p,'attack_bonus');if(p.status.weakness?.turns>0&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))&&magics.length))damage-=p.status.weakness.penalty;if(p.build.dual_wield&&steps.filter(q=>q.type==='attack'&&q.item).length===2)damage*=1.2;damage=Math.max(0,Math.round(damage));if(a.target!==p.id&&!(ws.length&&ws.every(w=>acIsStaff(defs[w.def]))))hit(p.id,a.target,damage,Math.min(1,(p.build.armor_pierce?.2:0)+(damage?ap/damage:0)),armorDamage,true);
-  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*2*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
+  }else if(a.type==='use'){const i=item(by(p.id),a.item),d=i&&defs[i.def];if(!d)continue;const spellDef=acSpellDef(g,p,i)||d;const spellPower=acIsScroll(d)||acIsSpellBook(d)?4.8:1;for(const e of spellDef.effects){const t=a.target;switch(e.kind){case'heal':heals[t]+=Math.round(e.amount*spellPower*(1+bonus(p,'heal')/100)*(p.build.potent_medicine?1.5:1));break;case'light_heal_percent':heals[t]+=Math.round(maxHP(by(t))*(e.percent||0)*spellPower/100*(1+bonus(p,'heal')/100));break;case'light_retribution_phase':case'light_retribution_total':lightRetaliations.push({from:p.id,to:t,kind:e.kind,multiplier:(e.multiplier||1)*spellPower,magicBonus:1+bonus(p,'magic')/100});break;case'bind':pending.push([t,'bound',{turns:Math.max(1,Math.round(spellPower))}]);break;case'apply_status':if(random(g)<Math.min(1,(e.chance??1)*spellPower))pending.push([t,e.status,{turns:Math.max(1,Math.round((e.duration_rounds||1)*spellPower))}]);break;case'cleanse_burn':for(const k of ['burn','majorBurn']){const status=by(t)?.status?.[k];if(status){status.turns=Math.max(0,(status.turns||0)-(e.amount||1));if(!status.turns)delete by(t).status[k];}}break;case'cleanse':for(const k of ['burn','majorBurn','frostbite','freeze','poison','deadlyPoison','weakness'])delete by(t).status[k];break;case'increase_max_hp':by(t).extraMaxHp=(by(t).extraMaxHp||0)+Math.round((e.amount||0)*spellPower);break;case'reduce_burn':if(by(t).status.burn){by(t).status.burn.turns=Math.max(0,by(t).status.burn.turns-(e.turns||0));if(!by(t).status.burn.turns)delete by(t).status.burn;}break;case'temporary_barrier':barriers[t]+=Math.round((e.armor_points||0)*2*spellPower);break;case'delayed_damage':pending.push([t,'bomb',{damage:Math.round((e.amount||0)*spellPower),at:g.round+e.delay_rounds}]);break;case'area_damage':for(const q of snapshot.filter(q=>q.id!==p.id).sort((a,b)=>a.hp-b.hp||a.id.localeCompare(b.id)).slice(0,3))hit(p.id,q.id,e.amount*spellPower*(1+bonus(p,'magic')/100));break;default:hit(p.id,t,(e.amount||0)*spellPower*(1+bonus(p,'magic')/100));if(e.kind==='damage_and_burn')pending.push([t,'burn',{turns:Math.max(1,Math.round((e.burn_rounds||1)*spellPower))}]);}}if(!acIsSpellBook(d)){by(p.id).items=by(p.id).items.filter(q=>q.iid!==i.iid);if(acIsScroll(d)&&d.id!=='scroll'&&defs.scroll)by(p.id).items.push(instance(g,'scroll',by(p.id)))}}
  }
  }
  currentActionKey=null;
