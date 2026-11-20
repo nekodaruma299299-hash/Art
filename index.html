@@ -19150,7 +19150,7 @@ window.AlchemistRules = (()=>{
  D.cards.recipes.unshift(...acMultiplicationRecipes);
  const recipes=[...examples,...armorExtras,...D.cards.recipes].filter(r=>{
    // Armor cannot be completed using only metal; require a separate shaping material.
-   if(defs[r.output_id]?.kind==='armor'&&r.ingredients.every(q=>['metal','ore'].includes(defs[q.item_id]?.material_category)))return false;
+   if(defs[r.output_id]?.kind==='armor'&&r.ingredients.every(q=>['metal','ore'].includes(defs[q.item_id]?.material_category)||q.item_id==='leather'))return false;
    const used=r.ingredients.find(q=>q.item_id===r.output_id)?.quantity||0;
    return (!used || (r.yield_quantity||1)>used)&&acRecipeRarityAllowed(r);
  });
@@ -19888,34 +19888,35 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
  }
 
  function acArmorSlotTraits(slot){return {boots:['lightweight','herbaceous','fiber','wind'],helmet:['magic','crystal','mind','light'],leggings:['flexible','elastic','plant','fiber'],chestplate:['hard','heavy','earth','metallic']}[slot]||[];}
- // The metal count determines armor size; a distinct supplementary material chooses its shape.
+ // Armor always needs a distinct shaping material: metal/leather alone is not armor.
+ // Effective mass, not metal card count, determines light vs heavy armor.
  function acMetalArmorPlan(parts,matches){
-  const metals=parts.filter(i=>defs[i.def]?.kind==='material'&&['metal','ore'].includes(String(defs[i.def].material_category||''))&&!['coal','remnant_shard'].includes(i.def));
-  const extra=parts.filter(i=>!metals.includes(i));
-  if(!metals.length||!extra.length||extra.some(i=>defs[i.def]?.kind!=='material'))return null;
-  // Mixed metal and supplementary materials prefer armor over unrelated old recipes.
-  // Gem brooch and wood+magic staff are handled earlier by dedicated recipes.
-  const core=acCoreMaterial(metals.map(i=>({d:defs[i.def],w:acEffectiveWeight(i)})));
-  const prefix=({gold:'golden'})[core?.id]||core?.id;
-  const metalMass=metals.reduce((n,i)=>n+acEffectiveWeight(i),0);
+  const metals=parts.filter(i=>acIsBroochMetal(i));
+  const hides=parts.filter(i=>i.def==='leather');
+  const coreParts=metals.length?metals:hides;
+  const extra=parts.filter(i=>!coreParts.includes(i));
+  if(!coreParts.length||!extra.length||extra.some(i=>defs[i.def]?.kind!=='material'||acIsBroochGem(i)))return null;
+  if(!extra.some(i=>i.def!==coreParts[0].def))return null;
+  const core=acCoreMaterial(coreParts.map(i=>({d:defs[i.def],w:acEffectiveWeight(i)})));
+  const leather=core?.id==='leather',prefix=({gold:'golden'})[core?.id]||core?.id;
   const totalMass=parts.reduce((n,i)=>n+acEffectiveWeight(i),0);
-  const heavy=totalMass>=acMaterialWeight(defs[metals[0].def])*2.5;
+  const heavy=totalMass>=acMaterialWeight(defs[coreParts[0].def])*2.5;
   const slots=heavy?['leggings','chestplate']:['boots','helmet'];
   const traits=extra.flatMap(i=>acTraits(defs[i.def]));
+  const leatherNames={boots:'leather_shoes',helmet:'leather_hat',leggings:'leather_trousers',chestplate:'leather_jacket'};
   const scores=slots.map(slot=>{
    let score=traits.reduce((n,t)=>n+(acArmorSlotTraits(slot).includes(t)?2:0),0);
    if(slot==='helmet'&&traits.includes('hard'))score+=3;
    if(slot==='chestplate'&&traits.includes('hard'))score+=3;
    if((slot==='boots'||slot==='leggings')&&traits.includes('flexible'))score+=2;
-   return {slot,score,id:prefix+'_'+slot};
+   return {slot,score,id:leather?leatherNames[slot]:prefix+'_'+slot};
   }).filter(x=>defs[x.id]);
   if(!scores.length)return null;
   scores.sort((a,b)=>b.score-a.score||(a.slot==='helmet'||a.slot==='chestplate'?-1:1));
   const selected=scores[0];
-  // Do not manufacture an item several rarity tiers above its ingredients.
   const maxRank=Math.max(...parts.map(i=>defs[i.def].class_rank_provisional||1));
   if((defs[selected.id].class_rank_provisional||1)>maxRank+1)return null;
-  return {output:selected.id,count:1,chance:1,recipe:'ac_trait_metal_armor_'+selected.slot};
+  return {output:selected.id,count:1,chance:1,recipe:'ac_trait_'+(leather?'leather':'metal')+'_armor_'+selected.slot};
  }
 
  function acOutputTraits(d){return acTraits(d);}
@@ -20011,19 +20012,54 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
  function preview(p,mode='alchemy'){
   const parts=p.pot.map(id=>item(p,id)).filter(Boolean);acSetCraftContext(p,parts);if(!parts.length)return null;
   const c=counts(parts),matches=recipes.filter(r=>r.ingredients.length===Object.keys(c).length&&r.ingredients.every(q=>c[q.item_id]===q.quantity)&&craftKind(defs[r.output_id],mode)&&!(r.source==='artchemist_multiplication'&&parts.some(i=>i.acMultiplied)));
+  // Three or more basic-wood weight units: pure wood is refined into a
+  // higher-grade wood, never auto-converted into a shield (wooden_board).
+  // Require *only* raw wood materials so explicit mixed crafting recipes stay intact.
+  if(mode==='alchemy'&&parts.length>=2&&parts.every(i=>defs[i.def]?.kind==='material'&&defs[i.def]?.material_category==='wood')){
+   const woodMass=parts.reduce((sum,i)=>sum+acEffectiveWeight(i),0);
+   const shieldMassCeiling=acMaterialWeight(defs.wood||{class_rank_provisional:2})*3;
+   if(woodMass>=shieldMassCeiling){
+    const maxRank=Math.max(...parts.map(i=>defs[i.def]?.class_rank_provisional||1));
+    const woods=['wood','hinoki_wood','walnut_wood','ebony_wood','sefirot_wood'];
+    const next=woods.find(id=>defs[id]&&(defs[id].class_rank_provisional||1)===maxRank+1);
+    const current=woods.find(id=>defs[id]&&(defs[id].class_rank_provisional||1)===maxRank);
+    const output=next||current;
+    if(output)return {output,count:1,chance:1,recipe:'ac_wood_mass_refinement_'+output,currentMass:woodMass,requiredMass:shieldMassCeiling};
+   }
+  }
   const multiplication=matches.find(r=>r.source==='artchemist_multiplication');
   if(multiplication&&!parts.some(i=>i.acMultiplied))return {output:multiplication.output_id,count:multiplication.yield_quantity+(p.build.multiplication_master?1:0),chance:1,recipe:multiplication.id,multiplication:true};
   // Gem + real metal is a special craft: it must either yield its own brooch or
   // fail for insufficient mass, rather than turning into unrelated gear.
   const gemInputs=parts.filter(acIsBroochGem),broochMetal=parts.filter(acIsBroochMetal);
-  if(gemInputs.length&&broochMetal.length&&mode==='alchemy'){
-   const leading=[...gemInputs].sort((a,b)=>acEffectiveWeight(b)-acEffectiveWeight(a))[0];
-   const output=leading.def+'_brooch';
-   if(defs[output]){
-    const total=parts.reduce((n,i)=>n+acEffectiveWeight(i),0);
-    const required=acMaterialWeight(defs[output])*1.5;
-    if(total<required)return {output:null,count:0,chance:0,recipe:'ac_brooch_insufficient_mass',weightFailure:true,requiredMass:required,currentMass:total};
-    return {output,count:1,chance:1,recipe:'ac_brooch_'+leading.def,currentMass:total,requiredMass:required};
+  // A gem is a MATERIAL, never an accessory by itself. It must have either a
+  // real jewellery base, or an all-gem mixture, to make a gem ornament.
+  // The earlier gem+metal brooch recipe is retained, but it cannot consume
+  // unrelated stone, plants, paper or other crafting ingredients.
+  if(mode==='alchemy'&&gemInputs.length){
+   const jewellery=parts.filter(i=>defs[i.def]?.kind==='accessory');
+   const allGems=gemInputs.length===parts.length&&parts.length>=2;
+   const gemAndJewellery=jewellery.length>0&&parts.every(i=>acIsBroochGem(i)||defs[i.def]?.kind==='accessory');
+   const gemAndMetal=broochMetal.length>0&&parts.every(i=>acIsBroochGem(i)||acIsBroochMetal(i));
+   if(allGems||gemAndJewellery||gemAndMetal){
+    const leading=[...gemInputs].sort((a,b)=>acEffectiveWeight(b)-acEffectiveWeight(a))[0];
+    const output=leading.def+'_brooch';
+    if(defs[output]){
+     const total=parts.reduce((n,i)=>n+acEffectiveWeight(i),0);
+     // An existing ring is a mould; two gems can also form a brooch directly.
+     // Metal-only moulds retain the requested minimum mass / failure behavior.
+     const required=acMaterialWeight(defs[output])*(gemAndMetal?1.5:1);
+     if(total<required)return {output:null,count:0,chance:0,recipe:'ac_brooch_insufficient_mass',weightFailure:true,requiredMass:required,currentMass:total};
+     return {output,count:1,chance:1,recipe:'ac_brooch_'+leading.def,currentMass:total,requiredMass:required};
+    }
+   }
+   // Gem + raw rock refines mineral ingredients into useful higher-grade ore,
+   // never a brooch. Tier ceiling remains tied to the gem's class.
+   const rawStone=parts.filter(i=>['stone','stone_brick','rock','sand'].includes(i.def));
+   if(rawStone.length&&parts.every(i=>acIsBroochGem(i)||rawStone.includes(i))){
+    const rank=Math.max(...gemInputs.map(i=>defs[i.def]?.class_rank_provisional||1));
+    const ore=rank>=5?'tamahagane':rank>=4?'steel':'iron';
+    if(defs[ore])return {output:ore,count:1,chance:1,recipe:'ac_gem_mineral_refining_'+ore};
    }
   }
   // A single metal or a metal combined only with jewellery makes a ring, never armor.
@@ -20033,6 +20069,20 @@ const acArmorRequirement={boots:1,helmet:1,leggings:2,chestplate:2};
    const prefix=strongest?.def==='gold'?'gold':strongest?.def;
    const ring=prefix+'_ring';
    if(defs[ring])return {output:ring,count:1,chance:1,recipe:'ac_metal_ring_'+prefix};
+  }
+  // Plant fibers normally become paper. Keep fertilizer multiplication above,
+  // and do not redirect genuine food recipes made with only edible ingredients.
+  if(mode==='alchemy'&&parts.length>=2&&parts.every(i=>defs[i.def]?.kind==='material')){
+   const plant=i=>{
+    const d=defs[i.def],t=acTraits(d);
+    return ['plant','wood'].includes(d?.material_category)||t.includes('plant')||t.includes('herbaceous')||t.includes('fiber')
+      &&/^(grass|vine|calming_grass|rice_ear|medicinal_herbs|bunched_calming_grass|bunched_medicinal_herbs)$/.test(i.def);
+   };
+   const leafy=parts.filter(i=>plant(i)&&defs[i.def]?.material_category!=='wood');
+   const onlyPlantFibers=leafy.length===parts.length&&parts.every(i=>!acIsBroochGem(i)&&i.def!=='fertilizer');
+   if(onlyPlantFibers&&defs.paper){
+    return {output:'paper',count:Math.max(2,Math.min(4,parts.length)),chance:1,recipe:'ac_plant_fibers_paper'};
+   }
   }
   // Burnt Book may evolve through total fire-element mass, without prescribed scroll IDs.
   // Two or more fire ingredients and at least 32 effective weight are required.
