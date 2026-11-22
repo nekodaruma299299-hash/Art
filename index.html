@@ -10467,7 +10467,7 @@ window.ArtArts=(()=>{
  const moves=R.moves;
  const drawTypes=new Set(['op','undo','redo','historyBatch','draft','draftPatch','draftEnd','cursor','lock','unlock']);
  let host=null,view=null,offset=0,capturing=false,submitted='',lastFrame=0,lastNet=0,lastMove=0,raf=0,uiKey='',rosterKey='',paintMode=false,gesture=null,strokes=[],summonCore=null,holdSource=null,paintStarted=0,guide=null,stick=null,move={x:0,y:0},keys=new Set(),images=new Map(),positions=new Map(),walk=new Map(),motionTracker=new Map(),damageShakes=new Map(),uploading=new Set(),imageRev='',lastPreview=0,lastAnimation=0,frameDelta=.016,hudText='',previousFx=new Set(),impactSounds=new Set(),heardBuffWaves=new Set(),heardGunRounds=new Set(),characterPaths=[],characterFacing=1,characterMotion="walk",equipChoice=[],equipTouched=false;
- const artsMotionTypes=new Set(['walk','float','hop','slide','spin']);
+ const artsMotionTypes=new Set(['walk','float','hop','slide','spin','wobble','zigzag','slither','flap','jerky','roll','dashy','sway','stretch','tumble','choppy','crawl','stagger','stomp']);
  const validArtsMotion=v=>artsMotionTypes.has(v)?v:'walk';
  const enabled=()=>room?.mode==='arts';
  const participant=()=>view?.players.some(p=>p.id===localId&&p.active);
@@ -12693,7 +12693,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of host.fighters)if(!friendly(owner
  bar.hidden=false;bar.innerHTML='<b>あーとあーつ</b><span>'+({lobby:'待機室',create:'キャラクターを描こう',collect:'絵を集めています',equip:'職業と陣営の確認',battle:'バトル',finished:'結果'}[phase])+'</span><strong id="artsClock" class="arts-time"></strong><button id="artsClassHelp" aria-label="ジョブの決まり方" title="ジョブの決まり方">？</button><button id="artsHelp">遊び方</button>';
  $('#artsClassHelp').onclick=showArtsClassHelp;
  $('#artsHelp').onclick=()=>modal('あーとあーつの遊び方',instructions);stage.hidden=phase==='create'&&participant()&&!view.ready[localId];stage.className=phase==='battle'?'arts-battle':phase==='equip'?'arts-equipping':'';
- if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label"><select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><label class="arts-facing-label"><select id="artsCharacterMotion" aria-label="キャラの移動スタイル"><option value="walk">てくてく</option><option value="float">ふわふわ</option><option value="hop">ぴょんぴょん</option><option value="slide">すーーっ</option><option value="spin">くるくる</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterClearAll" type="button" title="現在制作中のキャラの絵・レイヤー・履歴をすべて初期化">全消し</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterClearAll'))$('#artsCharacterClearAll').onclick=()=>{if(!canDraw()||view?.phase!=='create')return;if(!confirm('制作中のキャラを全消ししますか？\n絵・レイヤー・操作履歴・キャラの向きをすべて初期化します。\n※絵画展に保存済みのキャラは削除されません。'))return;clearCanvas();savedCharacterSource=null;lastPreview=0;updateLiveStats(Date.now());toast('キャラを白紙に戻しました。');};if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}if($('#artsCharacterMotion')){const select=$('#artsCharacterMotion');select.value=characterMotion;select.onchange=()=>{characterMotion=validArtsMotion(select.value)}}}
+ if(phase==='create'){bar.insertAdjacentHTML('beforeend',(canDraw()?'<label class="arts-facing-label"><select id="artsCharacterFacing" aria-label="描いたキャラの向き"><option value="1">右向き →</option><option value="-1">左向き ←</option></select></label><label class="arts-facing-label"><select id="artsCharacterMotion" aria-label="キャラの移動スタイル"><option value="walk">てくてく</option><option value="float">ふわふわ</option><option value="hop">ぴょんぴょん</option><option value="slide">すーーっ</option><option value="spin">くるくる</option><option value="wobble">ぷるぷる</option><option value="zigzag">じぐざぐ</option><option value="slither">にょろにょろ</option><option value="flap">ぱたぱた</option><option value="jerky">がくがく</option><option value="roll">ごろごろ</option><option value="dashy">しゅんしゅん</option><option value="sway">ゆらゆら</option><option value="stretch">びよーん</option><option value="tumble">ころころ</option><option value="choppy">かくかく</option><option value="crawl">ずりずり</option><option value="stagger">ふらふら</option><option value="stomp">どすどす</option></select></label><button id="artsCharacterLoad">絵画展から読み込む</button><button id="artsCharacterClearAll" type="button" title="現在制作中のキャラの絵・レイヤー・履歴をすべて初期化">全消し</button><button id="artsCharacterSave">キャラを保存</button>'+(!room.characterOnly?'<button id="artsReady" class="primary">この絵で準備完了</button>':'<b>キャラ制作 · 時間制限なし</b>'):''));if($('#artsReady'))$('#artsReady').onclick=submit;if($('#artsCharacterLoad'))$('#artsCharacterLoad').onclick=characterPicker;if($('#artsCharacterSave'))$('#artsCharacterSave').onclick=saveCharacter;if($('#artsCharacterClearAll'))$('#artsCharacterClearAll').onclick=()=>{if(!canDraw()||view?.phase!=='create')return;if(!confirm('制作中のキャラを全消ししますか？\n絵・レイヤー・操作履歴・キャラの向きをすべて初期化します。\n※絵画展に保存済みのキャラは削除されません。'))return;clearCanvas();savedCharacterSource=null;lastPreview=0;updateLiveStats(Date.now());toast('キャラを白紙に戻しました。');};if($('#artsCharacterFacing')){const select=$('#artsCharacterFacing');select.value=String(characterFacing);select.onchange=()=>{characterFacing=select.value==='-1'?-1:1}}if($('#artsCharacterMotion')){const select=$('#artsCharacterMotion');select.value=characterMotion;select.onchange=()=>{characterMotion=validArtsMotion(select.value)}}}
  if(['equip','finished'].includes(phase)&&view.art?.[localId]){bar.insertAdjacentHTML('beforeend','<button id="artsCharacterSave">キャラを保存</button>');$('#artsCharacterSave').onclick=saveCharacter}
  if(stage.hidden){stage.innerHTML='';return}
  if(phase==='battle'){stage.innerHTML='<div id="artsField"><canvas id="artsArena" aria-label="アートアーツの対戦フィールド"></canvas><div id="artsHUD"></div><div id="artsJoystickZone" aria-hidden="true">移動ゾーン</div><div id="artsJoystick" aria-label="移動スティック"><i></i></div><button id="artsUltimateGuide" type="button" hidden aria-label="必殺技のお手本を開く"></button><div id="artsSkillIcons" aria-label="装備アーツのクールダウン"></div><button id="artsSkillInfo" type="button">お手本を見る</button></div><div id="artsBattleHint" role="status">一筆で描き、ペンや指を離すとすぐに発動します。</div>';$('#artsField').append(artsKillFeed);bindBattle();return}
@@ -14876,15 +14876,50 @@ function drawBattleOutcome(x,canvas,now){
   motionTracker.set(p.id,{x:pos.x,y:pos.y,activeUntil});
   const style=validArtsMotion(p.artMotion||view.art?.[p.id]?.artMotion);
   let phase=walk.get(p.id)||0;
-  if(moving)phase+=frameDelta*(style==='hop'?12:style==='spin'?14:style==='float'?7:13);
-  else if(style!=='spin')phase=0;
+  const motionSpeed={walk:13,float:7,hop:12,slide:13,spin:14,wobble:18,zigzag:12,slither:10,flap:19,jerky:11,roll:15,dashy:16,sway:8,stretch:9,tumble:12,choppy:9,crawl:10,stagger:7,stomp:8}[style]||13;
+  if(moving)phase+=frameDelta*motionSpeed;
+  else if(!['spin','roll','tumble'].includes(style))phase=0;
   walk.set(p.id,phase);
-  let bob=moving?-Math.abs(Math.sin(phase))*7:0,tilt=moving?Math.sin(phase)*.065:0,spin=0,stretchX=1,stretchY=1;
-  if(style==='float'){bob=moving?-8-Math.sin(phase)*9:0;tilt=moving?Math.sin(phase*.8)*.045:0;}
-  else if(style==='hop'){if(moving){const hop=Math.abs(Math.sin(phase));bob=-hop*22;tilt=0;stretchX=1+(1-hop)*.12;stretchY=1-(1-hop)*.12;}else{bob=0;tilt=0;}}
-  else if(style==='slide'){bob=0;tilt=0;}
-  else if(style==='spin'){bob=0;tilt=0;spin=moving?phase:0;if(!moving)walk.set(p.id,0);}
-  x.globalAlpha=p.state==='down'?.43:(mirageInvisible?(ally?mirageSelfAlpha:mirageRevealAlpha):(inBush?.5:hidden?.65:1));x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time),pos.y+bob);x.rotate(tilt+spin);x.scale((p.facing||1)*(p.artFacing===-1?-1:1)*stretchX,stretchY);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=mirageInvisible?(ally?mirageSelfAlpha:mirageRevealAlpha):1;if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
+  let bob=moving?-Math.abs(Math.sin(phase))*7:0,tilt=moving?Math.sin(phase)*.065:0,spin=0,stretchX=1,stretchY=1,offsetX=0,offsetY=0,skewX=0,opacity=1;
+  if(style==='float'){
+   bob=moving?-8-Math.sin(phase)*9:0;
+   tilt=moving?Math.sin(phase*.8)*.045:0;
+  }else if(style==='hop'){
+   if(moving){const hop=Math.abs(Math.sin(phase));bob=-hop*22;tilt=0;stretchX=1+(1-hop)*.12;stretchY=1-(1-hop)*.12;}else{bob=0;tilt=0;}
+  }else if(style==='slide'){
+   bob=0;tilt=0;
+  }else if(style==='spin'){
+   bob=0;tilt=0;spin=moving?phase:0;if(!moving)walk.set(p.id,0);
+  }else if(style==='wobble'){
+   const squish=Math.sin(phase*2.2);bob=moving?-3-Math.abs(Math.sin(phase))*4:0;tilt=moving?Math.sin(phase*1.8)*.08:0;stretchX=1+squish*.13;stretchY=1-squish*.11;offsetX=moving?Math.sin(phase*1.3)*4:0;
+  }else if(style==='zigzag'){
+   bob=moving?-4:0;tilt=moving?Math.sin(phase*1.2)*.14:0;offsetX=moving?Math.sin(phase*1.2)*12:0;
+  }else if(style==='slither'){
+   bob=moving?-2-Math.sin(phase*2.2)*2:0;tilt=moving?Math.sin(phase*1.6)*.18:0;stretchX=1.06+Math.abs(Math.sin(phase*1.2))*.08;stretchY=.96-Math.abs(Math.sin(phase*1.2))*.06;offsetX=moving?Math.sin(phase*1.6)*6:0;
+  }else if(style==='flap'){
+   const flap=Math.sin(phase*2.7);bob=moving?-6-Math.abs(flap)*8:0;tilt=moving?flap*.12:0;stretchX=1+Math.abs(flap)*.08;stretchY=1-Math.abs(flap)*.08;
+  }else if(style==='jerky'){
+   const step=Math.floor(phase*2.4)%4;bob=moving?[-2,-8,-3,-10][step]:0;tilt=moving?[0,.1,-.06,.06][step]:0;offsetX=moving?[0,3,-2,4][step]:0;
+  }else if(style==='roll'){
+   bob=0;tilt=0;spin=moving?phase*1.25:0;offsetX=moving?Math.sin(phase)*2:0;
+  }else if(style==='dashy'){
+   const pulse=(Math.sin(phase*2)+1)/2;bob=moving?-2:0;tilt=0;offsetX=moving?(pulse>.56?8:0):0;stretchX=moving?(pulse>.56?1.12:1):1;opacity=moving?(pulse>.82?.78:1):1;
+  }else if(style==='sway'){
+   bob=moving?-3-Math.abs(Math.sin(phase*.8))*4:0;tilt=moving?Math.sin(phase*.8)*.22:0;offsetX=moving?Math.sin(phase*.8)*7:0;
+  }else if(style==='stretch'){
+   const ext=(Math.sin(phase)+1)/2;bob=moving?-5-ext*8:0;stretchX=1-ext*.14;stretchY=1+ext*.18;tilt=moving?Math.sin(phase*.7)*.04:0;
+  }else if(style==='tumble'){
+   const halfTurn=(Math.sin(phase*1.1)>0?1:-1);bob=moving?-1:0;spin=moving?halfTurn*(Math.PI/2)*Math.abs(Math.sin(phase*1.1)):0;stretchX=1.02;stretchY=.98;
+  }else if(style==='choppy'){
+   const step=Math.floor((phase%(Math.PI*2))/(Math.PI/2));bob=moving?[-1,-6,-1,-6][step]:0;spin=moving?[0,Math.PI/10,0,-Math.PI/10][step]:0;tilt=0;
+  }else if(style==='crawl'){
+   bob=moving?1+Math.abs(Math.sin(phase))*2:0;tilt=moving?-.12+Math.sin(phase*1.5)*.04:-.1;stretchY=.78;stretchX=1.08;offsetY=5;
+  }else if(style==='stagger'){
+   const wob=Math.sin(phase*.85)+Math.sin(phase*1.9)*.45;bob=moving?-3-Math.abs(Math.sin(phase))*3:0;tilt=moving?wob*.14:0;offsetX=moving?wob*5:0;
+  }else if(style==='stomp'){
+   const stomp=Math.abs(Math.sin(phase*.9));bob=moving?-stomp*8:0;tilt=0;stretchX=1+(1-stomp)*.1;stretchY=1-(1-stomp)*.1;offsetY=moving?(1-stomp)*2:0;
+  }
+  x.globalAlpha=(p.state==='down'?.43:(mirageInvisible?(ally?mirageSelfAlpha:mirageRevealAlpha):(inBush?.5:hidden?.65:1)))*opacity;x.fillStyle='#33333322';x.beginPath();x.ellipse(pos.x,pos.y+21,25,9,0,0,Math.PI*2);x.fill();x.save();x.translate(pos.x+hitShakeOffset(p.id,time)+offsetX,pos.y+bob+offsetY);if(skewX)x.transform(1,0,skewX,1,0,0);x.rotate(tilt+spin);x.scale((p.facing||1)*(p.artFacing===-1?-1:1)*stretchX,stretchY);const img=images.get(p.id);if(img?.complete&&img.naturalWidth)x.drawImage(img,-32,-38,64,64);else{x.fillStyle=player?.color||'#9475b0';x.beginPath();x.arc(0,-6,25,0,Math.PI*2);x.fill();x.fillStyle='white';x.fillRect(-10,-12,5,6);x.fillRect(6,-12,5,6)}x.restore();x.globalAlpha=mirageInvisible?(ally?mirageSelfAlpha:mirageRevealAlpha):1;if(mirageInvisible&&!ally){x.globalAlpha=1;continue;}
   if(view.settings.teams==='teams'){
    const tint=p.team===0?'#43aef8':'#ff6686';x.save();x.shadowColor=tint;x.shadowBlur=14;x.strokeStyle=tint;x.lineWidth=p.id===localId?5:4;x.beginPath();x.ellipse(pos.x,pos.y-6,35,40,0,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.fillStyle=tint;x.beginPath();x.roundRect(pos.x-32,pos.y-74,64,18,5);x.fill();x.textAlign='center';x.font='bold 11px sans-serif';x.fillStyle='#fff';x.fillText(p.team===0?'青チーム':'赤チーム',pos.x,pos.y-61);x.restore();
   }
