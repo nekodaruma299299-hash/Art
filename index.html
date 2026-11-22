@@ -7072,17 +7072,18 @@ function initToolSorting(){
  ordered=ordered.filter(id=>id!=='mosaic'&&id!=='shape');
  // Both creative tools stay immediately above screen controls even with saved custom layouts.
  {const at=ordered.indexOf('view');ordered.splice(at<0?ordered.length:at,0,'shape','mosaic');}
- // Color conversion is an optional, bottom-most tool (below screen controls).
- // Do not move the user's other saved tools.
- ordered=ordered.filter(id=>id!=='colorConvert');ordered.push('colorConvert');
+ // Color conversion is an optional drawing tool: immediately ABOVE screen controls.
+ // Preserve all other stored tool positions and leave warehouse visibility unchanged.
+ ordered=ordered.filter(id=>id!=='colorConvert');
+ {const at=ordered.indexOf('view');ordered.splice(at<0?ordered.length:at,0,'colorConvert');}
  // One-time migration: insert the new tool just below Fill while preserving
  // previously customized tool positions. Subsequent user reorders are kept.
  if(!ordered.includes('pet')){
   const at=ordered.indexOf('fill');ordered.splice(at<0?ordered.length:at+1,0,'pet');
  }
  for(const id of [...new Set([...ordered,...defaults])])if(items.has(id))list.append(items.get(id));
- // Keep color conversion last even if older saved layouts contain unknown tool IDs.
- if(items.has('colorConvert'))list.append(items.get('colorConvert'));
+ // Position color conversion just before screen controls, including on existing installs.
+ if(items.has('colorConvert')&&items.has('view'))list.insertBefore(items.get('colorConvert'),items.get('view'));
  const save=()=>persist('artopia-tool-order',[...list.children].map(el=>el.dataset.sortId));
  let hold=null,drag=null,scrolling=null,suppressUntil=0;
  function stop(cancel=false,x=0,y=0){scrolling=null;clearTimeout(hold?.timer);hold=null;if(!drag)return;const d=drag;drag=null;d.ghost.remove();d.item.classList.remove('sort-placeholder');window.ArtToolWarehouse?.clear();if(!cancel&&window.ArtToolWarehouse?.hit(x,y)&&window.ArtToolWarehouse.store(d.item.dataset.sortId)){save();}else if(!cancel&&d.detach&&window.ArtFloatingTools?.detach){window.ArtFloatingTools.detach(d.item,x,y);save();}else if(cancel){for(const el of d.order)list.append(el)}else save();suppressUntil=performance.now()+450;box.classList.remove('sorting')}
@@ -26701,7 +26702,7 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  function render(){const choices=$('#artWarehouseChoices');choices.replaceChildren();for(const[id,t]of optional){const b=document.createElement('button');b.type='button';const icon=t.querySelector('svg')?.cloneNode(true);if(icon)b.append(icon);const label=document.createElement('span');label.textContent=t.textContent.trim();b.append(label);const status=document.createElement('small');status.textContent=stored.has(id)?'＋追加':'収納する';b.append(status);b.setAttribute('aria-pressed',String(!stored.has(id)));b.onclick=()=>{stored.has(id)?stored.delete(id):stored.add(id);apply()};choices.append(b)}}
  const hit=(x,y)=>{const r=shelf.getBoundingClientRect();return !!r.width&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom};
  window.ArtToolWarehouse={hit,hover:(x,y)=>shelf.classList.toggle('art-drop-ready',hit(x,y)),clear:()=>shelf.classList.remove('art-drop-ready'),store:id=>{if(!optional.has(id))return false;stored.add(id);apply();return true}};
- $('#artToolsReset').onclick=()=>{for(const el of [...studio.querySelectorAll('[data-sort-id]')])window.ArtFloatingTools?.dock(el.dataset.sortId);stored=new Set(optional.keys());for(const id of ['pen','eraser','history','palette','settings','lasso','fill','blur','warp','pet','shape','mosaic','view','colorConvert']){const el=[...list.children].find(e=>e.dataset.sortId===id);if(el)list.append(el)}write('artopia-tool-order',[...list.children].map(e=>e.dataset.sortId));for(const key of ['size','opacity','view']){const d=$('#artFold-'+key);if(d)d.open=key!=='view'}if(feel)feel.open=false;apply()};
+ $('#artToolsReset').onclick=()=>{for(const el of [...studio.querySelectorAll('[data-sort-id]')])window.ArtFloatingTools?.dock(el.dataset.sortId);stored=new Set(optional.keys());for(const id of ['pen','eraser','history','palette','settings','lasso','fill','blur','warp','pet','shape','mosaic','colorConvert','view']){const el=[...list.children].find(e=>e.dataset.sortId===id);if(el)list.append(el)}write('artopia-tool-order',[...list.children].map(e=>e.dataset.sortId));for(const key of ['size','opacity','view']){const d=$('#artFold-'+key);if(d)d.open=key!=='view'}if(feel)feel.open=false;apply()};
  apply();
 })();
 </script>
