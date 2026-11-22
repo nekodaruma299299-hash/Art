@@ -4208,7 +4208,7 @@ const image=url=>new Promise((res,rej)=>{let i=new Image;i.onload=()=>res(i);i.o
 
 
 /* SECTION: engine/pen.js */
-function strokeInk(c,a,start=0){if(a.tool==='pen'&&['glow','impasto','watercolor','pencil','oil'].includes(a.brush))return artSpecialInk(c,a,start);if(a.tool==='pen'&&a.opacityTaper?.version===5&&a.roundTipVersion===1&&(!a.brush||a.brush==='normal'))return roundTaperInk(c,a);if(['pen','eraser'].includes(a.tool)&&a.opacityTaper)return [2,3,4,5].includes(a.opacityTaper.version)?smoothTaperInk(c,a):taperInk(c,a,start);if(['pen','eraser'].includes(a.tool)&&a.brush==='spray'&&a.brushVersion===2)return airbrushInk(c,a,start);if(['pen','eraser'].includes(a.tool)&&['spray','cotton'].includes(a.brush))return textureInk(c,a,start);const x=c.getContext('2d');x.fillStyle=a.color;x.strokeStyle=a.color;x.lineCap='round';x.lineJoin='round';let prev=a.points[Math.max(0,start-1)];for(let i=start;i<a.points.length;i++){let p=a.points[i],r=Math.max(.3,a.size*(a.pressure?(Number.isFinite(p[2])?Math.max(0,Math.min(1,p[2])):.5)*1.6:1)/2);if(i){x.lineWidth=r*2;x.beginPath();x.moveTo(prev[0],prev[1]);x.lineTo(p[0],p[1]);x.stroke()}x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.fill();prev=p}}
+function strokeInk(c,a,start=0){if(a.tool==='pen'&&['glow','impasto','watercolor','pencil','oil'].includes(a.brush))return artSpecialInk(c,a,start);if(a.tool==='pen'&&a.opacityTaper?.version>=5&&a.roundTipVersion===1&&(!a.brush||a.brush==='normal'))return roundTaperInk(c,a);if(['pen','eraser'].includes(a.tool)&&a.opacityTaper)return [2,3,4,5].includes(a.opacityTaper.version)?smoothTaperInk(c,a):taperInk(c,a,start);if(['pen','eraser'].includes(a.tool)&&a.brush==='spray'&&a.brushVersion===2)return airbrushInk(c,a,start);if(['pen','eraser'].includes(a.tool)&&['spray','cotton'].includes(a.brush))return textureInk(c,a,start);const x=c.getContext('2d');x.fillStyle=a.color;x.strokeStyle=a.color;x.lineCap='round';x.lineJoin='round';const bo=a.brushSettings||{},soft=bo.softOn===1,hard=Number.isFinite(+bo.hardness)?+bo.hardness:100,softTip=soft?artSpecialTip(a.color,'glow',.7):null;let prev=a.points[Math.max(0,start-1)];for(let i=start;i<a.points.length;i++){let p=a.points[i],r=Math.max(.3,a.size*(a.pressure?(Number.isFinite(p[2])?Math.max(0,Math.min(1,p[2])):.5)*1.6:1)/2);if(i){x.lineWidth=r*2;x.beginPath();x.moveTo(prev[0],prev[1]);x.lineTo(p[0],p[1]);x.stroke()}x.beginPath();x.arc(p[0],p[1],r,0,Math.PI*2);x.fill();if(softTip){x.save();x.globalAlpha=Math.max(.03,(100-hard)/170+.14);x.drawImage(softTip,p[0]-r*1.5,p[1]-r*1.5,r*3,r*3);x.restore()}prev=p}}
 
 
 /* SECTION: engine/opacity-taper.js */
@@ -4230,7 +4230,7 @@ function taperInk(c,a,start=0){
    if(a.brush==='spray')x.drawImage(airTip(a.color),px-radius,py-radius,radius*2,radius*2);
    else if(a.brush==='cotton'){
     let seed=((a.seed||1)^Math.imul(i+1,2654435761)^Math.imul(n,2246822519))>>>0;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
-    for(let k=0;k<7;k++){const angle=rand()*Math.PI*2,spread=Math.sqrt(rand())*radius*.66,r=Math.max(.35,radius*(.16+rand()*.17));x.beginPath();x.arc(px+Math.cos(angle)*spread,py+Math.sin(angle)*spread,r,0,Math.PI*2);x.fill()}
+    for(let k=0;k<7;k++){const angle=rand()*Math.PI*2,spread=Math.sqrt(rand())*radius*.66,r=Math.max(.35,radius*((settings.grain??35)/220+rand()*(settings.randomness??40)/230));x.beginPath();x.arc(px+Math.cos(angle)*spread,py+Math.sin(angle)*spread,r,0,Math.PI*2);x.fill()}
    }else{x.beginPath();x.arc(px,py,radius,0,Math.PI*2);x.fill()}
   }
  }
@@ -4356,12 +4356,12 @@ function roundTaperInk(c,a){
   if(length){if(!cache.total)cache.firstSpeed=to;cache.lastSpeed=to;cache.total+=length}
  }
  cache.count=a.points.length;
- const s=a.opacityTaper,total=cache.total,startSpan=Math.min(s.length*s.entry/100*(.15+.85*cache.firstSpeed),total*.45),endSpan=Math.min(s.length*s.exit/100*(.15+.85*cache.lastSpeed),total*.45);
+ const s=a.opacityTaper,total=cache.total,limit=s.version>=6?.9:.45,startSpan=Math.min((s.entryLength||s.length)*s.entry/100*(.15+.85*cache.firstSpeed),total*limit),endSpan=Math.min((s.exitLength||s.length)*s.exit/100*(.15+.85*cache.lastSpeed),total*limit);
  function paint(x,from,to){let last=-1;
   for(let n=from;n<to;n++){
    const [px,py,r,along,speed]=cache.tips[n];
    const u=startSpan?Math.max(0,Math.min(1,along/startSpan)):(along>0?1:0),v=endSpan?Math.max(0,Math.min(1,(total-along)/endSpan)):(along<total?1:0);
-   const alpha=Math.round(255*(1-s.fade/100*speed)*(u*u*(3-2*u))*(v*v*(3-2*v)));
+   let alpha;if(s.version>=6){const speedFactor=s.speedOn===0?1:Math.min(1,Math.max(0,speed*(s.speed??125)/100));const thinning=1-(s.fade/100)*speedFactor;const entryShape=s.entry?u*u*(3-2*u):1,exitShape=s.exit?v*v*(3-2*v):1;const min=(s.minOpacity||0)/100;alpha=Math.round(255*Math.max(min,thinning*entryShape*exitShape))}else alpha=Math.round(255*(1-s.fade/100*speed)*(u*u*(3-2*u))*(v*v*(3-2*v)));
    if(!alpha)continue;if(alpha!==last){x.fillStyle=`rgb(${alpha},${alpha},${alpha})`;last=alpha}
    x.beginPath();x.arc(px,py,r,0,Math.PI*2);x.fill();
   }
@@ -4394,12 +4394,12 @@ function airTip(color){
  x.fillStyle=g;x.fillRect(0,0,128,128);airTips.set(color,c);return c;
 }
 function airbrushInk(c,a,start=0){
- const x=c.getContext('2d'),tip=airTip(a.color);x.save();x.imageSmoothingEnabled=true;
+ const x=c.getContext('2d'),tip=airTip(a.color),settings=a.brushSettings||{};x.save();x.imageSmoothingEnabled=true;
  for(let i=start;i<a.points.length;i++){
-  const p=a.points[i],q=a.points[Math.max(0,i-1)],r=Math.max(.3,a.size*(a.pressure?(Number.isFinite(p[2])?Math.max(0,Math.min(1,p[2])):.5)*1.6:1)/2),spacing=Math.max(.5,r*.16),distance=Math.hypot(p[0]-q[0],p[1]-q[1]);
+  const p=a.points[i],q=a.points[Math.max(0,i-1)],r=Math.max(.3,a.size*(a.pressure?(Number.isFinite(p[2])?Math.max(0,Math.min(1,p[2])):.5)*1.6:1)/2),spacing=Math.max(.5,r*(.12+(1-(settings.flow??50)/200)*.1)),distance=Math.hypot(p[0]-q[0],p[1]-q[1]);
   const steps=i?Math.max(1,Math.ceil(distance/spacing)):1;
-  x.globalAlpha=i?1-Math.pow(.84,distance/(steps*spacing)):.16;
-  for(let n=1;n<=steps;n++){const px=q[0]+(p[0]-q[0])*n/steps,py=q[1]+(p[1]-q[1])*n/steps;x.drawImage(tip,px-r,py-r,r*2,r*2)}
+  x.globalAlpha=(i?1-Math.pow(.84,distance/(steps*spacing)):.16)*Math.max(.05,(settings.density??60)/60);
+  for(let n=1;n<=steps;n++){const px=q[0]+(p[0]-q[0])*n/steps,py=q[1]+(p[1]-q[1])*n/steps;x.drawImage(tip,px-r*(.6+(settings.spread??75)/180),py-r*(.6+(settings.spread??75)/180),r*2*(.6+(settings.spread??75)/180),r*2*(.6+(settings.spread??75)/180))}
  }
  x.restore();
 }
@@ -4418,30 +4418,28 @@ function artSpecialTip(color,kind,soft){
  x.fillStyle=gradient;x.fillRect(0,0,96,96);artSpecialTipCache.set(key,tip);return tip;
 }
 function artSpecialInk(c,a,start=0){
- const x=c.getContext('2d'),kind=a.brush,opt=a.brushSettings&&typeof a.brushSettings==='object'?a.brushSettings:{},get=(key,def)=>Math.max(0,Math.min(200,Number.isFinite(+opt[key])?+opt[key]:def))/100;
+ const x=c.getContext('2d'),kind=a.brush,opt=a.brushSettings&&typeof a.brushSettings==='object'?a.brushSettings:{};
+ const get=(k,d)=>Math.max(0,Math.min(200,Number.isFinite(+opt[k])?+opt[k]:d))/100;
  let seed=(a.seed||12345)>>>0;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
- x.save();x.fillStyle=a.color;x.strokeStyle=a.color;x.lineCap='round';x.lineJoin='round';
- const softTip=kind==='glow'?artSpecialTip(a.color,'glow',.7):kind==='watercolor'?artSpecialTip(a.color,'watercolor',.55):null;
+ const softOn=opt.softOn!==0,softness=get('softness',70),spread=get('spread',100),core=get('core',40),power=get(kind==='glow'?'intensity':'paint',kind==='glow'?100:75),repeat=get('accumulate',100),hard=get('hardness',80);
+ const haloTip=artSpecialTip(a.color,'glow',.7);
+ x.save();x.fillStyle=a.color;x.lineCap='round';
  for(let i=start;i<a.points.length;i++){
   const p=a.points[i],q=a.points[Math.max(0,i-1)],distance=Math.hypot(p[0]-q[0],p[1]-q[1]),pressure=a.pressure?(Number.isFinite(p[2])?Math.max(.06,p[2]):.5)*1.6:1,radius=Math.max(.4,a.size*pressure*.5);
-  const spacing=Math.max(1,radius*(kind==='glow'?.3:kind==='watercolor'?.32:.22));const steps=i?Math.max(1,Math.min(256,Math.ceil(distance/spacing))):1;
+  const spacing=Math.max(.7,radius*.23),steps=i?Math.max(1,Math.min(320,Math.ceil(distance/spacing))):1;
   for(let j=1;j<=steps;j++){
    const px=q[0]+(p[0]-q[0])*j/steps,py=q[1]+(p[1]-q[1])*j/steps;
-   if(kind==='glow'){
-    const spread=.7+get('spread',100)*1.35,outer=radius*spread;
-    x.globalAlpha=Math.min(.7,.08+get('intensity',100)*.26);x.drawImage(softTip,px-outer,py-outer,outer*2,outer*2);
-    x.globalAlpha=Math.min(1,.15+get('intensity',100)*.5);x.beginPath();x.arc(px,py,Math.max(.3,radius*(.08+get('core',40)*.4)),0,Math.PI*2);x.fill();
+   if(kind==='glow'||kind==='impasto'){
+    const outer=radius*(.75+spread*1.15),haloAlpha=Math.min(.8,(.025+power*.19)*(.3+repeat*.7)*softness);
+    if(softOn&&softness>0){x.globalAlpha=haloAlpha;x.drawImage(haloTip,px-outer,py-outer,outer*2,outer*2)}
+    const cr=radius*(.08+core*.43),coreAlpha=Math.min(.95,(.12+power*.34)*(.3+repeat*.7));
+    x.globalAlpha=coreAlpha;
+    if(hard<.65&&softOn){const middle=Math.max(cr,1);x.drawImage(haloTip,px-middle,py-middle,middle*2,middle*2)}
+    else{x.beginPath();x.arc(px,py,Math.max(.3,cr),0,Math.PI*2);x.fill()}
    }else if(kind==='watercolor'){
-    const bleed=get('bleed',50),wet=get('water',60);x.globalAlpha=.05+get('pigment',65)*.2;x.drawImage(softTip,px-radius*(1+bleed*.55),py-radius*(1+bleed*.55),radius*2*(1+bleed*.55),radius*2*(1+bleed*.55));
-    x.globalAlpha=Math.min(.5,.04+get('pigment',65)*.14);const angle=random()*Math.PI*2,d=random()*radius*wet*.7;x.beginPath();x.arc(px+Math.cos(angle)*d,py+Math.sin(angle)*d,Math.max(.3,radius*(.16+random()*.2)),0,Math.PI*2);x.fill();
-   }else if(kind==='pencil'){
-    const grain=get('grain',60),density=get('density',65),hardness=get('hardness',50);const dots=Math.max(2,Math.min(24,Math.round(3+radius*.8)));
-    for(let n=0;n<dots;n++){const theta=random()*Math.PI*2,dist=Math.sqrt(random())*radius*(.8+grain*.2),dot=Math.max(.22,(.25+hardness*.6)*(.5+random()*.5));x.globalAlpha=Math.min(.6,.1+density*.35);x.fillRect(px+Math.cos(theta)*dist,py+Math.sin(theta)*dist,dot,dot)}
-   }else{
-    const paint=get('paint',75),mix=get('mix',45),texture=get('texture',55),oil=kind==='oil';
-    x.globalAlpha=Math.min(.98,.2+paint*.45+(!oil?mix*.12:0));x.beginPath();x.arc(px,py,radius*(oil?.86:.95),0,Math.PI*2);x.fill();
-    const ridges=oil?Math.max(2,Math.round(3+texture*5)):Math.max(1,Math.round(2+texture*3));
-    for(let n=0;n<ridges;n++){let dy=(random()-.5)*radius*1.2,dx=(random()-.5)*radius*.65;x.globalAlpha=.05+texture*.12;x.beginPath();x.arc(px+dx,py+dy,Math.max(.25,radius*(oil?.08:.05)),0,Math.PI*2);x.fill()}
+    const tip=artSpecialTip(a.color,'watercolor',.55),bleed=get('bleed',50),wet=get('water',60);x.globalAlpha=.05+get('pigment',65)*.2;x.drawImage(tip,px-radius*(1+bleed*.55),py-radius*(1+bleed*.55),radius*2*(1+bleed*.55),radius*2*(1+bleed*.55));x.globalAlpha=.08;const angle=random()*Math.PI*2,d=random()*radius*wet*.7;x.beginPath();x.arc(px+Math.cos(angle)*d,py+Math.sin(angle)*d,Math.max(.3,radius*.2),0,Math.PI*2);x.fill();
+   }else if(kind==='pencil'||kind==='oil'){
+    x.globalAlpha=.25;x.beginPath();x.arc(px,py,radius*.8,0,Math.PI*2);x.fill();
    }
   }
  }
@@ -4450,17 +4448,17 @@ function artSpecialInk(c,a,start=0){
 
 /* SECTION: engine/texture.js */
 function textureInk(c,a,start=0){
- const x=c.getContext('2d');x.save();x.fillStyle=a.color;
+ const x=c.getContext('2d'),settings=a.brushSettings||{};x.save();x.fillStyle=a.color;
  for(let i=start;i<a.points.length;i++){
   const p=a.points[i],q=a.points[Math.max(0,i-1)],radius=Math.max(.3,a.size*(a.pressure?(Number.isFinite(p[2])?Math.max(0,Math.min(1,p[2])):.5)*1.6:1)/2);
   let seed=((a.seed||1)^Math.imul(i+1,2654435761))>>>0;
   const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
   const steps=i?Math.max(1,Math.min(96,Math.ceil(Math.hypot(p[0]-q[0],p[1]-q[1])/Math.max(1,radius*.35)))):1;
   for(let k=1;k<=steps;k++){
-   const px=q[0]+(p[0]-q[0])*k/steps,py=q[1]+(p[1]-q[1])*k/steps,count=a.brush==='spray'?18:7;
+   const px=q[0]+(p[0]-q[0])*k/steps,py=q[1]+(p[1]-q[1])*k/steps,count=a.brush==='spray'?18:Math.max(2,Math.round(7*(settings.density??70)/70));
    for(let n=0;n<count;n++){
-    const angle=rand()*Math.PI*2,spread=Math.sqrt(rand())*radius*(a.brush==='spray'?.96:.66);
-    const r=a.brush==='spray'?Math.max(.28,radius*(.012+rand()*.02)):Math.max(.35,radius*(.16+rand()*.17));
+    const angle=rand()*Math.PI*2,spread=Math.sqrt(rand())*radius*(a.brush==='spray'?.96:Math.max(.1,(settings.scatter??60)/90));
+    const r=a.brush==='spray'?Math.max(.28,radius*(.012+rand()*.02)):Math.max(.35,radius*((settings.grain??35)/220+rand()*(settings.randomness??40)/230));
     const xx=px+Math.cos(angle)*spread,yy=py+Math.sin(angle)*spread;
     if(a.brush==='cotton'){
      x.globalAlpha=.12; x.beginPath();x.arc(xx,yy,r,0,Math.PI*2);x.fill();
@@ -7033,7 +7031,7 @@ window.ArtStudioOptions=(()=>{
   if(!['pen','eraser'].includes(a.tool)||a.brush!=='fade')return;
   // Normalize to the existing round-brush wire format for replay and peer compatibility.
   a.brush='normal';
-  a.opacityTaper={version:5,entry:100,exit:100,length:40,fade:60};
+  const f=a.brushSettings&&Object.keys(a.brushSettings).length?a.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});a.opacityTaper={version:6,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??90,f.exit??90))),entryLength:Math.max(1,Math.min(200,f.entry??90)),exitLength:Math.max(1,Math.min(200,f.exit??90)),fade:Math.max(0,Math.min(100,f.fade??90)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??125)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};
   if(a.tool==='pen')a.roundTipVersion=1;
  }
 
@@ -7215,7 +7213,7 @@ window.ArtAnimation=(()=>{
  function finishStroke(){if(!pen)return;const s=pen;pen=null;
   if(s.points.length&&frameList().some(f=>f.id===current)){
    s.taperFinished=true;
-   if(s.brush==='fade'&&['pen','eraser'].includes(s.tool)){s.opacityTaper={version:5,entry:100,exit:100,length:40,fade:60};if(s.tool==='pen')s.roundTipVersion=1;s.brush='normal';}
+   if(s.brush==='fade'&&['pen','eraser'].includes(s.tool)){const f=s.brushSettings&&Object.keys(s.brushSettings).length?s.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});s.opacityTaper={version:6,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??90,f.exit??90))),entryLength:Math.max(1,Math.min(200,f.entry??90)),exitLength:Math.max(1,Math.min(200,f.exit??90)),fade:Math.max(0,Math.min(100,f.fade??90)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??125)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};if(s.tool==='pen')s.roundTipVersion=1;s.brush='normal';}
    const {id,...data}=s;edit('stroke',{stroke:data});
   }renderCanvas();}
  function handlePointerDown(e){
@@ -26609,7 +26607,16 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
 window.ArtPenStudio=(()=>{
  'use strict';
  const defs=[['normal','普通ペン'],['spray','エアブラシ'],['cotton','もこもこペン'],['fade','フェードペン'],['glow','発光ペン'],['impasto','乗算ペン']];
- const fields={normal:[['hardness','硬さ',100],['taper','入り抜き',0]],spray:[['spread','拡散範囲',75],['density','中心濃度',60]],cotton:[['density','粒子密度',70],['texture','輪郭の柔らかさ',65]],fade:[['entry','入りの長さ',40],['exit','抜きの長さ',40]],glow:[['intensity','発光強度',100],['spread','光の広がり',100],['core','中心線の太さ',40]],impasto:[['paint','乗算の濃さ',75],['mix','重ね塗り強度',45],['texture','筆跡',50]]};
+ const fields={
+ normal:[['hardness','硬さ',100],['taper','入り抜き強度',0],['softOn','境界ぼかし ON/OFF',0],['softness','境界ぼかし幅',20],['accumulate','重ね塗り蓄積 ON/OFF',0]],
+ spray:[['softOn','境界ぼかし ON/OFF',1],['spread','ぼかしの広がり',75],['density','中心濃度',60],['flow','噴射密度',50],['accumulate','重ね塗り蓄積 ON/OFF',1],['scatter','粒子の散らばり',0],['pressureFlow','噴射量の筆圧連動 ON/OFF',1]],
+ cotton:[['grain','粒子サイズ',35],['density','粒子密度',70],['scatter','粒子の散らばり',60],['randomness','粒子サイズのランダム性',40],['softOn','輪郭のぼかし ON/OFF',1],['texture','ぼかし強度',65],['accumulate','重ね塗り蓄積 ON/OFF',1]],
+ fade:[['fade','フェード率',90],['speedOn','速度連動 ON/OFF',1],['speed','速度感度',125],['entryOn','入りのフェード ON/OFF',1],['entry','入りの長さ（px）',90],['exitOn','抜きのフェード ON/OFF',1],['exit','抜きの長さ（px）',90],['smooth','フェードの滑らかさ',80],['minOpacity','最低透明度',0]],
+ glow:[['softOn','境界のにじみ ON/OFF',1],['softness','にじみの強さ',70],['spread','にじみの広がり',100],['intensity','発光強度',100],['core','中心線の太さ',40],['hardness','中心線の硬さ',80],['accumulate','重ね塗り強度',100]],
+ impasto:[['softOn','境界のにじみ ON/OFF',1],['softness','にじみの強さ',70],['spread','にじみの広がり',100],['paint','乗算の濃さ',75],['core','中心線の太さ',40],['hardness','中心線の硬さ',80],['accumulate','重ね塗り強度',100]]
+ };
+ const toggles=new Set(['softOn','accumulate','pressureFlow','speedOn','entryOn','exitOn']);
+
  const store='artopia-pen-studio-v1',safe=(str)=>String(str).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  let data={hidden:[],originals:[],standards:{},edit:'normal'};
  try{const saved=JSON.parse(localStorage.getItem(store)||'null');if(saved&&typeof saved==='object')data={...data,...saved}}catch{}
@@ -26625,7 +26632,7 @@ window.ArtPenStudio=(()=>{
  function settingsFor(slot){const o=slot?.originalId&&data.originals.find(p=>p.id===slot.originalId);return o?{...o.settings}:options(slot?.brush)}
  function select(value,prefs,render){let target=prefs.pens[prefs.penSlot];if(!target)return;if(value.startsWith('original:')){const o=data.originals.find(x=>x.id===value.slice(9));if(!o)return;Object.assign(target,{originalId:o.id,brush:o.base,size:o.size,strength:o.strength})}else if(valid(value)){target.brush=value;delete target.originalId;}else return;try{localStorage.setItem('artopia-pens',JSON.stringify(prefs.pens))}catch{}render()}
  function refreshSelect(select,slot){if(!select)return;const prev=select.value;const list=defs.filter(d=>!data.hidden.includes(d[0])||slot?.brush===d[0]);const custom=data.originals.filter(x=>x.visible!==false||slot?.originalId===x.id);select.innerHTML=list.map(d=>`<option value="${d[0]}">${safe(d[1])}</option>`).join('')+custom.map(x=>`<option value="original:${safe(x.id)}">★ ${safe(x.name)}</option>`).join('');select.value=slot?.originalId?'original:'+slot.originalId:slot?.brush||prev}
- function html(){return `<details class="art-pen-studio" id="apsRoot"><summary>ペン設定（標準・オリジナルペン）</summary><div class="aps-note">標準ペンは最初から表示されます。非表示は削除ではありません。設定はこの端末に自動保存されます。</div><strong>標準ペンの表示</strong><div id="apsStandard"></div><strong>オリジナルペン</strong><div id="apsOriginal"></div><div class="aps-button-row"><button type="button" id="apsNew">＋ オリジナルペンを追加</button></div><strong>ペンの詳細設定</strong><select id="apsEdit"></select><div id="apsFields" class="aps-fields"></div><small class="aps-note">サイズと不透明度はキャンバスのペン設定でも変更できます。発光ペンは加算、乗算ペンは乗算で色を重ねます。</small></details>`}
+ function html(){return `<details class="art-pen-studio" id="apsRoot"><summary>ペン設定（標準・オリジナルペン）</summary><div class="aps-note">標準ペンは最初から表示されます。非表示は削除ではありません。設定はこの端末に自動保存されます。</div><strong>標準ペンの表示</strong><div id="apsStandard"></div><strong>オリジナルペン</strong><div id="apsOriginal"></div><div class="aps-button-row"><button type="button" id="apsNew">＋ オリジナルペンを追加</button></div><strong>ペンの詳細設定</strong><select id="apsEdit"></select><div id="apsFields" class="aps-fields"></div><small class="aps-note">ON/OFFと数値は新しい筆跡から反映。発光は加算、乗算は乗算合成です。フェードペンは強めの初期設定になっています。</small></details>`}
  function bind(){const root=document.getElementById('apsRoot');if(!root)return;
  const qs=id=>root.querySelector('#'+id);
  function render(){qs('apsStandard').innerHTML=defs.map(([id,name])=>`<div class="aps-line"><span>${safe(name)}</span><label><input type="checkbox" data-show="${id}" ${data.hidden.includes(id)?'':'checked'}>表示</label></div>`).join('');
@@ -26633,17 +26640,18 @@ window.ArtPenStudio=(()=>{
  const selections=[...defs.map(([id,name])=>({id,label:'標準：'+name})),...data.originals.map(o=>({id:'original:'+o.id,label:'オリジナル：'+o.name}))];
  if(!selections.some(o=>o.id===data.edit))data.edit='normal';qs('apsEdit').innerHTML=selections.map(o=>`<option value="${safe(o.id)}" ${o.id===data.edit?'selected':''}>${safe(o.label)}</option>`).join('');
  const original=data.edit.startsWith('original:')?data.originals.find(o=>o.id===data.edit.slice(9)):null,base=original?.base||data.edit;
- qs('apsFields').innerHTML=(original?`<label>ベースの種類<select id="apsBase">${defs.map(([id,name])=>`<option value="${id}" ${id===base?'selected':''}>${name}</option>`).join('')}</select></label><label>サイズ（px）<input data-value="size" type="number" min="1" max="160" value="${original.size||12}"></label><label>不透明度（%）<input data-value="strength" type="number" min="1" max="100" value="${original.strength||100}"></label>`:'')+(fields[base]||[]).map(([key,label,value])=>`<label>${label}：<output id="apsV${key}">${original?.settings?.[key]??options(base)[key]}%</output><input type="range" min="0" max="200" step="1" data-param="${key}" value="${original?.settings?.[key]??options(base)[key]}"></label>`).join('');
+ qs('apsFields').innerHTML=(original?`<label>ベースの種類<select id="apsBase">${defs.map(([id,name])=>`<option value="${id}" ${id===base?'selected':''}>${name}</option>`).join('')}</select></label><label>サイズ（px）<input data-value="size" type="number" min="1" max="160" value="${original.size||12}"></label><label>不透明度（%）<input data-value="strength" type="number" min="1" max="100" value="${original.strength||100}"></label>`:'')+(fields[base]||[]).map(([key,label,value])=>{const v=original?.settings?.[key]??options(base)[key];return toggles.has(key)?`<label>${label}<select data-toggle="${key}"><option value="1" ${v?'selected':''}>ON</option><option value="0" ${!v?'selected':''}>OFF</option></select></label>`:`<label>${label}：<output id="apsV${key}">${v}${key==='entry'||key==='exit'?'px':'%'}</output><input type="range" min="0" max="200" step="1" data-param="${key}" value="${v}"></label>`}).join('');
  }
  root.addEventListener('change',e=>{let el=e.target,id=el.dataset.show||el.dataset.visible||el.dataset.name||el.dataset.copy||el.dataset.delete;
   if(el.dataset.show){data.hidden=el.checked?data.hidden.filter(v=>v!==id):[...new Set([...data.hidden,id])];save();render();return}
   if(el.dataset.visible){const o=data.originals.find(o=>o.id===id);if(o)o.visible=el.checked;save();render();return}
   if(el.dataset.name){const o=data.originals.find(o=>o.id===id);if(o)o.name=(el.value.trim()||'オリジナルペン').slice(0,35);save();render();return}
+  if(el.dataset.toggle){const o=data.originals.find(o=>'original:'+o.id===data.edit),base=o?.base||data.edit;if(o)o.settings[el.dataset.toggle]=+el.value;else{data.standards[base]??={};data.standards[base][el.dataset.toggle]=+el.value}save();return}
   if(el.id==='apsEdit'){data.edit=el.value;save();render();return}
   if(el.id==='apsBase'){const o=data.originals.find(o=>'original:'+o.id===data.edit);if(o){o.base=el.value;o.settings=options(o.base)}save();render();return}
   if(el.dataset.value){const o=data.originals.find(o=>'original:'+o.id===data.edit);if(o)o[el.dataset.value]=Math.max(1,Math.min(el.dataset.value==='size'?160:100,+el.value||1));save();return}
  });
- root.addEventListener('input',e=>{const key=e.target.dataset.param;if(!key)return;const o=data.originals.find(o=>'original:'+o.id===data.edit),base=o?.base||data.edit,n=Math.max(0,Math.min(200,+e.target.value||0));if(o)o.settings[key]=n;else{data.standards[base]??={};data.standards[base][key]=n}const out=qs('apsV'+key);if(out)out.textContent=n+'%';save()});
+ root.addEventListener('input',e=>{const key=e.target.dataset.param;if(!key)return;const o=data.originals.find(o=>'original:'+o.id===data.edit),base=o?.base||data.edit,n=Math.max(0,Math.min(200,+e.target.value||0));if(o)o.settings[key]=n;else{data.standards[base]??={};data.standards[base][key]=n}const out=qs('apsV'+key);if(out)out.textContent=n+(key==='entry'||key==='exit'?'px':'%');save()});
  root.addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;
   if(button.id==='apsNew'){const base=valid(data.edit)?data.edit:'normal';const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);data.originals.push({id,name:'新しいペン',base,size:12,strength:100,settings:options(base),visible:true});data.edit='original:'+id;save();render();return}
   let id=button.dataset.copy||button.dataset.delete;if(!id)return;const o=data.originals.find(o=>o.id===id);if(!o)return;
