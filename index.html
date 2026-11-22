@@ -4243,8 +4243,8 @@ function taperInk(c,a,start=0){
 // Sparse tiles retain geometry between frames; only new segments are rasterized.
 // Live and committed ink use the same envelope, including the current release end.
 const smoothTaperCaches=new WeakMap(),TAPER_TILE=32;
-function releaseStrokeInk(canvas){releaseRoundTaperInk(canvas);const cache=smoothTaperCaches.get(canvas);if(cache?.raw)cache.raw.width=cache.raw.height=0;smoothTaperCaches.delete(canvas)}
-function moveStrokeInk(from,to){moveRoundTaperInk(from,to);
+function releaseStrokeInk(canvas){artSoftStrokeMasks.delete(canvas);releaseRoundTaperInk(canvas);const cache=smoothTaperCaches.get(canvas);if(cache?.raw)cache.raw.width=cache.raw.height=0;smoothTaperCaches.delete(canvas)}
+function moveStrokeInk(from,to){artSoftStrokeMasks.delete(from);artSoftStrokeMasks.delete(to);moveRoundTaperInk(from,to);
  const cache=smoothTaperCaches.get(from);if(!cache)return;
  if(cache.raw){const old=from.getContext('2d').getTransform(),next=to.getContext('2d').getTransform(),raw=make(to.width,to.height),x=raw.getContext('2d');x.drawImage(cache.raw,next.e-old.e,next.f-old.f);x.translate(next.e,next.f);cache.raw.width=cache.raw.height=0;cache.raw=raw}
  smoothTaperCaches.delete(from);smoothTaperCaches.set(to,cache);
@@ -4362,7 +4362,15 @@ function roundTaperInk(c,a){
    const [px,py,r,along,speed]=cache.tips[n];
    const u=startSpan?Math.max(0,Math.min(1,along/startSpan)):(along>0?1:0),v=endSpan?Math.max(0,Math.min(1,(total-along)/endSpan)):(along<total?1:0);
    let alpha;
-   if(s.version>=7){
+   if(s.version>=8){
+    // True transparent endpoints without artificially thinning the middle.
+    // Speed only modestly affects the middle; the tips fade all the way to zero.
+    const clamp=v=>Math.max(0,Math.min(1,v)),smooth=v=>{v=clamp(v);return v*v*(3-2*v)};
+    const motion=s.speedOn===0?0:smooth((speed*(s.speed??100)/100-.22)/.78);
+    const middle=1-.48*(s.fade/100)*motion;
+    const entryShape=s.entry?smooth(u):1,exitShape=s.exit?smooth(v):1;
+    alpha=Math.round(255*middle*entryShape*exitShape*(1-(s.minOpacity||0)/100)+(s.minOpacity||0)*2.55*entryShape*exitShape);
+   }else if(s.version>=7){
     // Version 7: a fast flick is visibly light, but normal drawing stays readable.
     // Speed is the normalized, zoom-independent marker speed saved on each point.
     const clamp=v=>Math.max(0,Math.min(1,v)),smooth=v=>{v=clamp(v);return v*v*(3-2*v)};
@@ -4458,31 +4466,61 @@ function artSoftBlendTip(color,softness,concentration,hardness,blur){
  }
  artSoftBlendTips.set(key,tip);return tip;
 }
+// Version 4: keep maximum coverage within one stroke, independent of pointer sample density.
+// The final image is composed with lighter/multiply only once per completed stroke.
+const artSoftStrokeMasks=new WeakMap(),artSoftWhiteTips=new WeakMap();
+function artSoftWhiteTip(tip){
+ let result=artSoftWhiteTips.get(tip);if(result)return result;
+ result=make(tip.width,tip.height);const r=result.getContext('2d',{willReadFrequently:true});
+ r.drawImage(tip,0,0);
+ // Encode tip alpha as opaque grayscale. 'lighten' now takes a true pixelwise
+ // maximum instead of repeatedly alpha-compositing semi-transparent white dabs.
+ const image=r.getImageData(0,0,result.width,result.height),d=image.data;
+ for(let i=0;i<d.length;i+=4){d[i]=d[i+1]=d[i+2]=d[i+3];d[i+3]=255}
+ r.putImageData(image,0,0);artSoftWhiteTips.set(tip,result);return result;
+}
 function artSoftBlendInk(c,a,start=0){
- const x=c.getContext('2d'),opt=a.brushSettings||{},kind=a.brush;
+ const ctx=c.getContext('2d'),opt=a.brushSettings||{},kind=a.brush;
  const setting=(key,d)=>Math.max(0,Math.min(200,Number.isFinite(+opt[key])?+opt[key]:d))/100;
  const blur=opt.softOn!==0,softness=setting('softness',70),spread=setting('spread',100),concentration=setting('core',40),hardness=setting('hardness',80);
  const power=setting(kind==='glow'?'intensity':'paint',kind==='glow'?100:75),accumulate=setting('accumulate',100);
- const tip=artSoftBlendTip(a.color,softness,concentration,hardness,blur);
- x.save();x.imageSmoothingEnabled=true;
- for(let i=start;i<a.points.length;i++){
+ const tip=artSoftWhiteTip(artSoftBlendTip(a.color,softness,concentration,hardness,blur));
+ let cache=artSoftStrokeMasks.get(c);
+ if(!cache||cache.points!==a.points||cache.count>a.points.length||cache.w!==c.width||cache.h!==c.height){
+  const mask=make(c.width,c.height),mx=mask.getContext('2d',{willReadFrequently:true});
+  mx.fillStyle='#000';mx.fillRect(0,0,mask.width,mask.height);
+  cache={points:a.points,count:0,w:c.width,h:c.height,mask};artSoftStrokeMasks.set(c,cache);
+ }
+ const mx=cache.mask.getContext('2d',{willReadFrequently:true}),transform=ctx.getTransform();
+ mx.save();mx.setTransform(transform);mx.globalCompositeOperation='lighten';
+ // The white radial profile is rasterized over opaque black with 'lighten'.
+ // Thus crossing dabs never boost a pixel twice inside a single stroke.
+ mx.globalAlpha=1;
+ const finalAlpha=Math.max(.02,Math.min(1,(kind==='glow'?.9:.95)*power*(.35+.65*accumulate)));
+ let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
+ const from=Math.min(Math.max(0,cache.count),a.points.length);
+ for(let i=from;i<a.points.length;i++){
   const p=a.points[i],q=a.points[Math.max(0,i-1)],dx=p[0]-q[0],dy=p[1]-q[1],length=Math.hypot(dx,dy);
   const fromPressure=a.pressure?(Number.isFinite(q[2])?Math.max(.06,Math.min(1,q[2])):.5)*1.6:1;
   const toPressure=a.pressure?(Number.isFinite(p[2])?Math.max(.06,Math.min(1,p[2])):.5)*1.6:1;
   const radius=Math.max(.35,a.size*Math.min(fromPressure,toPressure)/2);
-  const spacing=Math.max(.26,Math.min(2.5,radius*.18)),steps=i?Math.max(1,Math.min(512,Math.ceil(length/spacing))):1;
-  const normalizedDistance=length/steps;
-  // At small sizes, preserve a strong center and a visible soft rim without adding a line.
-  const alphaBase=Math.max(.04,Math.min(.85,(kind==='glow'?.28:.34)*power*(.35+.65*accumulate)));
-  // Stabilize density across pointer sampling rates and brush size.
-  x.globalAlpha=i?alphaBase*(1-Math.exp(-Math.max(.3,normalizedDistance)/(Math.max(.45,radius*.45)))):alphaBase*.55;
+  const spacing=Math.max(.4,Math.min(2.5,radius*.22)),steps=i?Math.max(1,Math.min(512,Math.ceil(length/spacing))):1;
   for(let j=1;j<=steps;j++){
    const t=j/steps,px=q[0]+dx*t,py=q[1]+dy*t,pressure=fromPressure+(toPressure-fromPressure)*t;
    const r=Math.max(.9,a.size*pressure*.5*(blur?(.85+spread*.82):1));
-   x.drawImage(tip,px-r,py-r,r*2,r*2);
+   mx.drawImage(tip,px-r,py-r,r*2,r*2);
+   left=Math.min(left,px-r);top=Math.min(top,py-r);right=Math.max(right,px+r);bottom=Math.max(bottom,py+r);
   }
  }
- x.restore();
+ mx.restore();cache.count=a.points.length;
+ if(left===Infinity)return;
+ const ox=transform.e||0,oy=transform.f||0;
+ const l=Math.max(0,Math.floor(left+ox-2)),t=Math.max(0,Math.floor(top+oy-2)),r=Math.min(c.width,Math.ceil(right+ox+2)),b=Math.min(c.height,Math.ceil(bottom+oy+2));
+ if(r<=l||b<=t)return;
+ const image=mx.getImageData(l,t,r-l,b-t),data=image.data;
+ const rgb=(a.color.match(/[a-f0-9]{2}/gi)||['00','00','00']).map(v=>parseInt(v,16));
+ for(let j=0;j<data.length;j+=4){const alpha=Math.round(data[j]*finalAlpha);data[j]=rgb[0];data[j+1]=rgb[1];data[j+2]=rgb[2];data[j+3]=alpha}
+ ctx.putImageData(image,l,t);
 }
 function artSpecialInk(c,a,start=0){
  if((a.brush==='glow'||a.brush==='impasto')&&a.brushRenderVersion>=3)return artSoftBlendInk(c,a,start);
@@ -6333,7 +6371,7 @@ function appendStrokeSample(e){
  if(Math.hypot(p[0]-prev[0],p[1]-prev[1])<min&&(!stroke.pressure||Math.abs(p[2]-prev[2])<.02))return;
  if(stroke.points.length>=2699)condenseContinuousStroke(stroke);stroke.points.push(p);
 }
-viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#shadowStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if((pan&&!((selection?.mode==='paste')&&pointers.size===1))||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch'&&selection?.mode!=='paste')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(canvasRestoring||!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={pixelGrid:room?.mode==='pixel'?8:0,id:uid(),pointerType:e.pointerType,brushRenderVersion:3,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',brushSettings:prefs.tool==='pen'?window.ArtPenStudio?.settingsFor?.(currentTool())||{}:{},seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(room?.mode==='arts'&&window.ArtGame?.getView?.()?.phase==='create')Object.defineProperty(stroke,'_artsStarted',{value:performance.now(),enumerable:false});if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.pixelGrid){delete stroke.opacityTaper;if(!['spray','cotton'].includes(stroke.brush))stroke.brush='normal';stroke.size=Math.max(8,Math.round(stroke.size/8)*8);}if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
+viewport.onpointerdown=e=>{lastCanvasInput=performance.now();if(e.target.closest('#transformBar,#canvasClipboard,#gameStage,#gameReference,#wolfStage,#answerStage,#artsStage,#shadowStage,#chimeraStage')||e.button===2)return;e.preventDefault();if(e.isPrimary===true&&pointers.size&&!pointers.has(e.pointerId))clearInputState(true);try{viewport.setPointerCapture(e.pointerId)}catch{}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(beginTwoTouch(e))return;if((pan&&!((selection?.mode==='paste')&&pointers.size===1))||gesture||(pointers.size===1&&!inCanvas(e))||(prefs.penOnly&&e.pointerType==='touch'&&selection?.mode!=='paste')||e.button===1){if(stroke){if(connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;activePointer=null;releasePenPreview();releaseEffectPreview();renderOverlay()}gestureStart();return}if(pointers.size>1){return}if(canvasRestoring||!connected||members.get(localId)?.spectator||(window.ArtGame?.enabled()&&!window.ArtGame.canDraw())){toast('観戦中、または接続が切れています');return}let p=point(e);if(window.ArtChimera?.referenceHit(p)){pointers.delete(e.pointerId);return}if(p[0]<0||p[1]<0||p[0]>=engine.w||p[1]>=engine.h)return;activePointer=e.pointerId;if(window.ArtClip?.pick(p))return;if(selection){dragSelection={p,dx:selection.dx,dy:selection.dy};return}if(prefs.tool==='eyedrop'){let pixel=$('#display').getContext('2d').getImageData(Math.floor(p[0]),Math.floor(p[1]),1,1).data;changeSetting('color','#'+[...pixel.slice(0,3)].map(v=>v.toString(16).padStart(2,'0')).join(''));changeSetting('tool','pen');return}let t=currentTool();stroke={pixelGrid:room?.mode==='pixel'?8:0,id:uid(),pointerType:e.pointerType,brushRenderVersion:4,brushVersion:2,brush:['pen','eraser'].includes(prefs.tool)?currentTool().brush:'normal',brushSettings:prefs.tool==='pen'?window.ArtPenStudio?.settingsFor?.(currentTool())||{}:{},seed:crypto.getRandomValues(new Uint32Array(1))[0],warpVersion:2,layer:prefs.layer,tool:prefs.tool,size:t.size,strength:t.strength*(['pen','fill'].includes(prefs.tool)?prefs.inkOpacities[prefs.layer]/100:1),color:prefs.color,pressure:prefs.pressure&&e.pointerType==='pen',tolerance:prefs.tolerance,fillExpand:prefs.fillExpand,fillVersion:2,points:[p]};if(room?.mode==='arts'&&window.ArtGame?.getView?.()?.phase==='create')Object.defineProperty(stroke,'_artsStarted',{value:performance.now(),enumerable:false});if(conflicts(localId,stroke)){stroke=null;toast('この範囲はほかの人が変形中です');return}window.ArtStudioOptions?.begin(stroke);if(stroke.pixelGrid){delete stroke.opacityTaper;if(!['spray','cotton'].includes(stroke.brush))stroke.brush='normal';stroke.size=Math.max(8,Math.round(stroke.size/8)*8);}if(stroke.opacityTaper?.version>=3){markerSpeed(stroke,e);p[3]=0}window.ArtClip?.begin(stroke);if(stroke.tool==='fill'&&e.pointerType!=='touch'){commit(stroke);stroke=null}else renderOverlay()};
 viewport.onpointermove=e=>{if(e.target.closest('#artsStage'))return;if(pointers.has(e.pointerId)&&e.pointerType==='mouse'&&e.buttons===0){pointerEnd(e);return}if(pointers.has(e.pointerId))lastCanvasInput=performance.now();moveTwoTouch(e);if(pointers.has(e.pointerId)&&e.cancelable)e.preventDefault();if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});if(gesture){if(gesture.ids.includes(e.pointerId))gestureMove();return}let p=point(e);if(connected&&Date.now()-lastCursor>(window.ArtLagSettings?.cursorInterval?.()||70)){lastCursor=Date.now();window.ArtCursorPrefs?.sendPosition?.(p[0],p[1],false)||sendHost({type:'cursor',x:p[0],y:p[1]})}if(e.pointerId!==activePointer)return;if(dragSelection&&selection){selection.dx=dragSelection.dx+p[0]-dragSelection.p[0];selection.dy=dragSelection.dy+p[1]-dragSelection.p[1];scheduleEffectPreview();return}if(!stroke)return;const samples=e.getCoalescedEvents?.()||[];for(const sample of samples.length?samples:[e]){if(!stroke)break;appendStrokeSample(sample)}scheduleEffectPreview();if(stroke?.tool==='pen'&&!stroke._clipSource&&window.ArtLagSettings?.previewEnabled?.()!==false&&Date.now()-draftAt>(window.ArtLagSettings?.previewInterval?.()||100)){draftAt=Date.now();draftDelta(stroke)}};
 function finishStroke(){if(!stroke)return;let a=stroke;if(Number.isFinite(a._artsStarted))a.artsDuration=Math.max(16,performance.now()-a._artsStarted);stroke=null;releaseEffectPreview();if(a.tool==='lasso'){if(a.points.length>2){let b=bounds(a);selection={layer:a.layer,points:E.simplifyPoints(a.points),cx:b.x+b.w/2,cy:b.y+b.h/2,dx:0,dy:0,angle:0,scale:1,flipX:1,flipY:1};$('#transformBar').hidden=false;$('#rotateSelection').value=0;$('#selectionAngle').textContent='0°';$('#selectionAngle').classList.remove('snapped');selectionRotation=null;$('#scaleSelection').value=100;selection.lockId=uid();showSelectionControls();if(room.protect)sendHost({type:'lock',lock:{id:selection.lockId,layer:selection.layer,rect:b}})}}else if(a.tool!=='warp'||a.points.length>1)commit(a);render()}
 function pointerEnd(e,cancel=false){if(!pointers.has(e.pointerId))return;lastCanvasInput=performance.now();const twoTap=endTwoTouch(e,cancel);if(e.pointerType!=='mouse'||cancel)brushPointer=null;pointers.delete(e.pointerId);if(gesture){if(pointers.size)gestureStart();else{gesture=null;updateSnapOutline();if(moveUndo){commitSetting('view',moveUndo,prefs.view);moveUndo=null}}return}if(e.pointerId===activePointer){if(cancel){if(stroke&&connected)sendHost({type:'draftEnd',id:stroke.id});stroke=null;releaseEffectPreview();renderOverlay()}else finishStroke();dragSelection=null;activePointer=null}updateBrushCursor()}
@@ -7100,7 +7138,7 @@ window.ArtStudioOptions=(()=>{
   if(!['pen','eraser'].includes(a.tool)||a.brush!=='fade')return;
   // Normalize to the existing round-brush wire format for replay and peer compatibility.
   a.brush='normal';
-  const f=a.brushSettings&&Object.keys(a.brushSettings).length?a.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});a.opacityTaper={version:7,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??42,f.exit??42))),entryLength:Math.max(1,Math.min(200,f.entry??42)),exitLength:Math.max(1,Math.min(200,f.exit??42)),fade:Math.max(0,Math.min(100,f.fade??55)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??100)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};
+  const f=a.brushSettings&&Object.keys(a.brushSettings).length?a.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});a.opacityTaper={version:8,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??42,f.exit??42))),entryLength:Math.max(1,Math.min(200,f.entry??42)),exitLength:Math.max(1,Math.min(200,f.exit??42)),fade:Math.max(0,Math.min(100,f.fade??55)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??100)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};
   if(a.tool==='pen')a.roundTipVersion=1;
  }
 
@@ -7282,7 +7320,7 @@ window.ArtAnimation=(()=>{
  function finishStroke(){if(!pen)return;const s=pen;pen=null;
   if(s.points.length&&frameList().some(f=>f.id===current)){
    s.taperFinished=true;
-   if(s.brush==='fade'&&['pen','eraser'].includes(s.tool)){const f=s.brushSettings&&Object.keys(s.brushSettings).length?s.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});s.opacityTaper={version:7,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??42,f.exit??42))),entryLength:Math.max(1,Math.min(200,f.entry??42)),exitLength:Math.max(1,Math.min(200,f.exit??42)),fade:Math.max(0,Math.min(100,f.fade??55)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??100)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};if(s.tool==='pen')s.roundTipVersion=1;s.brush='normal';}
+   if(s.brush==='fade'&&['pen','eraser'].includes(s.tool)){const f=s.brushSettings&&Object.keys(s.brushSettings).length?s.brushSettings:(window.ArtPenStudio?.settingsFor?.({brush:'fade'})||{});s.opacityTaper={version:8,entry:f.entryOn===0?0:100,exit:f.exitOn===0?0:100,length:Math.max(1,Math.min(200,Math.max(f.entry??42,f.exit??42))),entryLength:Math.max(1,Math.min(200,f.entry??42)),exitLength:Math.max(1,Math.min(200,f.exit??42)),fade:Math.max(0,Math.min(100,f.fade??55)),speedOn:f.speedOn===0?0:1,speed:Math.max(0,Math.min(200,f.speed??100)),minOpacity:Math.max(0,Math.min(100,f.minOpacity??0)),smooth:Math.max(0,Math.min(200,f.smooth??80))};if(s.tool==='pen')s.roundTipVersion=1;s.brush='normal';}
    const {id,...data}=s;edit('stroke',{stroke:data});
   }renderCanvas();}
  function handlePointerDown(e){
