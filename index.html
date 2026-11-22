@@ -10461,7 +10461,7 @@ window.ArtArts=(()=>{
    return true;
   });
  }
- function ultimateNemesisSlow(q,now){let factor=1;for(const p of host.fighters){if(p.id===q.id||p.ultimateNemesisUntil<=now||friendly(p,q)||p.hp<=0)continue;const d=R.dist(p,q);if(d<220)factor=Math.min(factor,.1+.9*Math.max(0,Math.min(1,d/220)));}return factor;}
+ function ultimateNemesisSlow(q,now){let factor=1;for(const p of host.fighters){if(p.id===q.id||!(p.ultimateNemesisUntil>now)||friendly(p,q)||p.hp<=0)continue;const d=R.dist(p,q);if(d<220)factor=Math.min(factor,.1+.9*Math.max(0,Math.min(1,d/220)));}return factor;}
  function artsNightmareFor(p,now){return (host.ultimateActs||[]).some(e=>e.job==='dreamer'&&e.owner!==p.id&&e.end>now)}
 
  const moves=R.moves;
