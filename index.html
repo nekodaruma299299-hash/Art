@@ -6231,7 +6231,18 @@ function paintSelectionPreview(ctx){
 function renderOverlay(){if(window.ArtDot?.preview())return;
  if(!engine)return;if(!stroke||!['warp','blur','colorConvert'].includes(stroke.tool))releaseEffectPreview();updateBrushCursor();updateSnapOutline();const c=$('#overlay'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
  if(selection){releasePenPreview();paintSelectionPreview(x)}
- else{releaseSelectionPreview();if(stroke&&['warp','blur','colorConvert'].includes(stroke.tool)){releasePenPreview();paintEffectPreview(x)}else paintLiveComposite(x)}
+ else{releaseSelectionPreview();if(stroke?.tool==='colorConvert'){
+  // Color conversion is committed once at pointer-up. Avoid copying the full
+  // layer and converting every historical point on each pointermove (iPad lag).
+  releasePenPreview();releaseEffectPreview();const pts=stroke.points;
+  if(pts.length){x.save();x.globalCompositeOperation='source-over';
+   x.lineCap='round';x.lineJoin='round';x.strokeStyle='#29bac5';x.fillStyle='#29bac5';
+   x.globalAlpha=.16;x.lineWidth=stroke.size;
+   x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let j=1;j<pts.length;j++)x.lineTo(pts[j][0],pts[j][1]);
+   if(pts.length===1){x.arc(pts[0][0],pts[0][1],Math.max(.5,stroke.size/2),0,Math.PI*2);x.fill()}else x.stroke();
+   x.globalAlpha=.65;x.lineWidth=Math.max(1,1.5/prefs.view.z);x.setLineDash([5/prefs.view.z,5/prefs.view.z]);
+   x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let j=1;j<pts.length;j++)x.lineTo(pts[j][0],pts[j][1]);x.stroke();x.restore()}
+ }else if(stroke&&['warp','blur'].includes(stroke.tool)){releasePenPreview();paintEffectPreview(x)}else paintLiveComposite(x)}
  for(const l of locks.values())if(l.owner!==localId){x.save();x.fillStyle='#e9a34215';x.strokeStyle='#d89a42';x.lineWidth=2/prefs.view.z;x.setLineDash([7/prefs.view.z,4/prefs.view.z]);x.fillRect(l.rect.x,l.rect.y,l.rect.w,l.rect.h);x.strokeRect(l.rect.x,l.rect.y,l.rect.w,l.rect.h);x.restore()}
  if(!selection&&stroke?.tool==='lasso'){x.save();x.beginPath();stroke.points.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.lineWidth=1.5/prefs.view.z;x.setLineDash([5/prefs.view.z,4/prefs.view.z]);x.strokeStyle='#139aa3';x.stroke();x.restore()}
 }
@@ -7061,12 +7072,17 @@ function initToolSorting(){
  ordered=ordered.filter(id=>id!=='mosaic'&&id!=='shape');
  // Both creative tools stay immediately above screen controls even with saved custom layouts.
  {const at=ordered.indexOf('view');ordered.splice(at<0?ordered.length:at,0,'shape','mosaic');}
+ // Color conversion is an optional, bottom-most tool (below screen controls).
+ // Do not move the user's other saved tools.
+ ordered=ordered.filter(id=>id!=='colorConvert');ordered.push('colorConvert');
  // One-time migration: insert the new tool just below Fill while preserving
  // previously customized tool positions. Subsequent user reorders are kept.
  if(!ordered.includes('pet')){
   const at=ordered.indexOf('fill');ordered.splice(at<0?ordered.length:at+1,0,'pet');
  }
  for(const id of [...new Set([...ordered,...defaults])])if(items.has(id))list.append(items.get(id));
+ // Keep color conversion last even if older saved layouts contain unknown tool IDs.
+ if(items.has('colorConvert'))list.append(items.get('colorConvert'));
  const save=()=>persist('artopia-tool-order',[...list.children].map(el=>el.dataset.sortId));
  let hold=null,drag=null,scrolling=null,suppressUntil=0;
  function stop(cancel=false,x=0,y=0){scrolling=null;clearTimeout(hold?.timer);hold=null;if(!drag)return;const d=drag;drag=null;d.ghost.remove();d.item.classList.remove('sort-placeholder');window.ArtToolWarehouse?.clear();if(!cancel&&window.ArtToolWarehouse?.hit(x,y)&&window.ArtToolWarehouse.store(d.item.dataset.sortId)){save();}else if(!cancel&&d.detach&&window.ArtFloatingTools?.detach){window.ArtFloatingTools.detach(d.item,x,y);save();}else if(cancel){for(const el of d.order)list.append(el)}else save();suppressUntil=performance.now()+450;box.classList.remove('sorting')}
@@ -26674,6 +26690,10 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  const tools=[...list.querySelectorAll('button[data-tool]'),...studio.querySelectorAll('.art-floating-tool button[data-tool]')];
  const optional=new Map(tools.filter(t=>!['pen','eraser'].includes(t.dataset.tool)).map(t=>[t.dataset.sortId||t.dataset.tool,t]));
  let stored=new Set(read('artopia-warehouse-tools',[...optional.keys()]).filter(id=>optional.has(id)));
+ // First upgrade from a build that showed Color Conversion by default:
+ // hide it in the warehouse once. Afterward, respect the user's chosen visibility.
+ const ccMigratedKey='artopia-color-convert-warehouse-v1';
+ if(!read(ccMigratedKey,false)){stored.add('colorConvert');write(ccMigratedKey,true)}
  const shelf=document.createElement('div');shelf.id='artToolWarehouse';shelf.innerHTML='<button type="button" id="artWarehouseButton" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 8 12 3l9 5v13H3Z M3 8h18 M8 21V12h8v9"/></svg><span>ツール倉庫</span></button>';$('.toolbox').append(shelf);
  const dialog=document.createElement('dialog');dialog.id='artWarehouseDialog';dialog.innerHTML='<header><h2>ツール倉庫</h2><button type="button" aria-label="閉じる">閉じる</button></header><p>使う道具をタップして追加。収納するときは道具を長押しして、ツール欄の下の倉庫へドラッグできます。</p><div id="artWarehouseChoices"></div><button type="button" id="artToolsReset">基本配置に戻す</button>';
  document.body.append(dialog);dialog.querySelector('header button').onclick=()=>dialog.close();$('#artWarehouseButton').onclick=()=>{render();dialog.showModal()};
@@ -26681,7 +26701,7 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
  function render(){const choices=$('#artWarehouseChoices');choices.replaceChildren();for(const[id,t]of optional){const b=document.createElement('button');b.type='button';const icon=t.querySelector('svg')?.cloneNode(true);if(icon)b.append(icon);const label=document.createElement('span');label.textContent=t.textContent.trim();b.append(label);const status=document.createElement('small');status.textContent=stored.has(id)?'＋追加':'収納する';b.append(status);b.setAttribute('aria-pressed',String(!stored.has(id)));b.onclick=()=>{stored.has(id)?stored.delete(id):stored.add(id);apply()};choices.append(b)}}
  const hit=(x,y)=>{const r=shelf.getBoundingClientRect();return !!r.width&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom};
  window.ArtToolWarehouse={hit,hover:(x,y)=>shelf.classList.toggle('art-drop-ready',hit(x,y)),clear:()=>shelf.classList.remove('art-drop-ready'),store:id=>{if(!optional.has(id))return false;stored.add(id);apply();return true}};
- $('#artToolsReset').onclick=()=>{for(const el of [...studio.querySelectorAll('[data-sort-id]')])window.ArtFloatingTools?.dock(el.dataset.sortId);stored=new Set(optional.keys());for(const id of ['pen','eraser','history','palette','settings','lasso','fill','blur','warp','pet','shape','mosaic','view']){const el=[...list.children].find(e=>e.dataset.sortId===id);if(el)list.append(el)}write('artopia-tool-order',[...list.children].map(e=>e.dataset.sortId));for(const key of ['size','opacity','view']){const d=$('#artFold-'+key);if(d)d.open=key!=='view'}if(feel)feel.open=false;apply()};
+ $('#artToolsReset').onclick=()=>{for(const el of [...studio.querySelectorAll('[data-sort-id]')])window.ArtFloatingTools?.dock(el.dataset.sortId);stored=new Set(optional.keys());for(const id of ['pen','eraser','history','palette','settings','lasso','fill','blur','warp','pet','shape','mosaic','view','colorConvert']){const el=[...list.children].find(e=>e.dataset.sortId===id);if(el)list.append(el)}write('artopia-tool-order',[...list.children].map(e=>e.dataset.sortId));for(const key of ['size','opacity','view']){const d=$('#artFold-'+key);if(d)d.open=key!=='view'}if(feel)feel.open=false;apply()};
  apply();
 })();
 </script>
