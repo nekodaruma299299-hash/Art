@@ -18361,7 +18361,24 @@ function drawUltimateWorld(x,now){
   }
   if(e.idolStructure==='concert'){
    const beat=.5+.5*Math.sin(now/480);
-   ctx.fillStyle='rgba(236,103,190,.037)';ctx.strokeStyle='rgba(245,166,220,.38)';ctx.lineWidth=2;idolFxRing(ctx,260);ctx.fill();
+   // WORLD-SPACE FIELD (regression fix 2026-11-25): stroke ONLY. No translucent screen-covering fill.
+   ctx.strokeStyle='rgba(245,166,220,.33)';ctx.lineWidth=2;idolFxRing(ctx,260);
+   // Venue-origin musical atmosphere. Notes travel out from the stage in world
+   // coordinates and fade naturally; they never touch the screen-space overlay,
+   // and cannot obscure any player's gesture strokes or other skill effects.
+   ctx.save();
+   for(let i=0;i<12;i++){
+    const cycle=((now-e.start)*(.00010+(i%3)*.000014)+i/12)%1;
+    const angle=i*2.3999632297 + (i%2?0.23:-0.23);
+    const dist=30+218*cycle;
+    const px=Math.cos(angle)*dist,py=Math.sin(angle)*dist-13*cycle;
+    const fade=Math.min(1,cycle*6)*Math.min(1,(1-cycle)*4);
+    ctx.save();ctx.translate(px,py);ctx.rotate((i%5-2)*.12);
+    ctx.globalAlpha=.18+.43*fade;
+    drawIdolNote(ctx,0,0,13+(i%4)*3,i%3===0?'#fff1b9':i%3===1?'#ffd8f1':'#e2caff');
+    ctx.restore();
+   }
+   ctx.restore();
    // Elevated concert stage with spotlights and two glowing columns.
    ctx.save();ctx.fillStyle='#312b4a';ctx.strokeStyle='#f1a9db';ctx.lineWidth=3;
    ctx.beginPath();ctx.moveTo(-82,44);ctx.lineTo(-82,-25);ctx.quadraticCurveTo(0,-89,82,-25);ctx.lineTo(82,44);ctx.closePath();ctx.fill();ctx.stroke();
@@ -18369,7 +18386,7 @@ function drawUltimateWorld(x,now){
    for(const side of [-1,1]){
     ctx.save();ctx.translate(side*67,2);ctx.fillStyle='#222840';ctx.fillRect(-14,-34,28,58);ctx.strokeRect(-14,-34,28,58);
     ctx.fillStyle='#e9a5d5';ctx.beginPath();ctx.arc(0,5,9+beat*2,0,Math.PI*2);ctx.fill();ctx.restore();
-    ctx.save();ctx.fillStyle='rgba(255,201,241,.045)';ctx.beginPath();ctx.moveTo(side*68,-42);ctx.lineTo(side*144,137);ctx.lineTo(side*7,137);ctx.closePath();ctx.fill();ctx.restore();
+    ctx.save();ctx.strokeStyle='rgba(255,201,241,.24)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(side*68,-42);ctx.lineTo(side*144,137);ctx.moveTo(side*68,-42);ctx.lineTo(side*7,137);ctx.stroke();ctx.restore();
    }
    for(let i=0;i<5;i++){const phase=now/1250+i*Math.PI*2/5,x=Math.cos(phase)*100,y=-18+Math.sin(phase)*30;
     ctx.save();ctx.globalAlpha=.5+.3*Math.sin(phase);ctx.strokeStyle=i%2?'#fcd59d':'#ffd0ee';ctx.lineWidth=2;idolFxSpark(ctx,x,y,4);ctx.restore()}
@@ -18485,26 +18502,11 @@ function drawUltimateWorld(x,now){
   }
   ctx.restore();
  }
- function drawConcertNotice(ctx,canvas,now,dpr){
-  if(!view.effects.some(e=>e.idolStructure==='concert'&&e.hp>0&&e.end>now&&view.fighters.some(p=>p.id===e.owner&&p.active&&p.hp>0)))return;
-  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr);
-  const width=canvas.width/dpr,height=canvas.height/dpr;
-  // A persistent, screen-wide musical field (not just a tiny note in the HUD).
-  // Fixed seeded positions avoid flicker and allocations on every frame.
-  for(let i=0;i<14;i++){
-   const seed=(i*0.618033988749895)%1;
-   const drift=(now*.000024*(.8+(i%5)*.15)+i*.137)%1;
-   const xx=width*(.04+.92*((seed+Math.sin(now/2600+i*2.3)*.017+1)%1));
-   const yy=height*(.08+.84*(1-drift));
-   const sz=17+(i%4)*4;
-   const alpha=.22+.18*(.5+.5*Math.sin(now/750+i*1.7));
-   ctx.save();ctx.globalAlpha=alpha; // No per-note blur: iPad pen input remains responsive.
-   drawIdolNote(ctx,xx,yy,sz,i%3===0?'#fff0ac':i%3===1?'#ffc9e8':'#e5cbff');
-   ctx.restore();
-  }
-  ctx.fillStyle='rgba(49,27,65,.65)';ctx.fillRect(width/2-145,12,290,32);
-  drawIdolNote(ctx,width/2-128,28,18,'#ffd3ed');ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff2fc';ctx.fillText('コンサート中 · 全フィールド効果時間停止',width/2+8,33);ctx.restore();
- }
+ // IMPORTANT: Grand Concert never draws into the screen-space canvas layer.
+ // The former screen-wide note renderer used setTransform and repainted every
+ // frame, and coincided exactly with the missing-gesture regression on iPad.
+ // All field music is now emitted in WORLD space by drawIdolEffect(concert).
+ function drawConcertNotice(ctx,canvas,now,dpr){ /* intentionally empty */ }
 
  function drawUltimateScreen(x,c,now,me,dpr){
   const nightmare=(view.ultimateActs||[]).find(e=>e.job==='dreamer'&&e.end>now&&view.fighters.some(p=>p.id===e.owner&&p.active&&p.hp>0));
@@ -18775,7 +18777,6 @@ function drawBattleOutcome(x,canvas,now){
   }
  }
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
- drawConcertNotice(x,c,now,dpr); // decorative notes below projectile/skill effects and the original gesture ink
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
  drawArtsEffects(x,now);
  drawUltimateWorld(x,now);
