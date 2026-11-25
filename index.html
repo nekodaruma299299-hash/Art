@@ -12115,6 +12115,23 @@ window.ArtsRules=(()=>{
  if(strokes.length===1&&equipped.includes('carbuncle')&&forgivingCarbuncle(strokes[0])){
   return{type:'carbuncle',x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes};
  }
+ // Attacker-only comparison: retain the raw samples and compare every class guide.
+ if(rawIdolPath&&diag>=22&&equipped.some(k=>moves[k]?.class==='attacker')){
+  const raw=rawIdolPath, trace=normalizedTrace(raw), simple=normalizedTrace(strokes[0]);
+  const basic=Math.min(guideError(trace,'slash'),guideError(trace,'magic'));
+  const candidates=Object.keys(moves).filter(k=>moves[k].class==='attacker').map(key=>{
+   let error=Math.min(guideError(trace,key),guideError(simple,key));
+   if(key==='cross'&&forgivingCrossSlash(raw))error=Math.min(error,.13);
+   if(key==='inkcut'&&forgivingInkCut(raw))error=Math.min(error,.12);
+   return {key,error};
+  }).sort((a,b)=>a.error-b.error);
+  const first=candidates[0], second=candidates[1];
+  if(first&&first.error<.32&&first.error+.025<basic&&first.error+.014<(second?.error??Infinity)){
+   if(!equipped.includes(first.key))return null;
+   return {type:first.key,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.hypot(cx,cy)>1?Math.atan2(cy,cx):first.key==='thrust'?triangleAngle(points):-Math.PI/2,tip:points[0],strokes};
+  }
+  if(first&&first.error<.30&&first.error+.035<basic)return null;
+ }
  // Distinctive geometric signatures take priority over ordered templates.
  // Avoid the common Slash fallback swallowing an X or a barred circle.
  if(strokes.length===1&&diag>=27){
@@ -12912,6 +12929,21 @@ window.ArtArts=(()=>{
    return {shape};
   }
   if(paths.length!==1||fighter.class==='saint')return {shape};
+  // Both crowns have three peaks. Compare their unwarped proportions as
+  // well as the tolerant guide distance; a normal-skill fallback must not
+  // steal a recognizable ultimate when the gauge is full.
+  if(fighter.class==='attacker'){
+   const path=paths[0], trace=R.normalizedTrace(path);
+   const ref=R.normalizedTrace(ultimateTemplate('attacker'));
+   const aura=R.normalizedTrace(R.template('aura')[0]);
+   const u=R.alignedError(trace,ref), a=R.alignedError(trace,aura);
+   const flexible=R.variantError(trace,R.guideVariants(ultimateTemplate('attacker')));
+   const start=path[0],end=path.at(-1),chord=R.dist(start,end),travel=R.length(paths);
+   const crown=chord>=34&&travel/chord>1.65&&travel/chord<5.5;
+   if(crown&&flexible<.32&&u<a+.008&&u<.34)return {ultimate:'attacker'};
+   if(crown&&flexible<.34&&u<a+.055&&(!shape||shape.type!=='aura'))return {nearMiss:true};
+   return {shape};
+  }
   if(fighter.class==='dreamer'&&nightmareEye(paths[0]))return {ultimate:'dreamer'};
   const ultimate=ultimateRecognition(paths,fighter.class);
   if(ultimate){
