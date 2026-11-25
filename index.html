@@ -13181,8 +13181,8 @@ window.ArtArts=(()=>{
    const targetKey=(q.type==='summonBody'?'pet:':(host.stageNPCs||[]).includes(q)?'npc:':'player:')+q.id+':'+key;
    const awarded=(p.idolAwards??={});
    if(now-(awarded[targetKey]??-Infinity)>=8000){
-    const gain=q===p?3:host.fighters.includes(q)&&!host.players?.find(v=>v.id===q.id)?.bot?5:2;
-    const allowed=Math.min(gain,12-earned);if(allowed>0){earned+=allowed;awarded[targetKey]=now}
+    const gain=(q===p?3:host.fighters.includes(q)&&!host.players?.find(v=>v.id===q.id)?.bot?5:2)*2.5;
+    const allowed=Math.min(gain,30-earned);if(allowed>0){earned+=allowed;awarded[targetKey]=now}
    }
    if(key==='dissonance'){
     const distance=R.dist(p,q)||1;
@@ -15811,7 +15811,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of artsEnemyHitTargets(owner,now)){
 
  // Ver.1.6.7: Art Matter help is derived from the current host-side charge rules.
  const artsMatterHelpContent={
-  idol:['スターパフォーマンス：自分への付与+3、味方・敵プレイヤーへの付与+5、NPC・召喚獣は+2。','1回の使用で最大12。同じ対象・同じ効果は8秒空けると再獲得。コンサートの自動音波は加算対象外。'],
+  idol:['スターパフォーマンス：自分への付与+7.5、味方・敵プレイヤーへの付与+12.5、NPC・召喚獣は+5。','1回の使用で最大30。同じ対象・同じ効果は8秒空けると再獲得。コンサートの自動音波は加算対象外。'],
   attacker:['敵に与えた実際のHPダメージと同じ量が貯まります。','ガードや防御で軽減された分は対象外です。'],
   tank:['自分が受けたHPダメージ、装甲で吸収したダメージ、ガードで防いだ攻撃によって貯まります。','装甲が削られた場合の獲得量と追加ボーナスは通常の3分の1です。連続被弾などの追加ボーナスには獲得間隔があります。'],
   magician:['敵へ与えた実際のHPダメージ、および職業固有スキルで消費したインク量に応じて貯まります。','通常のスラッシュ・ガード・マジックの発動自体にはスキル使用ボーナスはありません。'],
@@ -18227,28 +18227,49 @@ function drawUltimateWorld(x,now){
   c.restore();
  }
  function drawIdolStatus(ctx,actor,position,now){
-  const active=Object.entries(actor.idolStatus||{}).filter(([,value])=>value?.until>now);
+  const active=Object.entries(actor.idolStatus||{}).filter(([,v])=>Number.isFinite(v?.until)&&v.until>now);
   if(!active.length||!Number.isFinite(position?.x)||!Number.isFinite(position?.y))return;
-  const positive=active.filter(([k,v])=>!['dissonance','offbeat','silence_note'].includes(k)&&!(v.value<0));
-  const negative=active.filter(([k,v])=>['dissonance','offbeat','silence_note'].includes(k)||v.value<0);
-  // Limit display density: four miniature distinct symbols, instead of one huge shared pink ring.
-  const sorted=[...negative,...positive].slice(0,4),count=sorted.length;
-  ctx.save();ctx.translate(position.x,position.y);ctx.lineCap='round';
+  const debuff=(key,v)=>['dissonance','offbeat','silence_note'].includes(key)||v.value<0;
+  // Show short remaining durations first, so an expiring buff is not hidden.
+  active.sort((a,b)=>(a[1].until-now)-(b[1].until-now));
+  const visible=active.slice(0,4),count=visible.length,hidden=active.length-count;
+  ctx.save();ctx.translate(position.x,position.y);ctx.lineCap='round';ctx.textAlign='center';ctx.textBaseline='middle';
+  // Each status owns its icon, numeric countdown and a depleting circular timer.
+  // Timers are computed from host-synchronized status timestamps, not local timers.
   for(let i=0;i<count;i++){
-   const [key,e]=sorted[i],color=idolFxColor(key),x=(i-(count-1)/2)*19,y=-48-((i%2)*2);
-   ctx.save();ctx.translate(x,y);ctx.strokeStyle=color;ctx.fillStyle='rgba(22,27,43,.80)';ctx.globalAlpha=.92;
-   ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle=color;
-   ctx.save();ctx.scale(.31,.31);idolFxGlyph(ctx,key,20);ctx.restore();ctx.restore();
-  }
-  // Per-status aura segments expose active effects without hiding the actor.
-  const phase=now/750;
-  for(let i=0;i<Math.min(count,4);i++){
-   const [k]=sorted[i],a=phase*.28+i*Math.PI/2,rr=34+(i%2)*4;
-   ctx.save();ctx.strokeStyle=idolFxColor(k);ctx.globalAlpha=.35+.12*Math.sin(phase+i);ctx.lineWidth=2.6;
-   ctx.beginPath();ctx.arc(0,0,rr,a,a+.85);ctx.stroke();
+   const [key,e]=visible[i],color=idolFxColor(key),remain=Math.max(0,(e.until-now)/1000);
+   const duration=Math.max(1,(e.until-(Number.isFinite(e.started)?e.started:e.until-10000)));
+   const fraction=R.clamp((e.until-now)/duration,0,1);
+   const px=(i-(count-1)/2)*35,py=-65,ending=remain<=3;
+   ctx.save();ctx.translate(px,py);ctx.globalAlpha=ending?.8+.2*Math.sin(now/140):.98;
+   // Dark-backed status card remains legible over any map/character color.
+   ctx.fillStyle='rgba(15,23,37,.91)';ctx.strokeStyle=ending?'#ffe6a0':color;ctx.lineWidth=1.4;
+   ctx.beginPath();ctx.roundRect(-16,-19,32,43,8);ctx.fill();ctx.stroke();
+   ctx.save();ctx.translate(0,-7);ctx.strokeStyle=color;ctx.lineWidth=2;
+   idolFxGlyph(ctx,key,15);ctx.restore();
+   ctx.strokeStyle='rgba(255,255,255,.21)';ctx.lineWidth=3;
+   ctx.beginPath();ctx.arc(0,-7,13,-Math.PI/2,Math.PI*1.5);ctx.stroke();
+   ctx.strokeStyle=color;ctx.lineWidth=3.2;ctx.beginPath();ctx.arc(0,-7,13,-Math.PI/2,-Math.PI/2+Math.PI*2*fraction);ctx.stroke();
+   ctx.fillStyle=ending?'#ffe8a6':'#fff';ctx.font='bold 11px system-ui,sans-serif';
+   const seconds=remain>=10?Math.ceil(remain)+'s':remain>=1?Math.ceil(remain)+'s':remain.toFixed(1)+'s';
+   ctx.fillText(seconds,0,13);
+   // A solid underline denotes buffs; dotted underline denotes debuffs.
+   ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.setLineDash(debuff(key,e)?[2,2]:[]);
+   ctx.beginPath();ctx.moveTo(-9,20);ctx.lineTo(9,20);ctx.stroke();ctx.setLineDash([]);
    ctx.restore();
   }
-  if(negative.length){ctx.strokeStyle='rgba(198,130,248,.53)';ctx.lineWidth=1.8;ctx.setLineDash([5,6]);ctx.beginPath();ctx.arc(0,0,40,Math.PI*.83,Math.PI*1.96);ctx.stroke();ctx.setLineDash([])}
+  if(hidden){ctx.font='bold 10px system-ui,sans-serif';ctx.fillStyle='#fff';ctx.strokeStyle='rgba(10,17,27,.93)';ctx.lineWidth=3;
+   const y=-87,x=(count*35)/2+3;ctx.strokeText('+'+hidden,x,y);ctx.fillText('+'+hidden,x,y)}
+  // Subtle aura with a visual urgency cue during the final three seconds.
+  const soon=visible.some(([,e])=>e.until-now<=3000);
+  const phase=now/750;
+  for(let i=0;i<count;i++){
+   const [key]=visible[i],angle=phase*.28+i*Math.PI/2,rr=34+(i%2)*4;
+   ctx.save();ctx.strokeStyle=idolFxColor(key);ctx.globalAlpha=soon?.58+.16*Math.sin(now/130):.35+.12*Math.sin(phase+i);
+   ctx.lineWidth=soon?3:2.2;ctx.beginPath();ctx.arc(0,0,rr,angle,angle+.72);ctx.stroke();ctx.restore();
+  }
+  if(visible.some(([k,v])=>debuff(k,v))){ctx.strokeStyle='rgba(198,130,248,.4)';ctx.lineWidth=1.5;
+   ctx.setLineDash([5,6]);ctx.beginPath();ctx.arc(0,0,40,Math.PI*.83,Math.PI*1.96);ctx.stroke();ctx.setLineDash([])}
   ctx.restore();
  }
  function drawIdolEffect(ctx,e,now){
