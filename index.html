@@ -12069,7 +12069,15 @@ window.ArtsRules=(()=>{
 
  // Distinctive stem and note head must be resolved before Slash or the generic
  // template matcher; ordinary slashes lack the curled note head.
- if(strokes.length===1&&equipped.includes('silence_note')&&idolQuarterNoteGeometry(strokes[0])){
+ const dissonanceTrace=strokes.length===1&&equipped.includes('dissonance')?normalizedTrace(strokes[0]):null;
+ const dissonanceGuideError=dissonanceTrace?guideError(dissonanceTrace,'dissonance'):Infinity;
+ const noteGuideError=dissonanceTrace?guideError(dissonanceTrace,'silence_note'):Infinity;
+ const distinctiveDissonance=dissonanceGuideError<.58&&dissonanceGuideError+.035<noteGuideError;
+ const noteShortcutTrace=strokes.length===1&&equipped.includes('silence_note')?normalizedTrace(strokes[0]):null;
+ const noteShortcutError=noteShortcutTrace?guideError(noteShortcutTrace,'silence_note'):Infinity;
+ const otherIdolShortcutError=noteShortcutTrace?Math.min(...equipped.filter(k=>idolKeys.has(k)&&k!=='silence_note').map(k=>guideError(noteShortcutTrace,k)),Infinity):Infinity;
+ if(strokes.length===1&&equipped.includes('silence_note')&&!distinctiveDissonance&&
+    (noteShortcutError<.21||noteShortcutError+.015<otherIdolShortcutError)&&idolQuarterNoteGeometry(strokes[0])){
   return{type:'silence_note',x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes};
  }
  // Carbuncle's inward-curved four-point jewel is forgiving of wobbly sides,
@@ -12106,17 +12114,23 @@ window.ArtsRules=(()=>{
    const key=topIdol.key,err=topIdol.error;
    const note=key==='silence_note';
    const dissonanceShape=key==='dissonance'&&idolDissonanceCorners(strokes[0])>=4;
-   const closeToTemplate=err<(note?.42:key==='dissonance'?(dissonanceShape?.51:.37):key==='echo_speaker'?.37:.335);
+   const closeToTemplate=err<(note?.49:key==='dissonance'?(dissonanceShape?.64:.55):key==='echo_speaker'?.46:.44);
    // Explicitly distinguish ink strokes with curved sections from short common lines.
-   const notJustLine=len/Math.max(diag,1)> (note?1.17:1.13);
+   const notJustLine=len/Math.max(diag,1)> (note?1.12:1.10);
    const path=strokes[0],chord=dist(path[0],path.at(-1));
    const closureNeeded=key==='echo_speaker'||key==='harmony_veil'||key==='live_fever';
-   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.48:.62);
+   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.62:.74);
    // The active Idol technique wins over the generic Slash recognizer when
    // its ordered, one-stroke silhouette is recognizably closer to an Idol art.
    // Comparing to the runner-up prevents one Idol technique replacing another.
-   if(closeToTemplate&&notJustLine&&closedEnough&&err+(dissonanceShape?.014:.024)<otherIdol&&
-      ((dissonanceShape&&err<.51&&basicError>.12) || err+.005<basicError || (err<.27&&len/Math.max(diag,1)>1.45&&basicError>.12) || (note&&err<.33&&arcError>.20)))chosen=key;
+   // Accept less perfect Idol contours, but never award a different Idol art
+   // when its template is practically tied with another equipped Idol art.
+   const clearlyIdol=basicError>.10&&(
+      err+.003<basicError || (err<.39&&len/Math.max(diag,1)>1.45) ||
+      (key==='dissonance'&&dissonanceShape&&err<.64) ||
+      (note&&err<.43&&arcError>.16));
+   const rivalMargin=key==='dissonance'?.010:.018;
+   if(closeToTemplate&&notJustLine&&closedEnough&&err+rivalMargin<otherIdol&&clearlyIdol)chosen=key;
   }
   // Compare other equipped special attacks only after the Idol comparison.
   if(!chosen&&first&&!idolKeys.has(first.key)&&first.error+.003<basicError&&
@@ -12124,7 +12138,7 @@ window.ArtsRules=(()=>{
     (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.28&&first.error+.03<second)))chosen=first.key;
   // When an Idol contour is nearby but ambiguous, don't silently activate
   // Slash or a different skill. Report "shape not recognized" instead.
-  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.50:topIdol.key==='dissonance'?.53:.405)&&
+  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.57:topIdol.key==='dissonance'?.66:.51)&&
       topIdol.error+.012<arcError&&topIdol.error+.012<lineError;
   if(!chosen&&idolLike)return null;
   if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
@@ -18734,6 +18748,26 @@ function drawBattleOutcome(x,canvas,now){
    x.restore();
   }
   drawUltimateScreen(x,c,now,me,dpr);drawConcertNotice(x,c,now,dpr);
+  // LIVE INK ALWAYS LAST: the musical field/ultimate overlay must not conceal
+  // the gesture even though its points still reach the host for recognition.
+  if(me&&me.active&&me.hp>0&&(gesture||strokes.length)){
+   const pos=positions.get(localId)||me;
+   const paths=[...strokes.slice(summonCore?1:0),...(gesture?[gesture.points]:[])];
+   x.save();x.setTransform(scale,0,0,scale,-left*scale,-top*scale);
+   x.globalAlpha=1;x.globalCompositeOperation='source-over';
+   x.lineCap='round';x.lineJoin='round';
+   for(const path of paths){
+    if(!path?.length)continue;
+    x.beginPath();for(let i=0;i<path.length;i++){
+     const p=path[i];if(i)x.lineTo(pos.x+p.x,pos.y+p.y);
+     else x.moveTo(pos.x+p.x,pos.y+p.y);
+    }
+    // White outer edge is visible against dark/light concert lighting.
+    x.strokeStyle='#ffffff';x.lineWidth=8;x.stroke();
+    x.strokeStyle='#6532b7';x.lineWidth=4.5;x.stroke();
+   }
+   x.restore();
+  }
   drawBattleOutcome(x,c,now);
  const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud._artsLastText!==text){
   // Keep the Art Matter help button node alive while changing HUD values.
