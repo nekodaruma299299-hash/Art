@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja">
 <!--
-あーとぴあ 1.7.14 / 大きな図形の威力バランス調整
+あーとぴあ 1.7.15 / 大きな図形の威力バランス調整
 ゲーム本体の画像・音声・コードは埋め込み済み。検索・Discord用にはassets/artopia-discord-preview.pngも公開してください。
 【構成】画面デザイン → 画面HTML → 描画エンジン → 共通機能・音声 →
 基本機能（通信・保存・操作）→ 範囲・レイヤー → ゲーム3種 → キー設定 → お知らせ
@@ -8794,7 +8794,7 @@ window.ArtsRules=(()=>{
  }
  function advancedShapeAllowed(paths,k,score=advancedShapeScore(paths,k)){
   if(k==='soul_eater'&&score>=.038&&!soulHarvestTwinTips(paths))return false;
-  if(score>=(k==='soul_eater'?.105:advancedJobs.dreamer.pool.includes(k)?.152:.115)||length(paths)/Math.max(1,statBox(paths.flat()).span)<1.35)return false;
+  if(score>=(k==='soul_eater'?.115:advancedJobs.dreamer.pool.includes(k)?.17:.13)||length(paths)/Math.max(1,statBox(paths.flat()).span)<1.35)return false;
   if(score<.045)return true;
   // A plain circle/line/star/crown must still remain its basic art.
   const simple=['slash','warp','thrust','star','aura','heal','confusion','build','cross','burst','hook','reflect','spread','newSmoke','mirage'];
@@ -11471,7 +11471,29 @@ window.ArtsRules=(()=>{
  const g=strokeGrammar(path,true),{degrees,abs,signed,pattern}=g;
  if(dist(path[0],path.at(-1))<g.diag*.18)return false;
  if(skill==='aura')return degrees.length>=3&&degrees.length<=16&&g.flips>=2&&abs>3&&match([path],skill)<.22&&match([path],skill)<match([path],'newSmoke')*.90;
- if(skill==='drain')return degrees.length>=1&&degrees.length<=8&&degrees.some(v=>Math.abs(v)>40&&Math.abs(v)<175)&&abs<5.2&&match([path],skill)<.26;
+ if(skill==='drain'){
+  // The check-mark (✓) can be tilted or drawn from either end.  Preserve the
+  // distinctive two-arm corner but tolerate round pen input and unequal arms.
+  const b=statBox(path), span=b.span;
+  if(span<23||degrees.length>13||abs>7.0)return false;
+  const q=statSimplify(resample(path,64),span*.055);
+  if(q.length>=3&&q.length<=8){
+   const a=q[0],z=q.at(-1),chord=dist(a,z);
+   let corner=null,deviation=0;
+   for(let i=1;i<q.length-1;i++){
+    const d=statPointDistance(q[i],a,z);
+    if(d>deviation){deviation=d;corner=q[i]}
+   }
+   if(corner&&chord>span*.52&&deviation>span*.16){
+    const u={x:a.x-corner.x,y:a.y-corner.y},v={x:z.x-corner.x,y:z.y-corner.y};
+    const l1=Math.hypot(u.x,u.y),l2=Math.hypot(v.x,v.y);
+    const angle=Math.acos(clamp((u.x*v.x+u.y*v.y)/(l1*l2||1),-1,1))*180/Math.PI;
+    const ratio=Math.max(l1,l2)/Math.max(1,Math.min(l1,l2));
+    if(Math.min(l1,l2)>span*.20&&ratio>=1.22&&ratio<=6.2&&angle>=38&&angle<=144&&match([path],skill)<.37)return true;
+   }
+  }
+  return degrees.length>=1&&degrees.length<=12&&degrees.some(v=>Math.abs(v)>32&&Math.abs(v)<175)&&abs<6.5&&match([path],skill)<.33;
+ }
  if(skill==='armor')return degrees.length>=5&&degrees.length<=15&&degrees.filter(v=>Math.abs(v)>35&&Math.abs(v)<155).length>=5&&Math.abs(signed)/Math.max(abs,.01)>.65&&match([path],skill)<.25;
  if(skill==='repulse'&&degrees.some(v=>Math.abs(v)>155))return false;
  if(!['recharge','repulse'].includes(skill)||abs<3.4||abs>16||match([path],skill)>.24)return false;
@@ -11618,7 +11640,7 @@ window.ArtsRules=(()=>{
     const b=statBox(path),endGap=dist(path[0],path.at(-1));
     const almostClosed=endGap<=b.span*.36;
     const resemblesInfinity=almostClosed&&b.w>=18&&b.h>=12&&b.w>b.h*1.12&&
-      match([path],'decoy')<.19;
+      match([path],'decoy')<.23;
     return (closed&&intersections.length>=1&&intersections.length<=4&&Math.abs(signed)<3.4&&abs>3.8&&abs<19&&degrees.every(a=>Math.abs(a)<155))||resemblesInfinity;
    }
    case'confusion':return confusionSpiralGesture(path);
@@ -11836,10 +11858,10 @@ window.ArtsRules=(()=>{
   }
   candidates.sort((a,b)=>a.error-b.error||a.key.localeCompare(b.key));
   const first=candidates[0],second=candidates[1]?.error??Infinity;
-  let chosen=first&&first.error+.004<basicError&&
-   (first.error<.11||(first.error<.19&&first.error+.025<second)||
-    (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.25&&first.error+.04<second))?first.key:null;
-  if(!chosen&&basicError<.11&&basicError+.004<(first?.error??Infinity)){
+  let chosen=first&&first.error+.003<basicError&&
+   (first.error<.135||(first.error<.225&&first.error+.018<second)||
+    (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.28&&first.error+.03<second))?first.key:null;
+  if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
    if(arcError<lineError)chosen='slash';
    else{
     const a=points[0],b=points.at(-1),dx=b.x-a.x,dy=b.y-a.y;
@@ -12025,7 +12047,7 @@ window.ArtsRules=(()=>{
  if(!kind&&strokes.length===1){
   // Soft fallback for difficult arts; safeguard geometrically distinct loop skills.
   const candidates=equipped.filter(k=>k&&moves[k]?.class&&!advancedMoves[k]&&!['summon','nova','warp','confusion','smoke','charge','heal','cross','aura','drain','recharge','armor','repulse'].includes(k));
-  let best=.105;
+  let best=.13;
   for(const k of candidates){
    if(['iron','reactor','build','ricochet','thrust'].includes(k)&&!relaxedPolygon(strokes[0],({iron:6,reactor:5,build:4,ricochet:4,thrust:3})[k]))continue;
    const d=match(strokes,k);if(d<best){best=d;kind=k}
