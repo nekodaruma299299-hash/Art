@@ -14730,7 +14730,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
  }
  function creatureDamageTarget(src,target,damage,now,meta={}){return target.type==='summonBody'?petHurt(target,damage,now,{owner:src.id,...meta}):hurt(target,damage,now,{owner:src.id,x:src.x,y:src.y,...meta},!!meta.pierce)}
  function createCreature(owner,kind,at,now,override={}){
-  const conf={dog:[50,3,1.2,26],cat:[50,2,.85,19],bird:[90,8,3,18],carbuncle:[50,0,3,20],bat:[30,5,.9,18]}[kind];
+  const conf={dog:[50,3,1.2,26],cat:[50,2,.85,19],bird:[20,8,3,18],carbuncle:[50,0,3,20],bat:[30,5,.9,18]}[kind];
   if(!conf)return null;
   // Kemono summons now allow up to three pets; replace the oldest only when the cap is exceeded.
   const own=livePets(now).filter(e=>e.owner===owner.id&&(['dog','cat','bird'].includes(kind)?e.petKind===kind:true)).sort((x,y)=>x.start-y.start);
@@ -14892,7 +14892,23 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
      }
      return;
     }
-    if(phase==='recover'&&now<e.attackAt){if(R.dist(e,owner)>210)movePet(e,owner,105,dt,now);return}
+    if(phase==='recover'&&now<e.attackAt){
+     // Keep circling at medium range during the full recovery period instead of
+     // freezing beside the target. Retreat if too close, strafe on either side,
+     // and stay close enough to the summoner. No attacks during recovery.
+     const speed=e.walkSpeed*(e.slow>now?.5:1);
+     if(R.dist(e,owner)>245){movePet(e,owner,speed,dt,now);return}
+     if(enemy){
+      const d=R.dist(e,enemy),a=Math.atan2(enemy.y-e.y,enemy.x-e.x);
+      const elapsed=Math.max(0,3000-(e.attackAt-now));
+      const side=(Math.floor(elapsed/850)%2===0?1:-1);
+      const gap=145,strafe=side*58;
+      const goal={x:enemy.x-Math.cos(a)*gap-Math.sin(a)*strafe,
+                  y:enemy.y-Math.sin(a)*gap+Math.cos(a)*strafe};
+      if(d<110||d>175||R.dist(e,goal)>15)movePet(e,goal,speed,dt,now);
+     }else if(R.dist(e,owner)>105)movePet(e,owner,speed,dt,now);
+     return;
+    }
     if(enemy){
      const d=R.dist(e,enemy),a=Math.atan2(enemy.y-e.y,enemy.x-e.x);
      if(now>=(e.attackAt||0)&&d>=58&&d<=170){e.birdPhase='warning';e.birdCount=0;e.birdTargetId=enemy.id;e.birdAngle=a;e.birdWarnUntil=now+500;return}
