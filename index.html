@@ -11929,6 +11929,46 @@ window.ArtsRules=(()=>{
   }
   return best;
  }
+ // Idol-only elastic matcher. A hand-drawn corner can be rounded, prolonged
+ // or reached early; fixed-index alignment falsely rejects such valid strokes.
+ // Use rotation-invariant, constrained dynamic time-warping on 25 samples.
+ const idolElasticCache=new Map();
+ function idolElasticScore(input,key){
+  if(!input||!idolKeys.has(key))return Infinity;
+  if(!idolElasticCache.has(key)){
+   const original=template(key)[0],guides=[];
+   for(const ratio of [1,.8,1.25]){
+    const norm=normalizedTrace(original.map(p=>({x:p.x*ratio,y:p.y})));
+    guides.push(Array.from({length:25},(_,i)=>norm[Math.round(i*47/24)]));
+   }
+   idolElasticCache.set(key,guides);
+  }
+  const a=Array.from({length:25},(_,i)=>input[Math.round(i*47/24)]);
+  let best=Infinity;
+  for(const b of idolElasticCache.get(key))for(const rev of [false,true]){
+   // Procrustes rotation from roughly corresponding samples.
+   let dot=0,cross=0;
+   for(let i=0;i<25;i++){
+    const p=a[i],q=b[rev?24-i:i];dot+=p.x*q.x+p.y*q.y;cross+=p.x*q.y-p.y*q.x;
+   }
+   const phi=Math.atan2(cross,dot),co=Math.cos(phi),si=Math.sin(phi);
+   const cost=(p,q)=>Math.hypot(p.x*co-p.y*si-q.x,p.x*si+p.y*co-q.y);
+   const rows=Array.from({length:26},()=>new Float64Array(26).fill(Infinity));
+   const steps=Array.from({length:26},()=>new Uint8Array(26));rows[0][0]=0;
+   for(let i=1;i<=25;i++)for(let j=Math.max(1,i-6);j<=Math.min(25,i+6);j++){
+    const diag=rows[i-1][j-1],up=rows[i-1][j],left=rows[i][j-1];
+    if(!Number.isFinite(Math.min(diag,up,left)))continue;
+    const v=cost(a[i-1],b[rev?25-j:j-1]);
+    if(diag<=up&&diag<=left){rows[i][j]=diag+v;steps[i][j]=0}
+    else if(up<left){rows[i][j]=up+v+.012;steps[i][j]=1}
+    else{rows[i][j]=left+v+.012;steps[i][j]=2}
+   }
+   let i=25,j=25,n=0;
+   while(i&&j){const step=steps[i][j];n++;if(step===0){i--;j--}else if(step===1)i--;else j--}
+   best=Math.min(best,rows[25][25]/Math.max(1,n));
+  }
+  return best;
+ }
  // Accept common alternate pen routes as well as the illustrated route.
  function alternateArtGuides(key){
   const xy=points=>points.map(([x,y])=>({x,y}));
@@ -12102,6 +12142,7 @@ window.ArtsRules=(()=>{
    if(!priorityGuides.has(key))continue;
    if(key==='burst'&&(strokes[0].length<5||len<dist(points[0],points.at(-1))*1.12))continue;
    let error=guideError(trace,key);
+   if(idolKeys.has(key)&&strokes.length===1)error=Math.min(error,idolElasticScore(trace,key)*1.12);
    if(key==='lucid_dream'&&error>.075&&cloudOutline(strokes[0]))error=Math.min(error,.075);
    candidates.push({key,error});
   }
@@ -12113,23 +12154,23 @@ window.ArtsRules=(()=>{
   if(topIdol){
    const key=topIdol.key,err=topIdol.error;
    const note=key==='silence_note';
-   const dissonanceShape=key==='dissonance'&&idolDissonanceCorners(strokes[0])>=4;
-   const closeToTemplate=err<(note?.49:key==='dissonance'?(dissonanceShape?.64:.55):key==='echo_speaker'?.46:.44);
+   const dissonanceShape=key==='dissonance'&&idolDissonanceCorners(strokes[0])>=3;
+   const closeToTemplate=err<(note?.56:key==='dissonance'?(dissonanceShape?.77:.65):key==='echo_speaker'?.56:.54);
    // Explicitly distinguish ink strokes with curved sections from short common lines.
-   const notJustLine=len/Math.max(diag,1)> (note?1.12:1.10);
+   const notJustLine=len/Math.max(diag,1)> (note?1.09:1.075);
    const path=strokes[0],chord=dist(path[0],path.at(-1));
    const closureNeeded=key==='echo_speaker'||key==='harmony_veil'||key==='live_fever';
-   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.62:.74);
+   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.73:.87);
    // The active Idol technique wins over the generic Slash recognizer when
    // its ordered, one-stroke silhouette is recognizably closer to an Idol art.
    // Comparing to the runner-up prevents one Idol technique replacing another.
    // Accept less perfect Idol contours, but never award a different Idol art
    // when its template is practically tied with another equipped Idol art.
-   const clearlyIdol=basicError>.10&&(
-      err+.003<basicError || (err<.39&&len/Math.max(diag,1)>1.45) ||
-      (key==='dissonance'&&dissonanceShape&&err<.64) ||
-      (note&&err<.43&&arcError>.16));
-   const rivalMargin=key==='dissonance'?.010:.018;
+   const clearlyIdol=basicError>.075&&(
+      err+.01<basicError || (err<.44&&len/Math.max(diag,1)>1.31) ||
+      (key==='dissonance'&&dissonanceShape&&err<.76) ||
+      (note&&err<.52&&arcError>.13));
+   const rivalMargin=(key==='echo_speaker'||key==='harmony_veil')?.038:.012;
    if(closeToTemplate&&notJustLine&&closedEnough&&err+rivalMargin<otherIdol&&clearlyIdol)chosen=key;
   }
   // Compare other equipped special attacks only after the Idol comparison.
@@ -12138,7 +12179,7 @@ window.ArtsRules=(()=>{
     (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.28&&first.error+.03<second)))chosen=first.key;
   // When an Idol contour is nearby but ambiguous, don't silently activate
   // Slash or a different skill. Report "shape not recognized" instead.
-  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.57:topIdol.key==='dissonance'?.66:.51)&&
+  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.62:topIdol.key==='dissonance'?.78:.60)&&
       topIdol.error+.012<arcError&&topIdol.error+.012<lineError;
   if(!chosen&&idolLike)return null;
   if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
@@ -13276,7 +13317,7 @@ window.ArtArts=(()=>{
       const positive=idolFriendly(owner,q);q.idolStatus??={};q.idolStatus.concertWave={started:at,until:at+1000,value:positive?.05:-.05,freezeImmune:true};
       host.effects.push({id:++host.seq,type:'idolApply',skill:'grand_concert',owner:e.owner,targetId:q.id,x:q.x,y:q.y,fromX:e.x,fromY:e.y,isDebuff:!positive,silent:true,r:35,start:at,end:at+920});
      }
-     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:200,start:at,end:at+1000});
+     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:e.r||260,start:at,end:at+1450});
     }else{
      host.effects.push({id:++host.seq,type:'idolSpeakerWave',skill:'echo_speaker',owner:e.owner,x:e.x,y:e.y,r:150,start:at,end:at+900});
      for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(owner,q)&&R.dist(q,e)<=150&&at-(q.idolSpeakerAt??-Infinity)>=3000){
@@ -18343,6 +18384,23 @@ function drawUltimateWorld(x,now){
    for(let i=0;i<8;i++){const a=i*Math.PI/4+.1,r=12+t*50;idolFxLine(ctx,Math.cos(a)*(r-10),Math.sin(a)*(r-10),Math.cos(a)*r,Math.sin(a)*r)}
    ctx.restore();return;
   }
+  if(e.type==='idolPulse'&&k==='grand_concert'){
+   // TWO WAVEFRONTS TRAVEL OUT FROM THE ACTUAL VENUE WORLD COORDINATES.
+   // Draw in the world FX layer: never as a screen-wide veil over gestures.
+   const reach=e.r||260,crest=reach*t;
+   ctx.save();ctx.globalAlpha=(1-t)*.82;ctx.strokeStyle='#ffe0f4';ctx.shadowColor='#ff9cde';ctx.shadowBlur=12;ctx.lineWidth=5;
+   idolFxRing(ctx,crest);ctx.shadowBlur=0;
+   ctx.globalAlpha=(1-t)*.34;ctx.strokeStyle='#f6a4e0';ctx.lineWidth=15;idolFxRing(ctx,Math.max(1,crest-11));
+   ctx.globalAlpha=(1-t)*.58;ctx.lineWidth=2.5;idolFxRing(ctx,Math.max(2,reach*Math.max(0,t-.18)));
+   // Music notes ride the crest instead of obscuring the whole screen.
+   for(let i=0;i<8;i++){
+    const angle=i*Math.PI/4+e.id*.19,xx=Math.cos(angle)*crest,yy=Math.sin(angle)*crest;
+    ctx.save();ctx.translate(xx,yy);ctx.globalAlpha=.7*(1-t);ctx.rotate(angle+.3);
+    ctx.strokeStyle=i%2?'#fff1b8':'#fbd6f6';ctx.lineWidth=2.4;
+    idolFxGlyph(ctx,'silence_note',13);ctx.restore();
+   }
+   ctx.restore();ctx.restore();return;
+  }
   if(e.type==='idolCastWave'||e.type==='idolSpeakerWave'||e.type==='idolPulse'){
    // Two visible travelling wavefronts: a bright crest, a translucent wake,
    // eight travelling sparks, and radial accents. The actual effect radius is used.
@@ -18444,7 +18502,7 @@ function drawUltimateWorld(x,now){
    drawIdolNote(ctx,xx,yy,sz,i%3===0?'#fff0ac':i%3===1?'#ffc9e8':'#e5cbff');
    ctx.restore();
   }
-  ctx.fillStyle='rgba(49,27,65,.88)';ctx.fillRect(width/2-145,12,290,32);
+  ctx.fillStyle='rgba(49,27,65,.65)';ctx.fillRect(width/2-145,12,290,32);
   drawIdolNote(ctx,width/2-128,28,18,'#ffd3ed');ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff2fc';ctx.fillText('コンサート中 · 全フィールド効果時間停止',width/2+8,33);ctx.restore();
  }
 
@@ -18717,6 +18775,7 @@ function drawBattleOutcome(x,canvas,now){
   }
  }
  heardGunRounds=new Set([...heardGunRounds].filter(key=>presentGunRounds.has(key)));
+ drawConcertNotice(x,c,now,dpr); // decorative notes below projectile/skill effects and the original gesture ink
  for(const s of view.shots)if(now>=(s.fireAt||0))drawArtShot(x,s,now);
  drawArtsEffects(x,now);
  drawUltimateWorld(x,now);
@@ -18747,27 +18806,7 @@ function drawBattleOutcome(x,canvas,now){
    }
    x.restore();
   }
-  drawUltimateScreen(x,c,now,me,dpr);drawConcertNotice(x,c,now,dpr);
-  // LIVE INK ALWAYS LAST: the musical field/ultimate overlay must not conceal
-  // the gesture even though its points still reach the host for recognition.
-  if(me&&me.active&&me.hp>0&&(gesture||strokes.length)){
-   const pos=positions.get(localId)||me;
-   const paths=[...strokes.slice(summonCore?1:0),...(gesture?[gesture.points]:[])];
-   x.save();x.setTransform(scale,0,0,scale,-left*scale,-top*scale);
-   x.globalAlpha=1;x.globalCompositeOperation='source-over';
-   x.lineCap='round';x.lineJoin='round';
-   for(const path of paths){
-    if(!path?.length)continue;
-    x.beginPath();for(let i=0;i<path.length;i++){
-     const p=path[i];if(i)x.lineTo(pos.x+p.x,pos.y+p.y);
-     else x.moveTo(pos.x+p.x,pos.y+p.y);
-    }
-    // White outer edge is visible against dark/light concert lighting.
-    x.strokeStyle='#ffffff';x.lineWidth=8;x.stroke();
-    x.strokeStyle='#6532b7';x.lineWidth=4.5;x.stroke();
-   }
-   x.restore();
-  }
+  drawUltimateScreen(x,c,now,me,dpr);
   drawBattleOutcome(x,c,now);
  const hud=$('#artsHUD');if(hud){const text=me&&me.active?vitalsHTML(me)+'<span>'+jobLabel(me.class)+' / '+(view.settings.teams==='teams'?'<b style=\"color:'+(me.team===0?'#1682c6':'#e44970')+'\">● '+(me.team===0?'青チーム':'赤チーム')+'</b> / ':'')+'残り '+view.fighters.filter(p=>p.active&&p.hp>0).length+'人</span>'+(me.hp<=0?'<span>観戦中：'+esc(view.players.find(p=>p.id===cameraFighter()?.id)?.name||'生存者')+' の視点</span>':''):'<span>観戦中</span>';if(hud._artsLastText!==text){
   // Keep the Art Matter help button node alive while changing HUD values.
