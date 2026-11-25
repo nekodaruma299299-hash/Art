@@ -12871,7 +12871,7 @@ window.ArtArts=(()=>{
   dreamer:'上の中央から左右対称の目の外周を一周し、中央に下りて菱形の瞳を描きます。'
  };
  const ultimateEffectsGuide={
-  idol:'HP150・16秒の会場を設置。存在中は全フィールドのバフ・デバフ残り時間を停止。会場の半径200では5秒ごとに1秒間、味方の攻撃と移動+5%、敵は-5%。音波だけは時間停止されません。敵の攻撃で会場を破壊できます。',
+  idol:'HP150の会場を設置。絶対城塞と同じく毎秒5HPずつ自然減少し、無傷なら約30秒間存続。会場がある間はフィールド全体のバフ・デバフの残り時間を停止し、終了後に再開します。会場の半径200では5秒ごとに音波を放ち、味方の攻撃と移動+5%、敵は-5%。音波の効果も会場中は残り時間が停止します。敵の攻撃でも会場を破壊できます。',
   attacker:'前方へ巨大な斬撃を3連続で放ちます。威力は順に30・35・50、斬撃間隔は約0.32秒です。',
   tank:'10秒間、広い防御領域「絶対城塞」を展開します。味方を守る結界と防御演出が続きます。',
   trickster:'6体の幻影を召喚します。幻影は時間では消えず、敵プレイヤーに触れるか攻撃されると爆発。爆発半径110、50ダメージと10秒の混乱を与えます。',
@@ -13165,7 +13165,7 @@ window.ArtArts=(()=>{
  function placeIdolStructure(p,kind,now,aim=p){
   for(const e of host.effects)if(e.idolStructure===kind&&e.owner===p.id){e.end=now;e.hp=0}
   const concert=kind==='concert',hp=concert?150:30,skill=concert?'grand_concert':'echo_speaker';
-  const e={id:++host.seq,type:'summonBody',petKind:'idolStructure',idolStructure:kind,skill,owner:p.id,x:aim.x,y:aim.y,r:concert?260:22,hp,maxHp:hp,defense:0,ink:0,start:now,end:now+(concert?16000:12000),nextIdolPulse:now+(concert?5000:3000)};
+  const e={id:++host.seq,type:'summonBody',petKind:'idolStructure',idolStructure:kind,skill,owner:p.id,x:aim.x,y:aim.y,r:concert?260:22,hp,maxHp:hp,defense:0,ink:0,start:now,end:now+(concert?65000:12000),lastIdolDecayAt:now,nextIdolPulse:now+(concert?5000:3000)};
   host.effects.push(e);return e;
  }
  function castIdol(p,shape,now){
@@ -13216,7 +13216,7 @@ window.ArtArts=(()=>{
     for(const key of concertActorTimers)shift(actor,key);
     if(actor.pull)shift(actor.pull,'end');
     if(actor.executionMarks)for(const key of Object.keys(actor.executionMarks))shift(actor.executionMarks,key);
-    for(const [key,status] of Object.entries(actor.idolStatus||{}))if(key!=='concertWave'&&status.until>begin){status.until+=Math.max(0,end-Math.max(begin,status.started))}
+    for(const [key,status] of Object.entries(actor.idolStatus||{}))if(status.until>begin){status.until+=Math.max(0,end-Math.max(begin,status.started))}
    }
    for(const effect of host.effects){if(concertFieldTypes.has(effect.type)&&effect.end>begin)effect.end+=Math.max(0,end-Math.max(begin,effect.start||begin))}
    for(const act of host.ultimateActs||[])if(['trickster','vampire','executioner','dreamer'].includes(act.job))shift(act,'end');
@@ -13230,6 +13230,14 @@ window.ArtArts=(()=>{
    if(!e.idolStructure||e.hp<=0)continue;
    const owner=host.fighters.find(p=>p.id===e.owner);
    if(!owner?.active||owner.hp<=0){e.end=now;e.hp=0;continue}
+   if(e.idolStructure==='concert'){
+    // Match Absolute Fortress: the venue has HP, loses 5 HP per real second,
+    // can be destroyed sooner by attacks, and has a generous 65s safety deadline.
+    const elapsed=Math.max(0,now-(e.lastIdolDecayAt??e.start));
+    e.lastIdolDecayAt=now;
+    e.hp=Math.max(0,e.hp-5*Math.min(.1,elapsed/1000));
+    if(e.hp<=0){e.end=now;host.effects.push({id:++host.seq,type:'idolBreak',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:e.r,start:now,end:now+900});continue}
+   }
    // At the natural endpoint, a due speaker tick still delivers its fourth pulse.
    while(e.nextIdolPulse<=now&&e.nextIdolPulse<=e.end){
     const at=e.nextIdolPulse,concert=e.idolStructure==='concert';e.nextIdolPulse+=concert?5000:3000;
@@ -18294,6 +18302,10 @@ function drawUltimateWorld(x,now){
    }
    for(let i=0;i<5;i++){const phase=now/1250+i*Math.PI*2/5,x=Math.cos(phase)*100,y=-18+Math.sin(phase)*30;
     ctx.save();ctx.globalAlpha=.5+.3*Math.sin(phase);ctx.strokeStyle=i%2?'#fcd59d':'#ffd0ee';ctx.lineWidth=2;idolFxSpark(ctx,x,y,4);ctx.restore()}
+   // HP represents the venue's actual remaining lifetime, not a 16-second timer.
+   ctx.fillStyle='rgba(23,17,43,.88)';ctx.fillRect(-67,54,134,8);
+   ctx.fillStyle='#ffbfe9';ctx.fillRect(-65,56,130*R.clamp(e.hp/Math.max(1,e.maxHp),0,1),4);
+   ctx.strokeStyle='rgba(255,220,246,.9)';ctx.lineWidth=1;ctx.strokeRect(-67,54,134,8);
    ctx.restore();return;
   }
   if(e.type==='idolBreak'){
@@ -18388,8 +18400,22 @@ function drawUltimateWorld(x,now){
  function drawConcertNotice(ctx,canvas,now,dpr){
   if(!view.effects.some(e=>e.idolStructure==='concert'&&e.hp>0&&e.end>now&&view.fighters.some(p=>p.id===e.owner&&p.active&&p.hp>0)))return;
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr);
-  const width=canvas.width/dpr;ctx.fillStyle='rgba(49,27,65,.88)';ctx.fillRect(width/2-135,12,270,32);
-  drawIdolNote(ctx,width/2-117,28,18,'#ffd3ed');ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff2fc';ctx.fillText('コンサート中 · 効果の残り時間停止',width/2+8,33);ctx.restore();
+  const width=canvas.width/dpr,height=canvas.height/dpr;
+  // A persistent, screen-wide musical field (not just a tiny note in the HUD).
+  // Fixed seeded positions avoid flicker and allocations on every frame.
+  for(let i=0;i<30;i++){
+   const seed=(i*0.618033988749895)%1;
+   const drift=(now*.000024*(.8+(i%5)*.15)+i*.137)%1;
+   const xx=width*(.04+.92*((seed+Math.sin(now/2600+i*2.3)*.017+1)%1));
+   const yy=height*(.08+.84*(1-drift));
+   const sz=17+(i%4)*4;
+   const alpha=.22+.18*(.5+.5*Math.sin(now/750+i*1.7));
+   ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='#ffc0ec';ctx.shadowBlur=8;
+   drawIdolNote(ctx,xx,yy,sz,i%3===0?'#fff0ac':i%3===1?'#ffc9e8':'#e5cbff');
+   ctx.restore();
+  }
+  ctx.fillStyle='rgba(49,27,65,.88)';ctx.fillRect(width/2-145,12,290,32);
+  drawIdolNote(ctx,width/2-128,28,18,'#ffd3ed');ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff2fc';ctx.fillText('コンサート中 · 全フィールド効果時間停止',width/2+8,33);ctx.restore();
  }
 
  function drawUltimateScreen(x,c,now,me,dpr){
