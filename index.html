@@ -8583,6 +8583,7 @@ window.ArtBattlePerformance=(()=>{
  return{dpr:()=>Math.min(window.devicePixelRatio||1,settings().dpr),draw:(id,time)=>{const previous=drawn.get(id);if(previous!==undefined&&time-previous<settings().interval-.8)return false;drawn.set(id,time);return true},mobile};
 })();
 
+window.artopiaIdolDiagnostics={enabled:new URLSearchParams(location.search).has("idoldebug"),last:null,cast:null,renderError:null,disableConcertNotes:new URLSearchParams(location.search).has("concertnonotes")};
 window.ArtsRules=(()=>{
  let W=1120,H=1120;const R=20,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const int=(n,d,a,b)=>Number.isFinite(+n)?clamp(Math.round(+n),a,b):d;
@@ -12105,7 +12106,7 @@ window.ArtsRules=(()=>{
  }
  const idolKeys=new Set(Object.keys(moves).filter(k=>moves[k].class==='idol'));
  const priorityGuides=new Set(Object.keys(moves).filter(k=>moves[k].class&&k!=='summon'));
- function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
+ function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];const rawIdolPath=strokes.length===1?strokes[0]:null;if(window.artopiaIdolDiagnostics?.enabled&&equipped.some(k=>idolKeys.has(k)))window.artopiaIdolDiagnostics.last={points:rawIdolPath?.map(p=>({...p})),selected:null,reason:"no candidate"};strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
 
  // Distinctive stem and note head must be resolved before Slash or the generic
  // template matcher; ordinary slashes lack the curled note head.
@@ -12117,7 +12118,8 @@ window.ArtsRules=(()=>{
  const noteShortcutError=noteShortcutTrace?guideError(noteShortcutTrace,'silence_note'):Infinity;
  const otherIdolShortcutError=noteShortcutTrace?Math.min(...equipped.filter(k=>idolKeys.has(k)&&k!=='silence_note').map(k=>guideError(noteShortcutTrace,k)),Infinity):Infinity;
  if(strokes.length===1&&equipped.includes('silence_note')&&!distinctiveDissonance&&
-    (noteShortcutError<.21||noteShortcutError+.015<otherIdolShortcutError)&&idolQuarterNoteGeometry(strokes[0])){
+    (noteShortcutError<.21||noteShortcutError+.015<otherIdolShortcutError)&&idolQuarterNoteGeometry(rawIdolPath,true)){
+  if(window.artopiaIdolDiagnostics?.enabled)Object.assign(window.artopiaIdolDiagnostics.last,{selected:'silence_note',reason:'stem and curled head'});
   return{type:'silence_note',x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes};
  }
  // Carbuncle's inward-curved four-point jewel is forgiving of wobbly sides,
@@ -12170,8 +12172,17 @@ window.ArtsRules=(()=>{
       err+.01<basicError || (err<.44&&len/Math.max(diag,1)>1.31) ||
       (key==='dissonance'&&dissonanceShape&&err<.76) ||
       (note&&err<.52&&arcError>.13));
-   const rivalMargin=(key==='echo_speaker'||key==='harmony_veil')?.038:.012;
-   if(closeToTemplate&&notJustLine&&closedEnough&&err+rivalMargin<otherIdol&&clearlyIdol)chosen=key;
+   const rivalMargin=(key==='echo_speaker'||key==='harmony_veil')?.022:.012;
+   const regular=closeToTemplate&&notJustLine&&closedEnough&&err+rivalMargin<otherIdol&&clearlyIdol;
+   // Distinctive Idol gestures use both elastic and ordered evidence. Unequipped
+   // Idol guides are negative examples, not cast candidates.
+   const ordered=guideError(trace,key);
+   const otherAll=Math.min(...[...idolKeys].filter(k=>k!==key).map(k=>guideError(trace,k)),Infinity);
+   const confident=key!=='dissonance'&&err<.30&&ordered<.36&&ordered+.018<otherAll&&
+     err+.018<otherIdol&&notJustLine&&basicError>Math.max(.105,err+.025)&&
+     (!closureNeeded||chord<diag*.94);
+   if(regular||confident)chosen=key;
+   if(window.artopiaIdolDiagnostics?.enabled)window.artopiaIdolDiagnostics.last={points:rawIdolPath.map(p=>({...p})),candidates:candidates.map(c=>({...c})),basicError,ordered,otherAll,checks:{closeToTemplate,notJustLine,closedEnough,clearlyIdol,regular,confident},selected:chosen,reason:chosen?'candidate accepted':'candidate gates rejected'};
   }
   // Compare other equipped special attacks only after the Idol comparison.
   if(!chosen&&first&&!idolKeys.has(first.key)&&first.error+.003<basicError&&
@@ -12193,8 +12204,14 @@ window.ArtsRules=(()=>{
   if(chosen&&idolKeys.has(chosen)){
    const traceErr=guideError(trace,chosen);
    const rivals={uptempo:['deep_sleep'],harmony_veil:['summon','summon_dog','blood_slash','grand_anchor','overload_barrage','lucid_dream','crimson_eclipse'],live_fever:['newSmoke','judgment']}[chosen]||[];
-   if(rivals.some(k=>guideError(trace,k)+.012<traceErr))chosen=null;
+   // An unequipped other-job guide is not a cast candidate. Keep the veto
+   // only for a substantially better match, and compare like with like.
+   if(rivals.some(k=>guideError(trace,k)+.065<traceErr)&&traceErr>.19){
+    if(window.artopiaIdolDiagnostics?.enabled&&window.artopiaIdolDiagnostics.last)window.artopiaIdolDiagnostics.last.reason='other-job silhouette veto';
+    chosen=null;
+   }
   }
+  if(window.artopiaIdolDiagnostics?.enabled&&equipped.some(k=>idolKeys.has(k))&&window.artopiaIdolDiagnostics.last)window.artopiaIdolDiagnostics.last.selected=chosen;
   if(chosen)return{type:chosen,x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.hypot(cx,cy)>1?Math.atan2(cy,cx):chosen==='thrust'?triangleAngle(points):-Math.PI/2,tip:points[0],strokes};
  }
  if(equipped.some(k=>idolKeys.has(k))){
@@ -12203,7 +12220,7 @@ window.ArtsRules=(()=>{
   // Only accept a clearly ordinary, short common gesture at this boundary.
   if(strokes.length===1){
    const common=simpleCommonArt(strokes[0]);
-   const noteLike=equipped.includes('silence_note')&&idolQuarterNoteGeometry(strokes[0],true);
+   const noteLike=equipped.includes('silence_note')&&idolQuarterNoteGeometry(rawIdolPath,true);
    if(common&&!noteLike){
     const sampled=normalizedTrace(strokes[0]);
     const noteError=equipped.includes('silence_note')?guideError(sampled,'silence_note'):Infinity;
@@ -13287,7 +13304,7 @@ window.ArtArts=(()=>{
     for(const key of concertActorTimers)shift(actor,key);
     // Pull/stun/sleep are control locks, not timed buffs: never freeze their recovery.
     if(actor.executionMarks)for(const key of Object.keys(actor.executionMarks))shift(actor.executionMarks,key);
-    for(const [key,status] of Object.entries(actor.idolStatus||{}))if(status.until>begin){status.until+=Math.max(0,end-Math.max(begin,status.started))}
+    for(const [key,status] of Object.entries(actor.idolStatus||{}))if(!status.freezeImmune&&status.until>begin){status.until+=Math.max(0,end-Math.max(begin,status.started))}
    }
    for(const effect of host.effects){if(concertFieldTypes.has(effect.type)&&effect.end>begin)effect.end+=Math.max(0,end-Math.max(begin,effect.start||begin))}
    for(const act of host.ultimateActs||[])if(['trickster','vampire','executioner','dreamer'].includes(act.job))shift(act,'end');
@@ -13317,7 +13334,7 @@ window.ArtArts=(()=>{
       const positive=idolFriendly(owner,q);q.idolStatus??={};q.idolStatus.concertWave={started:at,until:at+1000,value:positive?.05:-.05,freezeImmune:true};
       host.effects.push({id:++host.seq,type:'idolApply',skill:'grand_concert',owner:e.owner,targetId:q.id,x:q.x,y:q.y,fromX:e.x,fromY:e.y,isDebuff:!positive,silent:true,r:35,start:at,end:at+920});
      }
-     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:e.r||260,start:at,end:at+1450});
+     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:200,start:at,end:at+1450});
     }else{
      host.effects.push({id:++host.seq,type:'idolSpeakerWave',skill:'echo_speaker',owner:e.owner,x:e.x,y:e.y,r:150,start:at,end:at+900});
      for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(owner,q)&&R.dist(q,e)<=150&&at-(q.idolSpeakerAt??-Infinity)>=3000){
@@ -14909,7 +14926,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
   const reply={type:'gameArtsFeedback',text:'必殺技の図形が少し違います。ゲージとインクは消費しません。',ok:false};
   if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;return true;
  }
- const shape=result.shape;if(!f.dreamBody&&!outside&&!shape&&valid&&(f.artMatter||0)<100)f.ink=Math.max(0,f.ink-Math.ceil(Math.min(R.length(m.strokes),2600)*.035));f.castError='';const returning=f.dreamBody&&shape?.type==='lucid_dream';const ok=shape&&!outside&&cast(id,shape);const message=!valid?'描画データが長すぎるか不正なため、判定できませんでした（インク消費なし）。':outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(returning?'夢から本体に戻りました。':moves[shape.type].name+'！'):shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';const reply={type:'gameArtsFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
+ const shape=result.shape;if(!f.dreamBody&&!outside&&!shape&&valid&&(f.artMatter||0)<100)f.ink=Math.max(0,f.ink-Math.ceil(Math.min(R.length(m.strokes),2600)*.035));f.castError='';const returning=f.dreamBody&&shape?.type==='lucid_dream';const ok=shape&&!outside&&cast(id,shape);const message=!valid?'描画データが長すぎるか不正なため、判定できませんでした（インク消費なし）。':outside?'射程外のためキャンセルしました（インク消費なし）。':ok?(returning?'夢から本体に戻りました。':moves[shape.type].name+'！'):shape?(f.castError||'インク不足、または待ち時間中です。'):'形を読み取れませんでした。お手本を確認してください。';if(window.artopiaIdolDiagnostics?.enabled&&f.class==='idol')window.artopiaIdolDiagnostics.cast={selected:shape?.type||null,ok:!!ok,reason:message,points:m.strokes};const reply={type:'gameArtsFeedback',text:message,ok:!!ok};if(id===localId)receive(reply);else sendWire(connections.get(id),reply);f.drawing=false;sendAll();return true}return true}
  function advanceDash(p,dt,now){const dash=p.dash;let budget=dash.speed*dt;while(budget>0&&dash.index<dash.path.length){const target=dash.path[dash.index],dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy);if(d<.01){dash.index++;continue}const step=Math.min(8,d,budget),nx=p.x+dx/d*step,ny=p.y+dy/d*step;if(R.blocked(nx,ny,host.blocks)||artsGuardBlocksMovement(p,nx,ny,now)||artsFortBlocksMove(p,p.x,p.y,nx,ny,now)){for(const b of host.blocks)if(R.intersects(nx,ny,R.R,b))damageWall(b,dash.power,now);p.dash=null;const message={type:'gameArtsFeedback',text:'地形やステージの端に当たり、移動技が止まりました。',ok:false};if(p.id===localId)receive(message);else sendWire(connections.get(p.id),message);return}p.x=nx;p.y=ny;budget-=step;for(const q of host.fighters)if(!friendly(p,q)&&q.hp>0&&q.active&&R.dist(p,q)<45&&!dash.hit.includes(q.id)){dash.hit.push(q.id);hurt(q,dash.power,now,p)}if(step>=d-.001)dash.index++}if(dash.index>=dash.path.length)p.dash=null}
  function practiceBotInput(p,now){
  const target=host.fighters.find(q=>!friendly(p,q)&&q.active&&q.hp>0);if(!target){p.botAttack=null;p.drawing=false;return{x:0,y:0,at:now}}
@@ -16916,7 +16933,7 @@ finishPaint(false)};
 
 
 /* SECTION: arts/render.js — world coordinates independent of walk animation */
- function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);if(!enabled()||view?.phase!=='battle')return;if(!document.hidden&&window.ArtBattlePerformance.draw('arts',time)){frameDelta=Math.min(.15,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;drawArena(time)}if(Date.now()-lastMove>(Math.hypot(move.x,move.y)>.01?45:100)){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
+ function frame(time){raf=0;if((paintMode||gesture||strokes.length)&&Date.now()-paintStarted>10000)finishPaint(true);if(!enabled()||view?.phase!=='battle')return;if(!document.hidden&&window.ArtBattlePerformance.draw('arts',time)){frameDelta=Math.min(.15,Math.max(0,(time-(lastAnimation||time))/1000));lastAnimation=time;try{drawArena(time)}catch(error){window.artopiaIdolDiagnostics.renderError=String(error);console.error("Arts render",error)}}if(Date.now()-lastMove>(Math.hypot(move.x,move.y)>.01?45:100)){lastMove=Date.now();sendInput()}raf=requestAnimationFrame(frame)}
  // All combat visuals are deterministic from server timestamps; particles are
  // bounded and drawn directly, without extra network state or per-frame DOM.
 
@@ -17460,9 +17477,22 @@ finishPaint(false)};
   }
   x.restore();
  }
+ const concertVisualCanvas=document.createElement('canvas');
+ concertVisualCanvas.width=concertVisualCanvas.height=520;
+ function concertVisual(e){return e.idolStructure==='concert'||(e.skill==='grand_concert'&&e.type==='idolPulse')}
+ function drawIsolatedConcert(x,e,now){
+  if(!Number.isFinite(e.x)||!Number.isFinite(e.y))return;
+  const c=concertVisualCanvas,ctx=c.getContext('2d');if(!ctx)return;
+  try{
+   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,520,520);ctx.setTransform(1,0,0,1,260,260);
+   drawIdolEffect(ctx,{...e,x:0,y:0},now);
+   x.save();try{x.globalAlpha=1;x.globalCompositeOperation='source-over';x.drawImage(c,e.x-260,e.y-260)}finally{x.restore()}
+  }catch(error){window.artopiaIdolDiagnostics.renderError=String(error);c.width=520;}
+ }
  function drawArtsUnderlay(x,now){
  for(const e of view.effects){
   if(e.end<=now)continue;
+  if(concertVisual(e)){drawIsolatedConcert(x,e,now);continue}
   if(e.type==='soul_eater')drawAdvancedEffect(x,e,now);
   if(e.type==='bloodRitual')drawBloodRitualFloor(x,e,now);
  }
@@ -17566,6 +17596,7 @@ finishPaint(false)};
  }
  function drawArtsEffects(x,now){
  for(const e of view.effects){
+  if(concertVisual(e))continue;
   if(petOutsideCanvas(x,e))continue;
   if(e.type==='combatNumber'||e.type==='pickupNumber')continue;
   if(moves[e.type]?.expansion){drawExpansionEffect(x,e,now);continue}
@@ -18362,15 +18393,15 @@ function drawUltimateWorld(x,now){
   if(e.idolStructure==='concert'){
    const beat=.5+.5*Math.sin(now/480);
    // WORLD-SPACE FIELD (regression fix 2026-11-25): stroke ONLY. No translucent screen-covering fill.
-   ctx.strokeStyle='rgba(245,166,220,.33)';ctx.lineWidth=2;idolFxRing(ctx,260);
+   ctx.strokeStyle='rgba(245,166,220,.33)';ctx.lineWidth=2;idolFxRing(ctx,200);
    // Venue-origin musical atmosphere. Notes travel out from the stage in world
    // coordinates and fade naturally; they never touch the screen-space overlay,
    // and cannot obscure any player's gesture strokes or other skill effects.
    ctx.save();
-   for(let i=0;i<12;i++){
-    const cycle=((now-e.start)*(.00010+(i%3)*.000014)+i/12)%1;
+   for(let i=0;i<(window.artopiaIdolDiagnostics?.disableConcertNotes?0:8);i++){
+    const cycle=((now-e.start)*(.00010+(i%3)*.000014)+i/8)%1;
     const angle=i*2.3999632297 + (i%2?0.23:-0.23);
-    const dist=30+218*cycle;
+    const dist=30+165*cycle;
     const px=Math.cos(angle)*dist,py=Math.sin(angle)*dist-13*cycle;
     const fade=Math.min(1,cycle*6)*Math.min(1,(1-cycle)*4);
     ctx.save();ctx.translate(px,py);ctx.rotate((i%5-2)*.12);
@@ -18404,7 +18435,7 @@ function drawUltimateWorld(x,now){
   if(e.type==='idolPulse'&&k==='grand_concert'){
    // TWO WAVEFRONTS TRAVEL OUT FROM THE ACTUAL VENUE WORLD COORDINATES.
    // Draw in the world FX layer: never as a screen-wide veil over gestures.
-   const reach=e.r||260,crest=reach*t;
+   const reach=200,crest=reach*t;
    ctx.save();ctx.globalAlpha=(1-t)*.82;ctx.strokeStyle='#ffe0f4';ctx.shadowColor='#ff9cde';ctx.shadowBlur=12;ctx.lineWidth=5;
    idolFxRing(ctx,crest);ctx.shadowBlur=0;
    ctx.globalAlpha=(1-t)*.34;ctx.strokeStyle='#f6a4e0';ctx.lineWidth=15;idolFxRing(ctx,Math.max(1,crest-11));
