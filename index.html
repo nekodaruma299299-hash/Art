@@ -12048,6 +12048,21 @@ window.ArtsRules=(()=>{
   };
   return check(pts)||check([...pts].reverse());
  }
+ // Dissonance: 7-segment broken Z. Recognize the repeated sharp reversals,
+ // not exact corner positions (which vary substantially with real pen drawing).
+ function idolDissonanceCorners(path){
+  if(!path||path.length<6)return 0;
+  const points=stabilizeStroke(path);
+  if(points.length<6)return 0;
+  let count=0;
+  for(let i=1;i+1<points.length;i++){
+   const a=points[i-1],b=points[i],c=points[i+1];
+   const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-b.x,vy=c.y-b.y;
+   const norm=Math.hypot(ux,uy)*Math.hypot(vx,vy);
+   if(norm>20&&Math.atan2(Math.abs(ux*vy-uy*vx),ux*vx+uy*vy)>.62)count++;
+  }
+  return count;
+ }
  const idolKeys=new Set(Object.keys(moves).filter(k=>moves[k].class==='idol'));
  const priorityGuides=new Set(Object.keys(moves).filter(k=>moves[k].class&&k!=='summon'));
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
@@ -12090,7 +12105,8 @@ window.ArtsRules=(()=>{
   if(topIdol){
    const key=topIdol.key,err=topIdol.error;
    const note=key==='silence_note';
-   const closeToTemplate=err<(note?.42:key==='echo_speaker'?.37:.335);
+   const dissonanceShape=key==='dissonance'&&idolDissonanceCorners(strokes[0])>=4;
+   const closeToTemplate=err<(note?.42:key==='dissonance'?(dissonanceShape?.51:.37):key==='echo_speaker'?.37:.335);
    // Explicitly distinguish ink strokes with curved sections from short common lines.
    const notJustLine=len/Math.max(diag,1)> (note?1.17:1.13);
    const path=strokes[0],chord=dist(path[0],path.at(-1));
@@ -12099,8 +12115,8 @@ window.ArtsRules=(()=>{
    // The active Idol technique wins over the generic Slash recognizer when
    // its ordered, one-stroke silhouette is recognizably closer to an Idol art.
    // Comparing to the runner-up prevents one Idol technique replacing another.
-   if(closeToTemplate&&notJustLine&&closedEnough&&err+.024<otherIdol&&
-      (err+.005<basicError || (err<.27&&len/Math.max(diag,1)>1.45&&basicError>.12) || (note&&err<.33&&arcError>.20)))chosen=key;
+   if(closeToTemplate&&notJustLine&&closedEnough&&err+(dissonanceShape?.014:.024)<otherIdol&&
+      ((dissonanceShape&&err<.51&&basicError>.12) || err+.005<basicError || (err<.27&&len/Math.max(diag,1)>1.45&&basicError>.12) || (note&&err<.33&&arcError>.20)))chosen=key;
   }
   // Compare other equipped special attacks only after the Idol comparison.
   if(!chosen&&first&&!idolKeys.has(first.key)&&first.error+.003<basicError&&
@@ -12108,7 +12124,7 @@ window.ArtsRules=(()=>{
     (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.28&&first.error+.03<second)))chosen=first.key;
   // When an Idol contour is nearby but ambiguous, don't silently activate
   // Slash or a different skill. Report "shape not recognized" instead.
-  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.50:.405)&&
+  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.50:topIdol.key==='dissonance'?.53:.405)&&
       topIdol.error+.012<arcError&&topIdol.error+.012<lineError;
   if(!chosen&&idolLike)return null;
   if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
@@ -13202,7 +13218,7 @@ window.ArtArts=(()=>{
   addArtMatter(p,earned);
  }
  // Explicit deadlines: cooldowns, charge-up, projectile life and AI schedules use real time.
- const concertActorTimers=['anchorUntil','ascensionUntil','attackDebuffUntil','auraUntil','beastUntil','carbuncleUntil','confused','fangUntil','guard','immortalUntil','inkLock','iron','jamUntil','linkUntil','lucidUntil','mirageHiddenUntil','noRegenUntil','pactUntil','packUntil','reactor','regenUntil','sleepFieldUntil','sleepUntil','slow','slowFactorUntil','stunnedUntil','stealUntil','trickPoisonUntil','poisonUntil','furUntil','ultimateBloodUntil','ultimateNemesisUntil','ultimateTrickUntil','reflectUntil','wardUntil','daydreamUntil','sleepImmuneUntil','armorUntil','guardIgnoreUntil'];
+ const concertActorTimers=['anchorUntil','ascensionUntil','attackDebuffUntil','auraUntil','beastUntil','carbuncleUntil','confused','fangUntil','immortalUntil','inkLock','iron','jamUntil','linkUntil','lucidUntil','mirageHiddenUntil','noRegenUntil','pactUntil','packUntil','reactor','regenUntil','slow','slowFactorUntil','stealUntil','trickPoisonUntil','poisonUntil','furUntil','ultimateBloodUntil','ultimateNemesisUntil','ultimateTrickUntil','reflectUntil','wardUntil','daydreamUntil','sleepImmuneUntil','armorUntil','guardIgnoreUntil'];
  const concertFieldTypes=new Set(['guard','counterField','creatureFur','creatureHealZone','bloodRitual','stealTouch','smoke','trickSlowMist','sleepField','bastion_shield','grand_anchor','mana_spiral','trick_jammer','dream_refrain','divine_sanctuary','crimson_eclipse','blood_pact','wild_link','pack_command','guillotine_mark','soul_eater','daydream','sacred_ascension']);
  function advanceConcertClock(now){
   const from=host.concertClockAt??now;host.concertClockAt=now;if(now<=from)return;
@@ -13214,7 +13230,7 @@ window.ArtArts=(()=>{
    for(const actor of [...host.fighters,...host.effects.filter(e=>e.type==='summonBody'),...(host.stageNPCs||[])]){
     if(actor.hp<=0)continue;
     for(const key of concertActorTimers)shift(actor,key);
-    if(actor.pull)shift(actor.pull,'end');
+    // Pull/stun/sleep are control locks, not timed buffs: never freeze their recovery.
     if(actor.executionMarks)for(const key of Object.keys(actor.executionMarks))shift(actor.executionMarks,key);
     for(const [key,status] of Object.entries(actor.idolStatus||{}))if(status.until>begin){status.until+=Math.max(0,end-Math.max(begin,status.started))}
    }
@@ -18403,14 +18419,14 @@ function drawUltimateWorld(x,now){
   const width=canvas.width/dpr,height=canvas.height/dpr;
   // A persistent, screen-wide musical field (not just a tiny note in the HUD).
   // Fixed seeded positions avoid flicker and allocations on every frame.
-  for(let i=0;i<30;i++){
+  for(let i=0;i<14;i++){
    const seed=(i*0.618033988749895)%1;
    const drift=(now*.000024*(.8+(i%5)*.15)+i*.137)%1;
    const xx=width*(.04+.92*((seed+Math.sin(now/2600+i*2.3)*.017+1)%1));
    const yy=height*(.08+.84*(1-drift));
    const sz=17+(i%4)*4;
    const alpha=.22+.18*(.5+.5*Math.sin(now/750+i*1.7));
-   ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='#ffc0ec';ctx.shadowBlur=8;
+   ctx.save();ctx.globalAlpha=alpha; // No per-note blur: iPad pen input remains responsive.
    drawIdolNote(ctx,xx,yy,sz,i%3===0?'#fff0ac':i%3===1?'#ffc9e8':'#e5cbff');
    ctx.restore();
   }
