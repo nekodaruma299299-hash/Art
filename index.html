@@ -12090,17 +12090,17 @@ window.ArtsRules=(()=>{
   if(topIdol){
    const key=topIdol.key,err=topIdol.error;
    const note=key==='silence_note';
-   const closeToTemplate=err<(note?.345:key==='echo_speaker'?.30:.265);
+   const closeToTemplate=err<(note?.42:key==='echo_speaker'?.37:.335);
    // Explicitly distinguish ink strokes with curved sections from short common lines.
-   const notJustLine=len/Math.max(diag,1)> (note?1.22:1.17);
+   const notJustLine=len/Math.max(diag,1)> (note?1.17:1.13);
    const path=strokes[0],chord=dist(path[0],path.at(-1));
    const closureNeeded=key==='echo_speaker'||key==='harmony_veil'||key==='live_fever';
-   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.38:.52);
+   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.48:.62);
    // The active Idol technique wins over the generic Slash recognizer when
    // its ordered, one-stroke silhouette is recognizably closer to an Idol art.
    // Comparing to the runner-up prevents one Idol technique replacing another.
-   if(closeToTemplate&&notJustLine&&closedEnough&&err+.020<otherIdol&&
-      (err+.015<basicError|| (note&&err<.28&&arcError>.24)))chosen=key;
+   if(closeToTemplate&&notJustLine&&closedEnough&&err+.024<otherIdol&&
+      (err+.005<basicError || (err<.27&&len/Math.max(diag,1)>1.45&&basicError>.12) || (note&&err<.33&&arcError>.20)))chosen=key;
   }
   // Compare other equipped special attacks only after the Idol comparison.
   if(!chosen&&first&&!idolKeys.has(first.key)&&first.error+.003<basicError&&
@@ -12108,7 +12108,7 @@ window.ArtsRules=(()=>{
     (['cross','inkcut','guillotine_mark','purification','divine_sanctuary'].includes(first.key)&&first.error<.28&&first.error+.03<second)))chosen=first.key;
   // When an Idol contour is nearby but ambiguous, don't silently activate
   // Slash or a different skill. Report "shape not recognized" instead.
-  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.43:.345)&&
+  const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.50:.405)&&
       topIdol.error+.012<arcError&&topIdol.error+.012<lineError;
   if(!chosen&&idolLike)return null;
   if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
@@ -12756,7 +12756,7 @@ window.ArtArts=(()=>{
  const previous=window.ArtGame,R=window.ArtsRules;
  const names=['素早さ','攻撃力','防御力','インク量','射程'];
  // Host-authoritative ultimate arts. Art Matter is unrelated to Art Traitor currency.
- const ultimateArts={"attacker":{"name":"天裂三閃","reading":"ヘヴンズ・リッパー","path":"M32 106 L74 40 L92 113 L126 38 L144 110 L190 38 L212 100","advanced":false},"tank":{"name":"絶対城塞","reading":"アブソリュート・フォートレス","path":"M36 127 L36 57 L66 57 L66 35 L98 35 L98 57 L142 57 L142 35 L174 35 L174 57 L204 57 L204 127 L36 127","advanced":false},"trickster":{"name":"百鬼幻影","reading":"ファントム・パレード","path":"M38 56 L72 66 L93 42 L120 64 L147 42 L168 66 L202 56 L184 112 L120 137 L56 112 Z","advanced":false},"kemono":{"name":"幻獣降臨","reading":"ミシック・サモン","path":"M44 118 L55 52 L78 85 L107 27 L124 82 L164 27 L168 85 L196 52 L205 118","advanced":false},"gunner":{"name":"万華弾幕","reading":"カレイド・バレット","path":"M120 21 L140 67 L196 55 L164 89 L203 126 L148 117 L120 148 L92 117 L37 126 L76 89 L44 55 L100 67 Z","advanced":false},"magician":{"name":"天体砲壊","reading":"ガンマ・レイ・バースト","path":"M 150.00 28.00 L 180.56 76.93 L 236.55 90.88 L 199.45 135.07 L 203.49 192.62 L 150.00 171.00 L 96.51 192.62 L 100.55 135.07 L 63.45 90.88 L 119.44 76.93 Z L 150 28 L 150.00 97.00 L 152.22 97.34 L 154.38 97.88 L 156.45 98.64 L 158.42 99.58 L 160.26 100.70 L 161.97 101.98 L 163.53 103.41 L 164.92 104.97 L 166.14 106.65 L 167.18 108.41 L 168.03 110.25 L 168.68 112.15 L 169.14 114.07 L 169.41 116.02 L 169.48 117.95 L 169.36 119.86 L 169.05 121.73 L 168.57 123.54 L 167.91 125.27 L 167.10 126.91 L 166.14 128.44 L 165.05 129.85 L 163.84 131.13 L 162.53 132.27 L 161.12 133.26 L 159.65 134.09 L 158.12 134.77 L 156.55 135.28 L 154.96 135.63 L 153.36 135.81 L 151.78 135.84 L 150.22 135.71 L 148.70 135.43 L 147.25 135.00 L 145.86 134.45 L 144.55 133.76 L 143.34 132.96 L 142.23 132.06 L 141.23 131.06 L 140.35 129.99 L 139.60 128.85 L 138.97 127.67 L 138.47 126.44 L 138.11 125.20 L 137.87 123.94 L 137.77 122.69 L 137.79 121.46 L 137.94 120.25 L 138.20 119.09 L 138.57 117.98 L 139.04 116.94 L 139.60 115.97 L 140.25 115.07 L 140.97 114.27 L 141.75 113.55 L 142.58 112.94 L 143.45 112.42 L 144.36 112.00 L 145.28 111.69 L 146.20 111.47 L 147.13 111.36 L 148.03 111.34 L 148.92 111.42 L 149.76 111.58 L 150.57 111.83 L 151.33 112.14 L 152.03 112.53 L 152.67 112.98 L 153.24 113.48 L 153.74 114.02 L 154.17 114.59 L 154.52 115.19 L 154.79 115.80 L 155.00 116.42 L 155.12 117.04 L 155.18 117.65 L 155.17 118.24 L 155.10 118.80 L 154.96 119.34 L 154.77 119.83 L 154.54 120.29 L 154.27 120.69 L 153.96 121.05 L 153.62 121.35 L 153.27 121.60 L 152.91 121.79 L 152.54 121.92 L 152.17 122.01 L 151.81 122.04 L 151.47 122.02","advanced":false},"vampire":{"name":"血月の宴","reading":"ブラッド・ムーン","path":"M171 22 C62 8 42 132 171 145 L149 116 L137 143 L126 107 C107 71 119 43 171 22","advanced":true},"saint":{"name":"神懸かり","reading":"ディヴァイン・アバター","path":"M77 45 Q120 13 163 45 Q120 59 77 45 L34 79 L78 74 L59 112 L109 88 L120 141 L131 88 L181 112 L162 74 L206 79 L163 45","advanced":true},"executioner":{"name":"復讐神","reading":"ネメシス","path":"M34 74 Q120 16 206 74 Q120 123 34 74 L93 112 L120 145 L147 112 L206 74","advanced":true},"dreamer":{"name":"永遠の悪夢","reading":"エターナル・ナイトメア","path":"M 150 42 L 123 62 L 93 67 L 45 114 L 93 145 L 123 149 L 150 166 L 177 149 L 207 145 L 255 114 L 207 67 L 177 62 Z L 150 42 L 150 79 L 130 112 L 150 141 L 170 112 L 150 79","advanced":true},"idol":{"name":"グランドコンサート","reading":"グランド・コンサート","path":"M30 130 L30 98 L65 98 L65 120 L175 120 L175 98 L210 98 L210 130 L30 130 L65 98 L65 35 L155 20 L155 85 C155 108 122 108 122 91 C122 77 145 75 155 85 L155 20 L65 35 L65 85 C65 108 32 108 32 91 C32 77 55 75 65 85","advanced":false}};
+ const ultimateArts={"attacker":{"name":"天裂三閃","reading":"ヘヴンズ・リッパー","path":"M32 106 L74 40 L92 113 L126 38 L144 110 L190 38 L212 100","advanced":false},"tank":{"name":"絶対城塞","reading":"アブソリュート・フォートレス","path":"M36 127 L36 57 L66 57 L66 35 L98 35 L98 57 L142 57 L142 35 L174 35 L174 57 L204 57 L204 127 L36 127","advanced":false},"trickster":{"name":"百鬼幻影","reading":"ファントム・パレード","path":"M38 56 L72 66 L93 42 L120 64 L147 42 L168 66 L202 56 L184 112 L120 137 L56 112 Z","advanced":false},"kemono":{"name":"幻獣降臨","reading":"ミシック・サモン","path":"M44 118 L55 52 L78 85 L107 27 L124 82 L164 27 L168 85 L196 52 L205 118","advanced":false},"gunner":{"name":"万華弾幕","reading":"カレイド・バレット","path":"M120 21 L140 67 L196 55 L164 89 L203 126 L148 117 L120 148 L92 117 L37 126 L76 89 L44 55 L100 67 Z","advanced":false},"magician":{"name":"天体砲壊","reading":"ガンマ・レイ・バースト","path":"M 150.00 28.00 L 180.56 76.93 L 236.55 90.88 L 199.45 135.07 L 203.49 192.62 L 150.00 171.00 L 96.51 192.62 L 100.55 135.07 L 63.45 90.88 L 119.44 76.93 Z L 150 28 L 150.00 97.00 L 152.22 97.34 L 154.38 97.88 L 156.45 98.64 L 158.42 99.58 L 160.26 100.70 L 161.97 101.98 L 163.53 103.41 L 164.92 104.97 L 166.14 106.65 L 167.18 108.41 L 168.03 110.25 L 168.68 112.15 L 169.14 114.07 L 169.41 116.02 L 169.48 117.95 L 169.36 119.86 L 169.05 121.73 L 168.57 123.54 L 167.91 125.27 L 167.10 126.91 L 166.14 128.44 L 165.05 129.85 L 163.84 131.13 L 162.53 132.27 L 161.12 133.26 L 159.65 134.09 L 158.12 134.77 L 156.55 135.28 L 154.96 135.63 L 153.36 135.81 L 151.78 135.84 L 150.22 135.71 L 148.70 135.43 L 147.25 135.00 L 145.86 134.45 L 144.55 133.76 L 143.34 132.96 L 142.23 132.06 L 141.23 131.06 L 140.35 129.99 L 139.60 128.85 L 138.97 127.67 L 138.47 126.44 L 138.11 125.20 L 137.87 123.94 L 137.77 122.69 L 137.79 121.46 L 137.94 120.25 L 138.20 119.09 L 138.57 117.98 L 139.04 116.94 L 139.60 115.97 L 140.25 115.07 L 140.97 114.27 L 141.75 113.55 L 142.58 112.94 L 143.45 112.42 L 144.36 112.00 L 145.28 111.69 L 146.20 111.47 L 147.13 111.36 L 148.03 111.34 L 148.92 111.42 L 149.76 111.58 L 150.57 111.83 L 151.33 112.14 L 152.03 112.53 L 152.67 112.98 L 153.24 113.48 L 153.74 114.02 L 154.17 114.59 L 154.52 115.19 L 154.79 115.80 L 155.00 116.42 L 155.12 117.04 L 155.18 117.65 L 155.17 118.24 L 155.10 118.80 L 154.96 119.34 L 154.77 119.83 L 154.54 120.29 L 154.27 120.69 L 153.96 121.05 L 153.62 121.35 L 153.27 121.60 L 152.91 121.79 L 152.54 121.92 L 152.17 122.01 L 151.81 122.04 L 151.47 122.02","advanced":false},"vampire":{"name":"血月の宴","reading":"ブラッド・ムーン","path":"M171 22 C62 8 42 132 171 145 L149 116 L137 143 L126 107 C107 71 119 43 171 22","advanced":true},"saint":{"name":"神懸かり","reading":"ディヴァイン・アバター","path":"M77 45 Q120 13 163 45 Q120 59 77 45 L34 79 L78 74 L59 112 L109 88 L120 141 L131 88 L181 112 L162 74 L206 79 L163 45","advanced":true},"executioner":{"name":"復讐神","reading":"ネメシス","path":"M34 74 Q120 16 206 74 Q120 123 34 74 L93 112 L120 145 L147 112 L206 74","advanced":true},"dreamer":{"name":"永遠の悪夢","reading":"エターナル・ナイトメア","path":"M 150 42 L 123 62 L 93 67 L 45 114 L 93 145 L 123 149 L 150 166 L 177 149 L 207 145 L 255 114 L 207 67 L 177 62 Z L 150 42 L 150 79 L 130 112 L 150 141 L 170 112 L 150 79","advanced":true},"idol":{"name":"グランドコンサート","reading":"グランド・コンサート","path":"M45 174 L45 100 L100 100 L170 38 L240 100 L295 100 L295 174 L244 174 L216 143 L170 185 L124 143 L96 174 L45 174","advanced":false}};
  const ultimateTemplates=new Map(),ultimateTraces=new Map();
  function ultimateTemplate(key){
   if(ultimateTemplates.has(key))return ultimateTemplates.get(key);
@@ -12777,6 +12777,15 @@ window.ArtArts=(()=>{
   const box=strokes[0],xs=box.map(p=>p.x),ys=box.map(p=>p.y);
   if(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))<34)return null;
   const score=ultimateSimilarity(strokes,job);
+  if(job==='idol'){
+   // Concert requires a substantial multi-turn one-stroke sketch, not a quick basic art.
+   // This prevents the extra tolerance from turning a slash or short skill into an ultimate.
+   const trace=strokes[0],xs=trace.map(p=>p.x),ys=trace.map(p=>p.y);
+   const span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys));
+   const travel=R.length(strokes);
+   if(span<45||travel<span*1.85)return null;
+   return score<.345?job:null;
+  }
   return score<(job==='vampire'?.32:ultimateArts[job].advanced?.255:.225)?job:null;
  }
  // The eye has two nested loops. Match their geometry separately so the
@@ -12834,7 +12843,7 @@ window.ArtArts=(()=>{
    if(shape&&R.skillGuideError(paths[0],shape.type)<ultimateSimilarity(paths,fighter.class))return {shape};
    return {ultimate};
   }
-  return {shape,nearMiss:!shape&&ultimateSimilarity(paths,fighter.class)<.36};
+  return {shape,nearMiss:!shape&&ultimateSimilarity(paths,fighter.class)<(fighter.class==='idol'?.46:.36)};
  }
  function ultimateGuideSVG(key,details=false){
   const def=ultimateArts[key],points=ultimateTemplate(key);if(!def||!points.length)return '';
@@ -12849,7 +12858,7 @@ window.ArtArts=(()=>{
   return '<svg viewBox="'+box+'" role="img" aria-label="'+esc(def.name)+'の描き順">'+path+marks.join('')+'<circle cx="'+p0.x+'" cy="'+p0.y+'" r="7" fill="#25b98e" stroke="white" stroke-width="2"/><circle cx="'+last.x+'" cy="'+last.y+'" r="6" fill="#f18561" stroke="white" stroke-width="2"/></svg>';
  }
  const ultimateInstructions={
-  idol:'舞台の外周から、つながった2つの音符へ一筆で進みます。順方向・逆方向、回転に対応。',
+  idol:'コンサートホール型（B案）。左下から柱、屋根、右柱を描き、下のジグザグを通って左下へ戻る一筆描きです。逆方向や多少の歪みもOK。',
   attacker:'緑の点から、3つの鋭い山を左から右へ一筆で描きます。',
   tank:'左下から城壁を登り、2つの塔の角を描いて右下へ。最後に底辺を閉じます。',
   trickster:'左側から3つの仮面の山を順番に描き、下側を回って閉じます。',
@@ -14712,23 +14721,21 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
   }
  if(shape.type==='magic'){
    const practice=!!host.players.find(q=>q.id===id)?.bot;
-   // The already-deducted ink cost controls damage, speed and knockback.
-   // Flight range is deliberately independent of ink spent / stroke length.
-   const inkPower=R.clamp(Math.sqrt(cost/Math.max(1,R.cost({type:'magic',length:220}))),.30,2.5);
-   const strength=R.clamp((cost-R.cost({type:'magic',length:20}))/
-    Math.max(1,R.cost({type:'magic',length:420})-R.cost({type:'magic',length:20})),0,1);
+   // Basic Magic must reflect the ACTUAL drawn stroke length, not the paid ink.
+   // Ink payment can be capped by maxInk, and practice bots previously used a
+   // fixed projectile speed, masking the intended short/long difference.
+   const drawnLength=R.clamp(Number(shape.length)||20,20,600);
+   const strength=R.clamp((drawnLength-25)/275,0,1);
    const range=R.placementRange(null,p.stats); // Same radius as the on-screen drawing circle
-   const speed=practice?200:145+430*strength;
-   // Cheap rapid-fire spells have slight inaccuracy, expensive spells fly straighter.
-   const spread=practice?0:(1-strength)*.065;
+   const speed=(175+465*strength)*(practice?.90:1);
+   // Short magic is slower, weaker and slightly inaccurate; long magic is faster.
+   const spread=(1-strength)*.065*(practice?.5:1);
    const direction=aim+(Math.random()*2-1)*spread;
-   // Spawn at the caster: a drawn endpoint may lie inside or behind a wall.
-   // Stroke direction and paid ink still determine aim and power; length does not limit range.
    const flight=range*idolRange(p,now);
    host.shots.push({id:++host.seq,owner:id,x:p.x,y:p.y,artsBasicMagic:true,
     vx:Math.cos(direction)*speed,vy:Math.sin(direction)*speed,
-    power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*inkPower*(practice?.65:1)*1.5,
-    radius:practice?10:13,knockback:practice?16:12+115*strength,
+    power:R.clamp(8+attack*.18+p.stats[3]*.14,6,38)*(.65+.95*strength)*(practice?.65:1)*1.5,
+    radius:practice?10:13,knockback:(14+105*strength)*(practice?.8:1),
     left:flight,end:now+30000,hit:[],pierce:true});
   }
  if(shape.type==='thrust'||shape.type==='feint'){const thrust=shape.type==='thrust',path=thrust?[{x:p.x+Math.cos(aim)*moves.thrust.distance,y:p.y+Math.sin(aim)*moves.thrust.distance}]:shape.strokes.flat().map(q=>({x:p.x+q.x,y:p.y+q.y}));p.dash={path,index:0,speed:thrust?moves.thrust.speed:440,power:(12+attack*.5)*(thrust?1:power),hit:[],start:now};e.x=p.x;e.y=p.y;e.path=[{x:p.x,y:p.y},...path];e.end=now+(thrust?moves.thrust.distance/p.dash.speed*1000+200:Math.min(6000,(shape.length+R.dist(p,path[0]))/p.dash.speed*1000+200))}
@@ -18229,47 +18236,30 @@ function drawUltimateWorld(x,now){
  function drawIdolStatus(ctx,actor,position,now){
   const active=Object.entries(actor.idolStatus||{}).filter(([,v])=>Number.isFinite(v?.until)&&v.until>now);
   if(!active.length||!Number.isFinite(position?.x)||!Number.isFinite(position?.y))return;
-  const debuff=(key,v)=>['dissonance','offbeat','silence_note'].includes(key)||v.value<0;
-  // Show short remaining durations first, so an expiring buff is not hidden.
   active.sort((a,b)=>(a[1].until-now)-(b[1].until-now));
-  const visible=active.slice(0,4),count=visible.length,hidden=active.length-count;
-  ctx.save();ctx.translate(position.x,position.y);ctx.lineCap='round';ctx.textAlign='center';ctx.textBaseline='middle';
-  // Each status owns its icon, numeric countdown and a depleting circular timer.
-  // Timers are computed from host-synchronized status timestamps, not local timers.
-  for(let i=0;i<count;i++){
-   const [key,e]=visible[i],color=idolFxColor(key),remain=Math.max(0,(e.until-now)/1000);
-   const duration=Math.max(1,(e.until-(Number.isFinite(e.started)?e.started:e.until-10000)));
-   const fraction=R.clamp((e.until-now)/duration,0,1);
-   const px=(i-(count-1)/2)*35,py=-65,ending=remain<=3;
-   ctx.save();ctx.translate(px,py);ctx.globalAlpha=ending?.8+.2*Math.sin(now/140):.98;
-   // Dark-backed status card remains legible over any map/character color.
-   ctx.fillStyle='rgba(15,23,37,.91)';ctx.strokeStyle=ending?'#ffe6a0':color;ctx.lineWidth=1.4;
-   ctx.beginPath();ctx.roundRect(-16,-19,32,43,8);ctx.fill();ctx.stroke();
-   ctx.save();ctx.translate(0,-7);ctx.strokeStyle=color;ctx.lineWidth=2;
-   idolFxGlyph(ctx,key,15);ctx.restore();
-   ctx.strokeStyle='rgba(255,255,255,.21)';ctx.lineWidth=3;
-   ctx.beginPath();ctx.arc(0,-7,13,-Math.PI/2,Math.PI*1.5);ctx.stroke();
-   ctx.strokeStyle=color;ctx.lineWidth=3.2;ctx.beginPath();ctx.arc(0,-7,13,-Math.PI/2,-Math.PI/2+Math.PI*2*fraction);ctx.stroke();
-   ctx.fillStyle=ending?'#ffe8a6':'#fff';ctx.font='bold 11px system-ui,sans-serif';
-   const seconds=remain>=10?Math.ceil(remain)+'s':remain>=1?Math.ceil(remain)+'s':remain.toFixed(1)+'s';
-   ctx.fillText(seconds,0,13);
-   // A solid underline denotes buffs; dotted underline denotes debuffs.
-   ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.setLineDash(debuff(key,e)?[2,2]:[]);
-   ctx.beginPath();ctx.moveTo(-9,20);ctx.lineTo(9,20);ctx.stroke();ctx.setLineDash([]);
+  const visible=active.slice(0,4),hidden=active.length-visible.length;
+  // Compact horizontal pills sit ABOVE the player's name: team name y=-79; solo name y=-49.
+  // The entire effect row has a fixed 21px height and never stacks over the name.
+  const teamMode=view?.settings?.teams==='teams';
+  const y=teamMode?-112:-82,cellW=49,cellH=21,gap=3;
+  const totalW=visible.length*cellW+(visible.length-1)*gap+(hidden?25:0);
+  ctx.save();ctx.translate(position.x-totalW/2,position.y+y);ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=0;i<visible.length;i++){
+   const [key,e]=visible[i],remain=Math.max(0,(e.until-now)/1000),color=idolFxColor(key);
+   const duration=Math.max(1000,e.until-(Number.isFinite(e.started)?e.started:e.until-10000));
+   const fraction=R.clamp((e.until-now)/duration,0,1),ending=remain<=3,x=i*(cellW+gap);
+   ctx.save();ctx.translate(x,0);ctx.globalAlpha=ending?.82+.16*Math.sin(now/145):.96;
+   ctx.fillStyle='rgba(13,23,38,.9)';ctx.strokeStyle=ending?'#ffe49b':color;ctx.lineWidth=1.3;
+   ctx.beginPath();ctx.roundRect(0,0,cellW,cellH,6);ctx.fill();ctx.stroke();
+   ctx.save();ctx.translate(11,9);ctx.strokeStyle=color;ctx.lineWidth=2;idolFxGlyph(ctx,key,9);ctx.restore();
+   ctx.font='bold 11px system-ui,sans-serif';ctx.fillStyle=ending?'#ffe49b':'#fff';
+   const seconds=remain>=1?Math.ceil(remain)+'s':remain.toFixed(1)+'s';
+   ctx.fillText(seconds,33,9,28);
+   ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(5,17,cellW-10,2);
+   ctx.fillStyle=color;ctx.fillRect(5,17,(cellW-10)*fraction,2);
    ctx.restore();
   }
-  if(hidden){ctx.font='bold 10px system-ui,sans-serif';ctx.fillStyle='#fff';ctx.strokeStyle='rgba(10,17,27,.93)';ctx.lineWidth=3;
-   const y=-87,x=(count*35)/2+3;ctx.strokeText('+'+hidden,x,y);ctx.fillText('+'+hidden,x,y)}
-  // Subtle aura with a visual urgency cue during the final three seconds.
-  const soon=visible.some(([,e])=>e.until-now<=3000);
-  const phase=now/750;
-  for(let i=0;i<count;i++){
-   const [key]=visible[i],angle=phase*.28+i*Math.PI/2,rr=34+(i%2)*4;
-   ctx.save();ctx.strokeStyle=idolFxColor(key);ctx.globalAlpha=soon?.58+.16*Math.sin(now/130):.35+.12*Math.sin(phase+i);
-   ctx.lineWidth=soon?3:2.2;ctx.beginPath();ctx.arc(0,0,rr,angle,angle+.72);ctx.stroke();ctx.restore();
-  }
-  if(visible.some(([k,v])=>debuff(k,v))){ctx.strokeStyle='rgba(198,130,248,.4)';ctx.lineWidth=1.5;
-   ctx.setLineDash([5,6]);ctx.beginPath();ctx.arc(0,0,40,Math.PI*.83,Math.PI*1.96);ctx.stroke();ctx.setLineDash([])}
+  if(hidden){ctx.font='bold 10px system-ui,sans-serif';ctx.fillStyle='#fff';ctx.fillText('+'+hidden,totalW-12,10)}
   ctx.restore();
  }
  function drawIdolEffect(ctx,e,now){
