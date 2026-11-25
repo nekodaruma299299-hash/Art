@@ -12110,18 +12110,6 @@ window.ArtsRules=(()=>{
 
  // Distinctive stem and note head must be resolved before Slash or the generic
  // template matcher; ordinary slashes lack the curled note head.
- const dissonanceTrace=strokes.length===1&&equipped.includes('dissonance')?normalizedTrace(strokes[0]):null;
- const dissonanceGuideError=dissonanceTrace?guideError(dissonanceTrace,'dissonance'):Infinity;
- const noteGuideError=dissonanceTrace?guideError(dissonanceTrace,'silence_note'):Infinity;
- const distinctiveDissonance=dissonanceGuideError<.58&&dissonanceGuideError+.035<noteGuideError;
- const noteShortcutTrace=strokes.length===1&&equipped.includes('silence_note')?normalizedTrace(strokes[0]):null;
- const noteShortcutError=noteShortcutTrace?guideError(noteShortcutTrace,'silence_note'):Infinity;
- const otherIdolShortcutError=noteShortcutTrace?Math.min(...equipped.filter(k=>idolKeys.has(k)&&k!=='silence_note').map(k=>guideError(noteShortcutTrace,k)),Infinity):Infinity;
- if(strokes.length===1&&equipped.includes('silence_note')&&!distinctiveDissonance&&
-    (noteShortcutError<.21||noteShortcutError+.015<otherIdolShortcutError)&&idolQuarterNoteGeometry(rawIdolPath,true)){
-  if(window.artopiaIdolDiagnostics?.enabled)Object.assign(window.artopiaIdolDiagnostics.last,{selected:'silence_note',reason:'stem and curled head'});
-  return{type:'silence_note',x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes};
- }
  // Carbuncle's inward-curved four-point jewel is forgiving of wobbly sides,
  // slight distortion, changed starting corner and reversed drawing direction.
  if(strokes.length===1&&equipped.includes('carbuncle')&&forgivingCarbuncle(strokes[0])){
@@ -12150,39 +12138,40 @@ window.ArtsRules=(()=>{
   }
   candidates.sort((a,b)=>a.error-b.error||a.key.localeCompare(b.key));
   const first=candidates[0],second=candidates[1]?.error??Infinity;
-  const idolCandidates=candidates.filter(c=>idolKeys.has(c.key));
-  const topIdol=idolCandidates[0],otherIdol=idolCandidates[1]?.error??Infinity;
+  const idolEquipped=equipped.some(k=>idolKeys.has(k));
+  const path=strokes[0];
+  const rawTrace=idolEquipped?normalizedTrace(rawIdolPath):null;
+  const common=idolEquipped?simpleCommonArt(path):null;
+  const noteGeometry=idolEquipped&&idolQuarterNoteGeometry(rawIdolPath,true);
+  const corners=idolEquipped?idolDissonanceCorners(path):0;
+  const chord=dist(path[0],path.at(-1)),complexity=len/Math.max(diag,1);
+  // Compare all eight silhouettes on equal terms. An unequipped silhouette
+  // can reject a mistaken cast but cannot itself be cast.
+  const idolCandidates=idolEquipped?[...idolKeys].map(key=>{
+   const ordered=Math.min(guideError(trace,key),guideError(rawTrace,key));
+   const elastic=Math.min(idolElasticScore(trace,key),idolElasticScore(rawTrace,key));
+   const error=Math.min(ordered,elastic*1.12);
+   const ref=template(key)[0],box=statBox(ref),refDiag=Math.hypot(box.w,box.h);
+   const gap=chord/Math.max(diag,1),refGap=dist(ref[0],ref.at(-1))/Math.max(refDiag,1);
+   // Soft structural penalty, rather than rejecting imperfectly closed shapes.
+   const closurePenalty=Math.max(0,Math.abs(gap-refGap)-.22)*.16;
+   const bonus=key==='silence_note'&&noteGeometry&&error<.34?.025:key==='dissonance'&&corners>=3&&ordered<.58?.018:0;
+   return {key,error,ordered,elastic,score:Math.max(0,.72*error+.28*ordered+closurePenalty-bonus),equipped:equipped.includes(key)};
+  }).sort((a,b)=>a.score-b.score||a.key.localeCompare(b.key)):[];
+  const topIdol=idolCandidates[0],otherIdol=idolCandidates[1]?.score??Infinity;
   let chosen=null;
   if(topIdol){
-   const key=topIdol.key,err=topIdol.error;
-   const note=key==='silence_note';
-   const dissonanceShape=key==='dissonance'&&idolDissonanceCorners(strokes[0])>=3;
-   const closeToTemplate=err<(note?.56:key==='dissonance'?(dissonanceShape?.77:.65):key==='echo_speaker'?.56:.54);
-   // Explicitly distinguish ink strokes with curved sections from short common lines.
-   const notJustLine=len/Math.max(diag,1)> (note?1.09:1.075);
-   const path=strokes[0],chord=dist(path[0],path.at(-1));
-   const closureNeeded=key==='echo_speaker'||key==='harmony_veil'||key==='live_fever';
-   const closedEnough=!closureNeeded||chord<diag*(key==='echo_speaker'?.73:.87);
-   // The active Idol technique wins over the generic Slash recognizer when
-   // its ordered, one-stroke silhouette is recognizably closer to an Idol art.
-   // Comparing to the runner-up prevents one Idol technique replacing another.
-   // Accept less perfect Idol contours, but never award a different Idol art
-   // when its template is practically tied with another equipped Idol art.
-   const clearlyIdol=basicError>.075&&(
-      err+.01<basicError || (err<.44&&len/Math.max(diag,1)>1.31) ||
-      (key==='dissonance'&&dissonanceShape&&err<.76) ||
-      (note&&err<.52&&arcError>.13));
-   const rivalMargin=(key==='echo_speaker'||key==='harmony_veil')?.022:.012;
-   const regular=closeToTemplate&&notJustLine&&closedEnough&&err+rivalMargin<otherIdol&&clearlyIdol;
-   // Distinctive Idol gestures use both elastic and ordered evidence. Unequipped
-   // Idol guides are negative examples, not cast candidates.
-   const ordered=guideError(trace,key);
-   const otherAll=Math.min(...[...idolKeys].filter(k=>k!==key).map(k=>guideError(trace,k)),Infinity);
-   const confident=key!=='dissonance'&&err<.30&&ordered<.36&&ordered+.018<otherAll&&
-     err+.018<otherIdol&&notJustLine&&basicError>Math.max(.105,err+.025)&&
-     (!closureNeeded||chord<diag*.94);
-   if(regular||confident)chosen=key;
-   if(window.artopiaIdolDiagnostics?.enabled)window.artopiaIdolDiagnostics.last={points:rawIdolPath.map(p=>({...p})),candidates:candidates.map(c=>({...c})),basicError,ordered,otherAll,checks:{closeToTemplate,notJustLine,closedEnough,clearlyIdol,regular,confident},selected:chosen,reason:chosen?'candidate accepted':'candidate gates rejected'};
+   const {key,error:err,score,ordered}=topIdol;
+   const note=key==='silence_note',dissonanceShape=key==='dissonance'&&corners>=3;
+   const limit=note?.64:key==='dissonance'?(dissonanceShape?.77:.65):.64;
+   const closeToTemplate=err<limit&&score<limit;
+   const notJustLine=complexity>1.045;
+   const clearBasic=basicError<.085&&common&&!(note&&noteGeometry&&ordered<.23);
+   const clearlyIdol=!clearBasic&&(score<basicError+.045||(!common&&complexity>1.16)||(note&&noteGeometry&&err<.56)||(dissonanceShape&&err<.76));
+   const margin=score<.12?.008:.018;
+   const regular=topIdol.equipped&&closeToTemplate&&notJustLine&&clearlyIdol&&score+margin<otherIdol;
+   if(regular)chosen=key;
+   if(window.artopiaIdolDiagnostics?.enabled)window.artopiaIdolDiagnostics.last={points:rawIdolPath.map(p=>({...p})),candidates:idolCandidates,basicError,checks:{closeToTemplate,notJustLine,clearlyIdol,regular,margin,clearBasic},selected:chosen,reason:chosen?'candidate accepted':!topIdol.equipped?'closest idol skill not equipped':score+margin>=otherIdol?'ambiguous idol silhouettes':'candidate gates rejected'};
   }
   // Compare other equipped special attacks only after the Idol comparison.
   if(!chosen&&first&&!idolKeys.has(first.key)&&first.error+.003<basicError&&
@@ -12192,7 +12181,7 @@ window.ArtsRules=(()=>{
   // Slash or a different skill. Report "shape not recognized" instead.
   const idolLike=!!topIdol&&topIdol.error<(topIdol.key==='silence_note'?.62:topIdol.key==='dissonance'?.78:.60)&&
       topIdol.error+.012<arcError&&topIdol.error+.012<lineError;
-  if(!chosen&&idolLike)return null;
+  if(!chosen&&idolLike&&!(common&&basicError<.085))return null;
   if(!chosen&&basicError<.125&&basicError+.003<(first?.error??Infinity)){
    if(arcError<lineError)chosen='slash';
    else{
@@ -12206,7 +12195,7 @@ window.ArtsRules=(()=>{
    const rivals={uptempo:['deep_sleep'],harmony_veil:['summon','summon_dog','blood_slash','grand_anchor','overload_barrage','lucid_dream','crimson_eclipse'],live_fever:['newSmoke','judgment']}[chosen]||[];
    // An unequipped other-job guide is not a cast candidate. Keep the veto
    // only for a substantially better match, and compare like with like.
-   if(rivals.some(k=>guideError(trace,k)+.065<traceErr)&&traceErr>.19){
+   if(rivals.some(k=>equipped.includes(k)&&guideError(trace,k)+.065<traceErr)&&traceErr>.19){
     if(window.artopiaIdolDiagnostics?.enabled&&window.artopiaIdolDiagnostics.last)window.artopiaIdolDiagnostics.last.reason='other-job silhouette veto';
     chosen=null;
    }
@@ -12959,7 +12948,7 @@ window.ArtArts=(()=>{
   dreamer:'上の中央から左右対称の目の外周を一周し、中央に下りて菱形の瞳を描きます。'
  };
  const ultimateEffectsGuide={
-  idol:'HP150の会場を設置。絶対城塞と同じく毎秒5HPずつ自然減少し、無傷なら約30秒間存続。会場がある間はフィールド全体のバフ・デバフの残り時間を停止し、終了後に再開します。会場の半径200では5秒ごとに音波を放ち、味方の攻撃と移動+5%、敵は-5%。音波の効果も会場中は残り時間が停止します。敵の攻撃でも会場を破壊できます。',
+  idol:'HP200の会場を設置。絶対城塞と同じく毎秒5HPずつ自然減少し、無傷なら約40秒間存続。会場がある間はフィールド全体のバフ・デバフの残り時間を停止し、終了後に再開します。会場の半径400では設置直後と5秒ごとに音波を放ち、味方の攻撃と移動+5%、敵は-5%。音波の効果も会場中は残り時間が停止します。敵の攻撃でも会場を破壊できます。',
   attacker:'前方へ巨大な斬撃を3連続で放ちます。威力は順に30・35・50、斬撃間隔は約0.32秒です。',
   tank:'10秒間、広い防御領域「絶対城塞」を展開します。味方を守る結界と防御演出が続きます。',
   trickster:'6体の幻影を召喚します。幻影は時間では消えず、敵プレイヤーに触れるか攻撃されると爆発。爆発半径110、50ダメージと10秒の混乱を与えます。',
@@ -13209,6 +13198,7 @@ window.ArtArts=(()=>{
   return nearestArtTarget(centre,host.fighters.filter(q=>q.active&&q.hp>0));
  }
  // Idol status records share the combat actor and are replicated with it.
+ const CONCERT_RADIUS=400;
  const idolDurations={uptempo:10000,crescendo:12000,harmony_veil:10000,dissonance:10000,offbeat:8000,silence_note:8000,live_fever:12000};
  function idolEffect(actor,key,now){const effect=actor?.idolStatus?.[key];return effect?.until>now?effect:null}
  function idolCrescendo(actor,now){const effect=idolEffect(actor,'crescendo',now);return effect?Math.min(3,1+Math.floor((now-effect.started)/3000))*.1:0}
@@ -13252,8 +13242,8 @@ window.ArtArts=(()=>{
  }
  function placeIdolStructure(p,kind,now,aim=p){
   for(const e of host.effects)if(e.idolStructure===kind&&e.owner===p.id){e.end=now;e.hp=0}
-  const concert=kind==='concert',hp=concert?150:30,skill=concert?'grand_concert':'echo_speaker';
-  const e={id:++host.seq,type:'summonBody',petKind:'idolStructure',idolStructure:kind,skill,owner:p.id,x:aim.x,y:aim.y,r:concert?260:22,hp,maxHp:hp,defense:0,ink:0,start:now,end:now+(concert?65000:12000),lastIdolDecayAt:now,nextIdolPulse:now+(concert?5000:3000)};
+  const concert=kind==='concert',hp=concert?200:30,skill=concert?'grand_concert':'echo_speaker';
+  const e={id:++host.seq,type:'summonBody',petKind:'idolStructure',idolStructure:kind,skill,owner:p.id,x:aim.x,y:aim.y,r:concert?90:22,hp,maxHp:hp,defense:0,ink:0,start:now,end:now+(concert?65000:12000),lastIdolDecayAt:now,nextIdolPulse:now+(concert?0:3000)};
   host.effects.push(e);return e;
  }
  function castIdol(p,shape,now){
@@ -13278,8 +13268,8 @@ window.ArtArts=(()=>{
    const targetKey=(q.type==='summonBody'?'pet:':(host.stageNPCs||[]).includes(q)?'npc:':'player:')+q.id+':'+key;
    const awarded=(p.idolAwards??={});
    if(now-(awarded[targetKey]??-Infinity)>=8000){
-    const gain=(q===p?3:host.fighters.includes(q)&&!host.players?.find(v=>v.id===q.id)?.bot?5:2)*2.5;
-    const allowed=Math.min(gain,30-earned);if(allowed>0){earned+=allowed;awarded[targetKey]=now}
+    const gain=q===p?11.25:host.fighters.includes(q)&&!host.players?.find(v=>v.id===q.id)?.bot?18.75:7.5;
+    const allowed=Math.min(gain,45-earned);if(allowed>0){earned+=allowed;awarded[targetKey]=now}
    }
    if(key==='dissonance'){
     const distance=R.dist(p,q)||1;
@@ -13323,18 +13313,18 @@ window.ArtArts=(()=>{
     // can be destroyed sooner by attacks, and has a generous 65s safety deadline.
     const elapsed=Math.max(0,now-(e.lastIdolDecayAt??e.start));
     e.lastIdolDecayAt=now;
-    e.hp=Math.max(0,e.hp-5*Math.min(.1,elapsed/1000));
+    e.hp=Math.max(0,e.hp-5*elapsed/1000);
     if(e.hp<=0){e.end=now;host.effects.push({id:++host.seq,type:'idolBreak',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:e.r,start:now,end:now+900});continue}
    }
    // At the natural endpoint, a due speaker tick still delivers its fourth pulse.
    while(e.nextIdolPulse<=now&&e.nextIdolPulse<=e.end){
     const at=e.nextIdolPulse,concert=e.idolStructure==='concert';e.nextIdolPulse+=concert?5000:3000;
     if(concert){
-     for(const q of idolActors(at))if(R.dist(q,e)<=200){
-      const positive=idolFriendly(owner,q);q.idolStatus??={};q.idolStatus.concertWave={started:at,until:at+1000,value:positive?.05:-.05,freezeImmune:true};
+     for(const q of idolActors(at))if(R.dist(q,e)<=CONCERT_RADIUS){
+      const positive=idolFriendly(owner,q);q.idolStatus??={};q.idolStatus.concertWave={started:at,until:at+1000,value:positive?.05:-.05};
       host.effects.push({id:++host.seq,type:'idolApply',skill:'grand_concert',owner:e.owner,targetId:q.id,x:q.x,y:q.y,fromX:e.x,fromY:e.y,isDebuff:!positive,silent:true,r:35,start:at,end:at+920});
      }
-     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:200,start:at,end:at+1450});
+     host.effects.push({id:++host.seq,type:'idolPulse',skill:'grand_concert',owner:e.owner,x:e.x,y:e.y,r:CONCERT_RADIUS,start:at,end:at+1450});
     }else{
      host.effects.push({id:++host.seq,type:'idolSpeakerWave',skill:'echo_speaker',owner:e.owner,x:e.x,y:e.y,r:150,start:at,end:at+900});
      for(const q of host.fighters)if(q.active&&q.hp>0&&friendly(owner,q)&&R.dist(q,e)<=150&&at-(q.idolSpeakerAt??-Infinity)>=3000){
@@ -15914,7 +15904,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of artsEnemyHitTargets(owner,now)){
 
  // Ver.1.6.7: Art Matter help is derived from the current host-side charge rules.
  const artsMatterHelpContent={
-  idol:['スターパフォーマンス：自分への付与+7.5、味方・敵プレイヤーへの付与+12.5、NPC・召喚獣は+5。','1回の使用で最大30。同じ対象・同じ効果は8秒空けると再獲得。コンサートの自動音波は加算対象外。'],
+  idol:['スターパフォーマンス：自分への付与+11.25、味方・敵プレイヤーへの付与+18.75、NPC・召喚獣は+7.5。','1回の使用で最大45。同じ対象・同じ効果は8秒空けると再獲得。コンサートの自動音波は加算対象外。'],
   attacker:['敵に与えた実際のHPダメージと同じ量が貯まります。','ガードや防御で軽減された分は対象外です。'],
   tank:['自分が受けたHPダメージ、装甲で吸収したダメージ、ガードで防いだ攻撃によって貯まります。','装甲が削られた場合の獲得量と追加ボーナスは通常の3分の1です。連続被弾などの追加ボーナスには獲得間隔があります。'],
   magician:['敵へ与えた実際のHPダメージ、および職業固有スキルで消費したインク量に応じて貯まります。','通常のスラッシュ・ガード・マジックの発動自体にはスキル使用ボーナスはありません。'],
@@ -17478,16 +17468,17 @@ finishPaint(false)};
   x.restore();
  }
  const concertVisualCanvas=document.createElement('canvas');
- concertVisualCanvas.width=concertVisualCanvas.height=520;
+ const CONCERT_CANVAS_HALF=CONCERT_RADIUS+48;
+ concertVisualCanvas.width=concertVisualCanvas.height=CONCERT_CANVAS_HALF*2;
  function concertVisual(e){return e.idolStructure==='concert'||(e.skill==='grand_concert'&&e.type==='idolPulse')}
  function drawIsolatedConcert(x,e,now){
   if(!Number.isFinite(e.x)||!Number.isFinite(e.y))return;
   const c=concertVisualCanvas,ctx=c.getContext('2d');if(!ctx)return;
   try{
-   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,520,520);ctx.setTransform(1,0,0,1,260,260);
+   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,c.width,c.height);ctx.setTransform(1,0,0,1,CONCERT_CANVAS_HALF,CONCERT_CANVAS_HALF);
    drawIdolEffect(ctx,{...e,x:0,y:0},now);
-   x.save();try{x.globalAlpha=1;x.globalCompositeOperation='source-over';x.drawImage(c,e.x-260,e.y-260)}finally{x.restore()}
-  }catch(error){window.artopiaIdolDiagnostics.renderError=String(error);c.width=520;}
+   x.save();try{x.globalAlpha=1;x.globalCompositeOperation='source-over';x.drawImage(c,e.x-CONCERT_CANVAS_HALF,e.y-CONCERT_CANVAS_HALF)}finally{x.restore()}
+  }catch(error){window.artopiaIdolDiagnostics.renderError=String(error);c.width=CONCERT_CANVAS_HALF*2;}
  }
  function drawArtsUnderlay(x,now){
  for(const e of view.effects){
@@ -18393,7 +18384,7 @@ function drawUltimateWorld(x,now){
   if(e.idolStructure==='concert'){
    const beat=.5+.5*Math.sin(now/480);
    // WORLD-SPACE FIELD (regression fix 2026-11-25): stroke ONLY. No translucent screen-covering fill.
-   ctx.strokeStyle='rgba(245,166,220,.33)';ctx.lineWidth=2;idolFxRing(ctx,200);
+   ctx.strokeStyle='rgba(245,166,220,.33)';ctx.lineWidth=2;idolFxRing(ctx,CONCERT_RADIUS);
    // Venue-origin musical atmosphere. Notes travel out from the stage in world
    // coordinates and fade naturally; they never touch the screen-space overlay,
    // and cannot obscure any player's gesture strokes or other skill effects.
@@ -18401,7 +18392,7 @@ function drawUltimateWorld(x,now){
    for(let i=0;i<(window.artopiaIdolDiagnostics?.disableConcertNotes?0:8);i++){
     const cycle=((now-e.start)*(.00010+(i%3)*.000014)+i/8)%1;
     const angle=i*2.3999632297 + (i%2?0.23:-0.23);
-    const dist=30+165*cycle;
+    const dist=30+(CONCERT_RADIUS-45)*cycle;
     const px=Math.cos(angle)*dist,py=Math.sin(angle)*dist-13*cycle;
     const fade=Math.min(1,cycle*6)*Math.min(1,(1-cycle)*4);
     ctx.save();ctx.translate(px,py);ctx.rotate((i%5-2)*.12);
@@ -18435,7 +18426,7 @@ function drawUltimateWorld(x,now){
   if(e.type==='idolPulse'&&k==='grand_concert'){
    // TWO WAVEFRONTS TRAVEL OUT FROM THE ACTUAL VENUE WORLD COORDINATES.
    // Draw in the world FX layer: never as a screen-wide veil over gestures.
-   const reach=200,crest=reach*t;
+   const reach=e.r||CONCERT_RADIUS,crest=reach*t;
    ctx.save();ctx.globalAlpha=(1-t)*.82;ctx.strokeStyle='#ffe0f4';ctx.shadowColor='#ff9cde';ctx.shadowBlur=12;ctx.lineWidth=5;
    idolFxRing(ctx,crest);ctx.shadowBlur=0;
    ctx.globalAlpha=(1-t)*.34;ctx.strokeStyle='#f6a4e0';ctx.lineWidth=15;idolFxRing(ctx,Math.max(1,crest-11));
