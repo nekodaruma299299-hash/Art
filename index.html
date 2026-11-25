@@ -8586,7 +8586,7 @@ window.ArtBattlePerformance=(()=>{
 window.ArtsRules=(()=>{
  let W=1120,H=1120;const R=20,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const int=(n,d,a,b)=>Number.isFinite(+n)?clamp(Math.round(+n),a,b):d;
- const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,100,30,600),teams:s?.teams==='teams'?'teams':'solo',teamAssignMode:s?.teamAssignMode==='manual'?'manual':'random',stage:['garden','ruins','forest','arena','portal','mine','factory'].includes(s?.stage)?s.stage:'arena',stageSize:['small','medium','large'].includes(s?.stageSize)?s.stageSize:'medium',skillSlots:int(s?.skillSlots,2,0,6),npcEnabled:!!s?.npcEnabled});
+ const settings=s=>({characterWidth:int(s?.characterWidth,512,128,2048),characterHeight:int(s?.characterHeight,512,128,2048),createSeconds:int(s?.createSeconds,90,20,600),battleSeconds:int(s?.battleSeconds,100,30,600),teams:s?.teams==='teams'?'teams':'solo',teamAssignMode:s?.teamAssignMode==='manual'?'manual':'random',stage:['garden','ruins','forest','arena','portal','mine','factory'].includes(s?.stage)?s.stage:'arena',stageSize:['small','medium','large'].includes(s?.stageSize)?s.stageSize:'medium',skillSlots:int(s?.skillSlots,2,0,8),npcEnabled:!!s?.npcEnabled});
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const moves={
  guard:{name:'ガード',rate:.035,cooldown:0,text:'クールダウンなし。大きく描くほど長時間（約0.5〜3秒）維持でき、耐久力が増します。耐久力以下のマジック・スラッシュを吸収してインク回復。限界を超える攻撃では破壊されます。敵も味方も通れません。'},
@@ -10170,65 +10170,209 @@ window.ArtsRules=(()=>{
  ],
  "range": "自分の周囲150。同じ聖域の軽減は重複しない"
 },
- "pack_command": {
-  "name": "パックコマンド",
+ "summon_bird": {
+  "name": "サモンバード",
   "class": "kemono",
   "tier": "normal",
-  "effect": "4秒間、自分の全召喚獣が最寄りの敵へ集中攻撃。召喚獣の移動速度+20%。",
-  "text": "4秒間、自分の全召喚獣が最寄りの敵へ集中攻撃。召喚獣の移動速度+20%。",
-  "gesture": "笛の輪郭を一筆で描く。",
-  "fixedCost": 20,
+  "effect": "中距離を飛ぶ鳥を召喚。敵が近づくと0.5秒の予備動作で方向を知らせ、回避できる3連続の直進突進を行う。各突進8ダメージ、突進中は追尾しない。攻撃後は約3秒休む。最大2羽。",
+  "text": "中距離を飛ぶ鳥を召喚。敵が近づくと0.5秒の予備動作で方向を知らせ、回避できる3連続の直進突進を行う。各突進8ダメージ、突進中は追尾しない。攻撃後は約3秒休む。最大2羽。",
+  "gesture": "左右の湾曲した翼から中央の大きく尖ったクチバシへつなげる鳥型の輪郭を一筆で描く。描く向き・角度は自由。",
+  "fixedCost": 35,
   "rate": 0,
-  "cooldown": 12000,
+  "cooldown": 20000,
   "expansion": true,
   "trace": [
-   [
-    -69.3,
-    -4.95
-   ],
-   [
-    21.45,
-    -4.95
-   ],
-   [
-    21.45,
-    -34.65
-   ],
-   [
-    64.35,
-    -34.65
-   ],
-   [
-    64.35,
-    19.8
-   ],
-   [
-    21.45,
-    19.8
-   ],
-   [
-    21.45,
-    44.55
-   ],
-   [
-    -9.9,
-    44.55
-   ],
-   [
-    -9.9,
-    19.8
-   ],
-   [
-    -69.3,
-    19.8
-   ],
-   [
-    -69.3,
-    -4.95
-   ]
+    [
+      -75.6,
+      15.66
+    ],
+    [
+      -72.18,
+      14.13
+    ],
+    [
+      -68.8,
+      12.11
+    ],
+    [
+      -65.45,
+      9.58
+    ],
+    [
+      -62.14,
+      6.56
+    ],
+    [
+      -58.86,
+      3.03
+    ],
+    [
+      -55.62,
+      -1.0
+    ],
+    [
+      -52.42,
+      -5.52
+    ],
+    [
+      -49.25,
+      -10.55
+    ],
+    [
+      -46.12,
+      -16.07
+    ],
+    [
+      -43.02,
+      -22.1
+    ],
+    [
+      -39.96,
+      -28.62
+    ],
+    [
+      -38.3,
+      -24.5
+    ],
+    [
+      -36.44,
+      -20.59
+    ],
+    [
+      -34.4,
+      -16.88
+    ],
+    [
+      -32.18,
+      -13.38
+    ],
+    [
+      -29.76,
+      -10.08
+    ],
+    [
+      -27.16,
+      -6.98
+    ],
+    [
+      -24.37,
+      -4.1
+    ],
+    [
+      -21.39,
+      -1.41
+    ],
+    [
+      -18.23,
+      1.06
+    ],
+    [
+      -14.88,
+      3.33
+    ],
+    [
+      -11.34,
+      5.4
+    ],
+    [
+      0.0,
+      28.62
+    ],
+    [
+      11.88,
+      5.4
+    ],
+    [
+      15.41,
+      3.33
+    ],
+    [
+      18.75,
+      1.06
+    ],
+    [
+      21.89,
+      -1.41
+    ],
+    [
+      24.84,
+      -4.1
+    ],
+    [
+      27.59,
+      -6.98
+    ],
+    [
+      30.14,
+      -10.08
+    ],
+    [
+      32.5,
+      -13.38
+    ],
+    [
+      34.66,
+      -16.88
+    ],
+    [
+      36.62,
+      -20.59
+    ],
+    [
+      38.39,
+      -24.5
+    ],
+    [
+      39.96,
+      -28.62
+    ],
+    [
+      43.11,
+      -22.1
+    ],
+    [
+      46.28,
+      -16.07
+    ],
+    [
+      49.47,
+      -10.55
+    ],
+    [
+      52.67,
+      -5.52
+    ],
+    [
+      55.89,
+      -1.0
+    ],
+    [
+      59.13,
+      3.03
+    ],
+    [
+      62.39,
+      6.56
+    ],
+    [
+      65.67,
+      9.58
+    ],
+    [
+      68.96,
+      12.11
+    ],
+    [
+      72.27,
+      14.13
+    ],
+    [
+      75.6,
+      15.66
+    ]
   ],
-  "range": "召喚者に最も近い敵を優先"
- },
+  "range": "感知220、突進開始170、1回の突進距離90。初回予備動作0.5秒、2・3回目0.2秒。回避・迎撃可能。"
+},
  "wild_link": {
   "name": "ワイルドリンク",
   "class": "kemono",
@@ -10688,7 +10832,7 @@ window.ArtsRules=(()=>{
 }
 };
  for(const [k,def] of Object.entries(expansionCatalog)){moves[k]=def;if(advancedJobs[def.class])advancedJobs[def.class].pool.push(k)}
- const skills=c=>advancedJobs[c]?[...advancedJobs[c].pool]:Object.keys(moves).filter(k=>moves[k].class===c);
+ const skills=c=>{const list=advancedJobs[c]?[...advancedJobs[c].pool]:Object.keys(moves).filter(k=>moves[k].class===c);if(c==='kemono'){const preferred=['carbuncle','summon_bird','summon_cat'];const found=list.filter(k=>preferred.includes(k));if(found.length){const first=list.findIndex(k=>preferred.includes(k));list.splice(0,list.length,...list.filter(k=>!preferred.includes(k)));list.splice(first,0,...preferred.filter(k=>found.includes(k)));}}return list;};
  function allocate(weights){const total=weights.reduce((a,b)=>a+b,0),raw=weights.map(v=>85*v/total),stats=raw.map(v=>3+Math.floor(v));raw.map((v,i)=>[v%1,i]).sort((a,b)=>b[0]-a[0]).slice(0,100-stats.reduce((a,b)=>a+b,0)).forEach(v=>stats[v[1]]++);return stats}
  function cleanDrawingPaths(paths){if(!Array.isArray(paths)||paths.length>64)return [];let total=0;const out=[];for(const path of paths){if(!Array.isArray(path)||path.length<2||path.length>64)return [];total+=path.length;if(total>4096||path.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||Math.abs(p.x)>64||Math.abs(p.y)>64))return [];const copy=path.map(p=>({x:p.x,y:p.y}));if(Number.isFinite(path[0].duration))copy[0].duration=clamp(path[0].duration,16,60000);out.push(copy)}return out}
  // Local geometric features and detached objects have separate score sources.
@@ -11833,9 +11977,34 @@ window.ArtsRules=(()=>{
   if(error>.13&&!isHeartCore(path))return false;
   return !equipped.some(k=>k!=='summon'&&guideError(trace,k)<error);
  }
+ // A carbuncle contract is a closed, four-point concave jewel. Compare
+ // its outline (not tiny pen-route deviations), keeping circles and ordinary
+ // polygons distinct. The equipped-skill requirement prevents other jobs firing it.
+ function forgivingCarbuncle(path){
+  if(!Array.isArray(path)||path.length<7)return false;
+  const box=statBox(path),span=box.span;
+  if(span<24||Math.min(box.w,box.h)<span*.40)return false;
+  const gap=dist(path[0],path.at(-1));
+  if(gap>span*.31)return false;
+  const trace=normalizedTrace(path);
+  const error=guideError(trace,'carbuncle');
+  if(error>.235)return false;
+  // A gently curved diamond remains acceptable, but smooth circles do not.
+  // Against the nearest closed loop, the jewel must be distinctly closer to
+  // its four concave sides (unless the template match is exceptionally good).
+  const circle=Array.from({length:49},(_,i)=>{const a=i/48*Math.PI*2;return{x:75*Math.cos(a),y:75*Math.sin(a)}});
+  const circleError=alignedError(trace,normalizedTrace(circle),true);
+  if(error>.13&&error+.015>=circleError)return false;
+  return true;
+ }
  const priorityGuides=new Set(Object.keys(moves).filter(k=>moves[k].class&&k!=='summon'));
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
 
+ // Carbuncle's inward-curved four-point jewel is forgiving of wobbly sides,
+ // slight distortion, changed starting corner and reversed drawing direction.
+ if(strokes.length===1&&equipped.includes('carbuncle')&&forgivingCarbuncle(strokes[0])){
+  return{type:'carbuncle',x:cx,y:cy,w,h,length:len,radius:clamp(diag*.5,45,170),extent:clamp(Math.max(...points.map(p=>Math.hypot(p.x,p.y))),40,550),angle:Math.atan2(cy,cx),tip:points[0],strokes};
+ }
  // Distinctive geometric signatures take priority over ordered templates.
  // Avoid the common Slash fallback swallowing an X or a barred circle.
  if(strokes.length===1&&diag>=27){
@@ -12681,8 +12850,8 @@ window.ArtArts=(()=>{
  }
  function matterKemonoSummon(caster,skillType='',now=Date.now()){
   if(caster?.class!=='kemono')return;
-  const rewards={summon_dog:10,summon_cat:10,carbuncle:12,summon_bat:8};
-  const cooldowns={summon_dog:10000,summon_cat:10000,carbuncle:12000,summon_bat:8000};
+  const rewards={summon_dog:10,summon_cat:10,carbuncle:12,summon_bird:10,summon_bat:8};
+  const cooldowns={summon_dog:10000,summon_cat:10000,carbuncle:12000,summon_bird:10000,summon_bat:8000};
   const key='summon:'+skillType,awards=(caster._matterSummonAwards??={});
   if(now-(awards[key]??-Infinity)<(cooldowns[skillType]??10000))return;
   awards[key]=now;addArtMatter(caster,rewards[skillType]??8);
@@ -13177,7 +13346,7 @@ window.ArtArts=(()=>{
  function cancelReady(){if(!view||view.phase!=='create'||!participant()||!view.ready[localId]||room.characterOnly)return;sendHost({type:'gameArtsUnready',gameId:view.id})}
  function submit(){if(room?.characterOnly){saveCharacter();return}if(!view||!['create','collect'].includes(view.phase)||!participant()||view.ready[localId]||submitted===view.id)return;capturing=true;try{if(stroke)finishStroke();if(selection)$('#applyTransform').click();const art=sampleArtwork();if(art.empty){toast('絵が取得できていません。ペンで描いてから、もう一度準備完了を押してください。');return}savedCharacterSource={gameId:view.id,art};submitted=view.id;sendHost({type:'gameArtsReady',gameId:view.id,image:art.image,drawingPaths:art.drawingPaths,artFacing:art.artFacing,artMotion:art.artMotion})}catch{toast('絵を送れませんでした。もう一度お試しください。')}finally{capturing=false}}
  async function acceptArt(id,image,drawingPaths=[],artFacing=1,artMotion="walk"){artFacing=artFacing===-1?-1:1;artMotion=validArtsMotion(artMotion);drawingPaths=R.cleanDrawingPaths(drawingPaths);if(uploading.has(id)||typeof image!=='string'||image.length>260000||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(image))return;const game=host;uploading.add(id);const c=E.make(64,64);try{const img=await E.image(image);if(img.width>256||img.height>256)return;c.getContext('2d').drawImage(img,0,0,64,64);const stats=R.analyze(c.getContext('2d').getImageData(0,0,64,64).data,64,64,drawingPaths);if(stats.every(n=>n===0)){sendRejection(id,'描画が読み取れませんでした。もう一度キャラクターを描いてください。');return}if(host!==game||!['create','collect'].includes(host.phase)||!host.players.some(p=>p.id===id&&p.active))return;if(host.ready[id])return;host.art[id]={image,stats,drawingPaths,artFacing,artMotion,class:R.type(stats,drawingPaths)};host.ready[id]=true;host.allReadyAt=host.players.filter(p=>p.active).every(p=>host.ready[p.id])?Date.now():0;sendAll(true)}catch{sendRejection(id,'キャラクター画像を読み込めませんでした。')}finally{c.width=c.height=0;uploading.delete(id)}}
- function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats,a.drawingPaths||[]);const pool=R.skills(a.class),limit=host.settings.skillSlots,picked=[...(Array.isArray(a.skills)?a.skills:[])].filter(k=>pool.includes(k));for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);a.skills=picked.slice(0,limit);a.skill=a.skills[0]||null;if(p.bot)host.equipped[p.id]=true}sendAll(true)}
+ function equipPhase(){if(!host||!['create','collect'].includes(host.phase))return;host.phase='equip';host.deadline=Date.now()+25000;host.equipped={};for(const p of host.players){if(!host.art[p.id])host.art[p.id]={image:'',stats:[20,20,20,20,20]};const a=host.art[p.id];if(a.drawingPaths?.length&&a.stats.every(n=>n===20))a.stats=R.drawingStats(a.drawingPaths,0,1)||a.stats;a.class=R.type(a.stats,a.drawingPaths||[]);const pool=R.skills(a.class),limit=host.settings.skillSlots,picked=[...(Array.isArray(a.skills)?a.skills:[])].map(k=>k==='pack_command'?'summon_bird':k).filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i);for(const k of pool)if(!picked.includes(k)&&picked.length<limit)picked.push(k);a.skills=picked.slice(0,limit);a.skill=a.skills[0]||null;if(p.bot)host.equipped[p.id]=true}sendAll(true)}
  function makeArtsGimmicks(theme,size){
   if(theme==='arena')return [];
   const w=R.W,h=R.H,k=size==='small'?.72:size==='large'?1.45:1;
@@ -13837,7 +14006,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
  function removePositiveBuffs(target,now){
   const hadAscension=target.ascensionUntil>now;
   const hadBlessing=(target.blessingStacks||0)>0;
-  let expansionBuff=false;for(const k of ['anchorUntil','lucidUntil','packUntil','linkUntil','pactUntil'])if(target[k]>now){target[k]=0;expansionBuff=true}
+  let expansionBuff=false;for(const k of ['anchorUntil','lucidUntil','linkUntil','pactUntil'])if(target[k]>now){target[k]=0;expansionBuff=true}
   const hadOther=expansionBuff||target.auraUntil>now||target.iron>now||target.reactor>now||target.regenUntil>now;
   if(hadAscension)setAwakening(target,false,now);
   if(hadBlessing){target.blessingStacks=0;target.maxHp=100;target.hp=Math.min(target.hp,target.maxHp);}
@@ -13877,7 +14046,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
   return false;
  }
  function castAdvanced(p,e,shape,attack,now){
-  const k=shape.type;if(['summon_dog','summon_cat','carbuncle','beast_boost','force_heal','fur_coat','summon_bat','blood_seeker','blood_slash','blood_ritual'].includes(k))return castCreatureArt(p,e,shape,attack,now);if(!R.advancedMoves[k])return false;
+  const k=shape.type;if(['summon_dog','summon_cat','carbuncle','summon_bird','beast_boost','force_heal','fur_coat','summon_bat','blood_seeker','blood_slash','blood_ritual'].includes(k))return castCreatureArt(p,e,shape,attack,now);if(!R.advancedMoves[k])return false;
   const nearestEnemy=radius=>host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(p,q)&&R.dist(q,e)<=radius&&lineClear(e,q)).sort((a,b)=>R.dist(a,e)-R.dist(b,e))[0];
   if(k==='judgment'){
    e.x=p.x;e.y=p.y;e.ox=p.x;e.oy=p.y;e.tx=p.x+shape.x;e.ty=p.y+shape.y;
@@ -14143,14 +14312,13 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
    case 'last_sentence':e.r=190;for(const q of enemies)if(R.dist(p,q)<=e.r+artsHitRadius(q)&&lineClear(p,q))artsHitTarget(q,q.hp<=q.maxHp*.3?70:35,now,e);break;
    case 'lucid_dream':beginDream(p,now);break;
    case 'purification':{const q=nearestArtTarget(aim,host.fighters.filter(q=>q.active&&q.hp>0))||p;q.revivePrayer=true;e.x=q.x;e.y=q.y;break}
-   case 'pack_command':p.packUntil=now+4000;break;
    case 'wild_link':p.linkUntil=now+8000;break;
    case 'blood_pact':p.hp-=8;p.pactUntil=now+18000;p.pactLeft=60;break;
   }
   const timer=expansionBuffTimers[k];if(timer)e.end=p[timer];
   host.effects.push(e);
  }
- const expansionBuffTimers={grand_anchor:'anchorUntil',pack_command:'packUntil',wild_link:'linkUntil',blood_pact:'pactUntil'};
+ const expansionBuffTimers={grand_anchor:'anchorUntil',wild_link:'linkUntil',blood_pact:'pactUntil'};
  function advanceBastion(e,p,now){
   if(e.rushDone)return;
   const dx=Math.cos(e.angle),dy=Math.sin(e.angle),startX=e.x,startY=e.y;
@@ -14253,11 +14421,11 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
  const attack=(p.stats[1]+(p.beastUntil>now?(p.beastPower||20):0)+(p.carbuncleUntil>now?5:0)-(p.attackDebuffUntil>now?20:0))*(p.auraUntil>now?1.5:1);
  const power=R.clamp(Math.sqrt(Math.max(20,shape.length)/220),.78,1.35),aim=Number.isFinite(shape.angle)?shape.angle:Math.hypot(shape.x,shape.y)>10?Math.atan2(shape.y,shape.x):-Math.PI/2,dx=shape.x,dy=shape.y,len=Math.hypot(dx,dy)||1,target={x:R.clamp(p.x+dx,20,R.W-20),y:R.clamp(p.y+dy,20,R.H-20)};
  const e={id:++host.seq,type:shape.type,owner:id,x:target.x,y:target.y,tx:target.x,ty:target.y,r:Math.min(shape.radius,140),angle:aim,start:now,end:now+450,power:0,done:false,sizeArea,sizeBuff};
- if(m.expansion){castExpansion(p,e,now);return true}
+ if(m.expansion&&shape.type!=='summon_bird'){castExpansion(p,e,now);return true}
  const beforeAdvancedShots=host.shots.length;
  if(castAdvanced(p,e,shape,attack,now)){
   for(const shot of host.shots.slice(beforeAdvancedShots)){shot.left*=artsRangeFactor(p);shot.radius*=sizeArea;}
-  if(p.class==='kemono'&&['summon_dog','summon_cat','carbuncle','summon_bat'].includes(shape.type))matterKemonoSummon(p,shape.type,now);
+  if(p.class==='kemono'&&['summon_dog','summon_cat','carbuncle','summon_bird','summon_bat'].includes(shape.type))matterKemonoSummon(p,shape.type,now);
   if(p.class==='gunner')matterGunnerShot(p,host.shots.slice(beforeAdvancedShots),now);
   host.effects.push(e);return true
  }
@@ -14396,7 +14564,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
   delete host.ready[id];delete host.art[id];host.allReadyAt=0;sendAll(true);return true;
  }
  if(m.type==='gameArtsReady'&&['create','collect'].includes(host.phase)&&!host.ready[id]){acceptArt(id,m.image,m.drawingPaths,m.artFacing,m.artMotion);return true}
- if(m.type==='gameArtsEquip'&&host.phase==='equip'){const a=host.art[id];if(a){const pool=R.skills(a.class),picked=[...(Array.isArray(m.skills)?m.skills:[])].filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i).slice(0,host.settings.skillSlots);if(picked.length===host.settings.skillSlots){a.skills=picked;a.skill=picked[0]||null;host.equipped[id]=true;sendAll(true);if(host.players.filter(p=>p.active).every(p=>host.equipped[p.id]))startBattle()}}return true}
+ if(m.type==='gameArtsEquip'&&host.phase==='equip'){const a=host.art[id];if(a){const pool=R.skills(a.class),picked=[...(Array.isArray(m.skills)?m.skills:[])].map(k=>k==='pack_command'?'summon_bird':k).filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i).slice(0,host.settings.skillSlots);if(picked.length===host.settings.skillSlots){a.skills=picked;a.skill=picked[0]||null;host.equipped[id]=true;sendAll(true);if(host.players.filter(p=>p.active).every(p=>host.equipped[p.id]))startBattle()}}return true}
  if(host.phase!=='battle'||migrationOut)return true;const f=host.fighters.find(p=>p.id===id);if(!f||f.hp<=0||!f.active)return true;if(f.lucidUntil>Date.now())clearArtAilments(f);if(f.pull||f.stunnedUntil>Date.now()||f.sleepUntil>Date.now()){f.drawing=false;f.preview=[];delete host.inputs[id];if(m.type==='gameArtsCast'){const reply={type:'gameArtsFeedback',text:'行動不能中は発動できません。',ok:false};if(id===localId)receive(reply);else sendWire(connections.get(id),reply)}return true;}
  if(m.type==='gameArtsInput'&&Number.isFinite(m.x)&&Number.isFinite(m.y)){const l=Math.max(1,Math.hypot(m.x,m.y));host.inputs[id]={x:m.x/l,y:m.y/l,at:Date.now(),sentAt:Number.isFinite(m.sentAt)?m.sentAt:0};if(m.drawing&&!f.drawing){f.drawing=true;f.drawSince=Date.now()}else if(!m.drawing)f.drawing=false;f.preview=f.drawing&&R.valid(m.preview)&&m.preview.reduce((n,s)=>n+s.length,0)<=256?m.preview.map(s=>s.map(p=>({x:p.x,y:p.y}))):[];f.summonCore=f.drawing&&m.summonCore&&Number.isFinite(m.summonCore.x)&&Number.isFinite(m.summonCore.y)&&Math.abs(m.summonCore.x)<=R.W&&Math.abs(m.summonCore.y)<=R.H?{x:m.summonCore.x,y:m.summonCore.y}:null;f.previewAt=Date.now();return true}
  if(m.type==='gameArtsCast'){if(Date.now()-(f.lastAttempt||0)<120)return true;f.lastAttempt=Date.now();const valid=R.valid(m.strokes),outside=valid&&!R.inRange({strokes:m.strokes},f.stats);const result=valid&&!outside?resolveArtsInput(m.strokes,f):{};const ult=result.ultimate;
@@ -14503,7 +14671,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
   if(petClear(route.at(-1)||a,b))route.push({x:b.x,y:b.y});return route;
  }
  function movePet(e,target,speed,dt,now,navigate=true){
-  speed*=(petOwner(e)?.packUntil>now?1.2:1)*(e.jamUntil>now?.7:1);
+  speed*=(e.jamUntil>now?.7:1);
   // A newly painted core may overlap scenery. Resolve once to the nearest free spot.
   if(R.blocked(e.x,e.y,host.blocks,18)){
    let spot=null;for(let radius=8;radius<=160&&!spot;radius+=8)for(let i=0;i<24;i++){
@@ -14526,7 +14694,7 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
  }
 
  // 1.4.63 creature combat: a pet has the same damage/regen/armor/debuff resources as a fighter.
- const creatureKinds=new Set(['golem','dog','cat','bat','carbuncle']);
+ const creatureKinds=new Set(['golem','dog','cat','bird','bat','carbuncle']);
  const petOwner=e=>host.fighters.find(q=>q.id===e.owner);
  const livePets=now=>host.effects.filter(e=>e.type==='summonBody'&&e.end>now&&e.hp>0);
  function creatureFriendly(actor,pet){const maker=petOwner(pet);return !!maker&&friendly(actor,maker)}
@@ -14562,20 +14730,20 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
  }
  function creatureDamageTarget(src,target,damage,now,meta={}){return target.type==='summonBody'?petHurt(target,damage,now,{owner:src.id,...meta}):hurt(target,damage,now,{owner:src.id,x:src.x,y:src.y,...meta},!!meta.pierce)}
  function createCreature(owner,kind,at,now,override={}){
-  const conf={dog:[50,3,1.2,26],cat:[50,2,.85,19],carbuncle:[50,0,3,20],bat:[30,5,.9,18]}[kind];
+  const conf={dog:[50,3,1.2,26],cat:[50,2,.85,19],bird:[90,8,3,18],carbuncle:[50,0,3,20],bat:[30,5,.9,18]}[kind];
   if(!conf)return null;
   // Kemono summons now allow up to three pets; replace the oldest only when the cap is exceeded.
-  const own=livePets(now).filter(e=>e.owner===owner.id&&(['dog','cat'].includes(kind)?e.petKind===kind:true)).sort((x,y)=>x.start-y.start);
-  const cap=['dog','cat'].includes(kind)?2:2;
+  const own=livePets(now).filter(e=>e.owner===owner.id&&(['dog','cat','bird'].includes(kind)?e.petKind===kind:true)).sort((x,y)=>x.start-y.start);
+  const cap=2;
   if(own.length>=cap)own[0].end=now;
-  const pet={id:++host.seq,type:'summonBody',petKind:kind,owner:owner.id,x:at.x,y:at.y,tx:at.x,ty:at.y,r:conf[3],hp:conf[0],maxHp:conf[0],ink:80,maxInk:80,defense:8,stats:[kind==='cat'?32:kind==='bat'?33:15,conf[1],8,24,20],baseStats:null,power:conf[1],attackGap:conf[2]*1000,attackAt:now+(kind==='cat'?850:550),supportAt:now+3000,armorHP:0,armorUntil:0,slow:0,inkLock:0,beastUntil:0,furUntil:0,step:0,walkSpeed:kind==='cat'?130:kind==='bat'?350:kind==='dog'?110:100,attackRange:kind==='cat'?240:kind==='bat'?80:kind==='dog'?90:0,start:now,end:Number.MAX_SAFE_INTEGER,...override};
+  const pet={id:++host.seq,type:'summonBody',petKind:kind,owner:owner.id,x:at.x,y:at.y,tx:at.x,ty:at.y,r:conf[3],hp:conf[0],maxHp:conf[0],ink:80,maxInk:80,defense:8,stats:[kind==='cat'?32:kind==='bat'?33:15,conf[1],8,24,20],baseStats:null,power:conf[1],attackGap:conf[2]*1000,attackAt:now+(kind==='cat'?850:kind==='bird'?1200:550),supportAt:now+3000,armorHP:0,armorUntil:0,slow:0,inkLock:0,beastUntil:0,furUntil:0,step:0,walkSpeed:kind==='cat'?130:kind==='bird'?155:kind==='bat'?350:kind==='dog'?110:100,attackRange:kind==='cat'?240:kind==='bird'?170:kind==='bat'?80:kind==='dog'?90:0,start:now,end:Number.MAX_SAFE_INTEGER,...override};
   pet.hp=Math.max(1,pet.hp*0.5);pet.maxHp=Math.max(1,pet.maxHp*0.5);
   host.effects.push(pet);return pet;
  }
  function castCreatureArt(p,e,shape,attack,now){
   const k=shape.type,at={x:e.x,y:e.y};
-  if(['summon_dog','summon_cat','carbuncle','summon_bat'].includes(k)){
-   const kind=({summon_dog:'dog',summon_cat:'cat',carbuncle:'carbuncle',summon_bat:'bat'})[k];
+  if(['summon_dog','summon_cat','carbuncle','summon_bird','summon_bat'].includes(k)){
+   const kind=({summon_dog:'dog',summon_cat:'cat',carbuncle:'carbuncle',summon_bird:'bird',summon_bat:'bat'})[k];
    const created=createCreature(p,kind,at,now);if(created){created.r*=R.clamp(1+(e.sizeArea-1)*.45,1,1.20);if(kind==='bat')created.walkSpeed*=R.clamp(1+(e.sizeArea-1)*.25,1,1.12);}e.type='creatureSpawn';e.petKind=kind;e.end=now+700;e.r=58;e.start=now;return true;
   }
   if(k==='beast_boost'){p.beastUntil=now+12000;p.beastPower=20+Math.round(Math.max(0,e.sizeBuff-1.135)*20);e.type='beast_boost';e.x=p.x;e.y=p.y;e.r=76*e.sizeArea;e.end=now+1200;e.start=now;return true}
@@ -14688,9 +14856,53 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
 
   if(e.petKind&&e.petKind!=='golem'){
    const owner=petOwner(e);if(!owner||owner.hp<=0||!owner.active){e.end=now;return}
-   if(e.petKind==='carbuncle'){if(owner.packUntil>now){const q=nearestArtTarget(owner,artsEnemyHitTargets(owner,now));if(q){if(R.dist(e,q)>e.r+artsHitRadius(q)+8)movePet(e,q,e.walkSpeed||100,dt,now);else if(now>=(e.commandAttackAt||0)){creatureDamageTarget(owner,q,3,now,{petKind:e.petKind});e.commandAttackAt=now+1200}return}}if(R.dist(e,owner)>80)movePet(e,{x:owner.x-35,y:owner.y+35},(e.walkSpeed||100)*(e.slow>now?.5:1),dt,now);return}
+   if(e.petKind==='carbuncle'){if(R.dist(e,owner)>80)movePet(e,{x:owner.x-35,y:owner.y+35},(e.walkSpeed||100)*(e.slow>now?.5:1),dt,now);return}
+   if(e.petKind==='bird'){
+    const foeList=()=>[...host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)),...livePets(now).filter(q=>q.id!==e.id&&!creatureFriendly(owner,q))];
+    const enemy=foeList().filter(q=>R.dist(e,q)<220&&petClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b))[0];
+    const phase=e.birdPhase||'idle';
+    if(phase==='warning'){
+     if(now<e.birdWarnUntil)return;
+     const target=foeList().find(q=>q.id===e.birdTargetId);
+     // Retarget only while warning, never steer a dash that has started.
+     if(target&&petClear(e,target))e.birdAngle=Math.atan2(target.y-e.y,target.x-e.x);
+     const angle=e.birdAngle||0;e.birdDx=Math.cos(angle);e.birdDy=Math.sin(angle);
+     e.birdTravel=0;e.birdHitIds=[];e.birdPhase='dash';e.birdDashUntil=now+330;return;
+    }
+    if(phase==='dash'){
+     const step=Math.min(90-(e.birdTravel||0),Math.max(0,dt)*410);
+     const start={x:e.x,y:e.y},end={x:e.x+(e.birdDx||0)*step,y:e.y+(e.birdDy||0)*step};
+     // Fixed-direction, wall-blocked lunge. Both players and enemy pets can be hit.
+     if(step>0&&petClear(start,end)&&!R.blocked(end.x,end.y,host.blocks,e.r||18)){
+      e.x=end.x;e.y=end.y;e.birdTravel=(e.birdTravel||0)+step;
+      for(const q of foeList()){
+       if((e.birdHitIds||[]).includes(q.id)||!petClear(e,q))continue;
+       const vx=e.x-start.x,vy=e.y-start.y,dx=q.x-start.x,dy=q.y-start.y;
+       const fraction=Math.max(0,Math.min(1,(dx*vx+dy*vy)/(vx*vx+vy*vy||1)));
+       if(Math.hypot(dx-vx*fraction,dy-vy*fraction)>e.r+artsHitRadius(q))continue;
+       e.birdHitIds.push(q.id);
+       creatureDamageTarget(owner,q,Math.max(1,8+(e.carbuncleUntil>now?5:0)-(e.attackDebuffUntil>now?20:0)),now,{petKind:'bird',type:'summonBody'});
+       host.effects.push({id:++host.seq,type:'petAttack',petKind:'bird',owner:e.owner,x:q.x,y:q.y,r:23,angle:e.birdAngle,start:now,end:now+240});
+      }
+     }else e.birdDashUntil=now;
+     if((e.birdTravel||0)>=90||now>=e.birdDashUntil){
+      e.birdCount=(e.birdCount||0)+1;
+      if(e.birdCount<3&&enemy){e.birdPhase='warning';e.birdWarnUntil=now+200;e.birdTargetId=enemy.id;e.birdAngle=Math.atan2(enemy.y-e.y,enemy.x-e.x)}
+      else{e.birdPhase='recover';e.attackAt=now+3000;e.birdCount=0}
+     }
+     return;
+    }
+    if(phase==='recover'&&now<e.attackAt){if(R.dist(e,owner)>210)movePet(e,owner,105,dt,now);return}
+    if(enemy){
+     const d=R.dist(e,enemy),a=Math.atan2(enemy.y-e.y,enemy.x-e.x);
+     if(now>=(e.attackAt||0)&&d>=58&&d<=170){e.birdPhase='warning';e.birdCount=0;e.birdTargetId=enemy.id;e.birdAngle=a;e.birdWarnUntil=now+500;return}
+     const gap=125,goal={x:enemy.x-Math.cos(a)*gap,y:enemy.y-Math.sin(a)*gap};
+     if(Math.abs(d-gap)>22)movePet(e,goal,e.walkSpeed*(e.slow>now?.5:1),dt,now);
+    }else if(R.dist(e,owner)>115)movePet(e,owner,e.walkSpeed*(e.slow>now?.5:1),dt,now);
+    return;
+   }
    const targets=[...host.fighters.filter(q=>q.active&&q.hp>0&&!friendly(owner,q)),...livePets(now).filter(q=>q.id!==e.id&&!creatureFriendly(owner,q))];
-   const q=owner.packUntil>now?nearestArtTarget(owner,targets):targets.filter(q=>R.dist(e,q)<500&&petClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b))[0];
+   const q=targets.filter(q=>R.dist(e,q)<500&&petClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b))[0];
    if(!q){if(R.dist(e,owner)>85)movePet(e,owner,e.walkSpeed*(e.slow>now?.5:1),dt,now);return}
    const d=R.dist(e,q),a=Math.atan2(q.y-e.y,q.x-e.x);
    if(e.petKind==='cat'){
@@ -14712,12 +14924,12 @@ function lineClear(a,b){const steps=Math.ceil(R.dist(a,b)/10);for(let i=1;i<step
 
   const owner=host.fighters.find(q=>q.id===e.owner&&q.active&&q.hp>0);if(!owner){e.end=now;return}
   const enemy=q=>q.active&&q.hp>0&&!friendly(owner,q);
-  let target=owner.packUntil>now?nearestArtTarget(owner,artsEnemyHitTargets(owner,now)):host.fighters.find(q=>q.id===e.targetId&&enemy(q)&&R.dist(e,q)<650);
+  let target=host.fighters.find(q=>q.id===e.targetId&&enemy(q)&&R.dist(e,q)<650);
   if(!target){target=host.fighters.filter(q=>enemy(q)&&R.dist(e,q)<280&&lineClear(e,q)).sort((a,b)=>R.dist(e,a)-R.dist(e,b))[0];e.targetId=target?.id||null}
   if(e.summonPhase==='warning'){if(now<e.warnUntil)return;e.summonPhase='charge'}
   if(e.summonPhase==='charge'){
    const moved=movePet(e,{x:e.chargeX,y:e.chargeY},Math.min(e.chargeSpeed||300,300),dt,now,false);
-   const hit=(owner.packUntil>now?artsEnemyHitTargets(owner,now):host.fighters.filter(enemy)).find(q=>R.dist(e,q)<artsHitRadius(q)+e.r&&lineClear(e,q));
+   const hit=host.fighters.filter(enemy).find(q=>R.dist(e,q)<artsHitRadius(q)+e.r&&lineClear(e,q));
    if(hit){artsHitTarget(hit,e.power??12,now,e);e.chargeUntil=now}
    if(!moved||now>=e.chargeUntil||R.dist(e,{x:e.chargeX,y:e.chargeY})<8){e.summonPhase='recover';e.attackAt=now+1800}return;
   }
@@ -15423,7 +15635,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of artsEnemyHitTargets(owner,now)){
   "dream_refrain": "夢の領域で敵弾を遅くし、敵のインク回復を止める。",
   "purification": "狙ったプレイヤーに、一度だけ蘇生できる祈りを授ける。",
   "divine_sanctuary": "12秒間、聖域内の味方を守りながら回復する。",
-  "pack_command": "自分の召喚獣を加速させ、同じ敵を集中攻撃させる。",
+  "summon_bird": "鳥を呼び、予備動作付きの3連続突進で中距離の敵を攻撃する。",
   "wild_link": "自分の召喚獣が攻撃を当てると、インクが戻る。",
   "blood_pact": "少量のHPを払い、攻撃で与えたダメージの半分を吸収する。",
   "crimson_eclipse": "広い血霧で周囲の敵を攻撃し、自分のHPを回復する。"
@@ -15626,7 +15838,7 @@ artsFortAreaHit(owner,e,now);   }for(const p of artsEnemyHitTargets(owner,now)){
  function hint(text){if($('#artsBattleHint'))$('#artsBattleHint').textContent=text}
  function stopInput(){saintDrawing=false;move={x:0,y:0};keys.clear();stick=null;gesture=null;strokes=[];summonCore=null;paintMode=false;holdSource=null;refreshPaintUI();$('#artsJoystick i')?.style.setProperty('transform','translate(0,0)');sendInput()}
  function cameraFighter(){const me=self();if(me?.active&&me.hp>0)return me;let next=me,seen=new Set();while(next?.killedBy&&!seen.has(next.id)){seen.add(next.id);next=view.fighters.find(p=>p.id===next.killedBy);if(next?.active&&next.hp>0)return next}return view?.fighters.find(p=>p.active&&p.hp>0)||me}
- function ensureEquipChoice(a){const pool=R.skills(a?.class||'')||[],limit=view?.settings?.skillSlots??2;let picks=(equipTouched?equipChoice:(Array.isArray(a?.skills)?a.skills:[])).filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i).slice(0,limit);equipChoice=picks;return equipChoice}
+ function ensureEquipChoice(a){const pool=R.skills(a?.class||'')||[],limit=view?.settings?.skillSlots??2;let picks=(equipTouched?equipChoice:(Array.isArray(a?.skills)?a.skills:[])).map(k=>k==='pack_command'?'summon_bird':k).filter((k,i,self)=>pool.includes(k)&&self.indexOf(k)===i).slice(0,limit);equipChoice=picks;return equipChoice}
  function toggleEquipChoice(skill){const a=view?.art?.[localId];if(!a)return;const current=ensureEquipChoice(a),limit=view?.settings?.skillSlots??2;if(limit===0)return;equipTouched=true;equipChoice=current.includes(skill)?current.filter(k=>k!==skill):[...current,skill].filter((k,i,self)=>self.indexOf(k)===i).slice(-limit)}
  function activeSkills(p){return [...new Set(['slash','guard','magic',...((p?.skills?.length?p.skills:[p?.skill]).filter(Boolean))])]} 
  function isSummonCoreStroke(path){return R.summonCoreForSkills(path,self()?.skills||[self()?.skill])}
@@ -15773,7 +15985,7 @@ finishPaint(false)};
   guillotine_mark:'arts_new_debuff',last_sentence:'arts_counter_reflect_slash',
   lucid_dream:'arts_new_quiet',dream_refrain:'artsMagic',
   purification:'arts_new_heal',divine_sanctuary:'arts_new_holy',
-  pack_command:'arts_beast_boost',wild_link:'arts_new_cute',
+  summon_bird:'arts_new_cute',wild_link:'arts_new_cute',
   blood_pact:'arts_new_debuff',crimson_eclipse:'arts_nightmare_impact'
  };
  function drawExpansionEffect(c,e,now){
@@ -15835,13 +16047,10 @@ finishPaint(false)};
     arc(0,0,10+u*28,0,tau,'#bdf4cb',3);break;
    case 'divine_sanctuary':
     field('#d5a750');orbit(5,-Math.PI/2,()=>{cross(r-14,0,6,'#f8df8a');line([[r*.64,-r*.42],[r*.85,0],[r*.64,r*.42]],'#efcc75',2,.8)});break;
-   case 'pack_command':case 'wild_link':{
-    const link=e.type==='wild_link',color=link?'#55bda5':'#ca904b';
-    for(const pet of view.effects){if(pet.type!=='summonBody'||pet.owner!==e.owner||pet.end<=now||pet.hp<=0)continue;
-     const dx=pet.x-e.x,dy=pet.y-e.y;
-     if(link){c.setLineDash([6,9]);c.lineDashOffset=-t*24;line([[0,0],[dx,dy]],color,2,.55);c.setLineDash([]);arc(dx,dy,pet.r+3,0,tau,color,2,.8)}
-     else{line([[dx-7,dy-29],[dx,dy-23],[dx+7,dy-29]],color,3)}}
-    for(let i=0;i<2;i++){const a=(t*.9+i*.5)%1;arc(0,0,20+18*a,link?0:-1.2,link?tau:1.2,color,2,1-a)}break}
+   case 'wild_link':{
+    const color='#55bda5';
+    for(const pet of view.effects){if(pet.type!=='summonBody'||pet.owner!==e.owner||pet.end<=now||pet.hp<=0)continue;const dx=pet.x-e.x,dy=pet.y-e.y;c.setLineDash([6,9]);c.lineDashOffset=-t*24;line([[0,0],[dx,dy]],color,2,.55);c.setLineDash([]);arc(dx,dy,pet.r+3,0,tau,color,2,.8)}
+    for(let i=0;i<2;i++){const a=(t*.9+i*.5)%1;arc(0,0,20+18*a,0,tau,color,2,1-a)}break}
    case 'blood_pact':
     orbit(3,t,()=>line([[31,-6],[36,0],[32,6],[27,2]],'#bf4969',2,1,true));break;
    case 'crimson_eclipse':
@@ -16635,13 +16844,17 @@ finishPaint(false)};
   }
   if(e.type==='summonBody'&&e.petKind&&e.petKind!=='golem'){
    const kind=e.petKind,pulse=Math.sin(age/150)*1.3;
-   const ink=kind==='bat'?'#cf3358':kind==='carbuncle'?'#91eaff':kind==='cat'?'#ffcda6':'#bce59c';
+   const ink=kind==='bat'?'#cf3358':kind==='carbuncle'?'#91eaff':kind==='bird'?'#76d9f5':kind==='cat'?'#ffcda6':'#bce59c';
    x.globalAlpha=1;x.strokeStyle=ink;x.shadowColor=ink;x.shadowBlur=8;x.lineWidth=3.1;
    x.save();x.scale(1,.4);ring(r+9+pulse);x.restore();
    x.fillStyle='#10131c';x.beginPath();
    if(kind==='bat'){
     const flutter=Math.sin(age/90)*4;
     x.moveTo(0,8);x.lineTo(-7,-5);x.lineTo(-25,-12-flutter);x.lineTo(-18,5);x.lineTo(-29,12);x.lineTo(-8,15);x.lineTo(0,10);x.lineTo(8,15);x.lineTo(29,12);x.lineTo(18,5);x.lineTo(25,-12-flutter);x.lineTo(7,-5);x.closePath();
+   }else if(kind==='bird'){
+    const flutter=Math.sin(age/85)*5;
+    x.moveTo(-24,-5-flutter);x.quadraticCurveTo(-13,-19-flutter,0,1);x.quadraticCurveTo(13,-19+flutter,24,-5+flutter);
+    x.lineTo(9,8);x.lineTo(0,16);x.lineTo(-9,8);
    }else if(kind==='dog'){
     x.moveTo(-17,15);x.quadraticCurveTo(-30,-2,-14,-20);x.lineTo(-6,-12);x.lineTo(6,-12);x.lineTo(14,-20);x.quadraticCurveTo(30,-2,17,15);x.quadraticCurveTo(0,30,-17,15);
    }else if(kind==='cat'){
@@ -16657,6 +16870,8 @@ finishPaint(false)};
    }else{
     x.fillStyle=ink;x.beginPath();x.arc(-7,1,2,0,Math.PI*2);x.arc(7,1,2,0,Math.PI*2);x.fill();
    }
+   if(kind==='bird'&&e.birdPhase==='warning'){x.save();x.rotate(e.birdAngle||0);x.strokeStyle='#ffca65';x.lineWidth=3;x.setLineDash([7,7]);x.beginPath();x.moveTo(0,0);x.lineTo(100,0);x.stroke();x.setLineDash([]);x.restore()}
+   if(kind==='bird'&&e.birdPhase==='dash'){x.save();x.rotate(e.birdAngle||0);x.strokeStyle='#96efff';x.lineWidth=4;x.globalAlpha=.55;x.beginPath();x.moveTo(-32,0);x.lineTo(-9,0);x.stroke();x.restore()}
    if(e.armorHP>0){x.strokeStyle='#fff4cc';x.lineWidth=3;x.setLineDash([5,5]);ring(r+15);x.setLineDash([])}
    if(e.carbuncleUntil>now){x.strokeStyle='#ffda80';ring(r+21)}
    x.shadowBlur=0;x.fillStyle='#292633';x.fillRect(-22,r+11,44,4);x.fillStyle=ink;x.fillRect(-22,r+11,44*R.clamp((e.hp||0)/(e.maxHp||100),0,1),4);
@@ -16696,6 +16911,7 @@ finishPaint(false)};
    }else if(e.type==='petAttack'){
     x.rotate(e.angle||0);x.lineWidth=4;
     if(e.petKind==='cat'){x.beginPath();x.arc(0,0,r*.7,-.55,.55);x.stroke();x.beginPath();x.arc(r*.2,0,r*.28,0,Math.PI*2);x.fill();}
+    else if(e.petKind==='bird'){for(const s of [-1,1]){x.beginPath();x.moveTo(-r*.8,12*s);x.quadraticCurveTo(0,-16*s,r,0);x.stroke();}}
     else if(e.petKind==='dog'){for(const s of [-1,1]){x.beginPath();x.moveTo(0,0);x.lineTo(r*.95,10*s);x.stroke();}}
     else if(e.petKind==='bat'){for(const s of [-1,1]){x.beginPath();x.moveTo(0,0);x.quadraticCurveTo(r*.45,-18*s,r*.92,0);x.stroke();}}
    }else if(e.type==='petHit'){
@@ -18038,7 +18254,7 @@ function drawBattleOutcome(x,canvas,now){
  const info=$('#artsSkillInfo');for(const id of ['artsJoystick','artsJoystickZone']){const control=$('#'+id);if(control)control.hidden=!battleActive()}if(info)info.hidden=!(me&&me.active&&me.hp>0);if(info&&me&&info.textContent!=='技の説明・お手本')info.textContent='技の説明・お手本';updateSkillIcons(me,now)}}
 
 /* SECTION: arts/settings-lifecycle.js */
- function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'生命の庭園',ruins:'古代遺跡',forest:'深緑の森',arena:'基本アリーナ',portal:'転送研究所',mine:'鉱石洞窟',factory:'暴走工場'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">ステージの大きさ<select id="artsStageSize">'+Object.entries({small:'小（760×760／ナイトメア5秒）',medium:'中（1120×1120／10秒）',large:'大（2200×2200／20秒）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stageSize===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field" style="display:flex;align-items:center;gap:10px"><input id="artsNpcEnabled" type="checkbox" ' +(s.npcEnabled?'checked':'')+'> 敵NPCを出現させる（小型ゴーレム／倒すと紫のアートマター粒）</label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">チーム分け<select id="artsTeamAssignModeConfig"><option value="random" '+(s.teamAssignMode==='random'?'selected':'')+'>ランダム</option><option value="manual" '+(s.teamAssignMode==='manual'?'selected':'')+'>手動</option></select></label><label class="form-field">持ち込める固有スキル数<select id="artsSkillSlots">'+Array.from({length:7},(_,i)=>'<option value="'+i+'" '+(s.skillSlots===i?'selected':'')+'>'+i+'個'+(i===2?'（デフォルト）':'')+'</option>').join('')+'</select><small>0個なら通常攻撃のみ、6個なら職業の全スキルを使用できます。</small></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。基本アリーナは上下にインク回復、左右にHP回復、四隅に転送装置を配置。小は簡潔、大は細かい遮蔽を追加したサイズ別専用設計です。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角・二重の丸や楕円・太い外殻は防御力、横に広い胴体も防御力に少し加点。塗りつぶし・グルグルはインク量、本体から離れた弾・魔法弾は射程に特化します。初期HPは全員100。セイントの祝福で最大HPを増やせます。2〜10人。チーム戦ではランダムまたは部屋主の手動指定でチームを決定します。時間切れ後は安全地帯が縮小します。</p>'}
+ function configHTML(s=R.settings()){return '<label class="form-field">試合用キャラキャンバスの幅（px）<input id="artsCharacterWidth" type="number" min="128" max="2048" step="1" value="'+s.characterWidth+'" required></label><label class="form-field">試合用キャラキャンバスの高さ（px）<input id="artsCharacterHeight" type="number" min="128" max="2048" step="1" value="'+s.characterHeight+'" required></label><p class="muted">待機室は部屋作成時のサイズを維持します。戦場の広さはステージ設定に従います。</p><label class="form-field">ステージ<select id="artsStageSelect">'+Object.entries({garden:'生命の庭園',ruins:'古代遺跡',forest:'深緑の森',arena:'基本アリーナ',portal:'転送研究所',mine:'鉱石洞窟',factory:'暴走工場'}).map(([id,name])=>'<option value="'+id+'" '+(s.stage===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field">ステージの大きさ<select id="artsStageSize">'+Object.entries({small:'小（760×760／ナイトメア5秒）',medium:'中（1120×1120／10秒）',large:'大（2200×2200／20秒）'}).map(([id,name])=>'<option value="'+id+'" '+(s.stageSize===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label><label class="form-field" style="display:flex;align-items:center;gap:10px"><input id="artsNpcEnabled" type="checkbox" ' +(s.npcEnabled?'checked':'')+'> 敵NPCを出現させる（小型ゴーレム／倒すと紫のアートマター粒）</label><label class="form-field">対戦形式<select id="artsTeamMode"><option value="solo" '+(s.teams==='solo'?'selected':'')+'>個人戦</option><option value="teams" '+(s.teams==='teams'?'selected':'')+'>2チーム戦</option></select></label><label class="form-field">チーム分け<select id="artsTeamAssignModeConfig"><option value="random" '+(s.teamAssignMode==='random'?'selected':'')+'>ランダム</option><option value="manual" '+(s.teamAssignMode==='manual'?'selected':'')+'>手動</option></select></label><label class="form-field">持ち込める固有スキル数<select id="artsSkillSlots">'+Array.from({length:9},(_,i)=>'<option value="'+i+'" '+(s.skillSlots===i?'selected':'')+'>'+i+'個'+(i===2?'（デフォルト）':'')+'</option>').join('')+'</select><small>0個なら通常攻撃のみ、8個なら職業の全スキルを使用できます。</small></label><label class="form-field">キャラクターを描く時間（秒）<input id="artsCreateSeconds" type="number" min="20" max="600" value="'+s.createSeconds+'" required></label><label class="form-field">対戦時間（秒）<input id="artsBattleSeconds" type="number" min="30" max="600" value="'+s.battleSeconds+'" required></label><p class="muted">全ステージ共通：木の壁はHP10、補強壁はHP100、石壁は破壊不可。基本アリーナは上下にインク回復、左右にHP回復、四隅に転送装置を配置。小は簡潔、大は細かい遮蔽を追加したサイズ別専用設計です。</p><p class="muted">能力は折れ線の角・線の滑らかさ・実際の塗りつぶし面積などから合計100ポイントを自動配分。トゲは攻撃力、一本の直線は素早さ、盾の角・二重の丸や楕円・太い外殻は防御力、横に広い胴体も防御力に少し加点。塗りつぶし・グルグルはインク量、本体から離れた弾・魔法弾は射程に特化します。初期HPは全員100。セイントの祝福で最大HPを増やせます。2〜10人。チーム戦ではランダムまたは部屋主の手動指定でチームを決定します。時間切れ後は安全地帯が縮小します。</p>'}
  function readSettings(source){const root=source||$('#artsSettingsForm')||$('#artsCreate');const value=id=>root?.querySelector('#'+id)?.value??$('#'+id)?.value;return R.settings({characterWidth:value('artsCharacterWidth'),characterHeight:value('artsCharacterHeight'),createSeconds:value('artsCreateSeconds'),battleSeconds:value('artsBattleSeconds'),teams:value('artsTeamMode'),teamAssignMode:value('artsTeamAssignModeConfig'),stage:value('artsStageSelect'),stageSize:value('artsStageSize'),skillSlots:value('artsSkillSlots'),npcEnabled:!!(root?.querySelector('#artsNpcEnabled')||$('#artsNpcEnabled'))?.checked})}
  function settingsTeamPickerHTML(){
   const participants=[...members.values()].filter(p=>!p.spectator&&!p.disconnected);
