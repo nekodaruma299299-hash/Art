@@ -6137,7 +6137,7 @@ for(const[tool,ic]of [['pen','brush'],['eraser','eraser'],['warp','warp'],['blur
 {const b=document.createElement('button');b.type='button';b.dataset.tool='pet';b.innerHTML=icon('hand')+'<span>なでなで</span>';b.title='なでなで：描画せずカーソルを動かす。選択中に再度押すとカーソル設定';b.onclick=()=>{window.ArtPetMode?.toggle?.()};$('#toolButtons').append(b)}
 function renderControls(){window.ArtOperationSettings?.sync();window.ArtRoomTools?.sync();window.ArtStudioOptions?.render();window.ArtClip?.render();updateBrushCursor();document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===(window.ArtPetMode?.active?.()?'pet':prefs.tool)));let t=currentTool();const penButton=$('button[data-tool=pen]');if(penButton)penButton.querySelector('span').textContent='ペン'+(window.ArtOperationSettings?.settings.cyclePen?' '+(prefs.penSlot+1):'');const eraseButton=$('button[data-tool=eraser]');if(eraseButton)eraseButton.querySelector('span').textContent='消しゴム'+(window.ArtOperationSettings?.settings.cycleEraser?' '+(prefs.eraserSlot+1):'');$('#penTypeLabel').hidden=!['pen','eraser'].includes(prefs.tool);$('#brushTypeText').textContent=prefs.tool==='eraser'?'消しゴムの種類':'ペンの種類';window.ArtPenStudio?.refreshSelect?.($('#penType'),t);$('#penType').value=t.originalId?'original:'+t.originalId:(t.brush||'normal');$('#penType option[value=fade]').textContent=prefs.tool==='eraser'?'フェード消しゴム':'フェードペン';const dot=room?.mode==='pixel',unit=dot?8:1;$('.art-size-setting>label').textContent=dot?(labels[prefs.tool]||'ペン')+'サイズ':'サイズ';const customSize=['pen','eraser'].includes(prefs.tool),rangeLimits=customSize?window.ArtOperationSettings?.sizeBounds?.(dot,false):null;
  $('#sizeRange').min=rangeLimits?.min??1;$('#sizeRange').max=rangeLimits?.max??((prefs.tool==='warp'?640:160)/unit);
- $('#sizeRange').value=dot?Math.max(1,Math.round(t.size/8)):t.size;$('#sizeValue').textContent=(dot?Math.max(1,Math.round(t.size/8)):t.size)+(dot?' ドット':' px');for(const [id,verb]of [['sizeMinus','小さく'],['sizePlus','大きく']]){$('#'+id).title='サイズを1'+(dot?'ドット':'px')+verb;$('#'+id).setAttribute('aria-label',$('#'+id).title)}$('#strengthRange').value=t.strength;$('#strengthValue').textContent=t.strength+'%';$('#strengthText').textContent=['warp','blur','mosaic','colorConvert'].includes(prefs.tool)?'強さ':'不透明度';$('#layerLabel').textContent='レイヤー '+(prefs.layer+1);$('#layerOpacityRange').value=prefs.opacities[prefs.layer];$('#layerOpacityValue').textContent=prefs.opacities[prefs.layer]+'%';if($('#inkOpacityRange')){$('#inkOpacityRange').value=prefs.inkOpacities[prefs.layer];$('#inkOpacityValue').textContent=prefs.inkOpacities[prefs.layer]+'%'};$('#colorInput').value=prefs.color;$('#hexInput').value=prefs.color;$('#smoothRange').value=prefs.smooth;$('#pressureCheck').checked=prefs.pressure;$('#rotationCheck').checked=prefs.rotate;$('#penOnlyCheck').checked=prefs.penOnly;$('#toleranceRange').value=prefs.tolerance;$('#toleranceValue').textContent=prefs.tolerance+'%';$('#expandRange').value=prefs.fillExpand;$('#expandValue').textContent=prefs.fillExpand+' px';$('#expandRange').closest('label').hidden=room?.mode==='pixel';$('#smoothValue').textContent=prefs.smooth;$('#fillSettings').hidden=prefs.tool!=='fill';$('#panBtn').classList.toggle('active',pan);$('#panText').textContent='画面移動 '+(pan?'ON':'OFF');$('#viewport').style.cursor=pan?'grab':prefs.tool==='eyedrop'?'crosshair':'crosshair';let ops=engine?(window.ArtHistory?.ops()||[...engine.ops,...pendingLocal.values()]).filter(a=>a.author===localId&&undoableAction(a)&&!a.disabled&&!pendingHistory.has(a.id)&&a.at>=Date.now()-(room?.history||3)*60000):[],last=ops.at(-1);$('#undoBtn').disabled=!last||!connected;$('#redoBtn').disabled=!redoIds.some(id=>engine.ops.some(a=>a.id===id&&undoableAction(a)))||!connected;$('#undoHint').textContent='次に戻る：'+(last?(last.kind==='setting'?(labels[last.key]||'サイズ・強さ'):labels[last.tool]):'—');renderPalette();if(localViewer){$('#undoBtn').disabled=true;$('#redoBtn').disabled=true}if(window.ArtGame?.enabled()&&!window.ArtGame.canDraw()){$('#undoBtn').disabled=true;$('#redoBtn').disabled=true};window.ArtCreativeTools?.sync?.();window.ArtQuickSize?.sync?.()}
+ const controlSize=window.ArtQuickSize?.baseSize?.()??t.size;const displaySize=dot?Math.max(1,Math.round(controlSize/8)):controlSize;$('#sizeRange').value=displaySize;const sizeText=displaySize+(dot?' ドット':' px');if($('#sizeValue').textContent!==sizeText)$('#sizeValue').textContent=sizeText;for(const [id,verb]of [['sizeMinus','小さく'],['sizePlus','大きく']]){$('#'+id).title='サイズを1'+(dot?'ドット':'px')+verb;$('#'+id).setAttribute('aria-label',$('#'+id).title)}$('#strengthRange').value=t.strength;$('#strengthValue').textContent=t.strength+'%';$('#strengthText').textContent=['warp','blur','mosaic','colorConvert'].includes(prefs.tool)?'強さ':'不透明度';$('#layerLabel').textContent='レイヤー '+(prefs.layer+1);$('#layerOpacityRange').value=prefs.opacities[prefs.layer];$('#layerOpacityValue').textContent=prefs.opacities[prefs.layer]+'%';if($('#inkOpacityRange')){$('#inkOpacityRange').value=prefs.inkOpacities[prefs.layer];$('#inkOpacityValue').textContent=prefs.inkOpacities[prefs.layer]+'%'};$('#colorInput').value=prefs.color;$('#hexInput').value=prefs.color;$('#smoothRange').value=prefs.smooth;$('#pressureCheck').checked=prefs.pressure;$('#rotationCheck').checked=prefs.rotate;$('#penOnlyCheck').checked=prefs.penOnly;$('#toleranceRange').value=prefs.tolerance;$('#toleranceValue').textContent=prefs.tolerance+'%';$('#expandRange').value=prefs.fillExpand;$('#expandValue').textContent=prefs.fillExpand+' px';$('#expandRange').closest('label').hidden=room?.mode==='pixel';$('#smoothValue').textContent=prefs.smooth;$('#fillSettings').hidden=prefs.tool!=='fill';$('#panBtn').classList.toggle('active',pan);$('#panText').textContent='画面移動 '+(pan?'ON':'OFF');$('#viewport').style.cursor=pan?'grab':prefs.tool==='eyedrop'?'crosshair':'crosshair';let ops=engine?(window.ArtHistory?.ops()||[...engine.ops,...pendingLocal.values()]).filter(a=>a.author===localId&&undoableAction(a)&&!a.disabled&&!pendingHistory.has(a.id)&&a.at>=Date.now()-(room?.history||3)*60000):[],last=ops.at(-1);$('#undoBtn').disabled=!last||!connected;$('#redoBtn').disabled=!redoIds.some(id=>engine.ops.some(a=>a.id===id&&undoableAction(a)))||!connected;$('#undoHint').textContent='次に戻る：'+(last?(last.kind==='setting'?(labels[last.key]||'サイズ・強さ'):labels[last.tool]):'—');renderPalette();if(localViewer){$('#undoBtn').disabled=true;$('#redoBtn').disabled=true}if(window.ArtGame?.enabled()&&!window.ArtGame.canDraw()){$('#undoBtn').disabled=true;$('#redoBtn').disabled=true};window.ArtCreativeTools?.sync?.();window.ArtQuickSize?.sync?.()}
 let paletteSignature='';function renderPalette(){const signature=palette.join(',')+'|'+prefs.color;if(signature===paletteSignature)return;paletteSignature=signature;let colors=palette;$('#swatches').innerHTML='';for(const c of colors){let b=document.createElement('button');b.className='swatch'+(c===prefs.color?' selected':'');b.style.background=c;b.title=c;b.setAttribute('aria-label',c);b.onclick=()=>changeSetting('color',c);b.oncontextmenu=e=>{e.preventDefault();palette=palette.filter(x=>x!==c);persist('artopia-palette',palette);renderPalette()};$('#swatches').append(b)}}
 function range(id,key,after){let before=null,k=null;const el=$(id),getkey=()=>typeof key==='function'?key():key;el.addEventListener('pointerdown',()=>{k=getkey();before=settingValue(k)});el.addEventListener('keydown',()=>{if(before===null){k=getkey();before=settingValue(k)}});el.addEventListener('input',()=>{if(before===null){k=getkey();before=settingValue(k)}assignSetting(k,after?after(+el.value):+el.value)});el.addEventListener('change',()=>{let v=settingValue(k||getkey());commitSetting(k||getkey(),before??v,v);before=null;k=null})}
 $('#inkOpacityRange').oninput=e=>{prefs.inkOpacities[prefs.layer]=Math.max(0,Math.min(100,+e.target.value));renderControls()};
@@ -30293,7 +30293,7 @@ window.ArtRoundAlbumImage=async(mode,state)=>{
   if(opacityControl)sizeOpacityFold.append(opacityControl);
   const summaryValue=document.createElement('span');
   sizeOpacityFold.querySelector('summary').append(summaryValue);
-  const syncValues=()=>{summaryValue.textContent=($('#sizeValue')?.textContent||'')+' / '+($('#strengthValue')?.textContent||'')};
+  const syncValues=()=>{const text=($('#sizeValue')?.textContent||'')+' / '+($('#strengthValue')?.textContent||'');if(summaryValue.textContent!==text)summaryValue.textContent=text};
   for(const control of [$('#sizeValue'),$('#strengthValue')])if(control)new MutationObserver(syncValues).observe(control,{childList:true,subtree:true,characterData:true});
   syncValues();
  }
@@ -30538,9 +30538,10 @@ window.ArtPenStudio=(()=>{
 <script id="artopia-operation-settings">
 (()=>{
  const $=s=>document.querySelector(s),studio=$('#studio');
- const defaults={quickSize:true,cyclePen:false,cycleEraser:false,lockTools:false,hold:420,sendEnter:true,keyboard:'auto',toolNames:true,sizeMin:1,sizeMax:160};
+ const defaults={quickSize:true,quickSizeRatio:2,cyclePen:false,cycleEraser:false,lockTools:false,hold:420,sendEnter:true,keyboard:'auto',toolNames:true,sizeMin:1,sizeMax:160};
  let saved={};try{saved=JSON.parse(localStorage.getItem('artopia-operation-settings'))||{}}catch{}
  const settings={...defaults};for(const k of ['quickSize','cyclePen','cycleEraser','lockTools','sendEnter','toolNames'])if(typeof saved[k]==='boolean')settings[k]=saved[k];
+ if(Number.isFinite(saved.quickSizeRatio)&&saved.quickSizeRatio>=1.1&&saved.quickSizeRatio<=4)settings.quickSizeRatio=saved.quickSizeRatio;
  if([280,420,700].includes(saved.hold))settings.hold=saved.hold;
  if(['auto','keep','close'].includes(saved.keyboard))settings.keyboard=saved.keyboard;
  if(Number.isInteger(saved.sizeMin)&&saved.sizeMin>=1&&saved.sizeMin<160)settings.sizeMin=saved.sizeMin;
@@ -30571,12 +30572,13 @@ window.ArtPenStudio=(()=>{
  }
 
  function sync(){studio.classList.toggle('art-tool-icons',!settings.toolNames);for(const b of studio.querySelectorAll('button[data-tool]')){const span=b.querySelector('span');if(span&&['pen','eraser'].includes(b.dataset.tool)){const pen=b.dataset.tool==='pen';span.textContent=(pen?'ペン':'消しゴム')+((pen?settings.cyclePen:settings.cycleEraser)?' '+((pen?prefs.penSlot:prefs.eraserSlot)+1):'')}const name=span?.textContent?.trim();if(name){b.setAttribute('aria-label',name);b.title=name+(settings.lockTools?'':' · 長押しで移動')}}}
- function set(k,v){settings[k]=v;try{localStorage.setItem('artopia-operation-settings',JSON.stringify(settings))}catch{}sync();if(k==='quickSize')renderControls()}
+ function set(k,v){settings[k]=v;try{localStorage.setItem('artopia-operation-settings',JSON.stringify(settings))}catch{}sync();if(k==='quickSize'||k==='quickSizeRatio')renderControls()}
  const check=(id,label,description,value)=>`<label><span>${label}${description?`<small>${description}</small>`:''}</span><input type="checkbox" id="${id}" ${value?'checked':''}></label>`;
  function open(){
   $('.header-menu')?.classList.remove('is-open');$('#headerMenuToggle')?.setAttribute('aria-expanded','false');
-  modal('操作設定',`<div class="art-operation-settings"><small>この端末での操作に反映され、変更は自動保存されます。</small>${window.ArtPenStudio?.html?.()||''}${check('opQuickSize','ペンサイズの即座切り替え','大きさの違う5つの丸で太さを選択。詳細のスライダーで中央の太さを設定します。オフにすると従来のスライダー表示に戻ります。',settings.quickSize)}${check('opCyclePen','ペンのタップ切替','オンにすると、選択中のペンを押すたびに①→②→③と切り替わります。',settings.cyclePen)}${check('opCycleEraser','消しゴムのタップ切替','オンにすると、選択中の消しゴムを押すたびに①→②→③と切り替わります。',settings.cycleEraser)}${check('opLock','ツール配置を固定','長押しでの並べ替え・取り出しを止めます。倉庫のボタンから追加・収納はできます。',settings.lockTools)}<div class="op-size-range-settings"><strong>ペンサイズのスライダー範囲</strong><div class="op-size-pair"><label><span>最小（px）</span><input id="opSizeMin" type="number" inputmode="numeric" min="1" max="159" step="1" value="${settings.sizeMin}"></label><label><span>最大（px）</span><input id="opSizeMax" type="number" inputmode="numeric" min="2" max="160" step="1" value="${settings.sizeMax}"></label></div><small>通常は1～160px。スライダーと＋／−ボタンの調整範囲だけを変更します。</small></div><label><span>指とペンの役割<small>ツールやスライダーは、どちらでも操作できます。</small></span><select id="opFinger"><option value="draw">指でも描く</option><option value="move">ペンで描き、指で移動</option></select></label><label><span>チャットの送信方法<small>日本語の変換確定では送信しません。</small></span><select id="opSend"><option value="enter">Enter または送信ボタン</option><option value="button">送信ボタンのみ</option></select></label><details><summary>詳細設定</summary><label><span>ツールを持ち上げる長押し時間</span><select id="opHold"><option value="280">短め</option><option value="420">標準</option><option value="700">長め</option></select></label>${check('opRotate','二本指で画面を回転','オフでも拡大・縮小は使えます。',prefs.rotate)}<label><span>チャット送信後のキーボード</span><select id="opKeyboard"><option value="auto">端末に合わせる</option><option value="close">閉じる</option><option value="keep">開いたまま</option></select></label>${check('opNames','ツール名を表示','オフにすると道具のボタンをアイコンだけで表示します。',settings.toolNames)}</details></div>`);
+  modal('操作設定',`<div class="art-operation-settings"><small>この端末での操作に反映され、変更は自動保存されます。</small>${window.ArtPenStudio?.html?.()||''}${check('opQuickSize','ペンサイズの即座切り替え','大きさの違う5つの丸で太さを選択。詳細のスライダーで中央の太さを設定します。オフにすると従来のスライダー表示に戻ります。',settings.quickSize)}<label><span>太さの切り替え倍率<small>隣の丸との倍率です。2倍なら基準の¼・½・1・2・4倍。1.1～4倍で設定できます。</small></span><input id="opQuickSizeRatio" type="number" min="1.1" max="4" step="0.1" inputmode="decimal" value="${settings.quickSizeRatio}" aria-label="太さの切り替え倍率"></label>${check('opCyclePen','ペンのタップ切替','オンにすると、選択中のペンを押すたびに①→②→③と切り替わります。',settings.cyclePen)}${check('opCycleEraser','消しゴムのタップ切替','オンにすると、選択中の消しゴムを押すたびに①→②→③と切り替わります。',settings.cycleEraser)}${check('opLock','ツール配置を固定','長押しでの並べ替え・取り出しを止めます。倉庫のボタンから追加・収納はできます。',settings.lockTools)}<div class="op-size-range-settings"><strong>ペンサイズのスライダー範囲</strong><div class="op-size-pair"><label><span>最小（px）</span><input id="opSizeMin" type="number" inputmode="numeric" min="1" max="159" step="1" value="${settings.sizeMin}"></label><label><span>最大（px）</span><input id="opSizeMax" type="number" inputmode="numeric" min="2" max="160" step="1" value="${settings.sizeMax}"></label></div><small>通常は1～160px。スライダーと＋／−ボタンの調整範囲だけを変更します。</small></div><label><span>指とペンの役割<small>ツールやスライダーは、どちらでも操作できます。</small></span><select id="opFinger"><option value="draw">指でも描く</option><option value="move">ペンで描き、指で移動</option></select></label><label><span>チャットの送信方法<small>日本語の変換確定では送信しません。</small></span><select id="opSend"><option value="enter">Enter または送信ボタン</option><option value="button">送信ボタンのみ</option></select></label><details><summary>詳細設定</summary><label><span>ツールを持ち上げる長押し時間</span><select id="opHold"><option value="280">短め</option><option value="420">標準</option><option value="700">長め</option></select></label>${check('opRotate','二本指で画面を回転','オフでも拡大・縮小は使えます。',prefs.rotate)}<label><span>チャット送信後のキーボード</span><select id="opKeyboard"><option value="auto">端末に合わせる</option><option value="close">閉じる</option><option value="keep">開いたまま</option></select></label>${check('opNames','ツール名を表示','オフにすると道具のボタンをアイコンだけで表示します。',settings.toolNames)}</details></div>`);
   for(const[id,k]of [['opQuickSize','quickSize'],['opCyclePen','cyclePen'],['opCycleEraser','cycleEraser'],['opLock','lockTools'],['opNames','toolNames']])$('#'+id).onchange=e=>set(k,e.target.checked);
+  const ratioInput=$('#opQuickSizeRatio');ratioInput.onchange=()=>{const n=Number(ratioInput.value);if(Number.isFinite(n)&&n>=1.1&&n<=4){set('quickSizeRatio',Math.round(n*10)/10)}ratioInput.value=settings.quickSizeRatio};ratioInput.onblur=()=>{ratioInput.value=settings.quickSizeRatio};
   window.ArtPenStudio?.bind?.();
    $('#opFinger').value=prefs.penOnly?'move':'draw';$('#opFinger').onchange=e=>changeSetting('penOnly',e.target.value==='move');
   $('#opRotate').onchange=e=>changeSetting('rotate',e.target.checked);
@@ -30605,12 +30607,28 @@ window.ArtPenStudio=(()=>{
 #artQuickSize button[aria-pressed=true]{background:#e0f1ff;border:2px solid #277ab0;color:#164d78;box-shadow:0 0 0 1px #277ab020}
 #artQuickSize button:focus-visible{outline:3px solid #e99d39;outline-offset:2px}
 #artQuickSize .aqs-dot{display:block;flex:none;border-radius:50%;background:currentColor;pointer-events:none}
+
+#studio>.workspace>.toolbox{min-width:0;max-width:100%;contain:inline-size}
+#studio .tool-settings,#studio #artFold-size,#studio #artQuickSize{min-width:0;max-width:100%;box-sizing:border-box}
+#studio #toolButtons{scrollbar-gutter:stable;overflow-x:hidden}
+#artQuickSize .aqs-heading{height:22px;min-width:0}
+#artQuickSize output{min-width:7ch;text-align:right;white-space:nowrap}
+#artQuickSize button{border-width:2px;overflow:hidden;box-sizing:border-box}
+#artQuickSize .aqs-dot{max-width:100%;max-height:24px;aspect-ratio:1}
+#artFold-size>summary{white-space:normal;overflow-wrap:anywhere}
+#artFold-size>summary span{float:none;display:block;margin:0;font-size:11px;min-width:0;font-variant-numeric:tabular-nums}
+#artFold-size .art-size-setting{grid-template-columns:minmax(0,1fr);gap:5px;min-width:0}
+#artFold-size .art-size-stepper{justify-self:stretch;display:flex;justify-content:space-between;min-width:0}
+#artFold-size .art-size-stepper output{float:none;text-align:center;flex:1;min-width:0;font-variant-numeric:tabular-nums}
+#artFold-size .art-size-stepper button{flex:0 0 30px;min-width:0;padding-inline:3px}
+#artFold-size input[type=range]{min-width:0;width:100%;max-width:100%}
+#opQuickSizeRatio{width:90px;max-width:100%;flex-shrink:0}
 </style>
 <script id="artopia-quick-size">
 /* Five immediate brush sizes. Stored brush size remains the actual drawing size;
    the independent baseline prevents repeated taps from multiplying it again. */
 window.ArtQuickSize=(()=>{
- const factors=[.1,1/3,1,2,3],names=['極小','小','中','大','特大'],dots=[3,6,10,16,24];
+ const names=['極小','小','中','大','特大'],dots=[3,6,10,16,24];
  let saved={};try{saved=JSON.parse(localStorage.getItem('artopia-quick-size-v1'))||{}}catch{}
  const states=Object.create(null);for(const [k,v] of Object.entries(saved)){if(v&&Number.isFinite(v.base)&&v.base>=1&&v.base<=160&&Number.isInteger(v.index)&&v.index>=0&&v.index<5&&Number.isFinite(v.last))states[k]={base:v.base,index:v.index,last:v.last}}
  let applying=false,shown=false,previousOpen=true;
@@ -30619,9 +30637,10 @@ window.ArtQuickSize=(()=>{
  const panel=document.createElement('section');panel.id='artQuickSize';panel.hidden=true;
  panel.innerHTML='<div class="aqs-heading"><span>太さ</span><output id="aqsCurrent" aria-live="polite"></output></div><div class="aqs-buttons" role="group" aria-label="ペンの太さを選択"></div>';
  fold.before(panel);
- const buttons=dots.map((diameter,index)=>{const b=document.createElement('button');b.type='button';b.dataset.sizeIndex=index;b.innerHTML='<span class="aqs-dot" aria-hidden="true" style="width:'+diameter+'px;height:'+diameter+'px"></span>';b.onclick=()=>choose(index);panel.querySelector('.aqs-buttons').append(b);return b});
+ const buttons=dots.map((diameter,index)=>{const b=document.createElement('button');b.type='button';b.dataset.sizeIndex=index;b.innerHTML='<span class="aqs-dot" aria-hidden="true" style="width:'+Math.round(diameter/24*100)+'%;max-width:'+diameter+'px;aspect-ratio:1"></span>';b.onclick=()=>choose(index);panel.querySelector('.aqs-buttons').append(b);return b});
  const save=()=>{try{localStorage.setItem('artopia-quick-size-v1',JSON.stringify(states))}catch{}};
- const values=(base,dot=false)=>factors.map(f=>Math.max(1,Math.min(dot?20:160,Math.round(base*f))));
+ const ratio=()=>Math.max(1.1,Math.min(4,Number(window.ArtOperationSettings?.settings.quickSizeRatio)||2));
+ const values=(base,dot=false)=>[-2,-1,0,1,2].map(power=>Math.max(1,Math.min(dot?20:160,Math.round(base*Math.pow(ratio(),power)))));
  function context(){
   if(!['pen','eraser'].includes(prefs.tool))return null;
   const t=currentTool(),dot=room?.mode==='pixel',unit=dot?8:1,key=activeSizeKey();
@@ -30651,16 +30670,17 @@ window.ArtQuickSize=(()=>{
   const summary=fold.querySelector('summary');
   if(on!==shown){
    if(on){previousOpen=fold.open;fold.open=false}else fold.open=previousOpen;
-   if(summary?.firstChild)summary.firstChild.textContent=on?'詳細（基準サイズ・透明度）':'太さ・透明度';
+   if(summary?.firstChild)summary.firstChild.textContent=on?'詳細':'太さ・透明度';
    shown=on;
   }
   if(!on)return;
   const s=state(c),sizes=values(s.base,c.dot),unit=c.dot?'ドット':'px';
+  if(c.actual!==sizes[s.index]*c.unit){choose(s.index);return}
   const out=panel.querySelector('output'),text=Math.round(c.actual/c.unit)+' '+unit;if(out.textContent!==text)out.textContent=text;
   buttons.forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===s.index));b.title=names[i]+'：'+sizes[i]+' '+unit+(i===2?'（基準）':'');b.setAttribute('aria-label',b.title)});
-  const label=setting.querySelector('label');label.textContent='基準サイズ（中）';
+  const label=setting.querySelector('label');if(label.textContent!=='基準サイズ（中）')label.textContent='基準サイズ（中）';
   document.getElementById('sizeRange').value=s.base;
-  document.getElementById('sizeValue').textContent=s.base+' '+unit;
+  const baseOutput=document.getElementById('sizeValue'),baseText=s.base+' '+unit;if(baseOutput.textContent!==baseText)baseOutput.textContent=baseText;
   for(const [id,verb]of [['sizeMinus','小さく'],['sizePlus','大きく']]){const b=document.getElementById(id);b.title='基準サイズを1'+unit+verb;b.setAttribute('aria-label',b.title)}
  }
  const api={sync,onAssigned,baseSize,setBase,values};
