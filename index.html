@@ -12945,6 +12945,33 @@ window.ArtArts=(()=>{
    if(crown&&flexible<.34&&u<a+.055&&(!shape||shape.type!=='aura'))return {nearMiss:true};
    return {shape};
   }
+  if(fighter.class==='magician'){
+   const path=paths[0],trace=R.normalizedTrace(path),ref=R.normalizedTrace(ultimateTemplate('magician'));
+   const score=ultimateSimilarity(paths,'magician');
+   const aligned=R.alignedError(trace,ref);
+   const travel=R.length(paths);
+   const xs=path.map(p=>p.x),ys=path.map(p=>p.y);
+   const spanX=Math.max(...xs)-Math.min(...xs),spanY=Math.max(...ys)-Math.min(...ys),span=Math.max(spanX,spanY,1);
+   const resampled=R.resample(path,48);
+   let sharpTurns=0;
+   for(let i=2;i<resampled.length-2;i++){
+    const a=resampled[i-2],b=resampled[i],c=resampled[i+2];
+    const u={x:b.x-a.x,y:b.y-a.y},v={x:c.x-b.x,y:c.y-b.y};
+    const ang=Math.abs(Math.atan2(u.x*v.y-u.y*v.x,u.x*v.x+u.y*v.y));
+    if(ang>.62)sharpTurns++;
+   }
+   const complex=travel/span>4.15&&sharpTurns>=7&&span>=42;
+   const competitor=shape?R.skillGuideError(path,shape.type):Infinity;
+   const stealers=['star','ray','nova','heal','recharge','summon'];
+   if(complex&&score<.305&&aligned<.34){
+    if(!shape)return {ultimate:'magician'};
+    if(stealers.includes(shape.type)&&score<=competitor+.075)return {ultimate:'magician'};
+    if(score+.025<competitor)return {ultimate:'magician'};
+    if(score<.24&&aligned<.28)return {ultimate:'magician'};
+   }
+   if(complex&&score<.345&&(!shape||stealers.includes(shape.type)))return {nearMiss:true};
+   return {shape};
+  }
   if(fighter.class==='dreamer'&&nightmareEye(paths[0]))return {ultimate:'dreamer'};
   const ultimate=ultimateRecognition(paths,fighter.class);
   if(ultimate){
