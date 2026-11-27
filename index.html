@@ -18222,27 +18222,27 @@ function drawUltimateWorld(x,now){
         x.beginPath();x.moveTo(outer,-5);x.quadraticCurveTo(outer+drop*1.1,-5,outer+drop,1);x.quadraticCurveTo(outer+drop*.65,drop*.32,outer,6);x.closePath();x.fill();x.stroke();x.restore();
       }
       x.restore();
-      // Aggressive layered flames around the fighter, without masking the character.
-      for(let j=0;j<12;j++){
-        const a=j*Math.PI/6+phase*.16,baseR=37+(j%3)*4;
-        const tip=baseR+22+13*(.5+.5*Math.sin(phase*3.6+j*1.7));
+      // Original red bullet-shaped flames: orbit around the caster toward revenge targets.
+      const targets=nemesisTargets(p,view.fighters,view.settings.teams);
+      targets.forEach((q,j)=>{
+        const target=positions.get(q.id)||q,a=Math.atan2(target.y-pos.y,target.x-pos.x);
+        const nearby=targets.slice(0,j).filter(v=>{const t=positions.get(v.id)||v,b=Math.atan2(t.y-pos.y,t.x-pos.x);return Math.abs(Math.atan2(Math.sin(b-a),Math.cos(b-a)))<.35}).length;
+        const baseR=42+nearby*40,tip=baseR+32;
         x.save();x.rotate(a);x.fillStyle=j%2?'rgba(93,0,27,.64)':'rgba(185,13,62,.42)';
         x.shadowColor='#bb1450';x.shadowBlur=13;
         x.beginPath();x.moveTo(baseR,-9);x.quadraticCurveTo(tip-10,-5,tip,0);
         x.quadraticCurveTo(tip-9,7,baseR,9);x.closePath();x.fill();x.restore();
-      }
-      // Reuse the original glowing bullet-like wisps as revenge direction indicators.
-      const targets=nemesisTargets(p,view.fighters,view.settings.teams);
-      targets.forEach((q,index)=>{
-        const target=positions.get(q.id)||q,angle=Math.atan2(target.y-pos.y,target.x-pos.x);
-        const nearby=targets.slice(0,index).filter(v=>{const t=positions.get(v.id)||v,a=Math.atan2(t.y-pos.y,t.x-pos.x);return Math.abs(Math.atan2(Math.sin(a-angle),Math.cos(a-angle)))<.32}).length;
-        const r=100+nearby*36,wx=Math.cos(angle)*r,wy=Math.sin(angle)*r,j=index;
-        x.save();x.translate(wx,wy);x.rotate(angle+Math.PI/2);
+      });
+      // Individual wisps circle at three different speeds, flare and drift up.
+      for(let j=0;j<9;j++){
+        const a=phase*(j%2?-.65:.8)+j*2.39996;
+        const r=87+(j%4)*15,wx=Math.cos(a)*r,wy=Math.sin(a)*r*.58-6-7*Math.sin(phase*1.8+j);
+        x.save();x.translate(wx,wy);x.rotate(Math.sin(phase*1.6+j)*.25);
         const grad=x.createRadialGradient(0,0,1,0,0,19);
         grad.addColorStop(0,'rgba(238,239,255,.78)');grad.addColorStop(.37,j%3?'rgba(167,149,252,.4)':'rgba(249,92,147,.42)');grad.addColorStop(1,'rgba(107,58,163,0)');
         x.fillStyle=grad;x.beginPath();x.moveTo(0,-17);x.bezierCurveTo(15,-4,11,12,0,15);x.bezierCurveTo(-13,8,-11,-6,0,-17);x.fill();
         x.strokeStyle='rgba(228,211,255,.32)';x.lineWidth=1.1;x.beginPath();x.moveTo(-3,-9);x.quadraticCurveTo(-9,0,-2,8);x.stroke();x.restore();
-      });
+      }
       // Decorative ring stays independent of the directional revenge indicators.
       x.save();x.strokeStyle='rgba(255,74,125,.58)';x.lineWidth=2.5;
       for(let j=0;j<8;j++){const a=j*Math.PI/4;x.beginPath();x.arc(0,0,72,a+.07,a+.51);x.stroke()}x.restore();
