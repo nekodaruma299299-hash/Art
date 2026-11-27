@@ -18231,28 +18231,21 @@ function drawUltimateWorld(x,now){
         x.beginPath();x.moveTo(baseR,-9);x.quadraticCurveTo(tip-10,-5,tip,0);
         x.quadraticCurveTo(tip-9,7,baseR,9);x.closePath();x.fill();x.restore();
       }
-      // Individual wisps circle at three different speeds, flare and drift up.
-      for(let j=0;j<9;j++){
-        const a=phase*(j%2?-.65:.8)+j*2.39996;
-        const r=87+(j%4)*15,wx=Math.cos(a)*r,wy=Math.sin(a)*r*.58-6-7*Math.sin(phase*1.8+j);
-        x.save();x.translate(wx,wy);x.rotate(Math.sin(phase*1.6+j)*.25);
+      // Reuse the original glowing bullet-like wisps as revenge direction indicators.
+      const targets=nemesisTargets(p,view.fighters,view.settings.teams);
+      targets.forEach((q,index)=>{
+        const target=positions.get(q.id)||q,angle=Math.atan2(target.y-pos.y,target.x-pos.x);
+        const nearby=targets.slice(0,index).filter(v=>{const t=positions.get(v.id)||v,a=Math.atan2(t.y-pos.y,t.x-pos.x);return Math.abs(Math.atan2(Math.sin(a-angle),Math.cos(a-angle)))<.32}).length;
+        const r=100+nearby*36,wx=Math.cos(angle)*r,wy=Math.sin(angle)*r,j=index;
+        x.save();x.translate(wx,wy);x.rotate(angle+Math.PI/2);
         const grad=x.createRadialGradient(0,0,1,0,0,19);
         grad.addColorStop(0,'rgba(238,239,255,.78)');grad.addColorStop(.37,j%3?'rgba(167,149,252,.4)':'rgba(249,92,147,.42)');grad.addColorStop(1,'rgba(107,58,163,0)');
         x.fillStyle=grad;x.beginPath();x.moveTo(0,-17);x.bezierCurveTo(15,-4,11,12,0,15);x.bezierCurveTo(-13,8,-11,-6,0,-17);x.fill();
         x.strokeStyle='rgba(228,211,255,.32)';x.lineWidth=1.1;x.beginPath();x.moveTo(-3,-9);x.quadraticCurveTo(-9,0,-2,8);x.stroke();x.restore();
-      }
+      });
       // Decorative ring stays independent of the directional revenge indicators.
       x.save();x.strokeStyle='rgba(255,74,125,.58)';x.lineWidth=2.5;
       for(let j=0;j<8;j++){const a=j*Math.PI/4;x.beginPath();x.arc(0,0,72,a+.07,a+.51);x.stroke()}x.restore();
-      const targets=nemesisTargets(p,view.fighters,view.settings.teams);
-      // One directional marker for each living player who hurt this owner.
-      targets.forEach((q,index)=>{
-       const target=positions.get(q.id)||q,angle=Math.atan2(target.y-pos.y,target.x-pos.x);
-       // Separate nearly aligned targets onto staggered rings without changing direction.
-       const nearby=targets.slice(0,index).filter(v=>{const t=positions.get(v.id)||v,a=Math.atan2(t.y-pos.y,t.x-pos.x);return Math.abs(Math.atan2(Math.sin(a-angle),Math.cos(a-angle)))<.22}).length;
-       x.save();x.rotate(angle);x.translate(84+nearby*15,0);x.strokeStyle='#ffd2e3';x.fillStyle='#ef467e';x.lineWidth=2;
-       x.beginPath();x.moveTo(10,0);x.lineTo(1,-5);x.lineTo(-9,-5);x.lineTo(-9,5);x.lineTo(1,5);x.closePath();x.fill();x.stroke();x.restore();
-      });
       const guilty=targets[0],eyeY=-86,target=guilty?(positions.get(guilty.id)||guilty):null;
       const gaze=target?Math.atan2(target.y-(pos.y+eyeY),target.x-pos.x):0;
       const pupilX=target?Math.cos(gaze)*8:0,pupilY=target?Math.sin(gaze)*3:0;
