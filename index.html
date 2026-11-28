@@ -5891,7 +5891,12 @@ async function handoffHost(targetId=null,stayInRoom=false){if(!room||room.ended)
   // The old host owns the canonical room Peer ID. Release it before reconnecting
   // as a guest, so the successor can claim the room alias for future joins.
   const formerPeer=peer;
+  // A successor may own a separate canonical alias as well as its data peer.
+  // Release both when handing ownership onward, including repeated handoffs.
+  clearTimeout(aliasTimer);aliasTimer=null;
+  const formerAlias=aliasPeer;aliasPeer=null;
   sessionToken++;
+  try{formerAlias?.destroy()}catch{}
   isHost=false;connected=false;
   void window.ArtPublicRooms?.stopHost?.();
   migrationOut=null;
@@ -5906,12 +5911,14 @@ async function handoffHost(targetId=null,stayInRoom=false){if(!room||room.ended)
 }
 let aliasClaim=null;
 async function claimRoomAlias(token,attempt=0){
+ if(aliasPeer?.destroyed)aliasPeer=null;
  if(token!==sessionToken||!isHost||!room||room.ended||room.offline||!peer||peer.destroyed||aliasPeer||aliasClaim?.token===token)return;
  const claim={token,room,peer};aliasClaim=claim;
  const live=()=>token===sessionToken&&room===claim.room&&!room.ended&&peer===claim.peer&&!peer.destroyed&&isHost;
  try{const id=await roomPeerId(room.code);if(!live()||peer.id===id)return;const p=await newPeer(id);if(!live()||aliasPeer){p.destroy();return}aliasPeer=p;
   p.on('connection',c=>{c.on('data',m=>decodeWire(c,m,q=>{if(q.type==='hello'&&live())sendWire(c,{type:'redirect',target:peer.id})}));c.on('error',()=>{})});
- }catch{if(live()&&attempt<20)aliasTimer=setTimeout(()=>claimRoomAlias(token,attempt+1),1000)}finally{if(aliasClaim===claim)aliasClaim=null}
+  p.on('close',()=>{if(aliasPeer!==p)return;aliasPeer=null;if(live())aliasTimer=setTimeout(()=>claimRoomAlias(token),1000)});
+ }catch{if(live())aliasTimer=setTimeout(()=>claimRoomAlias(token,attempt+1),Math.min(5000,1000+attempt*250))}finally{if(aliasClaim===claim)aliasClaim=null}
 }
 function endRoomConnection(){
  if(!room)return;room.ended=true;connected=false;sessionToken++;
@@ -12139,6 +12146,21 @@ window.ArtsRules=(()=>{
  const priorityGuides=new Set(Object.keys(moves).filter(k=>moves[k].class&&k!=='summon'));
  function recognize(strokes,skill){if(!valid(strokes))return null;const equipped=Array.isArray(skill)?skill:[skill];skill=equipped[0];const rawIdolPath=strokes.length===1?strokes[0]:null;if(window.artopiaIdolDiagnostics?.enabled&&equipped.some(k=>idolKeys.has(k)))window.artopiaIdolDiagnostics.last={points:rawIdolPath?.map(p=>({...p})),selected:null,reason:"no candidate"};strokes=strokes.map(stabilizeStroke);const len=length(strokes);if(len<13||len>6000)return null;const points=strokes.flat(),minx=Math.min(...points.map(p=>p.x)),maxx=Math.max(...points.map(p=>p.x)),miny=Math.min(...points.map(p=>p.y)),maxy=Math.max(...points.map(p=>p.y)),cx=(minx+maxx)/2,cy=(miny+maxy)/2,w=maxx-minx,h=maxy-miny,diag=Math.hypot(w,h);if(diag<11)return null;
 
+ // Ordinary Idol attacks use the same fallback as other jobs, but only
+ // when the common silhouette beats every Idol skill, equipped or not.
+ if(rawIdolPath&&equipped.some(k=>idolKeys.has(k))){
+  const ordinary=recognize([rawIdolPath],[]);
+  if(ordinary&&['slash','guard','magic'].includes(ordinary.type)){
+   const straight=['guard','magic'].includes(ordinary.type)&&dist(points[0],points.at(-1))/len>=.83;
+   if(straight)return ordinary;
+   const traces=[normalizedTrace(rawIdolPath),normalizedTrace(strokes[0])];
+   const commonKey=ordinary.type==='guard'?'magic':ordinary.type;
+   const basic=Math.min(...traces.map(t=>guideError(t,commonKey)));
+   const nearest=Math.min(...[...idolKeys].map(k=>Math.min(...traces.map(t=>Math.min(guideError(t,k),idolElasticScore(t,k)*1.12)))));
+   const note=idolQuarterNoteGeometry(rawIdolPath,true);
+   if(!note&&basic<.28&&basic+.045<nearest)return ordinary;
+  }
+ }
  // Distinctive stem and note head must be resolved before Slash or the generic
  // template matcher; ordinary slashes lack the curled note head.
  // Carbuncle's inward-curved four-point jewel is forgiving of wobbly sides,
@@ -12181,7 +12203,12 @@ window.ArtsRules=(()=>{
    if(key==='burst'&&(strokes[0].length<5||len<dist(points[0],points.at(-1))*1.12))continue;
    let error=guideError(trace,key);
    if(idolKeys.has(key)&&strokes.length===1)error=Math.min(error,idolElasticScore(trace,key)*1.12);
-   if(key==='lucid_dream'&&error>.075&&cloudOutline(strokes[0]))error=Math.min(error,.075);
+   if(key==='lucid_dream'&&error>.075&&cloudOutline(strokes[0])){
+    // Daydream also has cloud lobes. Its flat-base silhouette must compete
+    // before the forgiving all-around-cloud fallback is applied.
+    const dayError=Math.min(guideError(trace,'daydream'),guideError(normalizedTrace(rawIdolPath),'daydream'));
+    if(dayError>.24||error+.025<dayError)error=Math.min(error,.075);
+   }
    candidates.push({key,error});
   }
   candidates.sort((a,b)=>a.error-b.error||a.key.localeCompare(b.key));
