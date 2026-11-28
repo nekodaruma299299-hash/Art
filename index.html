@@ -28652,7 +28652,7 @@ const svg=(kind)=>{const shapes={museum:'<rect x="3" y="5" width="18" height="15
 const dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open('artopia-museum',1);req.onupgradeneeded=()=>{const d=req.result;for(const n of ['posts','likes','bookmarks','comments','notifications'])if(!d.objectStoreNames.contains(n))d.createObjectStore(n,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
 async function op(store,mode,fn){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),q=fn(tx.objectStore(store));tx.oncomplete=()=>resolve(q?.result);tx.onerror=()=>reject(tx.error)})}const all=n=>op(n,'readonly',st=>st.getAll());const put=(n,x)=>op(n,'readwrite',st=>st.put(x));const del=(n,id)=>op(n,'readwrite',st=>st.delete(id));const makeid=()=>crypto.randomUUID();
 const me=()=>{let p={};try{p=JSON.parse(localStorage.getItem('artopia-profile'))||{}}catch{}return {id:p.id||'local',name:p.name||'プレイヤー',avatar:p.avatar||''}};
-let galleryLimit=8,noticeLimit=20;
+let galleryLimit=8,noticeLimit=20,feedLoading=false;
 let focusedPost='',tab='new',search='',draftImage='',draftOrigin='external',editId='',commentsFor='',menuFor='',replyFor='',noticeView=false,profileFor='',loaded=[],likes=[],bookmarks=[],comments=[],notifications=[],selectedSource='';
 const noticeKinds=['like','bookmark','comment','reply','friend'];
 const prefKey=uid=>'artopia-museum-notice-prefs:'+uid;
@@ -28715,7 +28715,15 @@ const commentBox=c.querySelector('.mu-paged-comments');if(commentBox){
  }else commentBox.scrollTop=commentBox.scrollHeight;
 }
 if(draft){const input=document.getElementById(draft.id);if(input){input.value=draft.text;input.focus({preventScroll:true});input.setSelectionRange(draft.pos,draft.pos)}}
-if(moreLocal||cloud?.morePosts()){const b=document.createElement('button');b.className='mu-btn art-edge-action';b.dataset.feedOlder='';b.textContent='以前の作品を読み込む';b.onclick=async()=>{b.disabled=true;try{galleryLimit+=8;if(!moreLocal)await cloud?.olderPosts();await refresh()}finally{b.disabled=false}};(c.querySelector('.mu-browser-left')||c).append(b)}
+if(moreLocal||cloud?.morePosts()||cloud?.postsError()){
+ const b=document.createElement('button');b.type='button';b.className='mu-btn';b.dataset.feedOlder='';
+ b.style.cssText='display:block;width:100%;margin:12px 0 16px;min-height:42px';
+ b.disabled=feedLoading||!!cloud?.postsBusy();b.textContent=b.disabled?'作品を読み込み中…':cloud?.postsError()?'読み込みに失敗しました。再試行':tab==='mine'?'以前の投稿を探す':'以前の作品を読み込む';
+ b.onclick=async()=>{if(feedLoading)return;feedLoading=true;b.disabled=true;b.textContent='作品を読み込み中…';
+  try{if(moreLocal){galleryLimit+=8}else{const ok=await cloud?.olderPosts();if(ok)galleryLimit+=8}}
+  finally{feedLoading=false;await refresh()}};
+ (c.querySelector('.mu-browser-left')||c).append(b);
+}else if(cloud?.postsReady()&&!feedLoading){const end=document.createElement('p');end.className='mu-muted';end.style.textAlign='center';end.textContent='取得済みの作品をすべて表示しました';(c.querySelector('.mu-browser-left')||c).append(end)}
 const moreComments=c.querySelector('[data-older-comments]');if(moreComments)moreComments.onclick=async()=>{moreComments.disabled=true;try{await cloud.olderComments()}finally{moreComments.disabled=false}};
 if(tools){const slot=c.querySelector('.mu-browser-tools-slot');if(slot)slot.append(tools)}
 const backToList=c.querySelector('#muBackToList');if(backToList)backToList.onclick=()=>c.querySelector('.mu-browser')?.classList.remove('mu-mobile-focused');
@@ -29089,18 +29097,65 @@ install();updateHomeMuseumPreview();refreshMuseumNotices();
     const stop=()=>offs.forEach(f=>f());stop.pages=pages;stop.counts=counts;reactions.set(id,stop);
    }
  }
+ // Museum posts use an inclusive composite cursor and a one-record lookahead.
+ // This is independent of the chat pager; query limit remains <=60.
+ function museumPostPages(base,size,changed,failed){
+   const query=base.orderByChild('createdAt').limitToLast(size),rows=new Map();
+   let cursor=null,previous=new Set(),more=false,busy=false,closed=false,ready=false,error=false;
+   const entries=snap=>{const list=[];snap.forEach(c=>{list.push([c.key,c.val()])});return list};
+   const cmp=(a,b)=>Number(a[1]?.createdAt)-Number(b[1]?.createdAt)||(a[0]<b[0]?-1:a[0]>b[0]?1:0);
+   const publish=()=>{if(!closed)changed(rows)};
+   const fail=e=>{if(!closed){error=true;failed(e)}};
+   function live(snap){
+     if(closed)return;
+     const list=entries(snap),keys=new Set(list.map(([k])=>k));
+     // A limited live query's eviction is not a database deletion. Verify individually.
+     for(const id of previous)if(!keys.has(id))base.child(id).once('value').then(s=>{
+       if(closed||previous.has(id))return;
+       const v=s.val();if(v)rows.set(id,v);else rows.delete(id);publish();
+     }).catch(()=>{});
+     const overlap=list.some(([k])=>previous.has(k));
+     // If the live window jumped completely, start a fresh backward scan to fill its gap.
+     if(!ready||(!busy&&list.length&&previous.size&&!overlap)){
+       cursor=list[0]||null;more=list.length===size;
+     }
+     ready=true;error=false;previous=keys;
+     for(const [k,v] of list)rows.set(k,v);
+     publish();
+   }
+   query.on('value',live,fail);
+   return {get more(){return more},get busy(){return busy},get error(){return error},get ready(){return ready},
+     close(){closed=true;query.off('value',live)},
+     replaceKnown(k,v){if(closed)return;if(v)rows.set(k,v);else rows.delete(k);publish()},
+     async older(){
+       if(closed||busy)return false;
+       if(!ready){try{live(await query.once('value'));return true}catch(e){fail(e);return false}}
+       if(!more||!cursor)return false;
+       busy=true;error=false;const anchor=cursor;
+       try{
+         // endAt includes the anchor; request an extra record, then exclude the anchor by key.
+         const raw=entries(await base.orderByChild('createdAt').endAt(anchor[1].createdAt,anchor[0]).limitToLast(size+1).once('value'));
+         if(closed)return false;
+         const older=raw.filter(x=>cmp(x,anchor)<0),page=older.slice(-size);
+         for(const [k,v] of page)rows.set(k,v);
+         if(page.length)cursor=page[0];
+         more=older.length>=size;error=false;publish();return true;
+       }catch(e){fail(e);return false}finally{busy=false}
+     }
+   };
+ }
  function connect(uid,app){if(account===uid&&db)return;detach();account=uid;db=app.database();
-   feedPage=artHistoryPages(ref('publicPosts'),8,'createdAt',rows=>{
+   feedPage=museumPostPages(ref('publicPosts'),8,rows=>{
     state.posts=[...rows].filter(([,p])=>p?.image&&p.visibility==='public').map(([id,p])=>pubPost(id,p));
     if(!document.getElementById('artMuseum')?.hidden)watchReactions();status('オンライン美術館 接続済み');reload()
-   },()=>status('作品一覧の読み込みに失敗しました'));
+   },()=>{status('作品一覧の読み込みに失敗しました。再試行できます。');reload()});
    // Read accepted friend requests only for the authenticated user; author-side requests
    // can still be discovered when using the existing social friend list in a future update.
    const fr=app.database().ref('artopia_social_v1/requests/'+uid);refs.push(fr);
    fr.on('value',snap=>{const value=snap.val()||{};friendSet=new Set(Object.entries(value).filter(([,v])=>v?.status==='accepted').map(([k])=>k));reload()},()=>{});
  }
  const api={async fetchPost(id){if(!db||!id||/[.#$\[\]\/]/.test(id))return;const uid=account,snap=await ref('publicPosts/'+id).once('value'),v=snap.val();if(account===uid&&v?.visibility==='public'&&v.image){linkedPosts.set(id,pubPost(id,v));watchReactions()}},reactionPage:(id,kind)=>reactions.get(id)?.pages[kind],visibleCount:(id,kind)=>{const v=reactions.get(id)?.counts[kind];if(kind==='comments'&&id===commentId&&commentPage&&typeof v==='string'&&v.endsWith('件以上')&&state.comments.length>parseInt(v,10))return state.comments.length+(commentPage.more?'件以上':'');return v},commentCount:id=>id===commentId&&commentPage?state.comments.length+(commentPage.more?'件以上':''):null,selectComments,watchReactions,leave(){selectComments('');for(const off of reactions.values())off();reactions.clear()},
-   morePosts:()=>feedPage?.more,olderPosts:()=>feedPage?.older(),moreComments:id=>id===commentId&&commentPage?.more,olderComments:()=>commentPage?.older(),uid:()=>account,state:()=>({...state,posts:[...linkedPosts.values()].filter(x=>!state.posts.some(p=>p.id===x.id)).concat(state.posts)}),friends:()=>friendSet,
+   morePosts:()=>feedPage?.more,postsError:()=>feedPage?.error,postsBusy:()=>feedPage?.busy,postsReady:()=>feedPage?.ready,olderPosts:()=>feedPage?.older(),moreComments:id=>id===commentId&&commentPage?.more,olderComments:()=>commentPage?.older(),uid:()=>account,state:()=>({...state,posts:[...linkedPosts.values()].filter(x=>!state.posts.some(p=>p.id===x.id)).concat(state.posts)}),friends:()=>friendSet,
    async createPost(p){if(!account||!db)throw Error('offline');const image=await compress(p.image);
      const id=ref('publicPosts').push().key;
      const avatar=clean(p.avatar,14001);
